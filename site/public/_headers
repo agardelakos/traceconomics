@@ -1,0 +1,17 @@
+# Response headers for Cloudflare Pages (this file is read by the host, not served).
+#
+# Content Security Policy: everything comes from this site, no outside requests, and scripts
+# only as files from this site (no inline scripts): that is where the protection lies. Inline
+# styles are allowed: the chart library adds a small style element to every chart and sets style
+# attributes, and templates use a few. Allowing one exact hash instead would break chart styling
+# silently whenever the library changed, and a page with no forms or secrets gains little from it.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+
+# The published data can be read from other sites and tools (e.g. DuckDB querying the Parquet
+# files over the web), with no account and no key.
+/data/*
+  Access-Control-Allow-Origin: *

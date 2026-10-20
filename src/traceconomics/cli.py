@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import traceback
 from datetime import date
 from pathlib import Path
@@ -93,8 +94,17 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("backup-done", help="record that the archive was just backed up")
     sub.add_parser("notify-test", help="send a test message through the configured channel")
 
-    sc = sub.add_parser("schedule", help="Windows Task Scheduler trigger")
-    sc.add_argument("action", choices=["install", "remove", "show"])
+    bk = sub.add_parser("backup", help="copy new archive files to private cloud storage (never the microdata)")
+    bk.add_argument("action", choices=["sync", "plan"], help="sync: send them; plan: list what would be sent")
+
+    rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
+    rl.add_argument("action", choices=["build", "promote", "status"])
+    rl.add_argument("id", nargs="?", help="promote: the build to publish (from `release status`)")
+
+    sc = sub.add_parser("schedule", help="the daily trigger: Windows Task Scheduler, or systemd units on Linux")
+    sc.add_argument("action", choices=["install", "remove", "show", "units"],
+                    help="install/remove/show: Windows; units: write the Linux service and timer files")
+    sc.add_argument("--out", type=Path, help="units: folder to write into (e.g. ~/.config/systemd/user)")
 
     mg = sub.add_parser("migrate-local", help="one-off: move a local setup from the project's earlier name")
     mg.add_argument("--dry-run", action="store_true", help="show what would move; change nothing")
@@ -114,6 +124,9 @@ def main(argv: list[str] | None = None) -> int:
         cfg = config_mod.load(args.config)
     except config_mod.ConfigError as exc:
         p.error(str(exc))
+    if args.config is not None:
+        # Steps a release runs as separate processes must read the same file.
+        os.environ[config_mod.CONFIG_ENV] = str(args.config.resolve())
 
     try:
         return _dispatch(args, cfg)
@@ -583,7 +596,45 @@ def _dispatch(args, cfg) -> int:
         print("Sent to: " + notify(cfg, "test message", "If you can read this, alerts reach you."))
         return 0
 
+    if args.command == "backup":
+        from traceconomics import backup
+
+        if args.action == "plan":
+            todo = backup.plan(cfg.archive_dir)
+            print(f"{len(todo)} files to send")
+            for name, _ in todo[:50]:
+                print(f"  {name}")
+            return 0
+        result = backup.sync(cfg.archive_dir)
+        print(json.dumps(result))
+        return 0 if result["result"] in ("ok", "off") else 1
+
+    if args.command == "release":
+        from traceconomics import release
+
+        if args.action == "build":
+            result = release.build(cfg, args.config)
+            print(release.render(result))
+            return 0 if result["result"] == "ok" else 1
+        if args.action == "promote":
+            if not args.id:
+                print("Which build? See `traceconomics release status`.")
+                return 2
+            done = release.promote(cfg, args.id)
+            print(f"Promoted {done['id']} to {done['branch']}: {done.get('url') or '(no address in the log)'}")
+            return 0
+        for b in release.status(cfg.release.releases_dir):
+            print(f"  {b['id']}  {b['result']:7s}  {b.get('failed_step') or ''}  {b.get('preview_url') or ''}")
+        return 0
+
     if args.command == "schedule":
+        if args.action == "units":
+            if not args.out:
+                print("Where? Pass --out, e.g. ~/.config/systemd/user")
+                return 2
+            for path in schedule.write_units(cfg, args.out):
+                print(f"Wrote {path}")
+            return 0
         if args.action == "install":
             print(f"Installed task {schedule.install(cfg)}: daily at {cfg.run_after:%H:%M}, runs missed triggers later.")
         elif args.action == "remove":

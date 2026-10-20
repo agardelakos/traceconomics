@@ -1,9 +1,13 @@
-"""Registering the daily trigger with Windows Task Scheduler.
+"""Registering the daily trigger: Windows Task Scheduler, or systemd on a Linux server.
 
-The task fires every day at the configured time; the job itself decides
-whether a release makes the run due. "Start when available" makes Windows run
-a missed trigger as soon as it can, e.g. after the computer was off.
-After moving to a hosted scheduler this module is no longer needed.
+The trigger fires every day at the configured time; the job itself decides whether a release
+makes the run due. A missed trigger runs as soon as it can, e.g. after the computer was off:
+"Start when available" on Windows, `Persistent=true` with systemd.
+
+On Linux the job runs inside the official Python image, pinned by digest, so the server runs
+exactly the interpreter and system libraries the tests ran on. The container runs as the user,
+with the user's home folder mounted at the same path: every path in the config means the same
+inside and outside, and nothing runs as root.
 """
 
 from __future__ import annotations
@@ -15,9 +19,34 @@ from datetime import date
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from traceconomics.config import Config
+from traceconomics.config import Config, default_config_path
 
 TASK_NAME = "traceconomics-archive"
+
+# python:3.14.8-slim, multi-platform index (linux/arm64 and amd64), built 2026-10-06.
+IMAGE = "python:3.14.8-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170"
+
+SERVICE = """[Unit]
+Description=Traceconomics: archive public statistics on release days, then build a release
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=8h
+ExecStart={command}
+"""
+
+TIMER = """[Unit]
+Description=Traceconomics: daily trigger ({time} {timezone})
+
+[Timer]
+OnCalendar=*-*-* {time}:00 {timezone}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+"""
 
 TEMPLATE = """<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
@@ -74,7 +103,8 @@ def _pythonw() -> Path:
 
 def install(config: Config) -> str:
     if sys.platform != "win32":
-        raise SystemExit("Task Scheduler is Windows only; use cron or a hosted scheduler elsewhere.")
+        raise SystemExit("Task Scheduler is Windows only. On Linux: `traceconomics schedule units --out "
+                         "~/.config/systemd/user`, then `systemctl --user enable --now traceconomics-archive.timer`.")
     xml = task_xml(config, _pythonw())
     with tempfile.TemporaryDirectory() as d:
         path = Path(d) / "task.xml"
@@ -91,3 +121,44 @@ def show() -> str:
     out = subprocess.run(["schtasks", "/Query", "/TN", TASK_NAME, "/V", "/FO", "LIST"],
                          capture_output=True, text=True)
     return out.stdout or out.stderr
+
+
+def container_command(*, uid: int, gid: int, home: Path, repo: Path, venv: Path, node: Path,
+                      env_file: Path, image: str = IMAGE, args: tuple[str, ...] = ("archive",)) -> list[str]:
+    """`docker run` for one traceconomics command inside the pinned image, as the given user."""
+    home, repo, venv, node, env_file = (Path(p).as_posix() for p in (home, repo, venv, node, env_file))
+    path = f"{venv}/bin:{node}/bin:/usr/local/bin:/usr/bin:/bin"
+    return ["/usr/bin/docker", "run", "--rm", "--init", f"--user={uid}:{gid}",
+            f"--volume={home}:{home}", f"--env=HOME={home}", f"--env=PATH={path}",
+            f"--env-file={env_file}", f"--workdir={repo}", image,
+            f"{venv}/bin/python", "-I", "-m", "traceconomics", *args]
+
+
+def systemd_units(config: Config, *, uid: int, gid: int, home: Path, repo: Path, venv: Path,
+                  node: Path, env_file: Path, image: str = IMAGE) -> dict[str, str]:
+    """The service and timer files, by file name."""
+    cmd = container_command(uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node,
+                            env_file=env_file, image=image)
+    return {
+        f"{TASK_NAME}.service": SERVICE.format(command=" ".join(cmd)),
+        f"{TASK_NAME}.timer": TIMER.format(time=config.run_after.strftime("%H:%M"), timezone=config.timezone),
+    }
+
+
+def write_units(config: Config, out: Path, *, node: Path | None = None, env_file: Path | None = None) -> list[Path]:
+    """Write the unit files for this machine (run inside the container, into the user's systemd folder)."""
+    import os
+
+    home = Path.home()
+    units = systemd_units(
+        config, uid=os.getuid(), gid=os.getgid(), home=home,
+        repo=Path(__file__).resolve().parents[2], venv=Path(sys.prefix),
+        node=node or home / "traceconomics-node",
+        env_file=env_file or default_config_path().with_name("env"),
+    )
+    out.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for name, text in units.items():
+        (out / name).write_text(text, encoding="utf-8")
+        paths.append(out / name)
+    return paths

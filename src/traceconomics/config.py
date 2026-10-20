@@ -36,6 +36,24 @@ class EmailConfig:
 
 
 @dataclass(frozen=True)
+class ReleaseConfig:
+    """Building releases after the archive job (`traceconomics release`). Off unless enabled:
+    only the machine that publishes the site builds releases."""
+
+    enabled: bool = False
+    # Each build keeps its outputs, site files and report here.
+    releases_dir: Path = field(default_factory=lambda: Path.home() / "traceconomics-releases")
+    # The website project (the repository's site/ folder).
+    site_dir: Path | None = None
+    pages_project: str = "traceconomics"
+    # Promoting a build deploys it to this branch: a private alias until launch, then production.
+    promote_branch: str = "staging"
+    # Builds kept on disk, newest first; the promoted one is always kept.
+    keep: int = 12
+    replicates: int = 1000
+
+
+@dataclass(frozen=True)
 class Config:
     archive_dir: Path
     user_agent: str
@@ -50,6 +68,7 @@ class Config:
     store_dir: Path = field(default_factory=lambda: Path.home() / "traceconomics-store")
     store_memory_limit: str = "2GB"
     store_threads: int | None = None
+    release: ReleaseConfig = field(default_factory=ReleaseConfig)
 
 
 class ConfigError(Exception):
@@ -93,6 +112,18 @@ def parse(raw: dict, base_dir: Path) -> Config:
             )
             if email.security not in ("starttls", "ssl"):
                 raise ConfigError("email.security must be 'starttls' or 'ssl'")
+        rel = raw.get("release", {})
+        release = ReleaseConfig(
+            enabled=bool(rel.get("enabled", False)),
+            releases_dir=_path(rel.get("dir", "~/traceconomics-releases"), base_dir),
+            site_dir=_path(rel["site_dir"], base_dir) if "site_dir" in rel else None,
+            pages_project=str(rel.get("pages_project", "traceconomics")),
+            promote_branch=str(rel.get("promote_branch", "staging")),
+            keep=int(rel.get("keep", 12)),
+            replicates=int(rel.get("replicates", 1000)),
+        )
+        if release.enabled and release.site_dir is None:
+            raise ConfigError("release.site_dir is required when release.enabled is true")
         run_after = schedule.get("run_after", "13:00")
         hour, minute = (int(x) for x in run_after.split(":"))
         return Config(
@@ -108,6 +139,7 @@ def parse(raw: dict, base_dir: Path) -> Config:
             store_dir=_path(store.get("dir", "~/traceconomics-store"), base_dir),
             store_memory_limit=str(store.get("memory_limit", "2GB")),
             store_threads=int(store["threads"]) if "threads" in store else None,
+            release=release,
         )
     except KeyError as exc:
         raise ConfigError(f"Missing config field: {exc}") from exc

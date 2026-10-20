@@ -17,6 +17,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from traceconomics import backup, heartbeat
 from traceconomics.archive.store import Archive, iso, utc_now
 from traceconomics.config import Config
 from traceconomics.notify import notify
@@ -119,6 +120,7 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     if not (due.due or force):
         record = {"started": iso(started), "result": "not-due", "reason": due.reason}
         if not dry_run:
+            record["heartbeat"] = heartbeat.send(record)
             archive.append_run(record)
         return record
 
@@ -155,7 +157,15 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         "stored": len(stored), "unchanged": len(unchanged), "failures": ctx.failures,
         "alerts": len(ctx.alerts), "report": sent_to,
     }
+    if stored:
+        record["backup"] = backup.sync(root)
+    record["heartbeat"] = heartbeat.send(record)
     archive.append_run(record)
+    if config.release.enabled and good:
+        from traceconomics import release   # imports this module; loaded only when needed
+
+        if new_inputs := release.feeds_store(archive, stored):
+            record["release"] = release.build(config, reason="new data: " + ", ".join(sorted(set(new_inputs))))["id"]
     return record
 
 

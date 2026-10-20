@@ -1,0 +1,30 @@
+# Daily check that the pipeline's server ran: reads the heartbeat it uploads after every run and
+# fails if it is missing, too old or reports a failure. GitHub emails a failed scheduled run.
+#
+# Off until the repository variable WATCHDOG_ENABLED is "true" (set once the server is running),
+# so it doesn't fail every day before then. Needs the secret HEARTBEAT_URL: a read-only link to
+# the heartbeat file.
+
+name: watchdog
+
+on:
+  schedule:
+    - cron: "0 13 * * *"     # 13:00 UTC: 2-3 hours after the 13:00 Greek-time run
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heartbeat:
+    if: vars.WATCHDOG_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - run: python3 .github/scripts/check_heartbeat.py
+        env:
+          HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}

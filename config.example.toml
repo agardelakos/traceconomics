@@ -38,3 +38,19 @@ memory_limit = "2GB"
 # username = "alerts@example.org"
 # sender = "alerts@example.org"
 # recipients = ["you@example.org"]
+
+# Optional: build a release after each archive run that brought new data (`traceconomics release`).
+# Only the machine that publishes the site enables this. A build recomputes every series, runs the
+# checks, builds the site and uploads it as a private preview; the owner then promotes it with
+# `traceconomics release promote <id>`.
+# Secrets come only from the environment, never from this file:
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID   site uploads (Cloudflare Pages)
+#   TRACECONOMICS_HEARTBEAT_URL                   where each run reports that it ran (optional)
+#   TRACECONOMICS_BACKUP_URL                      where new archive files are copied (optional)
+# [release]
+# enabled = true
+# dir = "~/traceconomics-releases"
+# site_dir = "~/traceconomics/site"
+# pages_project = "traceconomics"
+# promote_branch = "staging"       # "main" once the site is public
+# keep = 12

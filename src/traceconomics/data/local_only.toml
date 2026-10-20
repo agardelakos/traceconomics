@@ -1,6 +1,6 @@
 # Archive datasets that hold microdata (one record per household or person) and must
-# never leave the owner's machine: not published, not synced to any cloud copy, not
-# attached to a release. Only aggregates computed from them may be.
+# stay on machines the owner controls: not published, not synced to any cloud or shared
+# storage, not attached to a release. Only aggregates computed from them may be.
 #
 # Patterns are source/dataset; a trailing * matches any dataset with that prefix.
 # Every step that publishes or copies the archive anywhere must call

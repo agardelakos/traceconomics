@@ -1,8 +1,10 @@
-"""Which archived datasets hold microdata and must never leave the owner's machine.
+"""Which archived datasets hold microdata and must stay on machines the owner controls.
 
 The raw archive is meant to be published, so anyone can trace a number back to
 its source file. Microdata are the exception: the files ELSTAT provides for
-research may be used here, but only aggregates computed from them are shared.
+research may be used here, but only aggregates computed from them are shared. They may sit
+on the owner's own machines (a computer, a home backup drive, a private server the owner runs),
+never on a public site, in shared or cloud storage, or in a release.
 The list is in `traceconomics/data/local_only.toml`; anything that publishes or copies
 archive files must pass them through `check` first.
 """

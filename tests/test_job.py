@@ -171,3 +171,31 @@ def test_backup_mark(tmp_path, fake_http):
     job.mark_backup_done(c)
     mark = job.load_state(c.archive_dir)["backup_mark"]
     assert Archive(c.archive_dir).stored_since(mark) == []
+
+
+def test_heartbeat_backup_and_release_follow_a_run_with_new_data(tmp_path, fake_http, monkeypatch):
+    from traceconomics import release
+    from traceconomics.config import ReleaseConfig
+
+    beats, builds = [], []
+    monkeypatch.setattr(job.heartbeat, "send", lambda record: beats.append(record["result"]) or "sent")
+    monkeypatch.setattr(job.backup, "sync", lambda root: {"result": "ok", "sent": 1})
+    monkeypatch.setattr(release, "build", lambda config, reason: builds.append(reason) or {"id": "R1"})
+    on = ReleaseConfig(enabled=True, releases_dir=tmp_path / "rel", site_dir=tmp_path / "site")
+
+    first = job.run(cfg(tmp_path, release=on), now=at(2026, 10, 18, 14))
+    assert first["heartbeat"] == "sent" and first["backup"]["result"] == "ok" and first["release"] == "R1"
+    assert "eurostat/prc_hicp_minr" in builds[0]
+    # Nothing new: no release; a day without a release still sends its heartbeat.
+    again = job.run(cfg(tmp_path, release=on), now=at(2026, 10, 18, 15), force=True)
+    assert "release" not in again and "backup" not in again
+    quiet = job.run(cfg(tmp_path, release=on), now=at(2026, 10, 19, 14))
+    assert quiet["result"] == "not-due" and quiet["heartbeat"] == "sent"
+    assert len(builds) == 1 and beats == ["ok", "ok", "not-due"]
+
+
+def test_release_is_off_by_default(tmp_path, fake_http, monkeypatch):
+    from traceconomics import release
+
+    monkeypatch.setattr(release, "build", lambda *a, **k: pytest.fail("no release on a machine without [release]"))
+    assert "release" not in job.run(cfg(tmp_path), now=at(2026, 10, 18, 14))
