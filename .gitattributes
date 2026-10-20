@@ -1,0 +1,6 @@
+# Text files are stored with LF line endings, whatever the platform.
+* text=auto
+
+# Test fixtures are saved copies of publishers' files. Git stores them byte for byte, with no
+# line-ending conversion, so each one can be checked against the original by its hash.
+tests/fixtures/** -text

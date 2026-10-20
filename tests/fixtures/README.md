@@ -20,3 +20,19 @@ tests run without network access and fail if a parser stops understanding a form
 
 Source: ELSTAT (Hellenic Statistical Authority) and Eurostat, reused under their reuse
 policies. The files were shortened; the content of the kept parts is unchanged.
+
+## Untouched files
+
+These files are stored exactly as the publisher served them, byte for byte (see
+`.gitattributes`: git never converts their line endings). Anyone can download the source again
+and compare hashes. `tests/test_fixtures.py` checks that the stored files still have these hashes.
+
+| File | SHA-256 |
+|---|---|
+| `elstat_puf_catalogue.html` | `5c8e1dd4b77cba49a4c37f9bfe596f3b18c0f04daa352670ffc4652b880ef64e` |
+| `eurostat_dataflow_prc_hicp_minr.xml` | `a596c37a894355954184b09b0963640d6bc3bc3589ea414635adfc2935893ee7` |
+| `elstat_cpi07_2025.xls` | `0ac766c66db2f77964b7ae72015851636d12649476387b21d58c6fe43686c0f1` |
+| `elstat_hbs_t103_2018.xls` | `91dd130659c0c165ef643fe5dcf28c51c5de86aac8c6f4440c353142bbc4151a` |
+| `elstat_hbs_t103_2024.xlsx` | `cfccb45f78bedf799b71c7f589e36cb33b1d14986037c9a1f2c7b0b28c46b345` |
+| `elstat_cpi07_2026.xlsx` | `11baa71c365f5203f36ba5e9745e31df38ead23a3bb9e5ac27cf439fc0448593` |
+| `elstat_cpi07_2011_el.xls` | `6f7496fe0925d0ac7931264e6cfb338ceff7f890d9f8af033f9e234499f74eb7` |

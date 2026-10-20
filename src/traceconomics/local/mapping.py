@@ -31,10 +31,8 @@ kept and every grouping can be computed on the result.
 from __future__ import annotations
 
 import csv
-import io
 import re
 from dataclasses import dataclass, field, replace
-from importlib import resources
 from pathlib import Path
 
 import numpy as np
@@ -42,10 +40,8 @@ import pandas as pd
 
 from traceconomics.checks import require
 from traceconomics.local.puf import Survey
+from traceconomics.mapping_tables import FIELDS, OLD_TO_V1, V1_TO_2018, read
 
-V1_TO_2018 = "coicop_v1_2018.csv"
-OLD_TO_V1 = "hbs_2008_2014_v1.csv"
-FIELDS = ("from_code", "to_code", "share", "method", "note")
 SUBCLASS = re.compile(r"^\d{5}$")
 OLD_LIST_YEARS = range(2008, 2015)
 BRIDGE_YEAR = 2015           # the survey whose shares split the older list's classes
@@ -56,13 +52,7 @@ MISFIT = 0.01                # a RAS group whose new-subclass totals are missed 
 # ---- applying ---------------------------------------------------------------------------------
 
 def load(name: str) -> pd.DataFrame:
-    text = resources.files("traceconomics.data").joinpath(name).read_text(encoding="utf-8")
-    body = "\n".join(line for line in text.splitlines() if not line.startswith("#"))
-    table = pd.read_csv(io.StringIO(body), dtype={"from_code": str, "to_code": str}, keep_default_na=False)
-    require(tuple(table.columns) == FIELDS, f"{name}: columns {list(table.columns)}")
-    sums = table.groupby("from_code").share.sum()
-    require(((sums - 1).abs() < 1e-9).all(), f"{name}: shares that don't add up to 1 for {list(sums[(sums - 1).abs() >= 1e-9].index[:5])}")
-    return table
+    return pd.DataFrame(read(name), columns=list(FIELDS))
 
 
 def _apply(frame: pd.DataFrame, table: pd.DataFrame, what: str) -> pd.DataFrame:

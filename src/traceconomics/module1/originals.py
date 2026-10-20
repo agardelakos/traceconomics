@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from traceconomics.checks import require
 from traceconomics.engine.chain import Prices, link_month, months
-from traceconomics.local.mapping import V1_TO_2018, load
+from traceconomics import mapping_tables
 from traceconomics.sources.elstat.original07 import TOTAL, Original07, parse
 
 YEARS = (2008, 2009, 2010)
@@ -88,11 +88,10 @@ def to_2018(t: Original07, levels: dict[str, dict[str, float]], previous: dict[s
 
     With `previous` (last year's levels, same base): movements since December of the year
     before, December = 100. Without: levels with each row's own yearly average at 100."""
-    table = load(V1_TO_2018)
     shares: dict[str, list[tuple[str, float]]] = {}
-    for row in table.itertuples():
-        if row.share > 0:                     # a few RAS splits round to exactly 0: they carry nothing
-            shares.setdefault(row.from_code, []).append((row.to_code, row.share))
+    for row in mapping_tables.read(mapping_tables.V1_TO_2018):
+        if row["share"] > 0:                  # a few RAS splits round to exactly 0: they carry nothing
+            shares.setdefault(row["from_code"], []).append((row["to_code"], row["share"]))
     base = link_month(year)
     rows = {v1: _row_for(v1, t, previous, base) for v1 in shares}
     per_row: dict[str, int] = {}

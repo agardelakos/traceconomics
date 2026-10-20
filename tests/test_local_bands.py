@@ -1,12 +1,14 @@
 """Error bands for the group series: the vectorised replicates against a plain loop."""
 
-import numpy as np
 import pytest
 
-from traceconomics.engine.rates import annual_rate
-from traceconomics.local.bands import bands
-from traceconomics.module1 import index
-from traceconomics.module1.weights_used import Basket
+pytest.importorskip("pandas")
+np = pytest.importorskip("numpy")
+
+from traceconomics.engine.rates import annual_rate  # noqa: E402
+from traceconomics.local.bands import bands  # noqa: E402
+from traceconomics.module1 import index  # noqa: E402
+from traceconomics.module1.weights_used import Basket  # noqa: E402
 
 
 def blocks():

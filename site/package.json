@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "test": "vitest run",
     "check": "astro check && vitest run && astro build && node scripts/checks.mjs",
+    "check:code": "astro check && vitest run --exclude src/lib/engine/parity.test.ts",
     "a11y": "node scripts/a11y.mjs",
     "shots": "node scripts/shots.mjs"
   },

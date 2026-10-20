@@ -70,10 +70,10 @@ def test_archived_tables_reach_the_store(tmp_path):
     reports = update(archive, store, con, only=["oet-local:hbs_weights", "oet-local:hbs_groups"])
     assert [r.added for r in reports] == [11, 5]          # 4 + 4 + 3 (one se is empty); 5
     open_views(con, store.root)
-    share = as_of(con, "oet-local:hbs_weights", where="measure = 'share' AND \"group\" = 'all'").df()
-    assert share.value.tolist() == [0.25] and share.coicop18.tolist() == ["01"] and share.ref_period.tolist() == ["2016"]
-    unc = as_of(con, "oet-local:hbs_groups", where="measure = 'uncovered_purchases_share'").df()
-    assert unc.value.tolist() == [0.0355]
+    share = as_of(con, "oet-local:hbs_weights", where="measure = 'share' AND \"group\" = 'all'")
+    assert share.project("value, coicop18, ref_period").fetchall() == [(0.25, "01", "2016")]
+    unc = as_of(con, "oet-local:hbs_groups", where="measure = 'uncovered_purchases_share'")
+    assert unc.project("value").fetchall() == [(0.0355,)]
 
 
 def test_csv_writes_small_counts_as_text_and_is_repeatable():
