@@ -34,6 +34,7 @@ def cpi_blocks(con: duckdb.DuckDBPyConnection, when=None) -> dict[int, Prices]:
         QUALIFY row_number() OVER (PARTITION BY archive_dataset, key, ref_period
                                    ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
+        ORDER BY archive_dataset, coicop18, ref_period    -- fixed order: see load_baskets
     """, params).fetchall()
     by_file: dict[str, Prices] = {}
     for archive_dataset, code, period, value in rows:
@@ -115,6 +116,7 @@ def hicp_blocks(con: duckdb.DuckDBPyConnection, when=None, geo: str = "GR") -> d
         SELECT coicop18, ref_period, value FROM observations WHERE {cond}
         QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
+        ORDER BY coicop18, ref_period                     -- fixed order: see load_baskets
     """, params).fetchall()
     series: Prices = {}
     for code, period, value in rows:

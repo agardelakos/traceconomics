@@ -1,5 +1,7 @@
 # Traceconomics
 
+[![tests](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml)
+
 An open, transparent tracker of the economy, built only on public data. Greece first, designed for many countries.
 
 **Status: in development, not yet published.** What works:

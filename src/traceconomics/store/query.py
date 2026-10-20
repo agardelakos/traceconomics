@@ -28,7 +28,8 @@ def as_of(con: duckdb.DuckDBPyConnection, dataset: str, when: datetime | None = 
     `by="published_at"` answers "what had the source published by then?";
     `by="retrieved_at"` answers "what did our pipeline have by then?".
     `where` adds an SQL condition, e.g. "geo = 'GR' AND unit = 'I25'".
-    Withdrawn values are left out.
+    Withdrawn values are left out. Rows come sorted by key and period, so anything summed over them
+    is summed in the same order on every run (parallel reads would otherwise vary it).
     """
     if by not in ("published_at", "retrieved_at"):
         raise ValueError("by must be published_at or retrieved_at")
@@ -45,5 +46,6 @@ def as_of(con: duckdb.DuckDBPyConnection, dataset: str, when: datetime | None = 
                                          ORDER BY {by} DESC, retrieved_at DESC) AS rn
             FROM observations WHERE {' AND '.join(cond)}
         ) WHERE rn = 1 AND status <> 'withdrawn'
+        ORDER BY key, ref_period
     """
     return con.query(sql, params=params)

@@ -152,3 +152,18 @@ def test_part_without_a_loaded_record_is_dropped(tmp_path, con):
     (folder / "99999-orphan.parquet").write_bytes(part.read_bytes())   # as if a crash came before logging
     update(archive, store, con, only=[MINR])
     assert not (folder / "99999-orphan.parquet").exists()
+
+
+def test_as_of_rows_come_in_a_fixed_order(tmp_path):
+    # Parallel reads return rows in any order; sums over them must not depend on it.
+    archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
+    put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
+    results = []
+    for threads in (1, 4):
+        c = duckdb.connect(config={"threads": threads})
+        update(archive, store, c, only=[MINR])
+        open_views(c, store.root)
+        rel = as_of(c, MINR)
+        results.append(rel.project("key, ref_period").fetchall())
+        c.close()
+    assert results[0] == results[1] == sorted(results[0]) and len(results[0]) > 1000

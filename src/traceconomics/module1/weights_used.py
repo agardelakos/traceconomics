@@ -156,13 +156,19 @@ def weights_used(basket: Basket, entry: Entry, blocks: dict[int, Prices], *, tut
 
 def load_baskets(con: duckdb.DuckDBPyConnection, *, spending: str, imputed_rent: str = "excluded",
                  geo: str = "GR") -> dict[tuple[int, str, str], Basket]:
-    """{(survey year, grouping, group): Basket} from the store's weights tables."""
+    """{(survey year, grouping, group): Basket} from the store's weights tables.
+
+    DuckDB reads in parallel, so rows come back in a different order on each run unless the
+    query fixes it. The order becomes the order of the dicts and so of every sum over them, and
+    floating-point sums depend on order in the last digits: without ORDER BY, two runs on the same
+    data would not give byte-identical files."""
     rows = con.execute("""
         SELECT ref_period, grouping, "group", coicop18, measure, value, value_text FROM observations
         WHERE dataset = 'oet-local:hbs_weights' AND geo = $geo AND spending = $sp AND imputed_rent = $ir
           AND measure IN ('share', 'reliability')
         QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
+        ORDER BY ref_period, grouping, "group", measure, coicop18
     """, {"geo": geo, "sp": spending, "ir": imputed_rent}).fetchall()
     shares: dict[tuple, dict] = {}
     tiers: dict[tuple, dict] = {}
