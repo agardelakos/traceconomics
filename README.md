@@ -100,4 +100,4 @@ The tests use small saved extracts of real pages (`tests/fixtures/`) and never t
 
 ## Licence
 
-Code: [Apache-2.0](LICENSE). Data published by this project: CC BY 4.0.
+Copyright 2026 agardelakos. Code: [Apache-2.0](LICENSE), with the notices in [NOTICE](NOTICE). Data published by this project: CC BY 4.0.
