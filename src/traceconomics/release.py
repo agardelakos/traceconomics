@@ -6,8 +6,10 @@ site, and upload it as a preview. Each build gets a folder (`<releases>/<id>/`) 
 log, the outputs, the built site, checksums of both and a report, which is emailed with the
 preview link and what changed since the last release.
 
-Nothing reaches the site's public address until the owner looks at the preview and promotes the
-build (`promote`): a person checks every release before it is published.
+The site is hosted as static files on Cloudflare Workers. An upload creates a version with its own
+preview address and leaves the live site as it is. Nothing reaches the public address until the
+owner looks at the preview and promotes the build (`promote`): a person checks every release
+before it is published.
 """
 
 from __future__ import annotations
@@ -30,7 +32,10 @@ from traceconomics.job import RunLock
 from traceconomics.notify import notify
 
 PROMOTED = "promoted.json"
-PREVIEW_URL = re.compile(r"https://[\w.-]+\.pages\.dev\S*")
+PREVIEW_URL = re.compile(r"https://[\w.-]+\.workers\.dev\b[^\s\"']*")
+# Promoting to this target publishes on the site's public address; any other name is a private
+# preview alias (used until launch).
+PRODUCTION = "production"
 LOG_TAIL = 40
 
 
@@ -72,13 +77,19 @@ def steps(cfg: Config, folder: Path, build_id: str) -> list[Step]:
         Step("export", _py("export", "site", "--out", str(site / "public" / "data"), "--outputs", str(outputs))),
         Step("npm-ci", ("npm", "ci", "--no-audit", "--no-fund"), site),
         Step("site-check", ("npm", "run", "check"), site),
-        Step("upload", _wrangler(site / "dist", r.pages_project, f"build-{build_id.lower()}"), site),
+        Step("upload", _upload(site / "dist", r.worker_name, f"build-{build_id.lower()}", build_id), site),
     ]
 
 
-def _wrangler(folder: Path, project: str, branch: str) -> tuple[str, ...]:
-    return ("npx", "--no-install", "wrangler", "pages", "deploy", str(folder),
-            "--project-name", project, "--branch", branch, "--commit-dirty=true")
+def _upload(folder: Path, name: str, alias: str, message: str) -> tuple[str, ...]:
+    """A new version with a preview address (`<alias>-<name>.<subdomain>.workers.dev`); the live site is untouched."""
+    return ("npx", "--no-install", "wrangler", "versions", "upload", "--assets", str(folder), "--name", name,
+            "--preview-alias", alias, "--message", message)
+
+
+def _publish(folder: Path, name: str, message: str) -> tuple[str, ...]:
+    """Upload and make live on the public address."""
+    return ("npx", "--no-install", "wrangler", "deploy", "--assets", str(folder), "--name", name, "--message", message)
 
 
 def _env(config_path: Path | None) -> dict:
@@ -155,9 +166,8 @@ def _tail(log: Path) -> list[str]:
 
 def _preview_url(logs: Path) -> str | None:
     for log in sorted(logs.glob("*-upload.log")):
-        found = PREVIEW_URL.findall(log.read_text(encoding="utf-8", errors="replace"))
-        if found:
-            return found[-1]
+        if url := _url_in(log):
+            return url
     return None
 
 
@@ -240,20 +250,25 @@ def promote(cfg: Config, build_id: str, *, runner: Runner = run_step) -> dict:
     record = json.loads((folder / "release.json").read_text(encoding="utf-8"))
     if record.get("result") != "ok":
         raise SystemExit(f"release {build_id} did not pass its checks; it can't be promoted")
-    step = Step("promote", _wrangler(folder / "dist", r.pages_project, r.promote_branch), r.site_dir)
+    argv = (_publish(folder / "dist", r.worker_name, build_id) if r.promote_to == PRODUCTION
+            else _upload(folder / "dist", r.worker_name, r.promote_to, build_id))
+    step = Step("promote", argv, r.site_dir)
     log = folder / "logs" / f"promote-{stamp(utc_now())}.log"
     code = runner(step, _env(None), log)
     if code != 0:
         raise SystemExit(f"upload failed; see {log}")
-    done = {"id": build_id, "branch": r.promote_branch, "promoted": iso(utc_now()),
-            "url": _preview_url_in(log)}
+    done = {"id": build_id, "to": r.promote_to, "promoted": iso(utc_now()), "url": _url_in(log)}
     _write_json(r.releases_dir / PROMOTED, done)
     return done
 
 
-def _preview_url_in(log: Path) -> str | None:
-    found = PREVIEW_URL.findall(log.read_text(encoding="utf-8", errors="replace"))
-    return found[-1] if found else None
+def _url_in(log: Path) -> str | None:
+    """The address in an upload log. Wrangler prints the version's own preview address and, when
+    an alias was given, the alias address too (stable across uploads): the alias is preferred."""
+    text = log.read_text(encoding="utf-8", errors="replace")
+    aliased = [u for line in text.splitlines() if "alias" in line.lower() for u in PREVIEW_URL.findall(line)]
+    found = PREVIEW_URL.findall(text)
+    return (aliased or found or [None])[-1]
 
 
 def status(releases_dir: Path) -> list[dict]:

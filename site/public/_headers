@@ -1,4 +1,4 @@
-# Response headers for Cloudflare Pages (this file is read by the host, not served).
+# Response headers for the static files on Cloudflare (this file is read by the host, not served).
 #
 # Content Security Policy: everything comes from this site, no outside requests, and scripts
 # only as files from this site (no inline scripts): that is where the protection lies. Inline

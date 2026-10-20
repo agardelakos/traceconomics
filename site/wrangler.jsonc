@@ -1,0 +1,15 @@
+// Hosting on Cloudflare Workers, static files only: no server code runs, the built site
+// (`dist/`, including `_headers`) is served as it is.
+//
+// Releases are uploaded as versions with preview addresses, which don't change the live site.
+// Until launch the public workers.dev address is off (workers_dev: false), so only previews exist.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "traceconomics",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  },
+  "workers_dev": false,
+  "preview_urls": true
+}

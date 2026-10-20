@@ -1,6 +1,6 @@
-// Visit every built page on a local Pages server and report Content Security Policy violations,
+// Visit every built page on a local server and report Content Security Policy violations,
 // with the headers from public/_headers applied as the host applies them.
-// Usage: npx wrangler pages dev dist --port 8788   (in another terminal), then  npm run csp
+// Usage: npx wrangler dev --port 8788   (in another terminal; serves dist/ as the host does), then  npm run csp
 import { createRequire } from "node:module";
 import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";

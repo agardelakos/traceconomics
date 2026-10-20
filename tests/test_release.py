@@ -21,16 +21,19 @@ class FakeSteps:
     """Records each step; the upload step prints a preview address; one step may fail."""
 
     def __init__(self, site: Path, fail: str | None = None):
-        self.site, self.fail, self.ran = site, fail, []
+        self.site, self.fail, self.ran, self.argvs = site, fail, [], []
 
     def __call__(self, step, env, log: Path) -> int:
         self.ran.append(step.name)
+        self.argvs.append(step.argv)
         text = f"$ {' '.join(step.argv)}\n"
         if step.name == "site-check":
             (self.site / "dist" / "en").mkdir(parents=True, exist_ok=True)
             (self.site / "dist" / "en" / "index.html").write_text("<p>ok</p>", encoding="utf-8")
         if step.name in ("upload", "promote"):
-            text += "Deployment complete! Take a peek over at https://abc123.traceconomics.pages.dev\n"
+            alias = step.argv[step.argv.index("--preview-alias") + 1] if "--preview-alias" in step.argv else "x"
+            text += ("Worker Version ID: 1234\nVersion Preview URL: https://ab12cd34-traceconomics.example.workers.dev\n"
+                     f"Version Preview Alias URL: https://{alias}-traceconomics.example.workers.dev\n")
         if step.name == "series":
             out = Path(step.argv[step.argv.index("--out") + 1]) / "gr" / "m1"
             out.mkdir(parents=True)
@@ -54,7 +57,7 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     assert fake.ran == ["store", "series", "bands", "store-bands", "check-v1", "check-v1-cpi", "check-combos",
                         "export", "npm-ci", "site-check", "upload"]
     folder = cfg.release.releases_dir / rec["id"]
-    assert rec["preview_url"] == "https://abc123.traceconomics.pages.dev"
+    assert rec["preview_url"] == "https://build-20261110t113000z-traceconomics.example.workers.dev"
     sums = (folder / "SHA256SUMS").read_text(encoding="utf-8")
     assert "  dist/en/index.html" in sums and "  outputs/gr/m1/m1_index.csv" in sums
     assert json.loads((folder / "release.json").read_text(encoding="utf-8"))["result"] == "ok"
@@ -72,12 +75,13 @@ def test_a_failed_step_stops_the_build_and_raises_an_alert(tmp_path, no_email):
     assert no_email[0][0].startswith("ALERT: release") and "check-v1" in no_email[0][0]
 
 
-def test_upload_branch_and_project_come_from_the_config(tmp_path):
+def test_upload_is_a_preview_version_named_from_the_config(tmp_path):
     cfg = config(tmp_path)
     up = release.steps(cfg, tmp_path / "r", "20261110T113000Z")[-1]
-    assert up.argv[:5] == ("npx", "--no-install", "wrangler", "pages", "deploy")
-    assert "--branch" in up.argv and up.argv[up.argv.index("--branch") + 1] == "build-20261110t113000z"
-    assert up.argv[up.argv.index("--project-name") + 1] == "traceconomics"
+    assert up.argv[:5] == ("npx", "--no-install", "wrangler", "versions", "upload")
+    assert up.argv[up.argv.index("--preview-alias") + 1] == "build-20261110t113000z"
+    assert up.argv[up.argv.index("--name") + 1] == "traceconomics"
+    assert up.argv[up.argv.index("--assets") + 1] == str(cfg.release.site_dir / "dist")
 
 
 def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path):
@@ -89,7 +93,8 @@ def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     fake = FakeSteps(cfg.release.site_dir)
     done = release.promote(cfg, good["id"], runner=fake)
-    assert done["branch"] == "staging" and done["url"].endswith(".pages.dev")
+    assert done["to"] == "staging" and done["url"] == "https://staging-traceconomics.example.workers.dev"
+    assert "versions" in fake.argvs[-1] and str(cfg.release.releases_dir / good["id"] / "dist") in fake.argvs[-1]
     assert release.baseline(cfg.release.releases_dir)["id"] == good["id"]
 
 
@@ -128,3 +133,14 @@ def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
     results = [stored("eurostat", "prc_hicp_minr"), stored("elstat", "calendar"),
                StoreResult("unchanged", "eurostat", "prc_hicp_iw", "0" * 64, None)]
     assert release.feeds_store(None, results) == ["eurostat/prc_hicp_minr"]
+
+
+def test_promoting_to_production_publishes_on_the_public_address(tmp_path):
+    from dataclasses import replace
+
+    cfg = config(tmp_path)
+    good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
+    live = replace(cfg, release=replace(cfg.release, promote_to="production"))
+    fake = FakeSteps(cfg.release.site_dir)
+    release.promote(live, good["id"], runner=fake)
+    assert fake.argvs[-1][:4] == ("npx", "--no-install", "wrangler", "deploy")

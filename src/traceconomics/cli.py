@@ -621,7 +621,7 @@ def _dispatch(args, cfg) -> int:
                 print("Which build? See `traceconomics release status`.")
                 return 2
             done = release.promote(cfg, args.id)
-            print(f"Promoted {done['id']} to {done['branch']}: {done.get('url') or '(no address in the log)'}")
+            print(f"Promoted {done['id']} to {done['to']}: {done.get('url') or '(no address in the log)'}")
             return 0
         for b in release.status(cfg.release.releases_dir):
             print(f"  {b['id']}  {b['result']:7s}  {b.get('failed_step') or ''}  {b.get('preview_url') or ''}")
