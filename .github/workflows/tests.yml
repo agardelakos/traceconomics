@@ -49,5 +49,11 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
+          # Reuses downloaded packages between runs (keyed on the lockfile): fewer downloads, fewer
+          # failures from a dropped connection to the registry.
+          cache: npm
+          cache-dependency-path: site/package-lock.json
       - run: npm ci --no-audit
+        env:
+          npm_config_fetch_retries: "5"
       - run: npm run check:code
