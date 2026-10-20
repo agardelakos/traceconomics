@@ -86,6 +86,41 @@ python -m traceconomics export site --out site/public/data       # the files the
 
 The job is triggered daily but only works on release days (read from both publishers' calendars). A day the computer was off is caught up at the next trigger and reported as missed.
 
+## Run it on a Linux server
+
+On a server the pipeline runs inside the official Python image, pinned by digest, so it uses exactly the interpreter and libraries the tests ran on. Results are byte-identical across machines: the same archive gives the same files on Windows and on Linux, on x86 and on Arm.
+
+One-time setup, as an ordinary user (not root), with Docker installed and that user in the `docker` group:
+
+```sh
+git clone <this repository> ~/traceconomics
+# Node.js for the site build, unpacked to ~/traceconomics-node (check its SHA-256 against nodejs.org)
+IMAGE=python:3.14.8-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170
+docker run --rm --user "$(id -u):$(id -g)" -v "$HOME:$HOME" -e "HOME=$HOME" -w "$HOME/traceconomics" $IMAGE \
+  sh -c 'python -m venv ~/traceconomics-venv && ~/traceconomics-venv/bin/pip install -e ".[local]"'
+# config: ~/.config/traceconomics/config.toml (see config.example.toml, including [release])
+# secrets: ~/.config/traceconomics/env, mode 600, one NAME=value per line (names in config.example.toml)
+docker run --rm --user "$(id -u):$(id -g)" -v "$HOME:$HOME" -e "HOME=$HOME" -w "$HOME/traceconomics" $IMAGE \
+  ~/traceconomics-venv/bin/python -I -m traceconomics schedule units --out ~/.config/systemd/user
+systemctl --user daemon-reload
+loginctl enable-linger "$USER"                                   # timers run without a login
+systemctl --user enable --now traceconomics-archive.timer        # daily at 13:00 Greek time
+```
+
+`schedule units` writes the daily timer and a `traceconomics` command in `~/.local/bin`, which runs the same container as the timer. After that:
+
+```sh
+traceconomics status                       # last runs, next release days
+traceconomics release status               # every release build: result and preview address
+traceconomics release build                # by hand; the daily job does this after new data
+traceconomics release promote <id>         # publish a build after looking at its preview
+traceconomics backup plan                  # archive files the cloud copy still lacks (never microdata)
+systemctl --user list-timers               # when the next run is
+journalctl --user -u traceconomics-archive # the job's output
+```
+
+A release build recomputes every series, runs the checks, builds and tests the site, and uploads it as a private preview; nothing reaches the public site until a person promotes it.
+
 ## Tests
 
 ```sh
