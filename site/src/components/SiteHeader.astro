@@ -1,0 +1,33 @@
+---
+// The header on every page: wordmark, main navigation and the language switch, which leads to
+// the same page in the other language. The navigation wraps on a phone; it needs no script.
+import { href, otherLang, t, type Lang } from "../lib/i18n";
+
+interface Props { lang: Lang; path: string; current?: string }
+const { lang, path, current } = Astro.props;
+const other = otherLang(lang);
+const items = ["home", "explore", "calculator", "method", "glossary", "data"];
+const target = (key: string) => (key === "home" ? "" : key);
+---
+<header class="site-header">
+  <div class="container bar">
+    <a class="wordmark" href={href(lang)}>
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+        <rect x="1" y="1" width="26" height="26" rx="6" fill="none" stroke="var(--color-accent)" stroke-width="2"></rect>
+        <path d="M6 19 L11 13 L15 16 L22 8" fill="none" stroke="var(--color-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <span>{t(lang, "site.name")}</span>
+    </a>
+    <nav class="site-nav" aria-label={t(lang, "nav.label")}>
+      <ul>
+        {items.map((key) => (
+          <li><a href={href(lang, target(key))} aria-current={current === key ? "page" : undefined}>{t(lang, `nav.${key}`)}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <div class="lang-switch" role="group" aria-label={t(lang, "lang.switch")}>
+      <a href={href("el", path)} lang="el" aria-current={lang === "el" ? "true" : undefined}>ΕΛ</a>
+      <a href={href("en", path)} lang="en" aria-current={lang === "en" ? "true" : undefined}>EN</a>
+    </div>
+  </div>
+</header>

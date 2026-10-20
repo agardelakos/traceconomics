@@ -1,0 +1,188 @@
+---
+// Explore: every group, every option. The page carries all its controls and the default view's
+// text; a script loads the chosen setting's file and redraws. The chosen groups and options live
+// in the address, so a shared link opens the same view.
+import fs from "node:fs";
+import path from "node:path";
+import GlossaryTerm from "../../components/GlossaryTerm.astro";
+import SourceList from "../../components/SourceList.astro";
+import Base from "../../layouts/Base.astro";
+import { availability, DATA_ROOT, labels, LATEST, settings } from "../../lib/data";
+import { href, LANGS, LOCALE, t, type Lang } from "../../lib/i18n";
+import el from "../../i18n/el.json";
+import en from "../../i18n/en.json";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const set = settings();
+const avail = availability();
+const names = labels().labels;
+const divisions = Object.fromEntries(Object.entries(names).filter(([c]) => c.length === 2).map(([c, l]) => [c, l[lang]]));
+
+// Download files per setting, with sizes, read from the exported folder.
+const downloads: Record<string, { name: string; size: number }[]> = {};
+for (const s of set.settings) {
+  const dir = path.join(DATA_ROOT, LATEST, "downloads", s.slug);
+  downloads[s.slug] = fs.existsSync(dir)
+    ? fs.readdirSync(dir).sort().map((name) => ({ name, size: fs.statSync(path.join(dir, name)).size }))
+    : [];
+}
+
+const OPTIONS = ["grouping", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring"] as const;
+const values: Record<string, string[]> = { grouping: ["B", "A", "C"], ...set.options };
+const defaults: Record<string, string> = { grouping: "B", ...Object.fromEntries(Object.entries(set.settings.find((s) => s.default)!).filter(([k]) => k in set.options)) };
+const fixedGreyed: Record<string, { value: string; reason: string }[]> = {
+  imputed_rent: [{ value: "user_cost", reason: "reason.user_cost" }],
+};
+const FAMILIES = [
+  { key: "income", groups: ["Q1", "Q2", "Q3", "Q4", "Q5"] },
+  { key: "tenure", groups: ["tenure/renter", "tenure/owner", "tenure/rent_free"] },
+  { key: "other", groups: ["all/all", "pensioners/pensioners", "pensioners/other"] },
+];
+const COLORS: Record<string, string> = {
+  Q1: "var(--series-q1)", Q2: "var(--series-q2)", Q3: "var(--series-q3)", Q4: "var(--series-q4)", Q5: "var(--series-q5)",
+  "all/all": "var(--series-all)", "tenure/renter": "var(--series-renter)", "tenure/owner": "var(--series-owner)",
+  "tenure/rent_free": "var(--series-rent-free)", "pensioners/pensioners": "var(--series-pensioners)", "pensioners/other": "var(--series-other)",
+};
+const dashOf = (g: string) => (g.startsWith("tenure/") ? "6 4" : g.startsWith("pensioners/") ? "1.5 3.5" : "");
+
+const config = {
+  lang, locale: LOCALE[lang], base: `/data/v1/${LATEST}`, defaultSlug: set.default,
+  optionKeys: OPTIONS, values, defaults, colors: COLORS,
+  dash: Object.fromEntries(FAMILIES.flatMap((f) => f.groups).map((g) => [g, dashOf(g)])),
+  availability: avail.options, downloads, divisions,
+  strings: lang === "el" ? el : en,
+};
+const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr", "hicp-manual-2024", "cpi-manual-2020", "eurostat-equivalence-scale"];
+---
+<Base lang={lang} title={t(lang, "explore.title")} description={t(lang, "explore.lead")} path="explore" current="explore">
+  <div class="stack-lg" id="explore" data-config={JSON.stringify(config)}>
+    <div class="stack" style="gap: var(--space-2)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, "nav.explore")}</nav>
+      <h1>{t(lang, "explore.title")}</h1>
+      <p class="muted" style="max-width: var(--text-max)">{t(lang, "explore.lead")}</p>
+    </div>
+
+    <section class="panel stack" aria-labelledby="groups-h" style="gap: var(--space-3)">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3)">
+        <h2 id="groups-h" style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">{t(lang, "explore.groups")}</h2>
+        <span class="small muted" data-role="group-count"></span>
+      </div>
+      {FAMILIES.map((f) => (
+        <div class="stack" style="gap: 6px">
+          <span class="small muted" style="font-weight: 600">{f.key === "income" ? <GlossaryTerm lang={lang} term="quintile" label={t(lang, "family.income")} /> : f.key === "tenure" ? <GlossaryTerm lang={lang} term="tenure" label={t(lang, "family.tenure")} /> : t(lang, `family.${f.key}`)}</span>
+          <div class="chips">
+            {f.groups.map((g) => (
+              <button type="button" class="chip" data-group={g} aria-pressed="false">
+                <svg width="20" height="10" viewBox="0 0 20 10" aria-hidden="true"><line x1="1" y1="5" x2="19" y2="5" stroke={COLORS[g]} stroke-width="2.5" stroke-dasharray={dashOf(g) || undefined} stroke-linecap="round"></line></svg>
+                <span>{t(lang, g.startsWith("Q") ? `group.${g}` : `group.${g}`)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      <label class="stack" style="gap: 6px; font-weight: 600; max-width: 320px">{t(lang, "explore.measure")}
+        <select data-role="measure">
+          {["rch_a", "rch_m", "index"].map((m) => <option value={m}>{t(lang, `explore.measure.${m}`)}</option>)}
+        </select>
+      </label>
+    </section>
+
+    <details class="panel" open>
+      <summary>{t(lang, "option.heading")} <span class="small muted" style="font-weight: 400" data-role="changed"></span></summary>
+      <div class="options" style="margin-top: var(--space-4)">
+        {OPTIONS.map((o) => (
+          <fieldset class="option" data-option={o}>
+            <legend>{t(lang, `option.${o}`)}<a href={href(lang, `method/${o.replace("_", "-")}`)}>{t(lang, "option.what")}</a></legend>
+            <div class="values">
+              {values[o].map((v) => (
+                <label>
+                  <input type="radio" name={o} value={v} checked={v === defaults[o]} />
+                  <span>{t(lang, `option.${o}.${v}`)}</span>
+                  {v === defaults[o] && <span class="badge-default">{t(lang, "option.default")}</span>}
+                </label>
+              ))}
+              {(fixedGreyed[o] ?? []).map((g) => (
+                <label>
+                  <input type="radio" name={o} value={g.value} disabled />
+                  <span>{t(lang, `option.${o}.${g.value}`)}</span>
+                </label>
+              ))}
+            </div>
+            {(fixedGreyed[o] ?? []).map((g) => (
+              <p class="note"><span>{t(lang, `option.${o}.${g.value}`)} — {t(lang, "option.unavailable", { reason: t(lang, g.reason) })}</span></p>
+            ))}
+            <div class="note" data-role="note"></div>
+          </fieldset>
+        ))}
+        <fieldset class="option">
+          <legend>{t(lang, "option.hh_weighting.democratic")}</legend>
+          <p class="note">{t(lang, "option.unavailable", { reason: t(lang, "reason.democratic") })}</p>
+        </fieldset>
+        <fieldset class="option">
+          <legend>{t(lang, "option.income_support.shown")}</legend>
+          <p class="note">{t(lang, "option.unavailable", { reason: t(lang, "reason.income_support") })}</p>
+        </fieldset>
+      </div>
+    </details>
+
+    <figure class="chart panel">
+      <figcaption class="stack" style="gap: var(--space-1)">
+        <h2>{t(lang, "explore.chart_title")}</h2>
+        <p data-role="summary" aria-live="polite"></p>
+      </figcaption>
+      <div class="callout caution" data-role="notice" hidden>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 L15 14 H1 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><path d="M8 6v4M8 12v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+        <span></span>
+      </div>
+      <div data-role="loading" class="stack" aria-busy="true">
+        <div class="skeleton" style="height: 240px"></div>
+        <span class="small muted">{t(lang, "chart.loading")}</span>
+      </div>
+      <div data-role="failed" role="alert" class="stack" hidden>
+        <strong>{t(lang, "chart.failed")}</strong>
+        <span class="muted">{t(lang, "chart.failed_hint")}</span>
+        <button type="button" class="button" data-role="retry" style="align-self: flex-start">{t(lang, "chart.retry")}</button>
+      </div>
+      <div class="chart-area" role="img" data-role="chart"></div>
+      <p class="small" style="font-weight: 600" data-role="gap-title" hidden>{t(lang, "gap.long")}</p>
+      <div class="chart-gap" hidden></div>
+      <div class="legend" data-role="legend"></div>
+      <div class="button-row">
+        <button type="button" class="button" data-role="table-toggle" aria-expanded="false">{t(lang, "chart.show_table")}</button>
+        <button type="button" class="button" data-role="copy">{t(lang, "chart.copy_link")}</button>
+      </div>
+      <div class="table-wrap" data-role="table" hidden style="max-height: 420px; overflow-y: auto"></div>
+      <ol class="footnotes" data-role="footnotes"></ol>
+    </figure>
+
+    <section class="panel stack" data-role="contrib" style="gap: var(--space-3)" hidden>
+      <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700" data-role="contrib-title"></h2>
+      <p class="small muted" data-role="contrib-note"></p>
+      <div class="bars" data-role="bars"></div>
+    </section>
+
+    <section class="stack" style="gap: var(--space-3)">
+      <h2>{t(lang, "explore.downloads")}</h2>
+      <div class="downloads" data-role="downloads"></div>
+      <details class="panel">
+        <summary>{t(lang, "explore.cite")}</summary>
+        <p class="small" style="margin-top: var(--space-3)" data-role="cite"></p>
+      </details>
+    </section>
+
+    <section class="stack" style="gap: var(--space-3)">
+      <h2>{t(lang, "explore.sources")}</h2>
+      <SourceList keys={SOURCES} lang={lang} />
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { start } from "../../scripts/explore";
+  const root = document.getElementById("explore");
+  if (root) start(root);
+</script>

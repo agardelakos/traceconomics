@@ -1,0 +1,117 @@
+/* Design tokens: the names the components use. Values come from the site's design system.
+   Light values first; dark values follow the reader's device setting (nothing is stored).
+   The series colours were checked with a palette validator in both modes (colour-blind
+   separation, contrast); aqua and yellow sit below 3:1 on the light ground, so every chart
+   also labels its lines directly and has a data table. */
+
+:root {
+  color-scheme: light dark;
+
+  --color-bg: #f7f6f2;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #dcd9d0;
+  --color-text: #1b1b19;
+  --color-text-muted: #57564f;
+  --color-link: #0d5e6e;
+  --color-focus: #1f5bd6;
+  --color-accent: #0d5e6e;
+  --color-accent-contrast: #ffffff;
+  --color-accent-tint: #e3f0f1;
+  --color-disabled: #ecebe6;
+  --color-disabled-text: #64625b;
+  --color-callout-info: #e3ecf4;
+
+  --color-flag-less-certain: #f1e4c2;
+  --color-flag-coarser: #dde4ec;
+  --color-flag-low-reliability: #8a5300;
+  --color-flag-first-estimate: #2b4f7a;
+
+  --chart-grid: #e7e5de;
+  --chart-axis: #77766f;
+  --chart-band-opacity: 0.12;
+  --chart-flag-fill: var(--color-flag-less-certain);
+
+  --series-q1: #2a78d6;
+  --series-q2: #1baf7a;
+  --series-q3: #eda100;
+  --series-q4: #6250d6;
+  --series-q5: #eb6834;
+  --series-all: #3a3935;
+  --series-renter: #e34948;
+  --series-owner: #008300;
+  --series-rent-free: #6250d6;
+  --series-pensioners: #e87ba4;
+  --series-other: #eda100;
+
+  --font-sans: "Source Sans 3", system-ui, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-mono: "Source Code Pro", ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.3125rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.08), 0 4px 12px rgb(0 0 0 / 0.06);
+
+  --content-max: 1100px;
+  --text-max: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #161615;
+    --color-surface: #1f1f1d;
+    --color-surface-raised: #292927;
+    --color-border: #3b3a37;
+    --color-text: #efede8;
+    --color-text-muted: #b5b3ab;
+    --color-link: #7cc9d6;
+    --color-focus: #8ab4f8;
+    --color-accent: #7cc9d6;
+    --color-accent-contrast: #0b1d21;
+    --color-accent-tint: #1b3236;
+    --color-disabled: #2a2a27;
+    --color-disabled-text: #9a988f;
+    --color-callout-info: #1e2a36;
+
+    --color-flag-less-certain: #3a3222;
+    --color-flag-coarser: #26303b;
+    --color-flag-low-reliability: #e8b45c;
+    --color-flag-first-estimate: #9cc0ea;
+
+    --chart-grid: #2e2d2a;
+    --chart-axis: #8f8d85;
+
+    --series-q1: #3987e5;
+    --series-q2: #199e70;
+    --series-q3: #c98500;
+    --series-q4: #9085e9;
+    --series-q5: #d95926;
+    --series-all: #d9d7d0;
+    --series-renter: #e66767;
+    --series-owner: #008300;
+    --series-rent-free: #9085e9;
+    --series-pensioners: #d55181;
+    --series-other: #c98500;
+  }
+}

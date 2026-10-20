@@ -1,0 +1,33 @@
+# When each year's household budget survey public use file (PUF) became available, as far as
+# public evidence shows. The weights-timing rule needs it for "first" weights: the newest PUF
+# available at the start of the index year.
+#
+# `available` is the best evidence of the date, and `basis` says what it is:
+#   "folder"     the date in the archive's own folder name (the release name ELSTAT gave it);
+#   "file date"  the newest date stamped on the data files inside the archive: when they were
+#                written, so the release can't be earlier; publication itself is undated.
+# Dates checked 2026-10-19 on the archived files (read in memory, not unpacked).
+# Going live, the archive job records the date our own copy arrives, which supersedes these.
+
+[2020]
+available = "2024-07-02"
+basis = "file date"
+note = "Person file dated 2024-07-02, household file 2024-05-23 (likely a re-issue; the first release is undated)"
+
+[2021]
+available = "2023-06-13"
+basis = "file date"
+
+[2022]
+available = "2023-10-06"
+basis = "file date"
+
+[2023]
+available = "2025-05-07"
+basis = "file date"
+note = "The 'ver2' re-issue; an earlier first version may exist"
+
+[2024]
+available = "2026-04-01"
+basis = "folder"
+note = "Folder 'HBS 2024_public files_01APR2026'; data files dated 2026-01-09; listed in the catalogue by 2026-05-21"

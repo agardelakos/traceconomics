@@ -1,0 +1,17 @@
+---
+// Formatted references for a list of bibliography keys. An unknown key stops the build.
+import { format } from "../lib/references";
+
+interface Props { keys: string[]; lang: "el" | "en" }
+const { keys, lang } = Astro.props;
+if (!keys.length) throw new Error("a source list needs at least one source");
+const items = keys.map((k) => format(k, lang));
+---
+<ol class="sources">
+  {items.map((r) => (
+    <li>
+      {r.lead}{" "}{r.italic ? <i>{r.title}</i> : <span>{r.title}</span>}{/[.?!]$/.test(r.title) ? "" : "."}{r.rest && ` ${r.rest}`}
+      {r.link && <> <a href={r.link.href} rel="noopener">{r.link.text}</a></>}
+    </li>
+  ))}
+</ol>

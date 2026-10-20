@@ -1,0 +1,520 @@
+# Code of the 2008-2014 household budget surveys -> ECOICOP v1 subclass: share of the code's spending. Written by `traceconomics mapping build`.
+# Same number and same label in that code's table 1.03 and in 2015's: mapped to itself. Otherwise the code's class
+# (its group for older 3-digit codes) is split over the remaining v1 subclasses by the 2015 survey's all-households spending.
+# note: the code's label in table 1.03.
+from_code,to_code,share,method,note
+01111,01111,1.0000000000,same code and label,Rice
+01112,01112,0.0488409392,class 0111 split by 2015 spending,Bread
+01112,01113,0.5156631814,class 0111 split by 2015 spending,Bread
+01112,01114,0.1889604419,class 0111 split by 2015 spending,Bread
+01112,01115,0.0427489526,class 0111 split by 2015 spending,Bread
+01112,01116,0.1200740764,class 0111 split by 2015 spending,Bread
+01112,01117,0.0700059961,class 0111 split by 2015 spending,Bread
+01112,01118,0.0137064124,class 0111 split by 2015 spending,Bread
+01113,01112,0.0488409392,class 0111 split by 2015 spending,Pasta products
+01113,01113,0.5156631814,class 0111 split by 2015 spending,Pasta products
+01113,01114,0.1889604419,class 0111 split by 2015 spending,Pasta products
+01113,01115,0.0427489526,class 0111 split by 2015 spending,Pasta products
+01113,01116,0.1200740764,class 0111 split by 2015 spending,Pasta products
+01113,01117,0.0700059961,class 0111 split by 2015 spending,Pasta products
+01113,01118,0.0137064124,class 0111 split by 2015 spending,Pasta products
+01114,01112,0.0488409392,class 0111 split by 2015 spending,Pastry cook products
+01114,01113,0.5156631814,class 0111 split by 2015 spending,Pastry cook products
+01114,01114,0.1889604419,class 0111 split by 2015 spending,Pastry cook products
+01114,01115,0.0427489526,class 0111 split by 2015 spending,Pastry cook products
+01114,01116,0.1200740764,class 0111 split by 2015 spending,Pastry cook products
+01114,01117,0.0700059961,class 0111 split by 2015 spending,Pastry cook products
+01114,01118,0.0137064124,class 0111 split by 2015 spending,Pastry cook products
+01115,01112,0.0488409392,class 0111 split by 2015 spending,Sandwiches
+01115,01113,0.5156631814,class 0111 split by 2015 spending,Sandwiches
+01115,01114,0.1889604419,class 0111 split by 2015 spending,Sandwiches
+01115,01115,0.0427489526,class 0111 split by 2015 spending,Sandwiches
+01115,01116,0.1200740764,class 0111 split by 2015 spending,Sandwiches
+01115,01117,0.0700059961,class 0111 split by 2015 spending,Sandwiches
+01115,01118,0.0137064124,class 0111 split by 2015 spending,Sandwiches
+01116,01112,0.0488409392,class 0111 split by 2015 spending,Other cereals
+01116,01113,0.5156631814,class 0111 split by 2015 spending,Other cereals
+01116,01114,0.1889604419,class 0111 split by 2015 spending,Other cereals
+01116,01115,0.0427489526,class 0111 split by 2015 spending,Other cereals
+01116,01116,0.1200740764,class 0111 split by 2015 spending,Other cereals
+01116,01117,0.0700059961,class 0111 split by 2015 spending,Other cereals
+01116,01118,0.0137064124,class 0111 split by 2015 spending,Other cereals
+01121,01121,0.3703360128,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01122,0.1727469544,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01123,0.1262851331,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01124,0.2004027717,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01125,0.0122047207,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01126,0.0050345416,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01127,0.0981637775,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01121,01128,0.0148260882,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of bovine animals"
+01122,01121,0.3703360128,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01122,0.1727469544,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01123,0.1262851331,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01124,0.2004027717,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01125,0.0122047207,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01126,0.0050345416,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01127,0.0981637775,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01122,01128,0.0148260882,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of swine"
+01123,01121,0.3703360128,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01122,0.1727469544,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01123,0.1262851331,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01124,0.2004027717,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01125,0.0122047207,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01126,0.0050345416,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01127,0.0981637775,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01123,01128,0.0148260882,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of sheep and goat"
+01124,01121,0.3703360128,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01122,0.1727469544,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01123,0.1262851331,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01124,0.2004027717,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01125,0.0122047207,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01126,0.0050345416,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01127,0.0981637775,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01124,01128,0.0148260882,class 0112 split by 2015 spending,"Fresh, chilled or frozen meat of poultry"
+01125,01121,0.3703360128,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01122,0.1727469544,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01123,0.1262851331,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01124,0.2004027717,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01125,0.0122047207,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01126,0.0050345416,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01127,0.0981637775,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01125,01128,0.0148260882,class 0112 split by 2015 spending,"Dried, salted or smoked meat and edible meat offal"
+01126,01121,0.3703360128,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01122,0.1727469544,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01123,0.1262851331,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01124,0.2004027717,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01125,0.0122047207,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01126,0.0050345416,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01127,0.0981637775,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01126,01128,0.0148260882,class 0112 split by 2015 spending,Other preserved or processed meat and meat preparations
+01127,01121,0.3703360128,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01122,0.1727469544,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01123,0.1262851331,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01124,0.2004027717,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01125,0.0122047207,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01126,0.0050345416,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01127,0.0981637775,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01127,01128,0.0148260882,class 0112 split by 2015 spending,"Other fresh, chilled or frozen edible meat"
+01131,01131,0.6578219939,class 0113 split by 2015 spending,"Fresh, chilled or frozen fish"
+01131,01132,0.1037400204,class 0113 split by 2015 spending,"Fresh, chilled or frozen fish"
+01131,01133,0.0592631018,class 0113 split by 2015 spending,"Fresh, chilled or frozen fish"
+01131,01134,0.0710246607,class 0113 split by 2015 spending,"Fresh, chilled or frozen fish"
+01131,01135,0.0360141424,class 0113 split by 2015 spending,"Fresh, chilled or frozen fish"
+01131,01136,0.0721360808,class 0113 split by 2015 spending,"Fresh, chilled or frozen fish"
+01132,01131,0.6578219939,class 0113 split by 2015 spending,"Fresh, chilled or frozen seafood"
+01132,01132,0.1037400204,class 0113 split by 2015 spending,"Fresh, chilled or frozen seafood"
+01132,01133,0.0592631018,class 0113 split by 2015 spending,"Fresh, chilled or frozen seafood"
+01132,01134,0.0710246607,class 0113 split by 2015 spending,"Fresh, chilled or frozen seafood"
+01132,01135,0.0360141424,class 0113 split by 2015 spending,"Fresh, chilled or frozen seafood"
+01132,01136,0.0721360808,class 0113 split by 2015 spending,"Fresh, chilled or frozen seafood"
+01133,01131,0.6578219939,class 0113 split by 2015 spending,"Dried, smoked or salted fish and seafood"
+01133,01132,0.1037400204,class 0113 split by 2015 spending,"Dried, smoked or salted fish and seafood"
+01133,01133,0.0592631018,class 0113 split by 2015 spending,"Dried, smoked or salted fish and seafood"
+01133,01134,0.0710246607,class 0113 split by 2015 spending,"Dried, smoked or salted fish and seafood"
+01133,01135,0.0360141424,class 0113 split by 2015 spending,"Dried, smoked or salted fish and seafood"
+01133,01136,0.0721360808,class 0113 split by 2015 spending,"Dried, smoked or salted fish and seafood"
+01134,01131,0.6578219939,class 0113 split by 2015 spending,Other preserved or processed fish and seafood and fish and seafood preparations
+01134,01132,0.1037400204,class 0113 split by 2015 spending,Other preserved or processed fish and seafood and fish and seafood preparations
+01134,01133,0.0592631018,class 0113 split by 2015 spending,Other preserved or processed fish and seafood and fish and seafood preparations
+01134,01134,0.0710246607,class 0113 split by 2015 spending,Other preserved or processed fish and seafood and fish and seafood preparations
+01134,01135,0.0360141424,class 0113 split by 2015 spending,Other preserved or processed fish and seafood and fish and seafood preparations
+01134,01136,0.0721360808,class 0113 split by 2015 spending,Other preserved or processed fish and seafood and fish and seafood preparations
+01141,01141,0.8008377279,class 0114 split by 2015 spending,Whole milk
+01141,01142,0.1991622721,class 0114 split by 2015 spending,Whole milk
+01142,01141,0.8008377279,class 0114 split by 2015 spending,Low fat milk
+01142,01142,0.1991622721,class 0114 split by 2015 spending,Low fat milk
+01143,01143,1.0000000000,same code and label,Preserved milk
+01144,01144,1.0000000000,same code and label,Yoghurt
+01145,01145,1.0000000000,same code and label,Cheese and curd
+01146,01146,1.0000000000,same code and label,Other milk products
+01147,01147,1.0000000000,same code and label,Eggs
+01151,01151,1.0000000000,same code and label,Butter
+01152,01152,1.0000000000,same code and label,Margarine and other vegetable fats
+01153,01153,1.0000000000,same code and label,Olive oil
+01154,01154,1.0000000000,class 0115 split by 2015 spending,Edible oils
+01155,01155,1.0000000000,same code and label,Other edible animal fats
+01161,01161,0.8750543814,class 0116 split by 2015 spending,"Citrus fruit (fresh, chilled or frozen)"
+01161,01162,0.0004022698,class 0116 split by 2015 spending,"Citrus fruit (fresh, chilled or frozen)"
+01161,01163,0.1226345304,class 0116 split by 2015 spending,"Citrus fruit (fresh, chilled or frozen)"
+01161,01164,0.0019088185,class 0116 split by 2015 spending,"Citrus fruit (fresh, chilled or frozen)"
+01162,01161,0.8750543814,class 0116 split by 2015 spending,"Bananas (fresh, chilled or frozen)"
+01162,01162,0.0004022698,class 0116 split by 2015 spending,"Bananas (fresh, chilled or frozen)"
+01162,01163,0.1226345304,class 0116 split by 2015 spending,"Bananas (fresh, chilled or frozen)"
+01162,01164,0.0019088185,class 0116 split by 2015 spending,"Bananas (fresh, chilled or frozen)"
+01163,01161,0.8750543814,class 0116 split by 2015 spending,"Apples (fresh, chilled or frozen)"
+01163,01162,0.0004022698,class 0116 split by 2015 spending,"Apples (fresh, chilled or frozen)"
+01163,01163,0.1226345304,class 0116 split by 2015 spending,"Apples (fresh, chilled or frozen)"
+01163,01164,0.0019088185,class 0116 split by 2015 spending,"Apples (fresh, chilled or frozen)"
+01164,01161,0.8750543814,class 0116 split by 2015 spending,"Pears (fresh, chilled or frozen)"
+01164,01162,0.0004022698,class 0116 split by 2015 spending,"Pears (fresh, chilled or frozen)"
+01164,01163,0.1226345304,class 0116 split by 2015 spending,"Pears (fresh, chilled or frozen)"
+01164,01164,0.0019088185,class 0116 split by 2015 spending,"Pears (fresh, chilled or frozen)"
+01165,01161,0.8750543814,class 0116 split by 2015 spending,"Stone fruits (fresh, chilled or frozen)"
+01165,01162,0.0004022698,class 0116 split by 2015 spending,"Stone fruits (fresh, chilled or frozen)"
+01165,01163,0.1226345304,class 0116 split by 2015 spending,"Stone fruits (fresh, chilled or frozen)"
+01165,01164,0.0019088185,class 0116 split by 2015 spending,"Stone fruits (fresh, chilled or frozen)"
+01166,01161,0.8750543814,class 0116 split by 2015 spending,"Berries (fresh, chilled or frozen)"
+01166,01162,0.0004022698,class 0116 split by 2015 spending,"Berries (fresh, chilled or frozen)"
+01166,01163,0.1226345304,class 0116 split by 2015 spending,"Berries (fresh, chilled or frozen)"
+01166,01164,0.0019088185,class 0116 split by 2015 spending,"Berries (fresh, chilled or frozen)"
+01167,01161,0.8750543814,class 0116 split by 2015 spending,"Other tropical fruits (fresh, chilled or frozen)"
+01167,01162,0.0004022698,class 0116 split by 2015 spending,"Other tropical fruits (fresh, chilled or frozen)"
+01167,01163,0.1226345304,class 0116 split by 2015 spending,"Other tropical fruits (fresh, chilled or frozen)"
+01167,01164,0.0019088185,class 0116 split by 2015 spending,"Other tropical fruits (fresh, chilled or frozen)"
+01168,01161,0.8750543814,class 0116 split by 2015 spending,Dried fruits and nuts
+01168,01162,0.0004022698,class 0116 split by 2015 spending,Dried fruits and nuts
+01168,01163,0.1226345304,class 0116 split by 2015 spending,Dried fruits and nuts
+01168,01164,0.0019088185,class 0116 split by 2015 spending,Dried fruits and nuts
+01169,01161,0.8750543814,class 0116 split by 2015 spending,Preserved fruit and fruit-based products
+01169,01162,0.0004022698,class 0116 split by 2015 spending,Preserved fruit and fruit-based products
+01169,01163,0.1226345304,class 0116 split by 2015 spending,Preserved fruit and fruit-based products
+01169,01164,0.0019088185,class 0116 split by 2015 spending,Preserved fruit and fruit-based products
+01171,01171,0.5201811118,class 0117 split by 2015 spending,"Leaf and stem vegetables (fresh, chilled or frozen)"
+01171,01172,0.0693830319,class 0117 split by 2015 spending,"Leaf and stem vegetables (fresh, chilled or frozen)"
+01171,01173,0.2509293076,class 0117 split by 2015 spending,"Leaf and stem vegetables (fresh, chilled or frozen)"
+01171,01174,0.1390352829,class 0117 split by 2015 spending,"Leaf and stem vegetables (fresh, chilled or frozen)"
+01171,01175,0.0179694778,class 0117 split by 2015 spending,"Leaf and stem vegetables (fresh, chilled or frozen)"
+01171,01176,0.0025017880,class 0117 split by 2015 spending,"Leaf and stem vegetables (fresh, chilled or frozen)"
+01172,01171,0.5201811118,class 0117 split by 2015 spending,Cabbages (fresh or chilled or frozen)
+01172,01172,0.0693830319,class 0117 split by 2015 spending,Cabbages (fresh or chilled or frozen)
+01172,01173,0.2509293076,class 0117 split by 2015 spending,Cabbages (fresh or chilled or frozen)
+01172,01174,0.1390352829,class 0117 split by 2015 spending,Cabbages (fresh or chilled or frozen)
+01172,01175,0.0179694778,class 0117 split by 2015 spending,Cabbages (fresh or chilled or frozen)
+01172,01176,0.0025017880,class 0117 split by 2015 spending,Cabbages (fresh or chilled or frozen)
+01173,01171,0.5201811118,class 0117 split by 2015 spending,"Vegetable cultivated for their fruit (fresh, chilled or frozen)"
+01173,01172,0.0693830319,class 0117 split by 2015 spending,"Vegetable cultivated for their fruit (fresh, chilled or frozen)"
+01173,01173,0.2509293076,class 0117 split by 2015 spending,"Vegetable cultivated for their fruit (fresh, chilled or frozen)"
+01173,01174,0.1390352829,class 0117 split by 2015 spending,"Vegetable cultivated for their fruit (fresh, chilled or frozen)"
+01173,01175,0.0179694778,class 0117 split by 2015 spending,"Vegetable cultivated for their fruit (fresh, chilled or frozen)"
+01173,01176,0.0025017880,class 0117 split by 2015 spending,"Vegetable cultivated for their fruit (fresh, chilled or frozen)"
+01174,01171,0.5201811118,class 0117 split by 2015 spending,"Root crops, non-starchy bulbs and mushrooms (fresh, chilled or frozen)"
+01174,01172,0.0693830319,class 0117 split by 2015 spending,"Root crops, non-starchy bulbs and mushrooms (fresh, chilled or frozen)"
+01174,01173,0.2509293076,class 0117 split by 2015 spending,"Root crops, non-starchy bulbs and mushrooms (fresh, chilled or frozen)"
+01174,01174,0.1390352829,class 0117 split by 2015 spending,"Root crops, non-starchy bulbs and mushrooms (fresh, chilled or frozen)"
+01174,01175,0.0179694778,class 0117 split by 2015 spending,"Root crops, non-starchy bulbs and mushrooms (fresh, chilled or frozen)"
+01174,01176,0.0025017880,class 0117 split by 2015 spending,"Root crops, non-starchy bulbs and mushrooms (fresh, chilled or frozen)"
+01175,01171,0.5201811118,class 0117 split by 2015 spending,Dried vegetables
+01175,01172,0.0693830319,class 0117 split by 2015 spending,Dried vegetables
+01175,01173,0.2509293076,class 0117 split by 2015 spending,Dried vegetables
+01175,01174,0.1390352829,class 0117 split by 2015 spending,Dried vegetables
+01175,01175,0.0179694778,class 0117 split by 2015 spending,Dried vegetables
+01175,01176,0.0025017880,class 0117 split by 2015 spending,Dried vegetables
+01176,01171,0.5201811118,class 0117 split by 2015 spending,Other preserved or processed vegetables
+01176,01172,0.0693830319,class 0117 split by 2015 spending,Other preserved or processed vegetables
+01176,01173,0.2509293076,class 0117 split by 2015 spending,Other preserved or processed vegetables
+01176,01174,0.1390352829,class 0117 split by 2015 spending,Other preserved or processed vegetables
+01176,01175,0.0179694778,class 0117 split by 2015 spending,Other preserved or processed vegetables
+01176,01176,0.0025017880,class 0117 split by 2015 spending,Other preserved or processed vegetables
+01177,01171,0.5201811118,class 0117 split by 2015 spending,Potatoes
+01177,01172,0.0693830319,class 0117 split by 2015 spending,Potatoes
+01177,01173,0.2509293076,class 0117 split by 2015 spending,Potatoes
+01177,01174,0.1390352829,class 0117 split by 2015 spending,Potatoes
+01177,01175,0.0179694778,class 0117 split by 2015 spending,Potatoes
+01177,01176,0.0025017880,class 0117 split by 2015 spending,Potatoes
+01178,01171,0.5201811118,class 0117 split by 2015 spending,Other tubers and products of tuber vegetables
+01178,01172,0.0693830319,class 0117 split by 2015 spending,Other tubers and products of tuber vegetables
+01178,01173,0.2509293076,class 0117 split by 2015 spending,Other tubers and products of tuber vegetables
+01178,01174,0.1390352829,class 0117 split by 2015 spending,Other tubers and products of tuber vegetables
+01178,01175,0.0179694778,class 0117 split by 2015 spending,Other tubers and products of tuber vegetables
+01178,01176,0.0025017880,class 0117 split by 2015 spending,Other tubers and products of tuber vegetables
+01181,01181,1.0000000000,same code and label,Sugar
+01182,01182,0.6653369645,class 0118 split by 2015 spending,Jams and marmalades
+01182,01185,0.3248974047,class 0118 split by 2015 spending,Jams and marmalades
+01182,01186,0.0097656308,class 0118 split by 2015 spending,Jams and marmalades
+01183,01183,1.0000000000,same code and label,Chocolate
+01184,01184,1.0000000000,same code and label,Confectionery products
+01185,01182,0.6653369645,class 0118 split by 2015 spending,Edible ice and ice creams
+01185,01185,0.3248974047,class 0118 split by 2015 spending,Edible ice and ice creams
+01185,01186,0.0097656308,class 0118 split by 2015 spending,Edible ice and ice creams
+01186,01182,0.6653369645,class 0118 split by 2015 spending,Other sugar products
+01186,01185,0.3248974047,class 0118 split by 2015 spending,Other sugar products
+01186,01186,0.0097656308,class 0118 split by 2015 spending,Other sugar products
+01191,01191,1.0000000000,same code and label,"Sauces, condiments"
+01192,01192,1.0000000000,same code and label,"Salt, spices and culinary herbs"
+01193,01193,0.5365249438,class 0119 split by 2015 spending,"Baker's yeast, dessert preparations, soups"
+01193,01194,0.1950671436,class 0119 split by 2015 spending,"Baker's yeast, dessert preparations, soups"
+01193,01199,0.2684079126,class 0119 split by 2015 spending,"Baker's yeast, dessert preparations, soups"
+01194,01193,0.5365249438,class 0119 split by 2015 spending,Other food products
+01194,01194,0.1950671436,class 0119 split by 2015 spending,Other food products
+01194,01199,0.2684079126,class 0119 split by 2015 spending,Other food products
+01211,01211,1.0000000000,same code and label,Coffee
+01212,01212,1.0000000000,same code and label,Tea
+01213,01213,1.0000000000,same code and label,Cocoa and powdered chocolate
+01221,01221,1.0000000000,same code and label,Mineral or spring waters
+01222,01222,1.0000000000,same code and label,Soft drinks
+01223,01223,1.0000000000,class 0122 split by 2015 spending,Fruit juices
+01224,01223,1.0000000000,class 0122 split by 2015 spending,Vegetable juices
+02111,02111,1.0000000000,same code and label,Spirits and liqueurs
+02121,02121,0.9858462971,class 0212 split by 2015 spending,Wine from grape or other fruit
+02121,02122,0.0065459378,class 0212 split by 2015 spending,Wine from grape or other fruit
+02121,02123,0.0050824247,class 0212 split by 2015 spending,Wine from grape or other fruit
+02121,02124,0.0025253405,class 0212 split by 2015 spending,Wine from grape or other fruit
+02122,02121,0.9858462971,class 0212 split by 2015 spending,Sparkling wine
+02122,02122,0.0065459378,class 0212 split by 2015 spending,Sparkling wine
+02122,02123,0.0050824247,class 0212 split by 2015 spending,Sparkling wine
+02122,02124,0.0025253405,class 0212 split by 2015 spending,Sparkling wine
+02131,02131,0.8939553274,class 0213 split by 2015 spending,Beer
+02131,02132,0.0621650169,class 0213 split by 2015 spending,Beer
+02131,02133,0.0353673491,class 0213 split by 2015 spending,Beer
+02131,02134,0.0085123066,class 0213 split by 2015 spending,Beer
+02211,02201,0.8171189362,group 022 split by 2015 spending,Cigarettes
+02211,02202,0.0085335735,group 022 split by 2015 spending,Cigarettes
+02211,02203,0.1743474903,group 022 split by 2015 spending,Cigarettes
+02212,02201,0.8171189362,group 022 split by 2015 spending,Cigars and cigarillos
+02212,02202,0.0085335735,group 022 split by 2015 spending,Cigars and cigarillos
+02212,02203,0.1743474903,group 022 split by 2015 spending,Cigars and cigarillos
+02213,02201,0.8171189362,group 022 split by 2015 spending,Other tobacco products
+02213,02202,0.0085335735,group 022 split by 2015 spending,Other tobacco products
+02213,02203,0.1743474903,group 022 split by 2015 spending,Other tobacco products
+0231,02300,1.0000000000,equal split over 023 (no 2015 spending),
+03111,03110,1.0000000000,class 0311 split by 2015 spending,Clothing materials
+03121,03121,1.0000000000,same code and label,Garments for men
+03122,03122,1.0000000000,same code and label,Garments for women
+03123,03123,1.0000000000,same code and label,Garments for children (3 to 13 years) and infants (0 to 2 years)
+03131,03131,0.5534752874,class 0313 split by 2015 spending,"Other articles of clothing and clothing accessories (for men, women, children and infants)"
+03131,03132,0.4465247126,class 0313 split by 2015 spending,"Other articles of clothing and clothing accessories (for men, women, children and infants)"
+03141,03141,0.5261867434,class 0314 split by 2015 spending,"Cleaning, repair and hire of clothing"
+03141,03142,0.4738132566,class 0314 split by 2015 spending,"Cleaning, repair and hire of clothing"
+03211,03211,1.0000000000,same code and label,Footwear for men
+03212,03212,1.0000000000,same code and label,Footwear for women
+03213,03213,1.0000000000,class 0321 split by 2015 spending,Footwear for children (3 to 13 years) and infants (0 to 2 years)
+03221,03220,1.0000000000,class 0322 split by 2015 spending,Repair and hire of footwear
+04111,04110,1.0000000000,class 0411 split by 2015 spending,Actual rental paid by tenants of main residence
+04121,04121,1.0000000000,same code and label,Actual rental paid by tenants of secondary residence
+04211,04210,1.0000000000,class 0421 split by 2015 spending,
+04221,04220,1.0000000000,class 0422 split by 2015 spending,
+04222,04220,1.0000000000,class 0422 split by 2015 spending,
+04311,04310,1.0000000000,class 0431 split by 2015 spending,Materials for the maintenance and repair of the dwelling
+04321,04321,0.2081536794,class 0432 split by 2015 spending,Services for the maintenance and repair of the dwelling
+04321,04322,0.0554494275,class 0432 split by 2015 spending,Services for the maintenance and repair of the dwelling
+04321,04323,0.1413949977,class 0432 split by 2015 spending,Services for the maintenance and repair of the dwelling
+04321,04324,0.4178397149,class 0432 split by 2015 spending,Services for the maintenance and repair of the dwelling
+04321,04325,0.0418915549,class 0432 split by 2015 spending,Services for the maintenance and repair of the dwelling
+04321,04329,0.1352706257,class 0432 split by 2015 spending,Services for the maintenance and repair of the dwelling
+04411,04410,1.0000000000,class 0441 split by 2015 spending,Water supply
+04421,04420,1.0000000000,class 0442 split by 2015 spending,Refuse collection
+04431,04430,1.0000000000,class 0443 split by 2015 spending,Sewerage collection
+04441,04441,0.9939020186,class 0444 split by 2015 spending,Other services relating to the dwelling
+04441,04442,0.0052127944,class 0444 split by 2015 spending,Other services relating to the dwelling
+04441,04449,0.0008851870,class 0444 split by 2015 spending,Other services relating to the dwelling
+04511,04510,1.0000000000,class 0451 split by 2015 spending,Electricity
+04521,04521,1.0000000000,class 0452 split by 2015 spending,Natural gas
+04522,04522,1.0000000000,same code and label,"Liquefied hydrocarbons (butane, propane, etc.)"
+04531,04530,1.0000000000,class 0453 split by 2015 spending,Liquid fuels
+04541,04549,1.0000000000,class 0454 split by 2015 spending,Solid fuels
+04551,04550,1.0000000000,class 0455 split by 2015 spending,"Hot water, steam and ice"
+05111,05111,0.8311967164,class 0511 split by 2015 spending,Furniture lightings and decorative items
+05111,05112,0.0311752597,class 0511 split by 2015 spending,Furniture lightings and decorative items
+05111,05113,0.0466913534,class 0511 split by 2015 spending,Furniture lightings and decorative items
+05111,05119,0.0909366705,class 0511 split by 2015 spending,Furniture lightings and decorative items
+05121,05121,0.9707779341,class 0512 split by 2015 spending,Carpets and other floor coverings
+05121,05122,0.0274394938,class 0512 split by 2015 spending,Carpets and other floor coverings
+05121,05123,0.0017825721,class 0512 split by 2015 spending,Carpets and other floor coverings
+05131,05130,1.0000000000,class 0513 split by 2015 spending,"Repair of furniture, furnishings and floor coverings"
+05211,05201,0.3358472451,group 052 split by 2015 spending,Household textiles
+05211,05202,0.2923339277,group 052 split by 2015 spending,Household textiles
+05211,05203,0.2958356341,group 052 split by 2015 spending,Household textiles
+05211,05204,0.0092542752,group 052 split by 2015 spending,Household textiles
+05211,05209,0.0667289179,group 052 split by 2015 spending,Household textiles
+05311,05311,1.0000000000,same code and label,"Refrigerators, freezers and fridge-freezers"
+05312,05312,1.0000000000,same code and label,"Clothes washing machines, clothes drying machines and dish washing machines"
+05313,05313,1.0000000000,same code and label,Cookers
+05314,05314,1.0000000000,same code and label,"Heaters, air conditioners"
+05315,05315,1.0000000000,same code and label,Cleaning equipment
+05316,05319,1.0000000000,class 0531 split by 2015 spending,Sewing and knitting machines
+05317,05319,1.0000000000,class 0531 split by 2015 spending,Other major household appliances
+05321,05321,0.2389859407,class 0532 split by 2015 spending,Small electric household appliances
+05321,05322,0.2206399906,class 0532 split by 2015 spending,Small electric household appliances
+05321,05323,0.2349204947,class 0532 split by 2015 spending,Small electric household appliances
+05321,05324,0.1170241036,class 0532 split by 2015 spending,Small electric household appliances
+05321,05329,0.1884294704,class 0532 split by 2015 spending,Small electric household appliances
+05331,05330,1.0000000000,class 0533 split by 2015 spending,Repair of household appliances
+05411,05401,0.3964095872,group 054 split by 2015 spending,"Glass and crystal-ware, tableware"
+05411,05402,0.1017348980,group 054 split by 2015 spending,"Glass and crystal-ware, tableware"
+05411,05403,0.4978858630,group 054 split by 2015 spending,"Glass and crystal-ware, tableware"
+05411,05404,0.0039696518,group 054 split by 2015 spending,"Glass and crystal-ware, tableware"
+05412,05401,0.3964095872,group 054 split by 2015 spending,"Cutlery, flatware and silverware"
+05412,05402,0.1017348980,group 054 split by 2015 spending,"Cutlery, flatware and silverware"
+05412,05403,0.4978858630,group 054 split by 2015 spending,"Cutlery, flatware and silverware"
+05412,05404,0.0039696518,group 054 split by 2015 spending,"Cutlery, flatware and silverware"
+05413,05401,0.3964095872,group 054 split by 2015 spending,Kitchen and domestic utensils
+05413,05402,0.1017348980,group 054 split by 2015 spending,Kitchen and domestic utensils
+05413,05403,0.4978858630,group 054 split by 2015 spending,Kitchen and domestic utensils
+05413,05404,0.0039696518,group 054 split by 2015 spending,Kitchen and domestic utensils
+05414,05401,0.3964095872,group 054 split by 2015 spending,"Repair of glassware, tableware and household utensils"
+05414,05402,0.1017348980,group 054 split by 2015 spending,"Repair of glassware, tableware and household utensils"
+05414,05403,0.4978858630,group 054 split by 2015 spending,"Repair of glassware, tableware and household utensils"
+05414,05404,0.0039696518,group 054 split by 2015 spending,"Repair of glassware, tableware and household utensils"
+05511,05511,1.0000000000,same code and label,Major tools and equipment
+05521,05521,0.2850604293,class 0552 split by 2015 spending,Small tools and miscellaneous accessories
+05521,05522,0.7045525484,class 0552 split by 2015 spending,Small tools and miscellaneous accessories
+05521,05523,0.0103870224,class 0552 split by 2015 spending,Small tools and miscellaneous accessories
+05611,05611,0.7121487034,class 0561 split by 2015 spending,Cleaning and maintenance products
+05611,05612,0.2878512966,class 0561 split by 2015 spending,Cleaning and maintenance products
+05612,05611,0.7121487034,class 0561 split by 2015 spending,Other non-durable household articles
+05612,05612,0.2878512966,class 0561 split by 2015 spending,Other non-durable household articles
+05621,05621,0.8913811676,class 0562 split by 2015 spending,Domestic services
+05621,05622,0.1020305236,class 0562 split by 2015 spending,Domestic services
+05621,05629,0.0065883088,class 0562 split by 2015 spending,Domestic services
+05622,05621,0.8913811676,class 0562 split by 2015 spending,Household services
+05622,05622,0.1020305236,class 0562 split by 2015 spending,Household services
+05622,05629,0.0065883088,class 0562 split by 2015 spending,Household services
+06111,06110,1.0000000000,class 0611 split by 2015 spending,Pharmaceutical products
+06121,06121,0.1811288634,class 0612 split by 2015 spending,Other medical products
+06121,06129,0.8188711366,class 0612 split by 2015 spending,Other medical products
+06131,06131,0.5805539749,class 0613 split by 2015 spending,Therapeutic appliances and equipment
+06131,06132,0.0755783278,class 0613 split by 2015 spending,Therapeutic appliances and equipment
+06131,06133,0.0232457899,class 0613 split by 2015 spending,Therapeutic appliances and equipment
+06131,06139,0.3206219074,class 0613 split by 2015 spending,Therapeutic appliances and equipment
+06211,06211,0.3419996022,class 0621 split by 2015 spending,Medical services
+06211,06212,0.6580003978,class 0621 split by 2015 spending,Medical services
+06221,06220,1.0000000000,class 0622 split by 2015 spending,Dental services
+06231,06231,0.7382973813,class 0623 split by 2015 spending,Services of medical analysis laboratories and X-ray centres
+06231,06232,0.0310731007,class 0623 split by 2015 spending,Services of medical analysis laboratories and X-ray centres
+06231,06239,0.2306295180,class 0623 split by 2015 spending,Services of medical analysis laboratories and X-ray centres
+06232,06231,0.7382973813,class 0623 split by 2015 spending,Services of medical auxiliaries
+06232,06232,0.0310731007,class 0623 split by 2015 spending,Services of medical auxiliaries
+06232,06239,0.2306295180,class 0623 split by 2015 spending,Services of medical auxiliaries
+06233,06231,0.7382973813,class 0623 split by 2015 spending,Other non-hospital services
+06233,06232,0.0310731007,class 0623 split by 2015 spending,Other non-hospital services
+06233,06239,0.2306295180,class 0623 split by 2015 spending,Other non-hospital services
+063,06300,1.0000000000,group 063 split by 2015 spending,HOSPITAL SERVICES
+07111,07111,1.0000000000,same code and label,Purchase of new motor cars
+07112,07112,1.0000000000,same code and label,Purchase of second hand motor cars
+07121,07120,1.0000000000,class 0712 split by 2015 spending,Motor cycles
+07131,07130,1.0000000000,class 0713 split by 2015 spending,Bicycles
+07141,07140,1.0000000000,equal split over 0714 (no 2015 spending),
+07211,07211,0.4656268459,class 0721 split by 2015 spending,Spare parts and accessories
+07211,07212,0.5173686958,class 0721 split by 2015 spending,Spare parts and accessories
+07211,07213,0.0170044583,class 0721 split by 2015 spending,Spare parts and accessories
+07221,07221,0.0625381769,class 0722 split by 2015 spending,Fuels and lubricants
+07221,07222,0.8998877760,class 0722 split by 2015 spending,Fuels and lubricants
+07221,07223,0.0207295930,class 0722 split by 2015 spending,Fuels and lubricants
+07221,07224,0.0168444541,class 0722 split by 2015 spending,Fuels and lubricants
+07231,07230,1.0000000000,class 0723 split by 2015 spending,Maintenance and repairs
+07241,07241,0.2357494318,class 0724 split by 2015 spending,Other services in respect of personal transport equipment
+07241,07242,0.3841065044,class 0724 split by 2015 spending,Other services in respect of personal transport equipment
+07241,07243,0.3801440638,class 0724 split by 2015 spending,Other services in respect of personal transport equipment
+07311,07311,1.0000000000,same code and label,"Transport of passengers by train, tram, underground railway"
+07321,07321,0.6439532470,class 0732 split by 2015 spending,"Transport of passengers by bus, trolley, taxi"
+07321,07322,0.3560467530,class 0732 split by 2015 spending,"Transport of passengers by bus, trolley, taxi"
+07331,07331,0.4875906636,class 0733 split by 2015 spending,Transport of passengers by airplane and helicopter
+07331,07332,0.5124093364,class 0733 split by 2015 spending,Transport of passengers by airplane and helicopter
+07341,07341,0.0122113926,class 0734 split by 2015 spending,Transport of passengers by sea and inland waterway
+07341,07342,0.9877886074,class 0734 split by 2015 spending,Transport of passengers by sea and inland waterway
+07351,07350,1.0000000000,class 0735 split by 2015 spending,Combined passenger transport
+07361,07361,0.0065024990,class 0736 split by 2015 spending,Other purchased transport services
+07361,07362,0.9817909308,class 0736 split by 2015 spending,Other purchased transport services
+07361,07369,0.0117065702,class 0736 split by 2015 spending,Other purchased transport services
+08111,08101,0.9192365560,group 081 split by 2015 spending,Postal services
+08111,08109,0.0807634440,group 081 split by 2015 spending,Postal services
+08211,08201,0.0450946686,group 082 split by 2015 spending,Telephone and telefax equipment
+08211,08202,0.9379485615,group 082 split by 2015 spending,Telephone and telefax equipment
+08211,08204,0.0169567699,group 082 split by 2015 spending,Telephone and telefax equipment
+08311,08301,0.2622082594,group 083 split by 2015 spending,Telephone and telefax services
+08311,08302,0.5167886662,group 083 split by 2015 spending,Telephone and telefax services
+08311,08303,0.1447600216,group 083 split by 2015 spending,Telephone and telefax services
+08311,08304,0.0758382384,group 083 split by 2015 spending,Telephone and telefax services
+08311,08305,0.0004048144,group 083 split by 2015 spending,Telephone and telefax services
+09111,09111,1.0000000000,same code and label,"Equipment for the reception, recording and reproduction of sound"
+09112,09112,1.0000000000,same code and label,"Television sets, video-cassette players and recorders"
+09121,09121,0.9548769155,class 0912 split by 2015 spending,Photographic and cinematographic equipment
+09121,09122,0.0151159122,class 0912 split by 2015 spending,Photographic and cinematographic equipment
+09121,09123,0.0300071723,class 0912 split by 2015 spending,Photographic and cinematographic equipment
+09122,09121,0.9548769155,class 0912 split by 2015 spending,Optical instruments
+09122,09122,0.0151159122,class 0912 split by 2015 spending,Optical instruments
+09122,09123,0.0300071723,class 0912 split by 2015 spending,Optical instruments
+09131,09131,0.9649592965,class 0913 split by 2015 spending,Information processing equipment
+09131,09132,0.0294325368,class 0913 split by 2015 spending,Information processing equipment
+09131,09133,0.0048425340,class 0913 split by 2015 spending,Information processing equipment
+09131,09134,0.0007656327,class 0913 split by 2015 spending,Information processing equipment
+09141,09141,0.6668793872,class 0914 split by 2015 spending,Recording media for sound and picture
+09141,09142,0.0704228033,class 0914 split by 2015 spending,Recording media for sound and picture
+09141,09149,0.2626978095,class 0914 split by 2015 spending,Recording media for sound and picture
+09151,09150,1.0000000000,class 0915 split by 2015 spending,"Repair of audio-visual, photographic and information processing equipment"
+09211,09211,0.2995440883,class 0921 split by 2015 spending,Major durables for outdoor recreation
+09211,09213,0.5584312837,class 0921 split by 2015 spending,Major durables for outdoor recreation
+09211,09214,0.0597746458,class 0921 split by 2015 spending,Major durables for outdoor recreation
+09211,09215,0.0822499823,class 0921 split by 2015 spending,Major durables for outdoor recreation
+09221,09221,1.0000000000,same code and label,Musical instruments
+09222,09222,1.0000000000,class 0922 split by 2015 spending,Majors durables for indoor recreation
+09231,09230,1.0000000000,class 0923 split by 2015 spending,Maintenance and repair of other major durables for recreation and culture
+09311,09311,1.0000000000,same code and label,"Games, toys and hobbies"
+09321,09321,0.9838001294,class 0932 split by 2015 spending,"Equipment for sport, camping and open-air recreation"
+09321,09322,0.0149607984,class 0932 split by 2015 spending,"Equipment for sport, camping and open-air recreation"
+09321,09323,0.0012390723,class 0932 split by 2015 spending,"Equipment for sport, camping and open-air recreation"
+09331,09331,0.2923306371,class 0933 split by 2015 spending,"Gardens, plants and flowers"
+09331,09332,0.7076693629,class 0933 split by 2015 spending,"Gardens, plants and flowers"
+09341,09341,0.1002199053,class 0934 split by 2015 spending,Pets and related products
+09341,09342,0.8997800947,class 0934 split by 2015 spending,Pets and related products
+09351,09350,1.0000000000,class 0935 split by 2015 spending,Veterinary and other services for pets
+09411,09411,0.4194658944,class 0941 split by 2015 spending,Recreational and sporting services
+09411,09412,0.5805341056,class 0941 split by 2015 spending,Recreational and sporting services
+09421,09421,1.0000000000,same code and label,"Cinemas, theatres, concerts"
+09422,09422,0.0178429272,class 0942 split by 2015 spending,"Museums, zoological gardens and the like"
+09422,09423,0.8550819035,class 0942 split by 2015 spending,"Museums, zoological gardens and the like"
+09422,09424,0.0135891534,class 0942 split by 2015 spending,"Museums, zoological gardens and the like"
+09422,09425,0.1134860159,class 0942 split by 2015 spending,"Museums, zoological gardens and the like"
+09423,09422,0.0178429272,class 0942 split by 2015 spending,Television and radio taxes and hire of equipment
+09423,09423,0.8550819035,class 0942 split by 2015 spending,Television and radio taxes and hire of equipment
+09423,09424,0.0135891534,class 0942 split by 2015 spending,Television and radio taxes and hire of equipment
+09423,09425,0.1134860159,class 0942 split by 2015 spending,Television and radio taxes and hire of equipment
+09424,09422,0.0178429272,class 0942 split by 2015 spending,Other services
+09424,09423,0.8550819035,class 0942 split by 2015 spending,Other services
+09424,09424,0.0135891534,class 0942 split by 2015 spending,Other services
+09424,09425,0.1134860159,class 0942 split by 2015 spending,Other services
+09431,09430,1.0000000000,class 0943 split by 2015 spending,Games of chance
+09511,09511,0.4337997918,class 0951 split by 2015 spending,Books
+09511,09512,0.3047498381,class 0951 split by 2015 spending,Books
+09511,09513,0.2509326177,class 0951 split by 2015 spending,Books
+09511,09514,0.0105177524,class 0951 split by 2015 spending,Books
+09521,09521,0.6512279927,class 0952 split by 2015 spending,Newspapers and magazines
+09521,09522,0.3487720073,class 0952 split by 2015 spending,Newspapers and magazines
+09531,09530,1.0000000000,class 0953 split by 2015 spending,Miscellaneous printed matter
+09541,09541,0.3088196066,class 0954 split by 2015 spending,Stationery and drawing materials
+09541,09549,0.6911803934,class 0954 split by 2015 spending,Stationery and drawing materials
+096,09601,0.5513516826,group 096 split by 2015 spending,PACKAGE HOLIDAYS
+096,09602,0.4486483174,group 096 split by 2015 spending,PACKAGE HOLIDAYS
+10111,10101,0.2574009419,group 101 split by 2015 spending,Pre-primary and primary education
+10111,10102,0.7425990581,group 101 split by 2015 spending,Pre-primary and primary education
+10211,10200,1.0000000000,group 102 split by 2015 spending,Secondary education
+10311,10300,1.0000000000,group 103 split by 2015 spending,Post secondary no tertiary education
+10411,10400,1.0000000000,group 104 split by 2015 spending,Tertiary education
+10511,10500,1.0000000000,group 105 split by 2015 spending,Education not definable by level
+11111,11111,1.0000000000,same code and label,Restaurants
+11112,11112,1.0000000000,class 1111 split by 2015 spending,"Cafés, bars and the like"
+11121,11120,1.0000000000,class 1112 split by 2015 spending,Canteens
+11211,11201,0.9795857249,group 112 split by 2015 spending,Accommodation services
+11211,11202,0.0199954764,group 112 split by 2015 spending,Accommodation services
+11211,11203,0.0004187987,group 112 split by 2015 spending,Accommodation services
+12111,12111,0.2551829492,class 1211 split by 2015 spending,Hairdressing salons and personal grooming establishments
+12111,12112,0.6739718487,class 1211 split by 2015 spending,Hairdressing salons and personal grooming establishments
+12111,12113,0.0708452021,class 1211 split by 2015 spending,Hairdressing salons and personal grooming establishments
+12121,12121,1.0000000000,same code and label,Electrical appliances for personal care
+12131,12131,0.0436879681,class 1213 split by 2015 spending,"Non-electrical appliances, articles and miscellaneous personal care"
+12131,12132,0.9563120319,class 1213 split by 2015 spending,"Non-electrical appliances, articles and miscellaneous personal care"
+12211,12200,1.0000000000,equal split over 122 (no 2015 spending),
+12311,12311,0.9211160710,class 1231 split by 2015 spending,"Jewellery, wedding wrath from preciously and semi-precious metals, watches and clocks"
+12311,12312,0.0565114998,class 1231 split by 2015 spending,"Jewellery, wedding wrath from preciously and semi-precious metals, watches and clocks"
+12311,12313,0.0223724292,class 1231 split by 2015 spending,"Jewellery, wedding wrath from preciously and semi-precious metals, watches and clocks"
+12321,12321,0.1469004563,class 1232 split by 2015 spending,Travel goods and other carriers
+12321,12322,0.0444078294,class 1232 split by 2015 spending,Travel goods and other carriers
+12321,12329,0.8086917143,class 1232 split by 2015 spending,Travel goods and other carriers
+12322,12321,0.1469004563,class 1232 split by 2015 spending,Other personal effects
+12322,12322,0.0444078294,class 1232 split by 2015 spending,Other personal effects
+12322,12329,0.8086917143,class 1232 split by 2015 spending,Other personal effects
+12411,12401,0.8336014304,group 124 split by 2015 spending,Social protection services
+12411,12402,0.1663985696,group 124 split by 2015 spending,Social protection services
+12412,12401,0.8336014304,group 124 split by 2015 spending,"Crèches, nurseries"
+12412,12402,0.1663985696,group 124 split by 2015 spending,"Crèches, nurseries"
+12521,12520,1.0000000000,class 1252 split by 2015 spending,Dwelling insurance
+12531,12532,1.0000000000,class 1253 split by 2015 spending,Health care insurance
+12541,12541,0.9919801725,class 1254 split by 2015 spending,Motor car and transport insurance
+12541,12542,0.0080198275,class 1254 split by 2015 spending,Motor car and transport insurance
+12551,12550,1.0000000000,class 1255 split by 2015 spending,Other insurance
+12621,12621,0.4705110578,class 1262 split by 2015 spending,Financial services n.e.c.
+12621,12622,0.5294889422,class 1262 split by 2015 spending,Financial services n.e.c.
+1271,12701,0.0521519565,group 127 split by 2015 spending,Other services
+1271,12702,0.4224420584,group 127 split by 2015 spending,Other services
+1271,12703,0.0773073820,group 127 split by 2015 spending,Other services
+1271,12704,0.4480986031,group 127 split by 2015 spending,Other services

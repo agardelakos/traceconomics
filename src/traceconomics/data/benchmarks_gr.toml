@@ -1,0 +1,19 @@
+# Published Greek figures from other studies, used to check our series (V4, V5).
+# Each value is copied from the saved document, with its page; nothing from memory.
+
+[kepe-2025]
+source = "Ioannidis, G. (2025), KEPE, Oikonomikes Exelixeis 57, pp. 119-141 (kepe.gr/wp-content/uploads/2025/07/B2.pdf)"
+settings = "national CPI; 12 COICOP divisions; HBS public use files; same-year survey weights 2016-2022, ELSTAT's rule (survey t-2, price-updated) 2023-2024; households ranked by OECD-equivalised net income (income minus taxes and income in kind); P20/R20 the poorest/richest fifth, R10 the richest tenth"
+
+# Chart 1, p. 124, annual-average inflation (%), one decimal. "average" is the official CPI.
+[kepe-2025.chart1]
+average = { 2021 = 1.2, 2022 = 9.6, 2023 = 3.4, 2024 = 2.7 }
+P20 = { 2021 = 1.4, 2022 = 10.4, 2023 = 3.3, 2024 = 2.8 }
+R20 = { 2021 = 1.0, 2022 = 8.9, 2023 = 3.4, 2024 = 2.7 }
+R10 = { 2021 = 0.9, 2022 = 8.5, 2023 = 3.5, 2024 = 2.7 }
+
+# Text, p. 123: differences from the average (percentage points); P20 - R10 from the same page.
+[kepe-2025.text]
+P20_minus_average = { 2021 = 0.2, 2022 = 0.9 }
+R20_minus_average = { 2021 = -0.2, 2022 = -0.7 }
+P20_minus_R10 = { 2021 = 0.5, 2022 = 1.9 }

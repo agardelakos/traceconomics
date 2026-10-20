@@ -1,0 +1,344 @@
+// The explore page: groups, options and measure in the address; one setting's file at a time;
+// the chart, summary, table, notes, contributions, downloads and citation follow the choice.
+
+import { mount, type ChartSpec } from "./chart";
+import { fill, month, num, type Lang } from "../lib/format";
+
+interface Config {
+  lang: Lang;
+  locale: string;
+  base: string;
+  defaultSlug: string;
+  optionKeys: string[];
+  values: Record<string, string[]>;
+  defaults: Record<string, string>;
+  colors: Record<string, string>;
+  dash: Record<string, string>;
+  availability: Record<string, Record<string, { index: string[]; annual_rates: string[] | null; greyed: any[]; notes: any[] }>>;
+  downloads: Record<string, { name: string; size: number }[]>;
+  divisions: Record<string, string>;
+  strings: Record<string, string>;
+}
+
+type Measure = "rch_a" | "rch_m" | "index";
+const SETTING_KEYS = ["spending", "imputed_rent", "price_source", "weights_timing", "tutoring"];
+const MAX_GROUPS = 6;
+const DEFAULT_GROUPS = ["Q1", "Q5", "all/all"];
+
+export function start(root: HTMLElement): void {
+  const cfg: Config = JSON.parse(root.dataset.config ?? "{}");
+  const L = cfg.lang;
+  const t = (key: string, vars: Record<string, string | number> = {}) => {
+    const text = cfg.strings[key];
+    if (text === undefined) throw new Error(`missing text "${key}"`);
+    return fill(text, vars);
+  };
+  const $ = <T extends HTMLElement>(role: string) => root.querySelector<T>(`[data-role="${role}"]`)!;
+
+  // State, read from the address (unknown values fall back to the defaults).
+  const params = new URLSearchParams(location.search);
+  const options: Record<string, string> = { ...cfg.defaults };
+  for (const k of cfg.optionKeys) {
+    const v = params.get(k);
+    if (v && cfg.values[k].includes(v)) options[k] = v;
+  }
+  const allGroups = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-group]")).map((b) => b.dataset.group!);
+  let groups = (params.get("groups") ?? "").split(",").filter((g) => allGroups.includes(g)).slice(0, MAX_GROUPS);
+  if (!groups.length) groups = [...DEFAULT_GROUPS];
+  let measure: Measure = (["rch_a", "rch_m", "index"].includes(params.get("m") ?? "") ? params.get("m") : "rch_a") as Measure;
+  let tableOpen = false;
+
+  const slug = () => SETTING_KEYS.map((k) => options[k]).join("_");
+  const dataKey = (g: string) => (g.startsWith("Q") ? `${options.grouping}/${g}` : g);
+  const groupName = (g: string) => t(`group.${g}`);
+  const shortName = (g: string) => t(`group.short.${g}`);
+  const inSentence = (g: string) => t(`group.in.${g}`);
+
+  // Files, fetched once each.
+  const cache = new Map<string, Promise<any>>();
+  const load = (rel: string) => {
+    if (!cache.has(rel)) {
+      cache.set(rel, fetch(`${cfg.base}/${rel}`).then((r) => {
+        if (!r.ok) throw new Error(`${r.status} ${rel}`);
+        return r.json();
+      }).catch((e) => { cache.delete(rel); throw e; }));
+    }
+    return cache.get(rel)!;
+  };
+
+  // Controls.
+  for (const input of root.querySelectorAll<HTMLInputElement>("fieldset[data-option] input[type=radio]")) {
+    input.checked = options[input.name] === input.value;
+    input.addEventListener("change", () => { if (input.checked) { options[input.name] = input.value; render(); } });
+  }
+  for (const b of root.querySelectorAll<HTMLButtonElement>("[data-group]")) {
+    b.addEventListener("click", () => {
+      const g = b.dataset.group!;
+      if (groups.includes(g)) { if (groups.length > 1) groups = groups.filter((x) => x !== g); }
+      else if (groups.length < MAX_GROUPS) groups = [...groups, g];
+      render();
+    });
+  }
+  const measureSel = $<HTMLSelectElement>("measure");
+  measureSel.value = measure;
+  measureSel.addEventListener("change", () => { measure = measureSel.value as Measure; render(); });
+  $<HTMLButtonElement>("table-toggle").addEventListener("click", () => { tableOpen = !tableOpen; render(); });
+  $<HTMLButtonElement>("copy").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      $<HTMLButtonElement>("copy").textContent = t("chart.copied");
+    } catch { /* the address bar holds the same link */ }
+  });
+  $<HTMLButtonElement>("retry").addEventListener("click", () => render());
+
+  let redraw: (() => void) | null = null;
+  let current: ChartSpec | null = null;
+  let seq = 0;
+
+  function syncControls() {
+    for (const b of root.querySelectorAll<HTMLButtonElement>("[data-group]")) {
+      const on = groups.includes(b.dataset.group!);
+      b.setAttribute("aria-pressed", String(on));
+      b.disabled = !on && groups.length >= MAX_GROUPS;
+    }
+    $("group-count").textContent = t("explore.groups_max", { n: groups.length, max: MAX_GROUPS });
+    const changed = cfg.optionKeys.filter((k) => options[k] !== cfg.defaults[k]).length;
+    $("changed").textContent = changed ? t("option.changed", { n: changed }) : t("option.all_defaults");
+    for (const fs of root.querySelectorAll<HTMLElement>("fieldset[data-option]")) {
+      const k = fs.dataset.option!;
+      const note = fs.querySelector<HTMLElement>('[data-role="note"]')!;
+      note.replaceChildren(...optionNotes(k).map((text) => Object.assign(document.createElement("span"), { textContent: text })));
+      note.style.flexDirection = "column";
+    }
+    const url = new URL(location.href);
+    for (const k of cfg.optionKeys) {
+      if (options[k] === cfg.defaults[k]) url.searchParams.delete(k);
+      else url.searchParams.set(k, options[k]);
+    }
+    url.searchParams.set("groups", groups.join(","));
+    if (measure === "rch_a") url.searchParams.delete("m"); else url.searchParams.set("m", measure);
+    history.replaceState(null, "", url);
+  }
+
+  function reasonText(r: any): string {
+    const code = r.reason;
+    if (code === "rule_u_end") {
+      const end = cfg.availability.weights_timing.U.index[1];
+      return t("reason.rule_u_end", { survey: end.slice(0, 4), month: month(L, end, "acc") });
+    }
+    return t(`reason.${code}`);
+  }
+
+  function optionNotes(k: string): string[] {
+    if (k === "grouping") return [];
+    const a = cfg.availability[k]?.[options[k]];
+    if (!a) return [];
+    const out = [...a.greyed, ...a.notes].map(reasonText);
+    if (k === "weights_timing" && options[k] === "N") out.unshift(t("reason.timing.N"));
+    return out;
+  }
+
+  function renderDownloads() {
+    const files = cfg.downloads[slug()] ?? [];
+    const box = $("downloads");
+    box.replaceChildren(...files.map((f) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      const a = Object.assign(document.createElement("a"), { href: `${cfg.base}/downloads/${slug()}/${f.name}`, textContent: f.name });
+      a.setAttribute("download", "");
+      const size = f.size > 1e6 ? `${num(L, f.size / 1e6)} MB` : `${num(L, f.size / 1e3, 0)} KB`;
+      const desc = Object.assign(document.createElement("span"), { className: "small muted", textContent: `${f.name.split(".").pop()!.toUpperCase()} · ${size}` });
+      row.append(a, desc);
+      return row;
+    }));
+    const opts = [options.grouping, ...SETTING_KEYS.map((k) => t(`option.${k}.${options[k]}`))].join(", ");
+    $("cite").textContent = t("explore.cite_text", { year: new Date().getFullYear(), options: opts, url: location.href });
+  }
+
+  async function render() {
+    syncControls();
+    renderDownloads();
+    const mine = ++seq;
+    $("loading").hidden = false;
+    $("failed").hidden = true;
+    let data: any;
+    try {
+      data = await load(`series/${slug()}.json`);
+    } catch {
+      if (mine !== seq) return;
+      $("loading").hidden = true;
+      $("failed").hidden = false;
+      return;
+    }
+    if (mine !== seq) return;
+    $("loading").hidden = true;
+    draw(data);
+    contributions();
+  }
+
+  function axisOf(start: string, end: string): string[] {
+    const out: string[] = [];
+    let y = Number(start.slice(0, 4));
+    let m = Number(start.slice(5, 7));
+    for (;;) {
+      const p = `${y}-${String(m).padStart(2, "0")}`;
+      if (p > end) return out;
+      out.push(p);
+      if (++m > 12) { m = 1; y++; }
+    }
+  }
+
+  function draw(data: any) {
+    const axis = axisOf(data.start, data.end);
+    const field = measure === "index" ? "index" : measure;
+    const lines = groups.map((g) => ({
+      key: g, label: shortName(g), color: cfg.colors[g], dash: cfg.dash[g] || undefined,
+      values: data.groups[dataKey(g)][field] as (number | null)[],
+    }));
+    const flag = data.flags[0];
+    const flagTo = measure === "index" ? flag.index_to : measure === "rch_m" ? flag.rch_m_to : flag.rch_a_to;
+    const flagFill = flag.code === "less certain" ? "var(--color-flag-less-certain)" : "var(--color-flag-coarser)";
+    const withGap = measure === "rch_a" && groups.includes("Q1") && groups.includes("Q5");
+    const gapData = data.gaps[options.grouping];
+    const firstIdx = Math.min(...lines.map((l) => l.values.findIndex((v) => v !== null)).filter((i) => i >= 0));
+    current = {
+      axis, locale: cfg.locale, unit: measure === "index" ? "" : "%",
+      lines, flag: { to: flagTo, fill: flagFill }, from: axis[firstIdx],
+      gap: withGap ? { values: gapData.rch_a, se: gapData.se_a, title: t("gap") } : undefined,
+    };
+    const chartEl = $("chart");
+    const gapEl = root.querySelector<HTMLElement>(".chart-gap")!;
+    $("gap-title").hidden = !withGap;
+    if (!redraw) redraw = mount(chartEl, gapEl, () => current!);
+    else redraw();
+
+    // Summary: each line's latest value.
+    const ends = lines.map((l) => {
+      let i = l.values.length - 1;
+      while (i > 0 && l.values[i] === null) i--;
+      return { g: l.key, i, v: l.values[i] as number };
+    });
+    const lastI = Math.max(...ends.map((e) => e.i));
+    const digits = measure === "index" ? 2 : 1;
+    const items = ends.map((e) => t("summary.item", { value: `${num(L, e.v, digits)}${measure === "index" ? "" : "%"}`, group: inSentence(e.g) }));
+    const list = items.length > 1 ? `${items.slice(0, -1).join(", ")} ${t("summary.and")} ${items[items.length - 1]}` : items[0];
+    const summary = measure === "rch_a"
+      ? t("summary.annual", { month: L === "el" ? month(L, axis[lastI], "acc") : month(L, axis[lastI]), list })
+      : `${t(`explore.measure.${measure}`)}, ${month(L, axis[lastI])}: ${list}.`;
+    $("summary").textContent = summary;
+    chartEl.setAttribute("aria-label", summary);
+
+    // A notice when the timing rule leaves months out.
+    const notice = $("notice");
+    const timing = options.weights_timing;
+    const notes = timing === "U" || timing === "F" ? cfg.availability.weights_timing[timing].greyed.map(reasonText) : [];
+    notice.hidden = !notes.length;
+    notice.querySelector("span")!.textContent = notes.join(" ");
+
+    // Legend.
+    const legend = $("legend");
+    const key = (color: string, text: string, opacity = "") => {
+      const s = document.createElement("span");
+      s.className = "key";
+      const box = document.createElement("span");
+      box.className = "box";
+      box.style.background = color;
+      if (opacity) box.style.opacity = opacity;
+      s.append(box, document.createTextNode(text));
+      return s;
+    };
+    const parts = [key(flagFill, `${t(`flag.legend.${flag.code}`)}¹`)];
+    if (withGap) parts.push(key("var(--color-text)", t("chart.band"), "0.12"), key("var(--color-disabled)", t("chart.noband")));
+    legend.replaceChildren(...parts);
+
+    // Footnotes: the flag, then each selected group's notes (once each).
+    const foot: string[] = [t(`reason.${flag.code.replace(" ", "_")}`)];
+    const seen = new Set<string>();
+    for (const g of groups) {
+      const f = data.footnotes[dataKey(g)] ?? {};
+      for (const [code, v] of Object.entries<any>(f)) {
+        const text = code === "hospital"
+          ? `${t("reason.hospital", { first: 2008, last: 2014 })} (${v.annual_rates[0]} – ${v.annual_rates[1]})`
+          : `${t(`reason.${code}`)} (${(v.index_years ?? []).join(", ")})`;
+        if (!seen.has(text)) { seen.add(text); foot.push(text); }
+      }
+    }
+    $("footnotes").replaceChildren(...foot.map((text) => Object.assign(document.createElement("li"), { textContent: text })));
+
+    // Table.
+    const toggle = $<HTMLButtonElement>("table-toggle");
+    toggle.textContent = tableOpen ? t("chart.hide_table") : t("chart.show_table");
+    toggle.setAttribute("aria-expanded", String(tableOpen));
+    const tableBox = $("table");
+    tableBox.hidden = !tableOpen;
+    if (tableOpen) {
+      const table = document.createElement("table");
+      table.className = "data-table";
+      const head = document.createElement("tr");
+      for (const h of [t("chart.month"), ...groups.map(groupName), ...(withGap ? [t("gap")] : [])]) {
+        head.append(Object.assign(document.createElement("th"), { scope: "col", textContent: h }));
+      }
+      const thead = document.createElement("thead");
+      thead.append(head);
+      const tbody = document.createElement("tbody");
+      for (let i = axis.length - 1; i >= firstIdx; i--) {
+        const tr = document.createElement("tr");
+        tr.append(Object.assign(document.createElement("th"), { scope: "row", textContent: axis[i] }));
+        const cells = [...lines.map((l) => l.values[i]), ...(withGap ? [gapData.rch_a[i]] : [])];
+        for (const v of cells) tr.append(Object.assign(document.createElement("td"), { textContent: v === null ? "–" : num(L, v, digits) }));
+        tbody.append(tr);
+      }
+      table.append(thead, tbody);
+      tableBox.replaceChildren(table);
+    }
+  }
+
+  async function contributions() {
+    const box = $("contrib");
+    const g = groups[0];
+    let data: any;
+    try {
+      data = await load(`contributions/${slug()}.json`);
+    } catch {
+      box.hidden = true;
+      return;
+    }
+    const byMonth = data.groups[dataKey(g)];
+    if (!byMonth) { box.hidden = true; return; }
+    const months = Object.keys(byMonth).sort();
+    const last = months[months.length - 1];
+    const parts = Object.entries<number>(byMonth[last]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+    const total = parts.reduce((a, [, v]) => a + v, 0);
+    const max = Math.max(...parts.map(([, v]) => Math.abs(v)), 0.01);
+    const hasNeg = parts.some(([, v]) => v < 0);
+    box.hidden = false;
+    $("contrib-title").textContent = t("explore.contrib_title", { group: inSentence(g), value: `${num(L, total)}%` });
+    $("contrib-note").textContent = t("explore.contrib_note", { month: month(L, last) });
+    $("bars").replaceChildren(...parts.map(([code, v]) => {
+      const row = document.createElement("div");
+      row.className = "bar-row";
+      const label = Object.assign(document.createElement("span"), { textContent: cfg.divisions[code] ?? code });
+      const track = document.createElement("div");
+      track.className = "track";
+      const zero = hasNeg ? 30 : 0;
+      const span = 100 - zero;
+      const fillEl = document.createElement("div");
+      fillEl.className = "fill";
+      const w = (Math.abs(v) / max) * (v < 0 ? zero : span);
+      fillEl.style.left = `${v < 0 ? zero - w : zero}%`;
+      fillEl.style.width = `${w}%`;
+      track.append(fillEl);
+      if (hasNeg) {
+        const z = document.createElement("div");
+        z.className = "zero";
+        z.style.left = `${zero}%`;
+        track.append(z);
+      }
+      const value = Object.assign(document.createElement("span"), { className: "v", textContent: `${v > 0 ? "+" : ""}${num(L, v, 2)}` });
+      row.append(label, track, value);
+      return row;
+    }));
+  }
+
+  render();
+}

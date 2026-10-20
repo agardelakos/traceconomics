@@ -1,0 +1,40 @@
+# Copy this file to your user config folder and edit it:
+#   Windows: %APPDATA%\traceconomics\config.toml
+#   Linux:   ~/.config/traceconomics/config.toml
+# or point the TRACECONOMICS_CONFIG environment variable at it.
+
+[archive]
+# Where raw files are kept. Keep it outside the repository and back it up.
+dir = "~/traceconomics-archive"
+
+[fetch]
+# Sent with every request so publishers can see who is fetching.
+user_agent = "Traceconomics/0.1 (archive of public statistics)"
+pause_seconds = 2.0
+
+[schedule]
+timezone = "Europe/Athens"
+# Releases come out at 12:00 Greek time; run an hour later.
+run_after = "13:00"
+# Release dates added by hand, if a calendar can't be read (YYYY-MM-DD).
+extra_release_dates = []
+
+[store]
+# The observation store: every parsed value, rebuilt from the archive on demand.
+# A cache, so it needs no backup. Keep it outside the repository.
+dir = "~/traceconomics-store"
+# DuckDB spills to disk beyond this; keep it modest on small machines.
+memory_limit = "2GB"
+# threads = 4
+
+# Optional. Without this section, reports and alerts are written to <archive>/outbox/.
+# The password is never stored here: run
+#   python -m keyring set traceconomics-smtp <username>
+# or set TRACECONOMICS_SMTP_PASSWORD in the environment.
+# [email]
+# smtp_host = "smtp.example.org"
+# smtp_port = 587
+# security = "starttls"        # or "ssl" (usually port 465)
+# username = "alerts@example.org"
+# sender = "alerts@example.org"
+# recipients = ["you@example.org"]

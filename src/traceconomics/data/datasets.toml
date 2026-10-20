@@ -1,0 +1,106 @@
+# Source datasets that are parsed into the observation store.
+#
+# Each entry names:
+#   archive       the archive dataset(s) that feed it, as source/dataset; a trailing *
+#                 matches any dataset with that prefix (filtered further by `file_name`)
+#   format        which parser reads it
+#   dimensions    the series key, in the source's own order (this order is fixed:
+#                 it is used to build keys and file names)
+#   coicop        the dimension holding spending categories, if any; its codes are
+#                 stored without Eurostat's "CP" prefix, with all items as TOTAL
+#   classification  which COICOP version those codes belong to
+#   backcast_before  values for earlier periods were computed after the fact
+#                 (a back series), not published at the time
+#   release       the dimension telling flash from final values, if any
+#   file_name     for archive patterns: a regular expression the archived file's
+#                 original name must match
+#   label_files   files read only for their labels (e.g. the Greek-language copies)
+
+[eurostat.prc_hicp_minr]
+archive = ["eurostat/prc_hicp_minr"]
+format = "eurostat-tsv"
+freq = "M"
+dimensions = ["freq", "unit", "coicop18", "geo"]
+coicop = "coicop18"
+classification = "ecoicop2"
+backcast_before = "2026-01"
+
+[eurostat.prc_hicp_iw]
+archive = ["eurostat/prc_hicp_iw"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "coicop18", "statinfo", "geo"]
+coicop = "coicop18"
+classification = "ecoicop2"
+backcast_before = "2026"
+
+[eurostat.prc_hicp_fpd]
+archive = ["eurostat/prc_hicp_fpd"]
+format = "eurostat-tsv"
+freq = "M"
+dimensions = ["freq", "unit", "coicop18", "release", "geo"]
+coicop = "coicop18"
+classification = "ecoicop2"
+backcast_before = "2026-01"
+release = "release"
+
+# ECOICOP version 1, frozen since 2025-12: genuine values as published at the time.
+
+[eurostat.prc_hicp_midx]
+archive = ["eurostat/prc_hicp_midx"]
+format = "eurostat-tsv"
+freq = "M"
+dimensions = ["freq", "unit", "coicop", "geo"]
+coicop = "coicop"
+classification = "ecoicop1"
+
+[eurostat.prc_hicp_inw]
+archive = ["eurostat/prc_hicp_inw"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "coicop", "geo"]
+coicop = "coicop"
+classification = "ecoicop1"
+
+[eurostat.prc_hicp_fp]
+archive = ["eurostat/prc_hicp_fp"]
+format = "eurostat-tsv"
+freq = "M"
+dimensions = ["freq", "unit", "coicop", "release", "geo"]
+coicop = "coicop"
+classification = "ecoicop1"
+release = "release"
+
+# ELSTAT CPI table 07: every item's monthly index and the year's weights, one
+# document per year (2010 onward, re-issued in COICOP 2018 with 2020=100).
+# freq A carries the weights (unit PM, per mille) and annual averages; freq M the
+# monthly indices (unit I20, 2020=100). Values come from the English files.
+
+[elstat.cpi07]
+archive = ["elstat/doc-*"]
+file_name = 'DKT87_TS_MM_01_\d{4}_\d\d_\d{4}_07_F_EN\.xlsx?$'
+label_files = 'DKT87_TS_MM_01_\d{4}_\d\d_\d{4}_07_F_(EN|GR)\.xlsx?$'
+format = "elstat-cpi07"
+dimensions = ["freq", "unit", "coicop18", "geo"]
+coicop = "coicop18"
+classification = "coicop2018"
+
+# Our own weights tables, built locally from the household budget survey microdata (aggregates only).
+["oet-local".hbs_weights]
+archive = ["oet-local/hbs-weights-gr-*"]
+format = "oet-weights"
+freq = "A"
+dimensions = ["geo", "grouping", "group", "spending", "imputed_rent", "hh_weighting", "tutoring", "coicop18", "measure"]
+coicop = "coicop18"
+classification = "coicop2018"
+
+["oet-local".hbs_groups]
+archive = ["oet-local/hbs-groups-gr-*"]
+format = "oet-groups"
+freq = "A"
+dimensions = ["geo", "grouping", "group", "measure"]
+
+["oet-local".hbs_bands]
+archive = ["oet-local/hbs-bands-gr"]
+format = "oet-bands"
+dimensions = ["geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring", "unit", "measure"]

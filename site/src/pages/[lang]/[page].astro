@@ -1,0 +1,27 @@
+---
+// Short text pages: about and changelog.
+import { getEntry, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { href, LANGS, t, type Lang } from "../../lib/i18n";
+
+export function getStaticPaths() {
+  // Inside: getStaticPaths runs on its own, without the rest of this file.
+  return LANGS.flatMap((lang) => ["about", "changelog"].map((page) => ({ params: { lang, page } })));
+}
+
+const lang = Astro.params.lang as Lang;
+const page = Astro.params.page as string;
+const entry = await getEntry("pages", `${lang}/${page}`);
+if (!entry) throw new Error(`no ${page} page for ${lang}`);
+const { Content } = await render(entry);
+---
+<Base lang={lang} title={entry.data.title} description={entry.data.summary} path={page} current={page}>
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, `nav.${page}`)}</nav>
+      <h1>{entry.data.title}</h1>
+      <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
+    </header>
+    <section class="prose"><Content /></section>
+  </article>
+</Base>

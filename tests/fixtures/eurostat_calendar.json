@@ -1,0 +1,168 @@
+[
+ {
+  "recordid": "22494168",
+  "allDay": true,
+  "unit": "C4",
+  "period": "September 2026",
+  "types": [
+   {
+    "label": "Data release",
+    "order": 1
+   },
+   {
+    "label": "Euro indicators release",
+    "order": 2
+   },
+   {
+    "label": "Statistics Explained",
+    "order": 4
+   }
+  ],
+  "euroind": true,
+  "euroindAuthor": "estat",
+  "start": "2026-10-02T11:00Z",
+  "datasetCodes": "prc_hicp_fp,prc_hicp_manr,prc_hicp_mmor,prc_hicp_midx,prc_hicp_inw,prc_hicp_cow",
+  "theme": "Economy and finance",
+  "preliminary": false,
+  "title": "Flash estimate inflation euro area"
+ },
+ {
+  "recordid": "22494298",
+  "allDay": true,
+  "unit": "C4",
+  "period": "September 2026",
+  "types": [
+   {
+    "label": "Data release",
+    "order": 1
+   },
+   {
+    "label": "Euro indicators release",
+    "order": 2
+   },
+   {
+    "label": "Statistics Explained",
+    "order": 4
+   }
+  ],
+  "euroind": true,
+  "euroindAuthor": "estat",
+  "start": "2026-10-16T11:00Z",
+  "datasetCodes": "prc_hicp_aind,prc_hicp_apc,prc_hicp_cann,prc_hicp_cind,prc_hicp_cmon,prc_hicp_cow,prc_hicp_inw,prc_hicp_manr,prc_hicp_midx,prc_hicp_mmor,prc_hicp_mv12r,prc_hicp_fp,prc_hicp_ctrb,prc_ipc_g20",
+  "theme": "Economy and finance",
+  "preliminary": false,
+  "title": "Inflation (HICP)"
+ },
+ {
+  "recordid": "22494428",
+  "allDay": true,
+  "unit": "C4",
+  "period": "October 2026",
+  "types": [
+   {
+    "label": "Data release",
+    "order": 1
+   },
+   {
+    "label": "Euro indicators release",
+    "order": 2
+   },
+   {
+    "label": "Statistics Explained",
+    "order": 4
+   }
+  ],
+  "euroind": true,
+  "euroindAuthor": "estat",
+  "start": "2026-11-04T11:00Z",
+  "datasetCodes": "prc_hicp_fp,prc_hicp_manr,prc_hicp_mmor,prc_hicp_midx,prc_hicp_inw,prc_hicp_cow",
+  "theme": "Economy and finance",
+  "preliminary": false,
+  "title": "Flash estimate inflation euro area"
+ },
+ {
+  "recordid": "22494546",
+  "allDay": true,
+  "unit": "C4",
+  "period": "October 2026",
+  "types": [
+   {
+    "label": "Data release",
+    "order": 1
+   },
+   {
+    "label": "Euro indicators release",
+    "order": 2
+   },
+   {
+    "label": "Statistics Explained",
+    "order": 4
+   }
+  ],
+  "euroind": true,
+  "euroindAuthor": "estat",
+  "start": "2026-11-18T11:00Z",
+  "datasetCodes": "prc_hicp_aind,prc_hicp_apc,prc_hicp_cann,prc_hicp_cind,prc_hicp_cmon,prc_hicp_cow,prc_hicp_inw,prc_hicp_manr,prc_hicp_midx,prc_hicp_mmor,prc_hicp_mv12r,prc_hicp_fp,prc_hicp_ctrb,prc_ipc_g20",
+  "theme": "Economy and finance",
+  "preliminary": false,
+  "title": "Inflation (HICP)"
+ },
+ {
+  "recordid": "22494146",
+  "allDay": true,
+  "unit": "F3",
+  "period": "August 2026",
+  "types": [
+   {
+    "label": "Data release",
+    "order": 1
+   },
+   {
+    "label": "Euro indicators release",
+    "order": 2
+   },
+   {
+    "label": "Statistics Explained",
+    "order": 4
+   }
+  ],
+  "euroind": true,
+  "euroindAuthor": "estat",
+  "start": "2026-10-01T11:00Z",
+  "datasetCodes": "une_rt_m",
+  "theme": "Population and social conditions",
+  "preliminary": false,
+  "title": "Unemployment"
+ },
+ {
+  "recordid": "22494157",
+  "allDay": true,
+  "unit": "C4",
+  "period": "Q2/2026",
+  "types": [
+   {
+    "label": "Data release",
+    "order": 1
+   },
+   {
+    "label": "Euro indicators release",
+    "order": 2
+   },
+   {
+    "label": "News article",
+    "order": 3
+   },
+   {
+    "label": "Statistics Explained",
+    "order": 4
+   }
+  ],
+  "euroind": true,
+  "euroindAuthor": "estat",
+  "start": "2026-10-01T11:00Z",
+  "datasetCodes": "prc_hpi_a,prc_hpi_inw,prc_hpi_q",
+  "theme": "Economy and finance",
+  "preliminary": false,
+  "title": "House price index"
+ }
+]

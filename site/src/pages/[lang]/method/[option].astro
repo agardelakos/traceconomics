@@ -1,0 +1,37 @@
+---
+// One option explained: what it means, the default and why, the alternatives, what difference
+// it makes, and the sources. Choices no source settles are labelled as ours in the text.
+import { getCollection, render } from "astro:content";
+import SourceList from "../../../components/SourceList.astro";
+import Base from "../../../layouts/Base.astro";
+import { href, LANGS, t, type Lang } from "../../../lib/i18n";
+
+export async function getStaticPaths() {
+  const all = await getCollection("method", (e) => Boolean(e.data.option));
+  return LANGS.flatMap((lang) =>
+    all.filter((e) => e.id.startsWith(`${lang}/`)).map((entry) => ({ params: { lang, option: entry.id.split("/")[1] }, props: { entry } })));
+}
+
+const lang = Astro.params.lang as Lang;
+const { entry } = Astro.props;
+const slug = Astro.params.option as string;
+const { Content } = await render(entry);
+const explore = `${href(lang, "explore")}`;
+---
+<Base lang={lang} title={entry.data.title} description={entry.data.summary} path={`method/${slug}`} current="method">
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}>
+        <a href={href(lang)}>{t(lang, "nav.home")}</a> / <a href={href(lang, "method")}>{t(lang, "nav.method")}</a>
+      </nav>
+      <h1>{entry.data.title}</h1>
+      <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
+    </header>
+    <section class="prose"><Content /></section>
+    <p><a class="button primary" href={explore}>{t(lang, "home.card.explore")} →</a></p>
+    <section class="stack" style="gap: var(--space-2)">
+      <h2>{t(lang, "method.sources")}</h2>
+      <SourceList keys={entry.data.sources} lang={lang} />
+    </section>
+  </article>
+</Base>

@@ -1,0 +1,6 @@
+# Differences flagged by `traceconomics check mapping` that could come from the mapping (a fair part of the
+# code's spending reached it through split links), with the reason they are accepted.
+# Keyed by the two survey years compared, then the COICOP 2018 code.
+#
+# ["2023-2024"."061"]
+# reason = "..."

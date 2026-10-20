@@ -1,0 +1,14 @@
+# Country codes are ISO 3166-1 alpha-2. Sources that use other codes are translated
+# here, at the boundary, and nowhere else.
+
+[eurostat.rename]
+EL = "GR"  # Greece
+UK = "GB"  # United Kingdom
+
+# Codes that are not ISO countries but are kept as published.
+[eurostat.keep]
+XK = "Kosovo (code used by the EU; not assigned in ISO 3166-1)"
+
+# Groups of countries. Kept as published; never mistaken for a country.
+[aggregates]
+patterns = ["^EA[0-9]*$", "^EU[0-9]*(_[0-9]{4})?$", "^EEA$"]

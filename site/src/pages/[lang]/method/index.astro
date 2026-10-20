@@ -1,0 +1,43 @@
+---
+// The method in plain language, with links to each option's page and the sources.
+import { getCollection, render } from "astro:content";
+import SourceList from "../../../components/SourceList.astro";
+import Base from "../../../layouts/Base.astro";
+import { href, LANGS, t, type Lang } from "../../../lib/i18n";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const pages = (await getCollection("method", (e) => e.id.startsWith(`${lang}/`))).sort((a, b) => a.data.order - b.data.order);
+const main = pages.find((e) => e.id === `${lang}/overview`);
+if (!main) throw new Error(`no method page for ${lang}`);
+const options = pages.filter((e) => e.data.option);
+const { Content } = await render(main);
+---
+<Base lang={lang} title={main.data.title} description={main.data.summary} path="method" current="method">
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, "nav.method")}</nav>
+      <h1>{main.data.title}</h1>
+      <p style="font-size: var(--text-lg)">{main.data.summary}</p>
+    </header>
+    <nav aria-labelledby="options-h" class="stack" style="gap: var(--space-3)">
+      <h2 id="options-h">{t(lang, "method.options")}</h2>
+      <div class="cards">
+        {options.map((e) => (
+          <a class="card" href={href(lang, `method/${e.id.split("/")[1]}`)}>
+            <span class="title">{e.data.title} →</span>
+            <span class="text">{e.data.summary}</span>
+          </a>
+        ))}
+      </div>
+    </nav>
+    <section class="prose"><Content /></section>
+    <section class="stack" style="gap: var(--space-2)">
+      <h2>{t(lang, "method.sources")}</h2>
+      <SourceList keys={main.data.sources} lang={lang} />
+    </section>
+  </article>
+</Base>

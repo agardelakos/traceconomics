@@ -1,0 +1,18 @@
+---
+import { href, t, type Lang } from "../lib/i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const links = ["method", "glossary", "data", "about", "changelog"];
+---
+<footer class="site-footer">
+  <div class="container">
+    <nav aria-label={t(lang, "nav.footer")}>
+      <ul>
+        {links.map((key) => <li><a href={href(lang, key)}>{t(lang, `nav.${key}`)}</a></li>)}
+      </ul>
+    </nav>
+    <p>{t(lang, "footer.sources")}</p>
+    <p>{t(lang, "footer.privacy")}</p>
+  </div>
+</footer>

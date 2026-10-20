@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Local settings (copy config.example.toml to your user config folder instead)
+config.toml
+
+# Website: dependencies, build output, and data files written by `traceconomics export`
+site/node_modules/
+site/dist/
+site/.astro/
+site/public/data/

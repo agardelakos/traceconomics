@@ -1,0 +1,51 @@
+---
+// One glossary term at a fixed address: the plain sentence, the longer explanation, related
+// terms and the sources. The same address works in both languages.
+import { getCollection, render } from "astro:content";
+import SourceList from "../../../components/SourceList.astro";
+import Base from "../../../layouts/Base.astro";
+import { href, LANGS, t, type Lang } from "../../../lib/i18n";
+
+export async function getStaticPaths() {
+  const all = await getCollection("glossary");
+  return LANGS.flatMap((lang) =>
+    all.filter((e) => e.id.startsWith(`${lang}/`)).map((entry) => ({
+      params: { lang, term: entry.id.split("/")[1] },
+      props: { entry, names: Object.fromEntries(all.filter((e) => e.id.startsWith(`${lang}/`)).map((e) => [e.id.split("/")[1], e.data.term])) },
+    })));
+}
+
+const lang = Astro.params.lang as Lang;
+const { entry, names } = Astro.props;
+const slug = Astro.params.term as string;
+const { Content } = await render(entry);
+for (const r of entry.data.related) if (!names[r]) throw new Error(`glossary ${slug}: unknown related term ${r}`);
+---
+<Base lang={lang} title={entry.data.term} description={entry.data.short} path={`glossary/${slug}`} current="glossary">
+  <article class="stack-lg" style="max-width: 720px">
+    <header class="stack" style="gap: var(--space-2)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}>
+        <a href={href(lang)}>{t(lang, "nav.home")}</a> / <a href={href(lang, "glossary")}>{t(lang, "nav.glossary")}</a>
+      </nav>
+      <h1>{entry.data.term}</h1>
+      <p class="muted" lang={lang === "el" ? "en" : "el"}>{entry.data.other}</p>
+    </header>
+    <p class="definition">{entry.data.short}</p>
+    <section class="prose">
+      <h2>{t(lang, "glossary.more")}</h2>
+      <Content />
+    </section>
+    {entry.data.related.length > 0 && (
+      <section class="stack" style="gap: var(--space-2)">
+        <h2 class="eyebrow" style="font-family: var(--font-sans)">{t(lang, "glossary.related")}</h2>
+        <div class="chips">
+          {entry.data.related.map((r: string) => <a class="chip" href={href(lang, `glossary/${r}`)} style="text-decoration: none">{names[r]}</a>)}
+        </div>
+      </section>
+    )}
+    <section class="stack" style="gap: var(--space-2)">
+      <h2 class="eyebrow" style="font-family: var(--font-sans)">{t(lang, "glossary.sources")}</h2>
+      <SourceList keys={entry.data.sources} lang={lang} />
+    </section>
+  </article>
+</Base>

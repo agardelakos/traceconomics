@@ -1,0 +1,10 @@
+# Coefficients of variation (%) that ELSTAT publishes for mean household purchases per COICOP
+# division, all households. They check our standard errors: the bootstrap over primary sampling
+# units, run on the public use file, should give the same values (`traceconomics check v2`).
+#
+# Code 00 is the total. Each year's codes are that survey's own classification.
+
+[2024]
+source = "ELSTAT, Household Budget Survey 2024, press release, Table 17 (page 21)"
+basis = "purchases"
+cv = { "00" = 1.7, "01" = 1.1, "02" = 2.7, "03" = 3.2, "04" = 1.5, "05" = 3.4, "06" = 3.2, "07" = 3.7, "08" = 1.2, "09" = 7.9, "10" = 5.8, "11" = 2.9, "12" = 3.2, "13" = 2.8 }
