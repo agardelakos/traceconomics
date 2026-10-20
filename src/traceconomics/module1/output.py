@@ -230,7 +230,7 @@ class Writer:
         for f in self._files.values():
             f.close()
         written = []
-        con = duckdb.connect()
+        con = parquet_connection()
         for name in TABLES:
             part = self.folder / f"{name}.all.csv.part"
             parquet = self.folder / f"{name}.parquet"
@@ -241,6 +241,14 @@ class Writer:
         return written
 
 
+def parquet_connection():
+    """A DuckDB connection for writing Parquet files. One thread: DuckDB reads the CSV in parallel
+    chunks, one per thread, and the Parquet row groups follow those chunks, so with the default
+    (one thread per core) the same rows give different files on machines with different numbers
+    of cores. Published files must be byte-identical wherever they are built."""
+    return duckdb.connect(config={"threads": 1})
+
+
 def _write(folder: Path, name: str, table: list[dict]) -> list[Path]:
     folder.mkdir(parents=True, exist_ok=True)
     csv_path = folder / f"{name}.csv"
@@ -249,7 +257,7 @@ def _write(folder: Path, name: str, table: list[dict]) -> list[Path]:
         w.writeheader()
         w.writerows(table)
     parquet = folder / f"{name}.parquet"
-    con = duckdb.connect()
+    con = parquet_connection()
     con.execute(f"COPY (SELECT * FROM read_csv('{csv_path.as_posix()}', header = true, all_varchar = true)) "
                 f"TO '{parquet.as_posix()}' (FORMAT parquet, COMPRESSION zstd)")
     return [csv_path, parquet]

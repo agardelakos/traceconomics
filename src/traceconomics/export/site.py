@@ -155,6 +155,9 @@ CSV_TABLES = ("m1_index", "m1_rates")
 
 def downloads(con, setting: dict, folder: Path) -> list[Path]:
     folder.mkdir(parents=True, exist_ok=True)
+    # One thread while writing: with several, the Parquet row groups depend on the number of cores,
+    # and the same rows would give different files on different machines.
+    con.execute("SET threads = 1")
     written = []
     for table in TABLES:
         q = f"SELECT * FROM {table} WHERE {_where(setting)}"

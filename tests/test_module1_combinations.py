@@ -122,3 +122,13 @@ def test_published_json_has_lf_line_endings(tmp_path):
     path = output.write_metadata(tmp_path, first_period="2008-12", last_period="2026-09", manifest={})
     data = path.read_bytes()
     assert bytes([10]) in data and bytes([13]) not in data
+
+
+def test_parquet_is_written_with_one_thread():
+    # DuckDB reads a large CSV in parallel chunks and the Parquet row groups follow them: on the real
+    # contributions table (2.8 million rows) 2 threads gave a different file from 1 or 16. Published
+    # files must be byte-identical wherever they are built, so they are written with one thread.
+    from traceconomics.module1 import output
+
+    con = output.parquet_connection()
+    assert con.execute("SELECT current_setting('threads')").fetchone()[0] == 1
