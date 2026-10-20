@@ -33,15 +33,19 @@ class DatasetSpec:
     file_name: re.Pattern | None = None
     label_files: re.Pattern | None = None
 
-    def feeds(self, source: str, dataset: str, original_name: str | None) -> bool:
-        """Whether an archived dataset (and file) feeds this store dataset."""
+    def covers(self, source: str, dataset: str) -> bool:
+        """Whether an archived dataset is one this store dataset is built from (its `archive` list)."""
         for pattern in self.archive:
             src, _, name = pattern.partition("/")
-            if src != source:
-                continue
-            if name.endswith("*") and dataset.startswith(name[:-1]) or name == dataset:
-                return self.file_name is None or bool(original_name and self.file_name.search(original_name))
+            if src == source and (name.endswith("*") and dataset.startswith(name[:-1]) or name == dataset):
+                return True
         return False
+
+    def feeds(self, source: str, dataset: str, original_name: str | None) -> bool:
+        """Whether an archived dataset (and file) feeds this store dataset."""
+        if not self.covers(source, dataset):
+            return False
+        return self.file_name is None or bool(original_name and self.file_name.search(original_name))
 
 
 def _load(name: str) -> dict:

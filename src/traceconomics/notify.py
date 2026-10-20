@@ -27,9 +27,10 @@ def smtp_password(username: str) -> str | None:
         return pw
     try:
         import keyring
-    except ImportError:
+
+        return keyring.get_password(KEYRING_SERVICE, username)
+    except Exception:  # noqa: BLE001 - no module or no backend (e.g. a server): no stored password
         return None
-    return keyring.get_password(KEYRING_SERVICE, username)
 
 
 def notify(config: Config, subject: str, body: str) -> str:

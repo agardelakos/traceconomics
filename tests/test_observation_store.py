@@ -167,3 +167,18 @@ def test_as_of_rows_come_in_a_fixed_order(tmp_path):
         results.append(rel.project("key, ref_period").fetchall())
         c.close()
     assert results[0] == results[1] == sorted(results[0]) and len(results[0]) > 1000
+
+
+def test_label_files_come_only_from_the_datasets_the_store_reads(tmp_path):
+    # An old table kept elsewhere in the archive for another purpose has a name the label
+    # pattern matches, but another format: it must not be read for labels.
+    from traceconomics import catalog
+    from traceconomics.store.registry import label_files
+
+    archive = Archive(tmp_path / "a")
+    for dataset, name in (("doc-457128-el", "457128_el__A0515_DKT87_TS_MM_01_2022_12_2022_07_F_GR.xls"),
+                          ("cpi07-original-2008", "A0515_DKT87_TS_MM_01_2008_12_2008_07_F_GR.xls")):
+        archive.store_bytes("elstat", dataset, name.encode(), url=None, retrieved_at=T1, ext=".xls",
+                            kind="manual", extra={"original_name": name})
+    found = label_files(archive, catalog.dataset("elstat:cpi07"))
+    assert [p.parts[-3] for p in found] == ["doc-457128-el"]

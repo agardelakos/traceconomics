@@ -34,12 +34,15 @@ def snapshots(archive: Archive, spec: DatasetSpec) -> dict[str, list[Snapshot]]:
 
 
 def label_files(archive: Archive, spec: DatasetSpec) -> list[Path]:
-    """The newest snapshot of every archived file read for labels, oldest first."""
+    """The newest snapshot of every archived file read for labels, oldest first.
+
+    Only datasets the store dataset is built from count: a file elsewhere in the archive with a
+    similar name (e.g. an old table kept for another purpose, in another format) is not read."""
     if spec.label_files is None:
         return []
     found = []
     for source, dataset in archive.datasets():
-        if source != spec.source:
+        if not spec.covers(source, dataset):
             continue
         rec = archive.latest(source, dataset)
         name = archive.manifest(rec).get("original_name") or ""
