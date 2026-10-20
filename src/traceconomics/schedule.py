@@ -145,20 +145,37 @@ def systemd_units(config: Config, *, uid: int, gid: int, home: Path, repo: Path,
     }
 
 
-def write_units(config: Config, out: Path, *, node: Path | None = None, env_file: Path | None = None) -> list[Path]:
-    """Write the unit files for this machine (run inside the container, into the user's systemd folder)."""
+def shell_command(*, uid: int, gid: int, home: Path, repo: Path, venv: Path, node: Path, env_file: Path,
+                  image: str = IMAGE) -> str:
+    """A `traceconomics` command for the server's shell: the same container as the timer's, so a
+    command typed by hand (e.g. `traceconomics release promote <id>`) runs exactly as the job does."""
+    cmd = container_command(uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node,
+                            env_file=env_file, image=image, args=())
+    return ("#!/bin/sh\n"
+            "# Runs traceconomics in the pinned container, as the timer does. Written by\n"
+            "# `traceconomics schedule units`; rewrite it there rather than editing it.\n"
+            f'exec {" ".join(cmd)} "$@"\n')
+
+
+def write_units(config: Config, out: Path, *, bin_dir: Path | None = None, node: Path | None = None,
+                env_file: Path | None = None) -> list[Path]:
+    """Write the unit files for this machine into `out` (the user's systemd folder) and the
+    `traceconomics` shell command into `bin_dir` (default ~/.local/bin). Runs inside the container."""
     import os
 
     home = Path.home()
-    units = systemd_units(
-        config, uid=os.getuid(), gid=os.getgid(), home=home,
-        repo=Path(__file__).resolve().parents[2], venv=Path(sys.prefix),
-        node=node or home / "traceconomics-node",
-        env_file=env_file or default_config_path().with_name("env"),
-    )
+    where = dict(uid=os.getuid(), gid=os.getgid(), home=home, repo=Path(__file__).resolve().parents[2],
+                 venv=Path(sys.prefix), node=node or home / "traceconomics-node",
+                 env_file=env_file or default_config_path().with_name("env"))
     out.mkdir(parents=True, exist_ok=True)
     paths = []
-    for name, text in units.items():
+    for name, text in systemd_units(config, **where).items():
         (out / name).write_text(text, encoding="utf-8", newline="\n")   # Linux files, wherever written
         paths.append(out / name)
+    bin_dir = bin_dir or home / ".local" / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    command = bin_dir / "traceconomics"
+    command.write_text(shell_command(**where), encoding="utf-8", newline="\n")
+    command.chmod(0o755)
+    paths.append(command)
     return paths

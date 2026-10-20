@@ -118,3 +118,17 @@ def test_watchdog_rule():
     assert "26 hours" in w.verdict({"started": "2026-11-09T11:00:02Z", "result": "ok"}, now)
     assert "failures" in w.verdict({"started": "2026-11-10T11:00:02Z", "result": "failures", "failures": 2}, now)
     assert w.verdict({}, now) == "the heartbeat has no time"
+
+
+def test_the_shell_command_runs_the_same_container_as_the_timer():
+    where = dict(uid=1001, gid=1001, home=Path("/home/u"), repo=Path("/home/u/traceconomics"),
+                 venv=Path("/home/u/traceconomics-venv"), node=Path("/home/u/traceconomics-node"),
+                 env_file=Path("/home/u/.config/traceconomics/env"))
+    script = schedule.shell_command(**where)
+    service = schedule.systemd_units(Config(archive_dir=Path("/a"), user_agent="t"), **where)["traceconomics-archive.service"]
+    assert script.startswith("#!/bin/sh\n") and "\r" not in script
+    run = script.splitlines()[-1]
+    assert run.startswith("exec /usr/bin/docker run ") and run.endswith(' -m traceconomics "$@"')
+    # The same container, user, mounts and secrets as the timer's command, minus its "archive" argument.
+    timer_run = next(l for l in service.splitlines() if l.startswith("ExecStart="))
+    assert run[len("exec "):-len(' "$@"')] == timer_run[len("ExecStart="):-len(" archive")]

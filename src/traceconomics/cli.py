@@ -105,6 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     sc.add_argument("action", choices=["install", "remove", "show", "units"],
                     help="install/remove/show: Windows; units: write the Linux service and timer files")
     sc.add_argument("--out", type=Path, help="units: folder to write into (e.g. ~/.config/systemd/user)")
+    sc.add_argument("--bin", type=Path, help="units: folder for the `traceconomics` shell command (default ~/.local/bin)")
 
     mg = sub.add_parser("migrate-local", help="one-off: move a local setup from the project's earlier name")
     mg.add_argument("--dry-run", action="store_true", help="show what would move; change nothing")
@@ -632,7 +633,7 @@ def _dispatch(args, cfg) -> int:
             if not args.out:
                 print("Where? Pass --out, e.g. ~/.config/systemd/user")
                 return 2
-            for path in schedule.write_units(cfg, args.out):
+            for path in schedule.write_units(cfg, args.out, bin_dir=args.bin):
                 print(f"Wrote {path}")
             return 0
         if args.action == "install":
