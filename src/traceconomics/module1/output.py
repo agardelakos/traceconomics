@@ -45,10 +45,12 @@ GAP = ("Q1", "Q5")
 
 
 def code_fingerprint() -> str:
+    # Line endings are normalised: a Windows checkout (CRLF) and a Linux one (LF) of the same code
+    # must give the same fingerprint.
     h = hashlib.sha256()
     for package, names in CODE.items():
         for name in names:
-            h.update(resources.files(package).joinpath(name).read_bytes())
+            h.update(resources.files(package).joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
     return h.hexdigest()[:16]
 
 
@@ -310,7 +312,7 @@ def write_metadata(folder: Path, *, first_period, last_period, manifest: dict, n
                         "Survey public use files. ELSTAT and Eurostat bear no responsibility for these figures."),
     }
     path = Path(folder) / "metadata.json"
-    path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return path
 
 

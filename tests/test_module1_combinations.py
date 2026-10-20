@@ -95,3 +95,30 @@ def test_a_rest_row_with_one_cell_is_flagged_low_reliability():
     rows = [r for r in output.series_rows(s) if r[0] == "m1_weights_used" and r[1]["ref_period"] == "2015"]
     rest = [r for _, r in rows if r["coicop18"] == "105_REST"]
     assert rest and rest[0]["quality"] == "low reliability"
+
+
+def test_code_fingerprint_ignores_line_endings(monkeypatch, tmp_path):
+    # The same code checked out on Windows (CRLF) and on Linux (LF) must give the same fingerprint.
+    from traceconomics.module1 import output
+
+    pkg = tmp_path / "fakepkg"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_bytes(b"")
+    (pkg / "a.py").write_bytes(b"x = 1\ny = 2\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.setattr(output, "CODE", {"fakepkg": ["a.py"]})
+    lf = output.code_fingerprint()
+    (pkg / "a.py").write_bytes(b"x = 1\r\ny = 2\r\n")
+    assert output.code_fingerprint() == lf
+    (pkg / "a.py").write_bytes(b"x = 1\ny = 3\n")
+    assert output.code_fingerprint() != lf
+
+
+def test_published_json_has_lf_line_endings(tmp_path):
+    # Python on Windows writes CRLF unless told otherwise; published files must be byte-identical
+    # whichever machine wrote them.
+    from traceconomics.module1 import output
+
+    path = output.write_metadata(tmp_path, first_period="2008-12", last_period="2026-09", manifest={})
+    data = path.read_bytes()
+    assert bytes([10]) in data and bytes([13]) not in data

@@ -58,11 +58,13 @@ DATA_FILES = (mapping.V1_TO_2018, mapping.OLD_TO_V1, "hbs_puf_missing_items.toml
 def code_fingerprint() -> str:
     """sha256 over the code and data files that shape the result (there is no version control
     history to point at yet)."""
+    # Line endings are normalised: a Windows checkout (CRLF) and a Linux one (LF) of the same code
+    # must give the same fingerprint.
     h = hashlib.sha256()
     for name in CODE_FILES:
-        h.update(resources.files("traceconomics.local").joinpath(name).read_bytes())
+        h.update(resources.files("traceconomics.local").joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
     for name in DATA_FILES:
-        h.update(resources.files("traceconomics.data").joinpath(name).read_bytes())
+        h.update(resources.files("traceconomics.data").joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
     return h.hexdigest()
 
 

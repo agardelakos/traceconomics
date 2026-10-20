@@ -159,6 +159,6 @@ def write_units(config: Config, out: Path, *, node: Path | None = None, env_file
     out.mkdir(parents=True, exist_ok=True)
     paths = []
     for name, text in units.items():
-        (out / name).write_text(text, encoding="utf-8")
+        (out / name).write_text(text, encoding="utf-8", newline="\n")   # Linux files, wherever written
         paths.append(out / name)
     return paths

@@ -65,7 +65,7 @@ def _num(text: str | None):
 
 def _write_json(path: Path, data) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8", newline="\n")
     return path
 
 
@@ -81,7 +81,10 @@ def bands(store_con) -> dict:
         FROM observations WHERE dataset = 'oet-local:hbs_bands' AND measure = 'se'
         QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
+        ORDER BY spending, imputed_rent, price_source, weights_timing, tutoring, grouping, "group", unit, ref_period
     """).fetchall()
+    # The window above returns rows in any order; the fixed order makes the files byte-identical
+    # from run to run and machine to machine.
     for sp, ir, ps, wt, tu, g, q, unit, period, v in rows:
         key = (slug({"spending": sp, "imputed_rent": ir, "price_source": ps, "weights_timing": wt, "tutoring": tu}), g, q, unit)
         out.setdefault(key, {})[period] = round(v, 3)
@@ -170,7 +173,7 @@ def checksums(root: Path) -> Path:
     for path in sorted(p for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS"):
         lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}")
     out = root / "SHA256SUMS"
-    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     return out
 
 

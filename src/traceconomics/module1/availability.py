@@ -183,7 +183,7 @@ def identical(summaries: list[Summary]) -> list[dict]:
 def write(folder: Path, table: dict) -> list[Path]:
     folder = Path(folder)
     j = folder / "availability.json"
-    j.write_text(json.dumps(table, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    j.write_text(json.dumps(table, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     c = folder / "availability.csv"
     with c.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f, lineterminator="\n")

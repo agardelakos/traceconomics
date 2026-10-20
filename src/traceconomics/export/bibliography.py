@@ -72,6 +72,6 @@ def export(out: Path) -> Path:
     require(set(entries) == set(references.entries()), "the bibliography parser and the key reader disagree")
     path = Path(out) / "v1" / "references.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"format": "v1", "references": entries}, ensure_ascii=False, indent=1) + "\n",
+    path.write_text(json.dumps({"format": "v1", "references": entries}, ensure_ascii=False, indent=1) + "\n", newline="\n",
                     encoding="utf-8")
     return path

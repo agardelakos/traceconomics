@@ -101,5 +101,5 @@ def export(con: duckdb.DuckDBPyConnection, out_dir: Path) -> list[Path]:
         "licence": "CC BY 4.0",
     }
     json_path = out_dir / f"{NAME}.json"
-    json_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    json_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return [csv_path, json_path]

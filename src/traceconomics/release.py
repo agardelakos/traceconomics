@@ -151,7 +151,7 @@ def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual
     record["finished"] = iso(utc_now())
     _write_json(folder / "release.json", record)
     report = render(record)
-    (folder / "report.txt").write_text(report, encoding="utf-8")
+    (folder / "report.txt").write_text(report, encoding="utf-8", newline="\n")
     subject = (f"release {build_id} ready for review" if record["result"] == "ok"
                else f"ALERT: release {build_id} failed at {record['failed_step']}")
     record["report"] = notify(cfg, subject, report)
@@ -178,11 +178,11 @@ def _write_sums(folder: Path, parts: list[str]) -> None:
         for p in sorted((folder / part).rglob("*")):
             if p.is_file():
                 lines.append(f"{sha256_file(p)}  {p.relative_to(folder).as_posix()}")
-    (folder / "SHA256SUMS").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (folder / "SHA256SUMS").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def _write_json(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
 
 
 def changes(old: Path | None, new: Path) -> dict:
