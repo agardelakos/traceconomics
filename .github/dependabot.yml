@@ -1,6 +1,8 @@
 # Monthly update proposals for the pinned dependencies, one pull request per ecosystem.
 # A release must be 14 days old before it is proposed: a broken or hijacked release is usually
 # found and pulled within days. Security fixes are not delayed.
+# Major versions are not proposed: they can break compatibility (for example a type checker that
+# supports only older TypeScript), so moving to one is a deliberate change. Security fixes still are.
 
 version: 2
 updates:
@@ -10,6 +12,9 @@ updates:
       interval: monthly
     cooldown:
       default-days: 14
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       actions:
         patterns: ["*"]
@@ -20,6 +25,9 @@ updates:
       interval: monthly
     cooldown:
       default-days: 14
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       python:
         patterns: ["*"]
@@ -30,6 +38,9 @@ updates:
       interval: monthly
     cooldown:
       default-days: 14
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       site:
         patterns: ["*"]
