@@ -1,5 +1,7 @@
 /* Design tokens: the names the components use. Values come from the site's design system.
-   Light values first; dark values follow the reader's device setting (nothing is stored).
+   Light values first; dark values follow the reader's device setting, unless the reader picked
+   light or dark with the header's theme switch, which sets data-theme on <html> (tokens.test.ts
+   checks that the two dark blocks below stay identical).
    The series colours were checked with a palette validator in both modes (colour-blind
    separation, contrast); aqua and yellow sit below 3:1 on the light ground, so every chart
    also labels its lines directly and has a data table. */
@@ -78,7 +80,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --color-bg: #161615;
     --color-surface: #1f1f1d;
     --color-surface-raised: #292927;
@@ -115,3 +117,43 @@
     --series-other: #c98500;
   }
 }
+
+:root[data-theme="dark"] {
+  --color-bg: #161615;
+  --color-surface: #1f1f1d;
+  --color-surface-raised: #292927;
+  --color-border: #3b3a37;
+  --color-text: #efede8;
+  --color-text-muted: #b5b3ab;
+  --color-link: #7cc9d6;
+  --color-focus: #8ab4f8;
+  --color-accent: #7cc9d6;
+  --color-accent-contrast: #0b1d21;
+  --color-accent-tint: #1b3236;
+  --color-disabled: #2a2a27;
+  --color-disabled-text: #9a988f;
+  --color-callout-info: #1e2a36;
+
+  --color-flag-less-certain: #3a3222;
+  --color-flag-coarser: #26303b;
+  --color-flag-low-reliability: #e8b45c;
+  --color-flag-first-estimate: #9cc0ea;
+
+  --chart-grid: #2e2d2a;
+  --chart-axis: #8f8d85;
+
+  --series-q1: #3987e5;
+  --series-q2: #199e70;
+  --series-q3: #c98500;
+  --series-q4: #9085e9;
+  --series-q5: #d95926;
+  --series-all: #d9d7d0;
+  --series-renter: #e66767;
+  --series-owner: #008300;
+  --series-rent-free: #9085e9;
+  --series-pensioners: #d55181;
+  --series-other: #c98500;
+}
+
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }

@@ -293,51 +293,134 @@ export function start(root: HTMLElement): void {
     }
   }
 
+  // What made up each selected group's latest annual rate, by spending category. A group's
+  // contributions add up to its rate; with exactly two groups, a difference line per category
+  // (first minus second, in the page's order, as the gap chart) adds up to the gap between them,
+  // and the rows are sorted by it, so the top rows explain most of the gap.
   async function contributions() {
     const box = $("contrib");
-    const g = groups[0];
     let data: any;
     try {
       data = await load(`contributions/${slug()}.json`);
     } catch {
       box.hidden = true;
+      $("contrib-link").hidden = true;
       return;
     }
-    const byMonth = data.groups[dataKey(g)];
-    if (!byMonth) { box.hidden = true; return; }
-    const months = Object.keys(byMonth).sort();
-    const last = months[months.length - 1];
-    const parts = Object.entries<number>(byMonth[last]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-    const total = parts.reduce((a, [, v]) => a + v, 0);
-    const max = Math.max(...parts.map(([, v]) => Math.abs(v)), 0.01);
-    const hasNeg = parts.some(([, v]) => v < 0);
-    box.hidden = false;
-    $("contrib-title").textContent = t("explore.contrib_title", { group: inSentence(g), value: `${num(L, total)}%` });
-    $("contrib-note").textContent = t("explore.contrib_note", { month: month(L, last) });
-    $("bars").replaceChildren(...parts.map(([code, v]) => {
-      const row = document.createElement("div");
-      row.className = "bar-row";
-      const label = Object.assign(document.createElement("span"), { textContent: cfg.divisions[code] ?? code });
+    const shown = allGroups.filter((g) => groups.includes(g) && data.groups[dataKey(g)]);
+    if (!shown.length) { box.hidden = true; $("contrib-link").hidden = true; return; }
+    const latest = (g: string) => {
+      const byMonth = data.groups[dataKey(g)];
+      const months = Object.keys(byMonth).sort();
+      return { month: months[months.length - 1], parts: byMonth[months[months.length - 1]] as Record<string, number> };
+    };
+    const per = new Map(shown.map((g) => [g, latest(g)]));
+    const last = [...per.values()].map((x) => x.month).sort().pop()!;
+    const codes = [...new Set([...per.values()].flatMap((x) => Object.keys(x.parts)))];
+    const value = (g: string, code: string): number | null => per.get(g)!.parts[code] ?? null;
+    const total = (g: string) => Object.values(per.get(g)!.parts).reduce((a, v) => a + v, 0);
+    const pair = shown.length === 2 ? shown : null;
+    const diff = (code: string): number | null => {
+      if (!pair) return null;
+      const a = value(pair[0], code), b = value(pair[1], code);
+      return a === null || b === null ? null : a - b;
+    };
+    const size = (code: string) => pair
+      ? Math.abs(diff(code) ?? 0)
+      : Math.max(...shown.map((g) => Math.abs(value(g, code) ?? 0)));
+    codes.sort((a, b) => size(b) - size(a) || a.localeCompare(b));
+
+    // One scale for every bar, so lengths compare across groups and categories.
+    const all = codes.flatMap((c) => [...shown.map((g) => value(g, c)), diff(c)]).filter((v): v is number => v !== null);
+    const pos = Math.max(0, ...all), neg = Math.max(0, ...all.map((v) => -v));
+    const span = Math.max(pos + neg, 0.01);
+    const zero = (neg / span) * 100;
+    // Rounded before the sign, so a sum that is zero up to float noise shows as 0.00, not +0.00.
+    const signed = (v: number) => {
+      const r = Math.round(v * 100) / 100;
+      return `${r > 0 ? "+" : r < 0 ? "−" : ""}${num(L, Math.abs(r), 2)}`;
+    };
+    const bar = (v: number | null, color: string) => {
       const track = document.createElement("div");
       track.className = "track";
-      const zero = hasNeg ? 30 : 0;
-      const span = 100 - zero;
-      const fillEl = document.createElement("div");
-      fillEl.className = "fill";
-      const w = (Math.abs(v) / max) * (v < 0 ? zero : span);
-      fillEl.style.left = `${v < 0 ? zero - w : zero}%`;
-      fillEl.style.width = `${w}%`;
-      track.append(fillEl);
-      if (hasNeg) {
+      if (v !== null) {
+        const fillEl = document.createElement("div");
+        fillEl.className = "fill";
+        const w = (Math.abs(v) / span) * 100;
+        fillEl.style.left = `${v < 0 ? zero - w : zero}%`;
+        fillEl.style.width = `${w}%`;
+        fillEl.style.background = color;
+        track.append(fillEl);
+      }
+      if (neg > 0) {
         const z = document.createElement("div");
         z.className = "zero";
         z.style.left = `${zero}%`;
         track.append(z);
       }
-      const value = Object.assign(document.createElement("span"), { className: "v", textContent: `${v > 0 ? "+" : ""}${num(L, v, 2)}` });
-      row.append(label, track, value);
+      return track;
+    };
+    const textSpan = (cls: string, text: string) => Object.assign(document.createElement("span"), { className: cls, textContent: text });
+    const swatch = (g: string) => {
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("width", "16"); svg.setAttribute("height", "8"); svg.setAttribute("viewBox", "0 0 16 8"); svg.setAttribute("aria-hidden", "true");
+      const line = document.createElementNS(ns, "line");
+      for (const [k, v] of Object.entries({ x1: "1", y1: "4", x2: "15", y2: "4", stroke: cfg.colors[g], "stroke-width": "2.5", "stroke-linecap": "round" })) line.setAttribute(k, v);
+      if (cfg.dash[g]) line.setAttribute("stroke-dasharray", cfg.dash[g]);
+      svg.append(line);
+      return svg;
+    };
+    // Totals are an order of magnitude larger than any category, so they get no bar.
+    const line = (name: Node[], v: number | null, color: string, cls = "", withBar = true) => {
+      const row = document.createElement("div");
+      row.className = `contrib-line ${cls}`.trim();
+      const label = document.createElement("span");
+      label.className = "name";
+      label.append(...name);
+      row.append(label, withBar ? bar(v, color) : document.createElement("span"), textSpan("v", v === null ? "–" : signed(v)));
       return row;
-    }));
+    };
+
+    box.hidden = false;
+    $("contrib-link").hidden = false;
+    $("contrib-title").textContent = shown.length === 1
+      ? t("explore.contrib_title", { group: inSentence(shown[0]), value: `${num(L, total(shown[0]))}%` })
+      : t("explore.contrib_title_many");
+    const notes = [t("explore.contrib_note", { month: month(L, last) }), t("explore.contrib_sum")];
+    if (pair) {
+      const gap = total(pair[0]) - total(pair[1]);
+      notes.push(t("explore.contrib_diff_note", { a: inSentence(pair[0]), b: inSentence(pair[1]), gap: signed(gap) }));
+    }
+    $("contrib-note").textContent = notes.join(" ");
+
+    if (shown.length === 1) {
+      const g = shown[0];
+      $("bars").replaceChildren(...codes.map((code) => {
+        const row = line([document.createTextNode(cfg.divisions[code] ?? code)], value(g, code), cfg.colors[g]);
+        row.classList.add("single");
+        return row;
+      }));
+      return;
+    }
+    const nameOf = (g: string) => [swatch(g), document.createTextNode(shortName(g))];
+    const diffName = () => [document.createTextNode(t("explore.contrib_diff"))];
+    const block = (title: string, lines: HTMLElement[]) => {
+      const b = document.createElement("div");
+      b.className = "contrib-row";
+      b.append(textSpan("label", title), ...lines);
+      return b;
+    };
+    const rows = codes.map((code) => block(cfg.divisions[code] ?? code, [
+      ...shown.map((g) => line(nameOf(g), value(g, code), cfg.colors[g])),
+      ...(pair ? [line(diffName(), diff(code), "var(--color-text-muted)", "diff")] : []),
+    ]));
+    const totals = block(t("explore.contrib_total"), [
+      ...shown.map((g) => line(nameOf(g), total(g), cfg.colors[g], "", false)),
+      ...(pair ? [line(diffName(), total(pair[0]) - total(pair[1]), "var(--color-text-muted)", "diff", false)] : []),
+    ]);
+    totals.classList.add("total");
+    $("bars").replaceChildren(...rows, totals);
   }
 
   render();

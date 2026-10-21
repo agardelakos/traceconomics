@@ -1,5 +1,6 @@
 ---
 term: "Chain-linking"
+forms: ["chain-linking", "chain-linked", "chain linking"]
 other: "Αλυσιδωτή σύνδεση"
 short: "Joining one year's index to the next at December, so the weights can change every year without breaking the series."
 sources: [hicp-manual-2024]

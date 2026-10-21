@@ -1,5 +1,6 @@
 ---
 term: "Price index and base year"
+forms: ["price index", "price indices", "base year"]
 other: "Δείκτης τιμών και έτος βάσης"
 short: "A number that follows the price of a basket over time, set to 100 in a chosen base period."
 sources: [cpi-manual-2020, hicp-manual-2024]

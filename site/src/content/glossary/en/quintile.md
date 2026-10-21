@@ -1,5 +1,6 @@
 ---
 term: "Income fifths (quintiles)"
+forms: ["quintile", "quintiles", "income fifth", "income fifths", "poorest fifth", "richest fifth"]
 other: "Εισοδηματικά πεμπτημόρια"
 short: "People ranked by income and split into five groups of equal size: the poorest fifth, the second, the middle, the fourth and the richest fifth."
 sources: [eurostat-equivalence-scale, elstat-hbs-puf]

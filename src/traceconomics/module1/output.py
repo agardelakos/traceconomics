@@ -316,7 +316,7 @@ def write_metadata(folder: Path, *, first_period, last_period, manifest: dict, n
         "manifest": manifest,
         "licence": "CC BY 4.0",
         "attribution": ("Prices: ELSTAT, Consumer Price Index (table 07), and Eurostat, HICP item indices "
-                        "(prc_hicp_minr). Weights: computed by Traceconomics from ELSTAT's Household Budget "
+                        "(prc_hicp_minr). Weights: computed by TracEconomics from ELSTAT's Household Budget "
                         "Survey public use files. ELSTAT and Eurostat bear no responsibility for these figures."),
     }
     path = Path(folder) / "metadata.json"

@@ -1,5 +1,6 @@
 ---
 term: "Pensioner household"
+forms: ["pensioner household", "pensioner households"]
 other: "Νοικοκυριό συνταξιούχων"
 short: "A household whose main source of income is a pension."
 sources: [elstat-hbs-puf]

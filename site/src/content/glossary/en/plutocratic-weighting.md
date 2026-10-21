@@ -1,5 +1,6 @@
 ---
 term: "Plutocratic weighting"
+forms: ["plutocratic weighting", "plutocratic weights", "plutocratic"]
 other: "Πλουτοκρατική στάθμιση"
 short: "A group's weights computed from its total spending, so households that spend more count more: the official standard."
 sources: [cpi-manual-2020, prais-1959, ley-2005]

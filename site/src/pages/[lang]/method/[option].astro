@@ -29,9 +29,9 @@ const explore = `${href(lang, "explore")}`;
     </header>
     <section class="prose"><Content /></section>
     <p><a class="button primary" href={explore}>{t(lang, "home.card.explore")} →</a></p>
-    <section class="stack" style="gap: var(--space-2)">
-      <h2>{t(lang, "method.sources")}</h2>
-      <SourceList keys={entry.data.sources} lang={lang} />
-    </section>
+    <details class="panel">
+      <summary>{t(lang, "method.sources")}</summary>
+      <div style="margin-top: var(--space-3)"><SourceList keys={entry.data.sources} lang={lang} /></div>
+    </details>
   </article>
 </Base>

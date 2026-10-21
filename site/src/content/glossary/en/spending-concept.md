@@ -1,5 +1,6 @@
 ---
 term: "Spending concept"
+forms: ["spending concept", "spending concepts"]
 other: "Έννοια δαπάνης"
 short: "Which spending the weights count: purchases (money spent, the default) or all spending, which adds own production and income in kind."
 sources: [elstat-cpi-sims-2026, eurostat-hbs-qr-2020]

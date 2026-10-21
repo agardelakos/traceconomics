@@ -1,5 +1,6 @@
 ---
 term: "Annual average rate"
+forms: ["annual average rate", "annual average rates", "annual average"]
 other: "Μέσος ετήσιος ρυθμός"
 short: "The change in a year's average index compared with the previous year's average."
 sources: [hicp-manual-2024]

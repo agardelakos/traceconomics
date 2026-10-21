@@ -1,5 +1,6 @@
 ---
 term: "Inflation"
+forms: ["inflation"]
 other: "Πληθωρισμός"
 short: "The rise in the prices of the things households buy, measured as the change in a price index over twelve months."
 sources: [cpi-manual-2020, hicp-manual-2024]

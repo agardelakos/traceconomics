@@ -1,5 +1,6 @@
 ---
 term: "COICOP"
+forms: ["COICOP"]
 other: "COICOP"
 short: "Η διεθνής ταξινόμηση της δαπάνης των νοικοκυριών κατά σκοπό, από τα τρόφιμα (01) έως την προσωπική φροντίδα (13)."
 sources: [eu-vocabularies-ecoicop2, hicp-manual-2024]

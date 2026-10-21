@@ -27,6 +27,7 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
     <title>{full}</title>
     <link rel="alternate" hreflang={otherLang(lang)} href={href(otherLang(lang), path)} />
     <link rel="alternate" hreflang={lang} href={href(lang, path)} />
+    <script is:inline src="/theme.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#content">{t(lang, "skip")}</a>
@@ -39,3 +40,8 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
     <SiteFooter lang={lang} />
   </body>
 </html>
+
+<script>
+  import { start } from "../scripts/terms";
+  start();
+</script>

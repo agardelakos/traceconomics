@@ -5,6 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import GlossaryTerm from "../../components/GlossaryTerm.astro";
+import OptionTerm from "../../components/OptionTerm.astro";
 import SourceList from "../../components/SourceList.astro";
 import Base from "../../layouts/Base.astro";
 import { availability, DATA_ROOT, labels, LATEST, settings } from "../../lib/data";
@@ -96,7 +97,7 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
       <div class="options" style="margin-top: var(--space-4)">
         {OPTIONS.map((o) => (
           <fieldset class="option" data-option={o}>
-            <legend>{t(lang, `option.${o}`)}<a href={href(lang, `method/${o.replace("_", "-")}`)}>{t(lang, "option.what")}</a></legend>
+            <legend><OptionTerm lang={lang} option={o} label={t(lang, `option.${o}`)} /></legend>
             <div class="values">
               {values[o].map((v) => (
                 <label>
@@ -154,30 +155,32 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
       <div class="button-row">
         <button type="button" class="button" data-role="table-toggle" aria-expanded="false">{t(lang, "chart.show_table")}</button>
         <button type="button" class="button" data-role="copy">{t(lang, "chart.copy_link")}</button>
+        <a class="button" href="#contrib" data-role="contrib-link" hidden>{t(lang, "explore.contrib_link")}</a>
       </div>
       <div class="table-wrap" data-role="table" hidden style="max-height: 420px; overflow-y: auto"></div>
       <ol class="footnotes" data-role="footnotes"></ol>
     </figure>
 
-    <section class="panel stack" data-role="contrib" style="gap: var(--space-3)" hidden>
+    <section class="panel stack" id="contrib" data-role="contrib" style="gap: var(--space-3)" hidden>
       <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700" data-role="contrib-title"></h2>
       <p class="small muted" data-role="contrib-note"></p>
       <div class="bars" data-role="bars"></div>
     </section>
 
-    <section class="stack" style="gap: var(--space-3)">
-      <h2>{t(lang, "explore.downloads")}</h2>
-      <div class="downloads" data-role="downloads"></div>
+    <div class="stack" style="gap: var(--space-3)">
+      <details class="panel">
+        <summary>{t(lang, "explore.downloads")}</summary>
+        <div class="downloads" style="margin-top: var(--space-3)" data-role="downloads"></div>
+      </details>
       <details class="panel">
         <summary>{t(lang, "explore.cite")}</summary>
         <p class="small" style="margin-top: var(--space-3)" data-role="cite"></p>
       </details>
-    </section>
-
-    <section class="stack" style="gap: var(--space-3)">
-      <h2>{t(lang, "explore.sources")}</h2>
-      <SourceList keys={SOURCES} lang={lang} />
-    </section>
+      <details class="panel">
+        <summary>{t(lang, "explore.sources")}</summary>
+        <div style="margin-top: var(--space-3)"><SourceList keys={SOURCES} lang={lang} /></div>
+      </details>
+    </div>
   </div>
 </Base>
 

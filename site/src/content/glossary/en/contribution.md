@@ -1,5 +1,6 @@
 ---
 term: "Contribution"
+forms: ["contribution", "contributions"]
 other: "Συμβολή"
 short: "How many points a category adds to an annual inflation rate; the categories' contributions add up to the rate."
 sources: [hicp-manual-2024, eurostat-contrib-2018]

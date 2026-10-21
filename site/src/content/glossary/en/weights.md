@@ -1,5 +1,6 @@
 ---
 term: "Weights"
+forms: ["weights"]
 other: "Σταθμίσεις"
 short: "Each item's share of a group's spending: how much its price change counts in the group's inflation."
 sources: [cpi-manual-2020, reg-2020-1148]

@@ -1,0 +1,17 @@
+---
+// A word in running text that opens a short explanation with a link to the full page. Uses the
+// browser's own popover (no script; Escape or a click outside closes it). A browser without
+// popovers shows the explanation in place. Glossary terms and method options both use it, so
+// every explanation on the site looks and behaves the same.
+interface Props { label: string; heading: string; text: string; href: string; more: string; key: string }
+const { label, heading, text, href, more, key } = Astro.props;
+// Deterministic, so builds are reproducible: the key plus a short code of its label.
+let h = 0;
+for (const ch of label) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
+const id = `term-${key}-${h.toString(36)}`;
+---
+<span class="term-wrap"><button type="button" class="term" popovertarget={id} style={`anchor-name: --${id}`}>{label}</button><span popover id={id} class="term-popover" role="note" style={`position-anchor: --${id}`}>
+  <strong>{heading}</strong>
+  <span>{text}</span>
+  <a href={href}>{more}</a>
+</span></span>

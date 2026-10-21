@@ -1,6 +1,7 @@
 ---
-// The header on every page: wordmark, main navigation and the language switch, which leads to
-// the same page in the other language. The navigation wraps on a phone; it needs no script.
+// The header on every page: wordmark, main navigation, the theme switch (device setting, light,
+// dark; shown only when scripts run) and the language switch, which leads to the same page in the
+// other language. The navigation wraps on a phone; it needs no script.
 import { href, otherLang, t, type Lang } from "../lib/i18n";
 
 interface Props { lang: Lang; path: string; current?: string }
@@ -25,9 +26,34 @@ const target = (key: string) => (key === "home" ? "" : key);
         ))}
       </ul>
     </nav>
-    <div class="lang-switch" role="group" aria-label={t(lang, "lang.switch")}>
-      <a href={href("el", path)} lang="el" aria-current={lang === "el" ? "true" : undefined}>ΕΛ</a>
-      <a href={href("en", path)} lang="en" aria-current={lang === "en" ? "true" : undefined}>EN</a>
+    <div class="header-tools">
+      <div class="theme-switch" data-role="theme" hidden>
+        <button type="button" class="theme-button" popovertarget="theme-menu" style="anchor-name: --theme-menu" aria-label={t(lang, "theme.label")} title={t(lang, "theme.label")}>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+            <path d="M9 2a7 7 0 0 1 0 14Z" fill="currentColor"></path>
+          </svg>
+        </button>
+        <div popover id="theme-menu" class="theme-menu" style="position-anchor: --theme-menu">
+          <fieldset>
+            <legend>{t(lang, "theme.label")}</legend>
+            {["system", "light", "dark"].map((v) => (
+              <label><input type="radio" name="theme" value={v} /> {t(lang, `theme.${v}`)}</label>
+            ))}
+          </fieldset>
+          <p class="small muted">{t(lang, "theme.stored")}</p>
+        </div>
+      </div>
+      <div class="lang-switch" role="group" aria-label={t(lang, "lang.switch")}>
+        <a href={href("el", path)} lang="el" aria-current={lang === "el" ? "true" : undefined}>ΕΛ</a>
+        <a href={href("en", path)} lang="en" aria-current={lang === "en" ? "true" : undefined}>EN</a>
+      </div>
     </div>
   </div>
 </header>
+
+<script>
+  import { start } from "../scripts/theme";
+  const box = document.querySelector<HTMLElement>('[data-role="theme"]');
+  if (box) start(box);
+</script>

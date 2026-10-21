@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The Traceconomics website: static pages built from the published data files.",
+  "description": "The TracEconomics website: static pages built from the published data files.",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "astro dev",
@@ -25,8 +25,10 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@astrojs/markdown-satteri": "0.4.2",
     "@axe-core/playwright": "4.13.0",
     "@types/node": "24.19.1",
+    "js-yaml": "4.3.2",
     "playwright": "1.63.0",
     "typescript": "6.0.3",
     "vitest": "5.0.3",

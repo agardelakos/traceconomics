@@ -56,6 +56,20 @@ main { padding: var(--space-5) 0 var(--space-7); }
   .site-nav { order: 0; width: auto; }
 }
 
+/* Header tools: theme switch and language switch, side by side */
+.header-tools { display: flex; align-items: center; gap: var(--space-2); }
+.theme-button { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; background: none; border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); cursor: pointer; }
+.theme-menu { max-width: 280px; padding: var(--space-3) var(--space-4); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
+.theme-menu fieldset { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.theme-menu legend { font-weight: 700; padding: 0; margin-bottom: var(--space-1); }
+.theme-menu label { display: flex; align-items: center; gap: var(--space-2); min-height: 32px; cursor: pointer; }
+.theme-menu input { accent-color: var(--color-accent); margin: 0; }
+.theme-menu p { margin: var(--space-2) 0 0; }
+/* Under its button where the browser can anchor it; otherwise centred on screen. */
+@supports (anchor-name: --a) {
+  .theme-menu { margin: var(--space-1) 0; position-area: bottom span-left; position-try-fallbacks: flip-block, flip-inline; }
+}
+
 /* LangSwitch */
 .lang-switch { display: flex; border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden; font-size: var(--text-sm); }
 .lang-switch a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-3); color: var(--color-text); text-decoration: none; }
@@ -112,7 +126,6 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .options { display: flex; flex-direction: column; gap: var(--space-4); }
 .option { margin: 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .option legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
-.option legend a { font-weight: 400; font-size: var(--text-sm); margin-left: var(--space-2); }
 .option .values { display: flex; flex-wrap: wrap; gap: 6px; }
 .option label { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-surface); font-size: 0.9375rem; cursor: pointer; }
 .option label:has(input:checked) { border: 2px solid var(--color-accent); background: var(--color-accent-tint); padding: 3px 11px; }
@@ -141,11 +154,21 @@ figure.chart { margin: 0; display: flex; flex-direction: column; gap: var(--spac
 
 /* ContributionBars */
 .bars { display: flex; flex-direction: column; gap: var(--space-2); }
-.bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 48px; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
-.bar-row .track { position: relative; height: 12px; background: var(--color-bg); border-radius: 3px; }
-.bar-row .fill { position: absolute; top: 0; bottom: 0; background: var(--color-accent); border-radius: 3px; }
-.bar-row .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--chart-axis); }
-.bar-row .v { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Contributions: one line per value (name, bar on a shared scale, value). One group: a line per
+   category. Several groups: a block per category with a line per group, and with two groups a
+   difference line; the total block last. */
+.contrib-line { display: grid; grid-template-columns: 104px minmax(0, 1fr) 56px; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+.contrib-line.single { grid-template-columns: minmax(0, 1fr) 120px 56px; }
+.contrib-line .name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.contrib-line .track { position: relative; height: 12px; background: var(--color-bg); border-radius: 3px; }
+.contrib-line .fill { position: absolute; top: 0; bottom: 0; background: var(--color-accent); border-radius: 3px; }
+.contrib-line .zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--chart-axis); }
+.contrib-line .v { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.contrib-line.diff .name, .contrib-line.diff .v { font-style: italic; }
+.contrib-line.diff .fill { opacity: 0.7; }
+.contrib-row { display: flex; flex-direction: column; gap: 3px; padding-top: var(--space-2); border-top: 1px solid var(--color-border); }
+.contrib-row .label { font-size: var(--text-sm); font-weight: 600; }
+.contrib-row.total { border-top-width: 2px; }
 
 /* Calculator */
 .slider-row { display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
@@ -183,7 +206,9 @@ code, .mono { font-family: var(--font-mono); font-size: 0.875em; }
 
 /* GlossaryTerm: a term in text that opens its explanation (native popover). */
 button.term { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: help; text-decoration: underline dotted var(--color-link); text-underline-offset: 3px; }
-.term-popover { flex-direction: column; gap: var(--space-1); color: var(--color-text); }
+/* With a mouse a click goes to the term's page (src/scripts/terms.ts). */
+@media (hover: hover) and (pointer: fine) { button.term { cursor: pointer; } }
+.term-popover { flex-direction: column; gap: var(--space-1); color: var(--color-text); font-weight: 400; }  /* not the bold of a legend around it */
 .term-popover:popover-open { display: flex; }
 /* Next to its term where the browser can anchor it; otherwise centred on screen. */
 @supports (anchor-name: --a) {

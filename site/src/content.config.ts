@@ -10,6 +10,9 @@ const glossary = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/glossary" }),
   schema: z.object({
     term: z.string(),
+    // The words that mark this term in running text, in every form it takes (Greek inflects):
+    // the first mention on each page becomes a popover (src/lib/glossary-terms.mjs).
+    forms: z.array(z.string()).min(1),
     short: z.string(),                 // one plain sentence: the popover and the index
     other: z.string(),                 // the term in the other site language
     sources: z.array(z.string()).min(1),

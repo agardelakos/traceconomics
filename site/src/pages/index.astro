@@ -1,7 +1,8 @@
 ---
-// The root address: sends a visitor to the Greek or English site by the browser's language.
-// Nothing is stored (no cookie, no local storage): the choice is made again on every visit here.
-// Without scripts, the two links do the job.
+// The root address: sends a visitor to the Greek or English site by the browser's language
+// (public/lang.js, in the head so the redirect happens before the page is drawn; a module script
+// would run only after the page has loaded). Nothing is stored (no cookie, no local storage): the
+// choice is made again on every visit here. Without scripts, the two links do the job.
 import "@fontsource/source-sans-3/400.css";
 import "@fontsource/source-sans-3/600.css";
 import "@fontsource/source-serif-4/600.css";
@@ -15,14 +16,16 @@ import "../styles/global.css";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>Traceconomics</title>
+    <title>TracEconomics</title>
     <meta name="description" content="Πληθωρισμός ανά ομάδα νοικοκυριών · Inflation by household group" />
     <link rel="alternate" hreflang="el" href="/el/" />
     <link rel="alternate" hreflang="en" href="/en/" />
+    <link rel="alternate" hreflang="x-default" href="/" />
+    <script is:inline src="/lang.js"></script>
   </head>
   <body>
     <main class="container stack" style="padding-top: var(--space-8); max-width: 520px">
-      <h1>Traceconomics</h1>
+      <h1>TracEconomics</h1>
       <p lang="el">Επιλέξτε γλώσσα</p>
       <p lang="en">Choose a language</p>
       <div class="button-row">
@@ -30,9 +33,5 @@ import "../styles/global.css";
         <a class="button" href="/en/" lang="en">English</a>
       </div>
     </main>
-    <script>
-      const greek = (navigator.languages ?? [navigator.language]).some((l) => l.toLowerCase().startsWith("el"));
-      location.replace(greek ? "/el/" : "/en/");
-    </script>
   </body>
 </html>

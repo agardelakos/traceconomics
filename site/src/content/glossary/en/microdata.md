@@ -1,5 +1,6 @@
 ---
 term: "Microdata (public use files)"
+forms: ["microdata", "public use file", "public use files"]
 other: "Μικροδεδομένα (αρχεία δημόσιας χρήσης)"
 short: "The survey's anonymised household records, which ELSTAT publishes so that others can compute their own figures."
 sources: [elstat-hbs-puf]

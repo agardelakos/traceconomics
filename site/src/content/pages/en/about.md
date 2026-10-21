@@ -13,4 +13,4 @@ Journalists, analysts, teachers and students, unions and consumer groups: anyone
 
 ## What it isn't
 
-Not an official statistic: ELSTAT and Eurostat publish the official figures, and bear no responsibility for these. Not a forecast. There are no ads, no cookies, no tracking and no accounts.
+Not an official statistic: ELSTAT and Eurostat publish the official figures, and bear no responsibility for these. Not a forecast. There are no ads, no cookies, no tracking and no accounts. If you pick a light or dark theme, that one choice is kept in your browser so it holds from page to page; it is never sent anywhere.

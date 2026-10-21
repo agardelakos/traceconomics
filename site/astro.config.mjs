@@ -1,5 +1,7 @@
 // A static site: every page is plain HTML built ahead of time. No server, no visitor data.
+import { satteri } from "@astrojs/markdown-satteri";
 import { defineConfig } from "astro/config";
+import { glossaryTerms } from "./src/lib/glossary-terms.mjs";
 
 export default defineConfig({
   output: "static",
@@ -11,6 +13,8 @@ export default defineConfig({
     routing: { prefixDefaultLocale: true, redirectToDefaultLocale: false },
   },
   trailingSlash: "ignore",
+  // Glossary terms in the written pages open their explanation, as GlossaryTerm does in templates.
+  markdown: { processor: satteri({ hastPlugins: [glossaryTerms()] }) },
   build: {
     // Styles and scripts as files, never inline, so a strict Content Security Policy can be set.
     inlineStylesheets: "never",

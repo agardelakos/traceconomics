@@ -1,5 +1,6 @@
 ---
 term: "Standard error and error band"
+forms: ["standard error", "standard errors", "error band", "error bands"]
 other: "Τυπικό σφάλμα και ζώνη σφάλματος"
 short: "How much a figure could differ with another sample of households; the band shows two standard errors either side."
 sources: [eurostat-precision-2013, preston-2009]

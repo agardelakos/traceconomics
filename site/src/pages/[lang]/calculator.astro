@@ -59,7 +59,6 @@ const config = {
         <div class="stack" style="gap: 0"><span class="small muted" data-role="preset-name"></span><span class="num" style="font-size: 1.25rem; font-weight: 600" data-role="preset-rate"></span></div>
         <div class="stack" style="gap: 0"><span class="small muted">{t(lang, "group.all/all")}</span><span class="num" style="font-size: 1.25rem; font-weight: 600" data-role="all-rate"></span></div>
       </div>
-      <button type="button" class="button" data-role="reset" hidden style="align-self: flex-start; border-color: var(--color-accent); color: var(--color-accent)"></button>
     </section>
 
     <figure class="chart panel" data-role="over-time" hidden>
@@ -73,6 +72,7 @@ const config = {
         <span class="small"><GlossaryTerm lang={lang} term="weights" /></span>
         <span class="small muted num">{t(lang, "calc.total")}</span>
       </div>
+      <button type="button" class="button" data-role="reset" hidden style="align-self: flex-start; margin-top: var(--space-2); border-color: var(--color-accent); color: var(--color-accent)"></button>
       <div class="callout caution" data-role="rescaled" hidden style="margin: var(--space-2) 0">
         <span>{t(lang, "calc.rescaled")}</span>
       </div>

@@ -1,5 +1,6 @@
 ---
 term: "Actual rent"
+forms: ["actual rent", "actual rents"]
 other: "Πραγματικό ενοίκιο"
 short: "The rent tenants pay for the home they live in."
 sources: [elstat-cpi-items]

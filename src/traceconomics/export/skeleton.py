@@ -30,7 +30,7 @@ GEO = "GR"
 FIRST_YEAR = 2015   # subclass weights start in 2015
 NAME = "gr_hicp_all_households"
 SOURCES = ["hicp-manual-2024", "reg-2016-792", "reg-2020-1148"]
-ATTRIBUTION = ("Source: Eurostat, prc_hicp_minr and prc_hicp_iw. Computed by Traceconomics from Eurostat "
+ATTRIBUTION = ("Source: Eurostat, prc_hicp_minr and prc_hicp_iw. Computed by TracEconomics from Eurostat "
                "data; Eurostat bears no responsibility for these figures.")
 
 
@@ -84,7 +84,7 @@ def export(con: duckdb.DuckDBPyConnection, out_dir: Path) -> list[Path]:
     meta = {
         "title": "Greece: consumer price inflation for all households (HICP), rebuilt from its parts",
         "description": ("The harmonised index of consumer prices (HICP) for Greece, rebuilt by "
-                        "Traceconomics from Eurostat's sub-indices and item weights at the finest published "
+                        "TracEconomics from Eurostat's sub-indices and item weights at the finest published "
                         "detail, linked each December. The official series is given alongside: the two agree "
                         "to within 0.1 percentage points on annual rates, the most that rounding of the "
                         "published inputs allows. This is a test of the calculation, not yet a series by "

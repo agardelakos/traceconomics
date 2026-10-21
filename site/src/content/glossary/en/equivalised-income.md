@@ -1,5 +1,6 @@
 ---
 term: "Equivalised income"
+forms: ["equivalised income"]
 other: "Ισοδύναμο εισόδημα"
 short: "A household's income divided by a measure of its size, so households of different sizes can be compared."
 sources: [eurostat-equivalence-scale]
