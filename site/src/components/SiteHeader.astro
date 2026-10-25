@@ -7,7 +7,7 @@ import { href, otherLang, t, type Lang } from "../lib/i18n";
 interface Props { lang: Lang; path: string; current?: string }
 const { lang, path, current } = Astro.props;
 const other = otherLang(lang);
-const items = ["home", "explore", "calculator", "method", "glossary", "data"];
+const items = ["home", "start", "explore", "calculator", "method", "glossary", "data"];
 const target = (key: string) => (key === "home" ? "" : key);
 ---
 <header class="site-header">

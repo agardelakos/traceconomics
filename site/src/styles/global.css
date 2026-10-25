@@ -214,3 +214,42 @@ button.term { font: inherit; color: inherit; background: none; border: none; pad
 @supports (anchor-name: --a) {
   .term-popover { margin: var(--space-1) 0; position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline; }
 }
+
+/* Home: a plain introduction and the finding in sentences; the numbers live on Explore. */
+.home-intro { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-start; padding-top: var(--space-4); }
+.home-intro > .stack { flex: 999 1 520px; min-width: 0; }
+.home-title { max-width: 18ch; }
+.lead { font-size: var(--text-xl); line-height: 1.5; max-width: 58ch; margin: 0; }
+.lead-2 { font-size: var(--text-lg); max-width: 60ch; margin: 0; }
+.euros { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); }
+.euros-lead { font-family: var(--font-serif); font-size: var(--text-xl); line-height: 1.4; margin: 0; }
+.euros-list { margin: 0; display: flex; flex-direction: column; }
+.euros-list > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
+.euros-list > div:last-child { border-bottom: none; }
+.euros-list dt { display: flex; align-items: center; gap: var(--space-2); }
+.euros-list dd { margin: 0; font-family: var(--font-serif); font-size: var(--text-2xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.home-peak { padding: var(--space-5); }
+.home-peak h2 { font-size: var(--text-xl); }
+.home-peak p { margin: 0; max-width: 64ch; }
+.home-peak summary, .more > summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--color-link); font-weight: 600; }
+
+/* Start here: each group's basket as one bar, with its shares written out beside it. */
+.basket-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: var(--color-disabled); }
+.basket-bar span { display: block; height: 100%; }
+.basket-bar span + span { border-left: 2px solid var(--color-surface); }
+.basket-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: var(--text-sm); }
+.basket-legend li { display: flex; align-items: center; gap: 6px; }
+.basket-legend .box { width: 12px; height: 12px; border-radius: 2px; border: 1px solid var(--color-border); }
+
+/* Explore: household types are shown before their series exist; the income panel. */
+.soon { font-weight: 400; font-size: 0.8125rem; padding: 1px 8px; border-radius: 999px; background: var(--color-disabled); color: var(--color-disabled-text); }
+.chip:disabled { border-style: dashed; background: var(--color-disabled); color: var(--color-disabled-text); cursor: not-allowed; }
+.income h2 { font-size: var(--text-xl); }
+.income p { margin: 0; }
+.other-household { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); }
+.other-household label { display: flex; align-items: center; gap: var(--space-2); }
+.other-household input { width: 4.5em; min-height: 40px; font: inherit; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); }
+.income-table td, .income-table th { white-space: normal; }
+.income-table td { font-variant-numeric: tabular-nums; }
+.cards.four { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.income { margin-top: var(--space-6); }

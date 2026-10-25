@@ -1,29 +1,48 @@
 ---
-// Home: the latest numbers for the poorest and richest fifth, the long chart, and where to go next.
-// Every number comes from the default series file at build time.
-import GlossaryTerm from "../../components/GlossaryTerm.astro";
+// Home: what the site is, in plain words, and the main finding as sentences. No chart, no tiles,
+// no table: the numbers live on Explore. Every number comes from the default series file at
+// build time.
 import Base from "../../layouts/Base.astro";
-import { calculator, latest, months, series, settings } from "../../lib/data";
-import { href, LANGS, LOCALE, month, num, pct, t, type Lang } from "../../lib/i18n";
+import { calculator, months, series, settings } from "../../lib/data";
+import { eur } from "../../lib/income";
+import { href, LANGS, month, num, pct, t, type Lang } from "../../lib/i18n";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
 }
 
+// The month the euro example starts from: just before the 2021-2022 price surge.
+const BASE_MONTH = "2021-01";
+const BASE_AMOUNT = 100;
+
 const lang = Astro.params.lang as Lang;
 const slug = settings().default;
 const s = series(slug);
 const axis = months(s);
-const q1 = latest(s.groups["B/Q1"].rch_a, axis)!;
-const q5 = latest(s.groups["B/Q5"].rch_a, axis)!;
-const all = latest(s.groups["all/all"].rch_a, axis)!;
-const gap = latest(s.gaps["B"].rch_a, axis)!;
+const acc = (p: string) => month(lang, p, "acc");
+
+// What the base month's shopping costs now: each group's chain-linked index, latest month over
+// the base month. The latest month is the last one every shown group has.
+const SHOWN = ["B/Q1", "B/Q5"];
+const at = (g: string, p: string) => s.groups[g].index[axis.indexOf(p)];
+let last = axis.length - 1;
+while (last >= 0 && SHOWN.some((g) => s.groups[g].index[last] === null)) last--;
+const latestMonth = axis[last];
+const baskets = SHOWN.map((g) => {
+  const from = at(g, BASE_MONTH);
+  const to = s.groups[g].index[last];
+  if (from === null || from === undefined || to === null) throw new Error(`no index for ${g} in ${BASE_MONTH} or ${latestMonth}`);
+  return { group: g.slice(2), cost: (BASE_AMOUNT * to) / from };
+});
+
+// The year the poorest and the richest fifth differed most, by the largest monthly gap.
 const gaps = s.gaps["B"].rch_a;
 const peakI = gaps.reduce((best: number, v, i) => (v !== null && v > (gaps[best] ?? -Infinity) ? i : best), 0);
 const peak = { period: axis[peakI], value: gaps[peakI] as number };
 const peakYear = peak.period.slice(0, 4);
 const avgQ1 = s.groups["B/Q1"].avg[peakYear];
 const avgQ5 = s.groups["B/Q5"].avg[peakYear];
+if (!(peak.value > 0 && avgQ1 > avgQ5)) throw new Error(`the headline says the poorest were hit harder in ${peakYear}; the data no longer say so`);
 
 // Food's share of spending (division 01) in the newest year's weights, from the calculator file.
 const calc = calculator();
@@ -35,115 +54,65 @@ const foodShare = (preset: string) => {
   return Math.round((food / total) * 100);
 };
 
-const acc = (p: string) => month(lang, p, "acc");
-const tiles = [
-  { label: t(lang, "group.Q1"), value: num(lang, q1.value), unit: "%", note: t(lang, "home.tile.note", { month: month(lang, q1.period) }), color: "var(--series-q1)" },
-  { label: t(lang, "group.Q5"), value: num(lang, q5.value), unit: "%", note: t(lang, "home.tile.note", { month: month(lang, q5.period) }), color: "var(--series-q5)" },
-  { label: t(lang, "group.all/all"), value: num(lang, all.value), unit: "%", note: t(lang, "home.tile.note", { month: month(lang, all.period) }), color: "var(--series-all)" },
-  { label: t(lang, "gap"), term: "gap", value: num(lang, gap.value), unit: ` ${t(lang, "unit.points_short")}`, note: t(lang, "home.tile.gap_note", { peak: num(lang, peak.value), peakMonth: acc(peak.period) }), color: null },
-];
-
-const flag = s.flags[0];
-const spec = {
-  src: `/data/v1/gr/m1/latest/series/${slug}.json`,
-  locale: LOCALE[lang],
-  lines: [
-    { key: "B/Q1", label: t(lang, "group.short.Q1"), color: "var(--series-q1)" },
-    { key: "B/Q5", label: t(lang, "group.short.Q5"), color: "var(--series-q5)" },
-  ],
-  gap: { group: "B", title: t(lang, "gap") },
-  flag: { to: flag.rch_a_to, fill: "var(--chart-flag-fill)" },
-  from: "2010-01",
-};
-const tableRows = axis.map((p, i) => ({ p, a: s.groups["B/Q1"].rch_a[i], b: s.groups["B/Q5"].rch_a[i], g: gaps[i] }))
-  .filter((r) => r.a !== null && r.b !== null && r.p >= "2010-01").reverse();
-const summary = t(lang, "summary.annual", {
-  month: lang === "el" ? acc(q1.period) : month(lang, q1.period),
-  list: [t(lang, "summary.item", { value: pct(lang, q1.value), group: t(lang, "group.in.Q1") }),
-         t(lang, "summary.item", { value: pct(lang, q5.value), group: t(lang, "group.in.Q5") })].join(` ${t(lang, "summary.and")} `),
-});
+const SWATCH: Record<string, string> = { Q1: "var(--series-q1)", Q5: "var(--series-q5)" };
+const cards = ["start", "explore", "calculator", "method"] as const;
 ---
 <Base lang={lang} title={t(lang, "home.title")} description={t(lang, "site.tagline")} current="home">
   <div class="stack-lg">
-    <section class="stack" style="gap: var(--space-3)">
-      <p class="eyebrow">{t(lang, "home.eyebrow", { country: t(lang, "country.gr"), month: month(lang, q1.period) })}</p>
-      <h1>{t(lang, "home.title")}</h1>
-      <p style="font-size: var(--text-lg); max-width: var(--text-max)">
-        {t(lang, "home.lead", {
-          month: lang === "el" ? acc(q1.period) : month(lang, q1.period),
-          q1: pct(lang, q1.value), q5: pct(lang, q5.value), gap: num(lang, gap.value),
-          peakYear, peak: num(lang, peak.value),
-        })}
-      </p>
-    </section>
-
-    <section class="tiles" aria-label={t(lang, "nav.home")}>
-      {tiles.map((tile) => (
-        <div class="tile">
-          <span class="label">
-            {tile.color && (
-              <svg class="swatch-line" width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
-                <line x1="1" y1="4" x2="15" y2="4" stroke={tile.color} stroke-width="2.5" stroke-linecap="round"></line>
-              </svg>
-            )}
-            {tile.term ? <GlossaryTerm lang={lang} term={tile.term} label={tile.label} /> : tile.label}
-          </span>
-          <span class="value">{tile.value}<span class="unit">{tile.unit}</span></span>
-          <span class="note">{tile.note}</span>
+    <section class="home-intro">
+      <div class="stack" style="gap: var(--space-4)">
+        <p class="eyebrow">{t(lang, "home.eyebrow", { country: t(lang, "country.gr"), month: month(lang, latestMonth) })}</p>
+        <h1 class="home-title">{t(lang, "home.title")}</h1>
+        <p class="lead">{t(lang, "home.intro1")}</p>
+        <p class="lead-2">{t(lang, "home.intro2")}</p>
+        <div class="button-row">
+          <a class="button primary" href={href(lang, "start")}>{t(lang, "home.cta.start")} →</a>
+          <a class="button" href={href(lang, "explore")}>{t(lang, "home.cta.explore")}</a>
         </div>
-      ))}
+      </div>
+      <aside class="panel euros" aria-labelledby="euros-h">
+        <p class="eyebrow">{t(lang, "home.euros.eyebrow")}</p>
+        <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(lang, BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
+        <dl class="euros-list">
+          {baskets.map((b) => (
+            <div>
+              <dt>
+                <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><line x1="1" y1="4" x2="15" y2="4" stroke={SWATCH[b.group]} stroke-width="3" stroke-linecap="round"></line></svg>
+                {t(lang, "home.euros.for", { group: t(lang, `group.in.${b.group}`) })}
+              </dt>
+              <dd>{lang === "el" ? `${num(lang, b.cost, 2)} €` : `€${num(lang, b.cost, 2)}`}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, latestMonth) })}</p>
+      </aside>
     </section>
 
-    <figure class="chart panel" data-chart={JSON.stringify(spec)}>
-      <figcaption class="stack" style="gap: var(--space-1)">
-        <h2>{t(lang, "home.chart.title")}</h2>
-        <p class="muted">{summary} {t(lang, "home.chart.note", { year: peakYear, q1: pct(lang, avgQ1), q5: pct(lang, avgQ5) })}</p>
-      </figcaption>
-      <div class="chart-area" role="img" aria-label={summary}></div>
-      <p class="small" style="font-weight: 600">{t(lang, "gap.long")}</p>
-      <div class="chart-gap" hidden></div>
-      <div class="legend">
-        <span class="key"><span class="box" style="background: var(--chart-flag-fill)"></span>{t(lang, `flag.legend.${flag.code}`)}¹</span>
-        <span class="key"><span class="box" style="background: var(--color-text); opacity: 0.12"></span>{t(lang, "chart.band")}</span>
-        <span class="key"><span class="box" style="background: var(--color-disabled)"></span>{t(lang, "chart.noband")}</span>
-      </div>
-      <details>
-        <summary class="button">{t(lang, "chart.show_table")}</summary>
-        <div class="table-wrap" style="margin-top: var(--space-3); max-height: 420px; overflow-y: auto">
-          <table class="data-table">
-            <thead><tr><th scope="col">{t(lang, "chart.month")}</th><th scope="col">{t(lang, "group.Q1")}</th><th scope="col">{t(lang, "group.Q5")}</th><th scope="col">{t(lang, "gap")}</th></tr></thead>
-            <tbody>
-              {tableRows.map((r) => (
-                <tr><th scope="row">{r.p}</th><td>{num(lang, r.a!)}</td><td>{num(lang, r.b!)}</td><td>{r.g === null ? "–" : num(lang, r.g)}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
-      <ol class="footnotes">
-        <li>{t(lang, `reason.${flag.code.replace(" ", "_")}`)}</li>
-        <li>{t(lang, "reason.hospital", { first: 2008, last: 2014 })}</li>
-      </ol>
-      <div class="button-row">
-        <a class="button primary" href={href(lang, "explore")}>{t(lang, "home.card.explore")} →</a>
-      </div>
-    </figure>
-
-    <section class="callout">
-      <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 7v4.5M8 4.6v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
-      <div class="stack" style="gap: var(--space-1)">
-        <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">{t(lang, "home.why.title")}</h2>
-        <p>{t(lang, "home.why.text", { q1food: `${foodShare("B/Q1")}%`, q5food: `${foodShare("B/Q5")}%` })}</p>
+    <section class="callout home-peak" aria-labelledby="peak-h">
+      <div class="stack" style="gap: var(--space-2)">
+        <h2 id="peak-h">{t(lang, "home.peak.title", { year: peakYear })}</h2>
+        <p>{t(lang, "home.peak.text", { year: peakYear, q1: pct(lang, avgQ1), q5: pct(lang, avgQ5) })}</p>
+        <details>
+          <summary>{t(lang, "more")}</summary>
+          <div class="stack" style="gap: var(--space-2); margin-top: var(--space-2)">
+            <p>{t(lang, "home.peak.detail", { peakMonth: acc(peak.period), peak: num(lang, peak.value) })}</p>
+            <p>{t(lang, "home.why.text", { q1food: `${foodShare("B/Q1")}%`, q5food: `${foodShare("B/Q5")}%` })}</p>
+            <p><a href={href(lang, "explore")}>{t(lang, "home.peak.link")} →</a></p>
+          </div>
+        </details>
       </div>
     </section>
 
-    <nav class="cards" aria-label={t(lang, "nav.next")}>
-      {(["explore", "calculator", "method"] as const).map((k) => (
-        <a class="card" href={href(lang, k)}>
-          <span class="title">{t(lang, `home.card.${k}`)} →</span>
-          <span class="text">{t(lang, `home.card.${k}.text`)}</span>
-        </a>
-      ))}
+    <nav class="stack" aria-labelledby="next-h" style="gap: var(--space-3)">
+      <h2 id="next-h">{t(lang, "nav.next")}</h2>
+      <div class="cards four">
+        {cards.map((k) => (
+          <a class="card" href={href(lang, k)}>
+            <span class="title">{t(lang, `home.card.${k}`)} →</span>
+            <span class="text">{t(lang, `home.card.${k}.text`)}</span>
+          </a>
+        ))}
+      </div>
     </nav>
 
     <section class="stack" style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)">
@@ -153,8 +122,3 @@ const summary = t(lang, "summary.annual", {
     </section>
   </div>
 </Base>
-
-<script>
-  import { mountFigure } from "../../scripts/figure";
-  for (const fig of document.querySelectorAll<HTMLElement>("figure[data-chart]")) mountFigure(fig);
-</script>
