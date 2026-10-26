@@ -1,18 +1,24 @@
 ---
-import { href, t, type Lang } from "../lib/i18n";
+// The footer on every page: where the numbers come from and the licences, each linked to its
+// official page. The sources are the statistics offices of the countries the site covers, then
+// Eurostat, so the line grows as countries are added. The site's pages are in the header.
+import { has, t, type Lang } from "../lib/i18n";
+import { officialSources } from "../lib/topics";
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
-const links = ["method", "glossary", "data", "about", "changelog"];
+const sources = officialSources();
+const LICENCES = {
+  data: { name: "CC BY 4.0", href: lang === "el" ? "https://creativecommons.org/licenses/by/4.0/deed.el" : "https://creativecommons.org/licenses/by/4.0/" },
+  code: { name: "Apache-2.0", href: "https://www.apache.org/licenses/LICENSE-2.0" },
+};
 ---
 <footer class="site-footer">
   <div class="container">
-    <nav aria-label={t(lang, "nav.footer")}>
-      <ul>
-        {links.map((key) => <li><a href={href(lang, key)}>{t(lang, `nav.${key}`)}</a></li>)}
-      </ul>
-    </nav>
-    <p>{t(lang, "footer.sources")}</p>
-    <p>{t(lang, "footer.privacy")}</p>
+    <p>{t(lang, "footer.public")}</p>
+    <p>{t(lang, "footer.official")} {sources.map((s, i) => (
+      <>{i > 0 && " · "}<a href={s.href[lang]}>{t(lang, `source.${s.key}`)}</a>{has(lang, `source.${s.key}.long`) && ` (${t(lang, `source.${s.key}.long`)})`}</>
+    ))}</p>
+    <p>{t(lang, "footer.data")} <a href={LICENCES.data.href}>{LICENCES.data.name}</a> · {t(lang, "footer.code")} <a href={LICENCES.code.href}>{LICENCES.code.name}</a></p>
   </div>
 </footer>

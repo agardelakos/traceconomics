@@ -2,6 +2,7 @@
 term: "Inflation gap"
 forms: ["inflation gap", "gap"]
 other: "Διαφορά πληθωρισμού"
+category: prices
 short: "The poorest fifth's annual inflation minus the richest fifth's, in percentage points."
 sources: [jaravel-2021]
 related: [quintile, percentage-point, standard-error]

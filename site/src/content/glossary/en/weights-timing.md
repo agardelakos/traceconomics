@@ -2,6 +2,7 @@
 term: "Weights timing (rules N, F, U)"
 forms: ["weights timing", "rule N", "rule F", "rule U"]
 other: "Χρονισμός σταθμίσεων (κανόνες N, F, U)"
+category: weights
 short: "Which year's survey a year's weights come from."
 sources: [reg-2020-1148, kepe-2024]
 related: [weights, laspeyres-index]

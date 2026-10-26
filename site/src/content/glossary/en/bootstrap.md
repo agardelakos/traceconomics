@@ -2,6 +2,7 @@
 term: "Bootstrap"
 forms: ["bootstrap"]
 other: "Bootstrap"
+category: surveys
 short: "A way to measure a survey's uncertainty by drawing many new samples from the sample itself and recomputing everything."
 sources: [rao-wu-1988, preston-2009, eurostat-precision-2013]
 related: [standard-error]

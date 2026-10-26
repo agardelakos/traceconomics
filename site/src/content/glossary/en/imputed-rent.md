@@ -2,6 +2,7 @@
 term: "Imputed rent"
 forms: ["imputed rent", "imputed rents"]
 other: "Τεκμαρτό ενοίκιο"
+category: households
 short: "The rent owners would pay to rent the home they live in. No money changes hands, so price indices usually leave it out."
 sources: [hicp-manual-2024, elstat-hbs-puf]
 related: [actual-rent, weights, tenure]

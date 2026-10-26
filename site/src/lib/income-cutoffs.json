@@ -4,7 +4,19 @@
   "survey_year": 2025,
   "income_year": 2024,
   "unit": "EUR a year, equivalised disposable income per person",
-  "top_cutoffs": { "Q1": 7110, "Q2": 10269, "Q3": 13184, "Q4": 17056 },
-  "checked": "2026-10-25"
+  "top_cutoffs": {
+   "Q1": 7110,
+   "Q2": 10269,
+   "Q3": 13184,
+   "Q4": 17056
+  },
+  "checked": "2026-10-25",
+  "top_cutoffs_pps": {
+   "Q1": 8272,
+   "Q2": 11947,
+   "Q3": 15338,
+   "Q4": 19843
+  },
+  "unit_pps": "PPS a year, the same cut-offs in purchasing power standards (ilc_di01, unit PPS)"
  }
 }

@@ -1,5 +1,6 @@
 // The explore page: groups, options and measure in the address; one setting's file at a time;
-// the chart, summary, table, notes, contributions, downloads and citation follow the choice.
+// the chart, summary, table, notes, contributions, the link to its files and the citation follow
+// the choice.
 
 import { mount, type ChartSpec } from "./chart";
 import { fill, month, num, type Lang } from "../lib/format";
@@ -15,7 +16,7 @@ interface Config {
   colors: Record<string, string>;
   dash: Record<string, string>;
   availability: Record<string, Record<string, { index: string[]; annual_rates: string[] | null; greyed: any[]; notes: any[] }>>;
-  downloads: Record<string, { name: string; size: number }[]>;
+  dataPage: string;
   divisions: Record<string, string>;
   strings: Record<string, string>;
 }
@@ -46,6 +47,13 @@ export function start(root: HTMLElement): void {
   let groups = (params.get("groups") ?? "").split(",").filter((g) => allGroups.includes(g)).slice(0, MAX_GROUPS);
   if (!groups.length) groups = [...DEFAULT_GROUPS];
   let measure: Measure = (["rch_a", "rch_m", "index"].includes(params.get("m") ?? "") ? params.get("m") : "rch_a") as Measure;
+  // The gap panel (poorest minus richest fifth) is the reader's choice, on by default, whatever
+  // groups the main chart shows. It exists for the annual rate only.
+  let showGap = params.get("gap") !== "0";
+  // Two views of the same selection, in the same card: the series over time, and what made up the
+  // latest annual rate. One set of controls drives both.
+  type View = "time" | "parts";
+  let view: View = params.get("view") === "parts" ? "parts" : "time";
   let tableOpen = false;
 
   const slug = () => SETTING_KEYS.map((k) => options[k]).join("_");
@@ -82,13 +90,33 @@ export function start(root: HTMLElement): void {
   const measureSel = $<HTMLSelectElement>("measure");
   measureSel.value = measure;
   measureSel.addEventListener("change", () => { measure = measureSel.value as Measure; render(); });
-  $<HTMLButtonElement>("table-toggle").addEventListener("click", () => { tableOpen = !tableOpen; render(); });
-  $<HTMLButtonElement>("copy").addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(location.href);
-      $<HTMLButtonElement>("copy").textContent = t("chart.copied");
-    } catch { /* the address bar holds the same link */ }
-  });
+  const gapToggle = $<HTMLInputElement>("gap-toggle");
+  gapToggle.addEventListener("change", () => { showGap = gapToggle.checked; render(); });
+  const viewButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-view]"));
+  for (const b of viewButtons) b.addEventListener("click", () => { view = b.dataset.view as View; render(); });
+  // The data points are a fold; the table is built only while it is open.
+  const tableFold = $<HTMLDetailsElement>("table-fold");
+  tableFold.addEventListener("toggle", () => { tableOpen = tableFold.open; render(); });
+
+  // Full screen: the chart alone (title, summary, chart, gap panel, legend, notes), for a reader
+  // who has set the groups and options and now wants to look at it. The chart redraws for the new
+  // width by itself. Shown only where the browser allows it (not on iPhones, for instance).
+  const block = $("chart-figure");
+  const fullscreen = $<HTMLButtonElement>("fullscreen");
+  if (document.fullscreenEnabled && block.requestFullscreen) {
+    fullscreen.hidden = false;
+    fullscreen.addEventListener("click", () => {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else block.requestFullscreen().catch(() => { /* refused: the page stays as it is */ });
+    });
+    document.addEventListener("fullscreenchange", () => {
+      const on = Boolean(document.fullscreenElement);
+      const label = t(on ? "chart.fullscreen_exit" : "chart.fullscreen");
+      fullscreen.classList.toggle("is-on", on);
+      fullscreen.setAttribute("aria-label", label);
+      fullscreen.title = label;
+    });
+  }
   $<HTMLButtonElement>("retry").addEventListener("click", () => render());
 
   let redraw: (() => void) | null = null;
@@ -117,7 +145,24 @@ export function start(root: HTMLElement): void {
     }
     url.searchParams.set("groups", groups.join(","));
     if (measure === "rch_a") url.searchParams.delete("m"); else url.searchParams.set("m", measure);
+    if (showGap) url.searchParams.delete("gap"); else url.searchParams.set("gap", "0");
+    if (view === "time") url.searchParams.delete("view"); else url.searchParams.set("view", view);
     history.replaceState(null, "", url);
+
+    // The view switch, and the controls a view doesn't use: greyed with the reason, not hidden.
+    const parts = view === "parts";
+    for (const b of viewButtons) b.setAttribute("aria-pressed", String(b.dataset.view === view));
+    $("view-time").hidden = parts;
+    $("view-parts").hidden = !parts;
+    $("summary").hidden = parts;
+    $("contrib-title").hidden = !parts;
+    measureSel.disabled = parts;
+    $("measure-reason").hidden = !parts;
+    gapToggle.checked = showGap;
+    gapToggle.disabled = parts || measure !== "rch_a";
+    const gapReason = $("gap-reason");
+    gapReason.hidden = !gapToggle.disabled;
+    gapReason.textContent = t(parts ? "explore.gap_parts" : "explore.gap_annual_only");
   }
 
   function reasonText(r: any): string {
@@ -138,19 +183,9 @@ export function start(root: HTMLElement): void {
     return out;
   }
 
+  // The files live on the country's data page; the link goes to the chosen setting's files there.
   function renderDownloads() {
-    const files = cfg.downloads[slug()] ?? [];
-    const box = $("downloads");
-    box.replaceChildren(...files.map((f) => {
-      const row = document.createElement("div");
-      row.className = "row";
-      const a = Object.assign(document.createElement("a"), { href: `${cfg.base}/downloads/${slug()}/${f.name}`, textContent: f.name });
-      a.setAttribute("download", "");
-      const size = f.size > 1e6 ? `${num(L, f.size / 1e6)} MB` : `${num(L, f.size / 1e3, 0)} KB`;
-      const desc = Object.assign(document.createElement("span"), { className: "small muted", textContent: `${f.name.split(".").pop()!.toUpperCase()} · ${size}` });
-      row.append(a, desc);
-      return row;
-    }));
+    ($("files-this") as unknown as HTMLAnchorElement).href = `${cfg.dataPage}#setting-${slug()}`;
     const opts = [options.grouping, ...SETTING_KEYS.map((k) => t(`option.${k}.${options[k]}`))].join(", ");
     $("cite").textContent = t("explore.cite_text", { year: new Date().getFullYear(), options: opts, url: location.href });
   }
@@ -198,7 +233,7 @@ export function start(root: HTMLElement): void {
     const flag = data.flags[0];
     const flagTo = measure === "index" ? flag.index_to : measure === "rch_m" ? flag.rch_m_to : flag.rch_a_to;
     const flagFill = flag.code === "less certain" ? "var(--color-flag-less-certain)" : "var(--color-flag-coarser)";
-    const withGap = measure === "rch_a" && groups.includes("Q1") && groups.includes("Q5");
+    const withGap = measure === "rch_a" && showGap;
     const gapData = data.gaps[options.grouping];
     const firstIdx = Math.min(...lines.map((l) => l.values.findIndex((v) => v !== null)).filter((i) => i >= 0));
     current = {
@@ -209,6 +244,7 @@ export function start(root: HTMLElement): void {
     const chartEl = $("chart");
     const gapEl = root.querySelector<HTMLElement>(".chart-gap")!;
     $("gap-title").hidden = !withGap;
+    $("gap-note").hidden = !withGap || (groups.includes("Q1") && groups.includes("Q5"));
     if (!redraw) redraw = mount(chartEl, gapEl, () => current!);
     else redraw();
 
@@ -266,11 +302,7 @@ export function start(root: HTMLElement): void {
     $("footnotes").replaceChildren(...foot.map((text) => Object.assign(document.createElement("li"), { textContent: text })));
 
     // Table.
-    const toggle = $<HTMLButtonElement>("table-toggle");
-    toggle.textContent = tableOpen ? t("chart.hide_table") : t("chart.show_table");
-    toggle.setAttribute("aria-expanded", String(tableOpen));
     const tableBox = $("table");
-    tableBox.hidden = !tableOpen;
     if (tableOpen) {
       const table = document.createElement("table");
       table.className = "data-table";
@@ -299,16 +331,17 @@ export function start(root: HTMLElement): void {
   // and the rows are sorted by it, so the top rows explain most of the gap.
   async function contributions() {
     const box = $("contrib");
+    // Without a breakdown for this setting or these groups, the view says so in words.
+    const none = () => { box.hidden = true; $("contrib-none").hidden = false; $("contrib-title").textContent = ""; };
     let data: any;
     try {
       data = await load(`contributions/${slug()}.json`);
     } catch {
-      box.hidden = true;
-      $("contrib-link").hidden = true;
+      none();
       return;
     }
     const shown = allGroups.filter((g) => groups.includes(g) && data.groups[dataKey(g)]);
-    if (!shown.length) { box.hidden = true; $("contrib-link").hidden = true; return; }
+    if (!shown.length) { none(); return; }
     const latest = (g: string) => {
       const byMonth = data.groups[dataKey(g)];
       const months = Object.keys(byMonth).sort();
@@ -383,7 +416,7 @@ export function start(root: HTMLElement): void {
     };
 
     box.hidden = false;
-    $("contrib-link").hidden = false;
+    $("contrib-none").hidden = true;
     $("contrib-title").textContent = shown.length === 1
       ? t("explore.contrib_title", { group: inSentence(shown[0]), value: `${num(L, total(shown[0]))}%` })
       : t("explore.contrib_title_many");
@@ -396,11 +429,13 @@ export function start(root: HTMLElement): void {
 
     if (shown.length === 1) {
       const g = shown[0];
-      $("bars").replaceChildren(...codes.map((code) => {
+      const rows = codes.map((code) => {
         const row = line([document.createTextNode(cfg.divisions[code] ?? code)], value(g, code), cfg.colors[g]);
         row.classList.add("single");
         return row;
-      }));
+      });
+      $("bars").replaceChildren(...rows);
+      fold(rows);
       return;
     }
     const nameOf = (g: string) => [swatch(g), document.createTextNode(shortName(g))];
@@ -421,7 +456,24 @@ export function start(root: HTMLElement): void {
     ]);
     totals.classList.add("total");
     $("bars").replaceChildren(...rows, totals);
+    fold(rows);
   }
+
+  // The breakdown shows the largest categories first (rows are sorted by size) and folds the rest
+  // behind one button, so the page stays short until a reader asks for all of it. The choice holds
+  // while groups and options change.
+  const TOP = 5;
+  let showAll = false;
+  let folded: HTMLElement[] = [];
+  function fold(rows: HTMLElement[]) {
+    folded = rows;
+    const more = $("contrib-more");
+    rows.forEach((r, i) => { r.hidden = !showAll && i >= TOP; });
+    more.hidden = rows.length <= TOP;
+    more.textContent = showAll ? t("explore.contrib_fewer", { n: TOP }) : t("explore.contrib_all", { n: rows.length });
+    more.setAttribute("aria-expanded", String(showAll));
+  }
+  $("contrib-more").addEventListener("click", () => { showAll = !showAll; fold(folded); });
 
   render();
 }

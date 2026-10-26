@@ -44,21 +44,74 @@ main { padding: var(--space-5) 0 var(--space-7); }
 
 /* SiteHeader */
 .site-header { background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
-.site-header .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.site-header .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); padding-top: var(--space-2); padding-bottom: var(--space-2); }
 .wordmark { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text); text-decoration: none; font-family: var(--font-serif); font-weight: 600; font-size: var(--text-base); min-height: 44px; }
 .wordmark svg { flex: none; }
-.site-nav { order: 3; width: 100%; }
-.site-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px; }
+.header-tools { display: flex; align-items: center; gap: var(--space-2); }
+.icon-button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); cursor: pointer; }
+
+/* The main navigation. One element: on a phone a popover under the menu button (it opens without
+   a script), on wider screens a row in the header (the popover's own hiding is switched off). */
+.site-nav ul { list-style: none; margin-block: 0; display: flex; gap: 2px; }
 .site-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; color: var(--color-text); text-decoration: none; }
+.site-nav a:hover { background: var(--color-disabled); }
 .site-nav a[aria-current="page"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 600; }
-.site-nav details > summary { list-style: none; }
-@media (min-width: 1000px) {
-  .site-nav { order: 0; width: auto; }
+.site-nav .planned { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 var(--space-3); }
+.menu-settings fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-m); margin: var(--space-3) 0 0; padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; }
+.menu-settings legend { font-weight: 700; padding: 0 var(--space-1); }
+.menu-settings label { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; cursor: pointer; }
+.menu-settings input { accent-color: var(--color-accent); margin: 0; }
+.menu-settings p { margin: var(--space-2) 0 var(--space-3); }
+@media (max-width: 899px) {
+  .settings { display: none; }
+  .site-nav[popover] { inset: 64px var(--space-2) auto; margin: 0; width: auto; max-height: calc(100dvh - 80px); overflow: auto; padding: var(--space-2) 0; background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
+  .site-nav ul { flex-direction: column; padding-inline: var(--space-2); }
+  .site-nav a, .site-nav .planned { min-height: 48px; justify-content: space-between; }
+  .site-nav li.push { border-top: 1px solid var(--color-border); margin-top: var(--space-2); padding-top: var(--space-2); }
+}
+@media (min-width: 900px) {
+  .menu-button, .menu-settings { display: none !important; }
+  .site-nav[popover] { display: block; position: static; inset: auto; width: auto; height: auto; margin: 0; padding: 0 0 6px; border: 0; background: none; color: inherit; overflow: visible; }
+  .site-nav ul { flex-wrap: wrap; align-items: center; }
+  .site-nav li.push { margin-left: auto; }
 }
 
-/* Header tools: theme switch and language switch, side by side */
-.header-tools { display: flex; align-items: center; gap: var(--space-2); }
-.theme-button { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; background: none; border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); cursor: pointer; }
+/* Not built yet: a topic, country or option listed ahead of time. Greyed, not a link, and always
+   marked with the same words ("Coming soon"), never by colour alone. */
+.planned { color: var(--color-disabled-text); cursor: default; }
+.planned-tag { font-family: var(--font-sans); font-size: 0.6875rem; font-weight: 700; padding: 0 6px; border-radius: 999px; border: 1px dashed var(--color-disabled-text); color: var(--color-disabled-text); vertical-align: middle; white-space: nowrap; }
+.card.planned { background: var(--color-disabled); border-style: dashed; border-color: var(--color-disabled-text); color: var(--color-disabled-text); }
+.card.planned .text { color: var(--color-disabled-text); }
+.chip-status { align-self: flex-start; font-size: var(--text-xs); font-weight: 700; padding: 1px 10px; border-radius: 999px; background: var(--color-accent-tint); color: var(--color-accent); }
+.card.planned .chip-status { background: none; border: 1px dashed var(--color-disabled-text); color: var(--color-disabled-text); }
+
+/* TopicBar: one left-aligned column under the header: the topic, its country (a drop-down), then
+   that country's pages, so each level sits under the one it belongs to. */
+.topic-bar { background: var(--color-accent-tint); border-bottom: 1px solid var(--color-border); }
+.topic-stack { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); padding-bottom: var(--space-3); }
+.topic-bar:has(.topic-nav) .topic-stack { padding-bottom: 0; }
+.topic-title { display: flex; flex-direction: column; }
+.topic-title .eyebrow { font-size: var(--text-xs); font-weight: 700; color: var(--color-accent); }
+.topic-name { font-family: var(--font-serif); font-weight: 600; font-size: var(--text-xl); color: var(--color-text); text-decoration: none; }
+.country-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.country-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3) 0 var(--space-4); border: 1px solid var(--color-accent); border-radius: 999px; background: var(--color-surface); color: var(--color-accent); font: inherit; font-weight: 600; cursor: pointer; }
+.country-menu { min-width: 240px; padding: var(--space-1); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
+.country-menu ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.country-menu a, .country-menu .planned { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; text-decoration: none; }
+.country-menu a { color: var(--color-text); }
+.country-menu a:hover { background: var(--color-disabled); }
+.country-menu a[aria-current="true"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 700; }
+@supports (anchor-name: --a) {
+  .country-menu { margin: var(--space-1) 0; position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline; }
+}
+.topic-nav { border-top: 1px solid var(--color-border); }
+.topic-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; overflow-x: auto; }
+.topic-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-bottom: 3px solid transparent; color: var(--color-text); text-decoration: none; white-space: nowrap; }
+.topic-nav li:first-child a { padding-left: 0; }
+.topic-nav a:hover { border-bottom-color: var(--color-border); }
+.topic-nav a[aria-current="page"] { border-bottom-color: var(--color-accent); color: var(--color-accent); font-weight: 700; }
+
+/* The settings menu, under its button */
 .theme-menu { max-width: 280px; padding: var(--space-3) var(--space-4); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
 .theme-menu fieldset { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
 .theme-menu legend { font-weight: 700; padding: 0; margin-bottom: var(--space-1); }
@@ -77,8 +130,8 @@ main { padding: var(--space-5) 0 var(--space-7); }
 
 /* SiteFooter */
 .site-footer { border-top: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); font-size: var(--text-sm); }
-.site-footer .container { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-5); padding-bottom: var(--space-6); }
-.site-footer nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+.site-footer .container { display: flex; flex-direction: column; gap: var(--space-1); padding-top: var(--space-5); padding-bottom: var(--space-6); }
+.site-footer p { margin: 0; }
 
 /* Buttons */
 .button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-4); border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
@@ -177,6 +230,8 @@ figure.chart { margin: 0; display: flex; flex-direction: column; gap: var(--spac
 .slider-row input[type="range"] { width: 100%; margin: 0; height: 28px; accent-color: var(--color-accent); }
 .result { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius-m); background: var(--color-surface); border: 1px solid var(--color-border); }
 .result.edited { border: 2px solid var(--color-accent); }
+.result-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
+.result-compare .num { font-size: 1.25rem; font-weight: 600; }
 .result .big { font-family: var(--font-serif); font-size: 3rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
 select, input[type="search"] { font: inherit; min-height: 48px; padding: 0 var(--space-3); border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
 
@@ -233,7 +288,7 @@ button.term { font: inherit; color: inherit; background: none; border: none; pad
 .home-peak p { margin: 0; max-width: 64ch; }
 .home-peak summary, .more > summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--color-link); font-weight: 600; }
 
-/* Start here: each group's basket as one bar, with its shares written out beside it. */
+/* A country's overview: each group's basket as one bar, with its shares written out beside it. */
 .basket-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: var(--color-disabled); }
 .basket-bar span { display: block; height: 100%; }
 .basket-bar span + span { border-left: 2px solid var(--color-surface); }
@@ -242,7 +297,6 @@ button.term { font: inherit; color: inherit; background: none; border: none; pad
 .basket-legend .box { width: 12px; height: 12px; border-radius: 2px; border: 1px solid var(--color-border); }
 
 /* Explore: household types are shown before their series exist; the income panel. */
-.soon { font-weight: 400; font-size: 0.8125rem; padding: 1px 8px; border-radius: 999px; background: var(--color-disabled); color: var(--color-disabled-text); }
 .chip:disabled { border-style: dashed; background: var(--color-disabled); color: var(--color-disabled-text); cursor: not-allowed; }
 .income h2 { font-size: var(--text-xl); }
 .income p { margin: 0; }
@@ -253,3 +307,114 @@ button.term { font: inherit; color: inherit; background: none; border: none; pad
 .income-table td { font-variant-numeric: tabular-nums; }
 .cards.four { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .income { margin-top: var(--space-6); }
+
+/* Groups: the finder, its questions beside its answer on wide screens. */
+.finder h2 { font-size: var(--text-xl); }
+.finder p { margin: 0; }
+.finder-grid { display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 860px) { .finder-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
+.finder .amount { width: 12em; max-width: 100%; min-height: 40px; font: inherit; font-variant-numeric: tabular-nums; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); }
+.finder-result { padding: var(--space-4); border-radius: 8px; background: var(--color-accent-tint); border: 1px solid var(--color-border); }
+@media (min-width: 860px) { .finder-result { position: sticky; top: var(--space-4); } }
+.finder-result h3 { margin: 0; }
+.finder-list { margin: 0; display: grid; gap: var(--space-2); }
+.finder-list div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: var(--space-2); }
+.finder-list dt { color: var(--color-text-muted); }
+.finder-list dd { margin: 0; font-weight: 700; }
+.finder-starts { list-style: none; margin: 0; padding: 0; }
+
+/* The site's home, a topic's page and a country's overview (the structure for many topics and
+   countries). */
+.eyebrow.accent, .accent-text { color: var(--color-accent); font-weight: 700; }
+.section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+.section-head p { margin: 0; }
+.countries-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.countries-strip h2 { font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700; margin: 0; }
+.countries-strip p { flex: 1 1 280px; margin: 0; }
+.country-chip { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--color-accent); border-radius: 999px; color: var(--color-accent); font-weight: 600; }
+.country-chip.planned { border: 1px dashed var(--color-disabled-text); background: var(--color-disabled); color: var(--color-disabled-text); font-weight: 400; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-3); }
+.step-number { font-family: var(--font-serif); font-weight: 600; color: var(--color-accent); }
+.steps h3 { margin: 0; font-size: var(--text-lg); }
+.offer-grid { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); border-radius: var(--radius-m); overflow: hidden; }
+.offer-grid > div { background: var(--color-surface); padding: var(--space-4); }
+.offer-grid dt { font-weight: 700; }
+.offer-grid dd { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: var(--space-3); }
+.standout { flex-direction: column; gap: var(--space-2); padding: var(--space-5); }
+.standout h2, .standout p { margin: 0; }
+.card code.path { margin-top: var(--space-1); font-family: var(--font-mono); font-size: var(--text-sm); background: var(--color-bg); padding: 4px 8px; border-radius: 6px; color: var(--color-text); }
+/* The country data page: the long list of files stays folded until the reader opens it. The
+   heading sits inside the summary, so the page outline keeps it. */
+.downloads-all > summary h3 { display: inline; font-size: var(--text-lg); margin: 0; }
+/* The overview's invitation to the method: a block of its own, not a footnote. */
+.method-cta { padding: var(--space-5); }
+.method-cta h2 { margin: 0; }
+.method-cta p { margin: 0; }
+/* Explore: how to use the page, in three steps, before anything else. */
+.howto { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-5); border-radius: var(--radius-m); background: var(--color-accent-tint); }
+.howto h2 { margin: 0; }
+.howto ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--space-3) var(--space-5); }
+.howto li { display: flex; gap: var(--space-2); align-items: flex-start; }
+.howto .n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 700; font-size: var(--text-sm); }
+.howto p { margin: 0; }
+.family-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+/* A heading inside a fold's summary stays a heading (the page outline keeps it) but sits on the
+   arrow's line. */
+details.panel > summary h2 { display: inline; margin: 0; }
+/* Explore: the chart and the controls that change it share one card; folds inside it are lighter
+   than page-level panels. Everything that doesn't change the chart sits below, under its own
+   heading. */
+.chart-block { display: flex; flex-direction: column; gap: var(--space-4); }
+.chart-controls { display: flex; flex-direction: column; gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-4); }
+.chart-controls > h2 { margin: 0; }
+details.fold { border: 1px solid var(--color-border); border-radius: var(--radius-m); padding: var(--space-3) var(--space-4); background: var(--color-bg); }
+details.fold > summary { cursor: pointer; }
+details.fold > summary h3 { display: inline; margin: 0; font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700; }
+details.panel > summary h3 { display: inline; margin: 0; font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700; }
+.more-block { gap: var(--space-3); border-top: 1px solid var(--color-border); padding-top: var(--space-5); }
+.more-block > h2 { margin: 0; }
+.chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.chart-head h2 { margin: 0; }
+/* The chart alone in full screen: the page's own colours, scrolling if it is taller than the
+   screen; the data-points table stays on the page. */
+figure.chart:fullscreen { overflow: auto; padding: var(--space-5) max(var(--space-5), calc((100vw - 1400px) / 2)); background: var(--color-surface); }
+figure.chart:fullscreen [data-role="table-fold"] { display: none; }
+/* At the screen's fixed height its parts would shrink into each other; they keep their size and the
+   figure scrolls instead. */
+figure.chart:fullscreen > * { flex-shrink: 0; }
+figure.chart::backdrop { background: var(--color-surface); }
+/* The full-screen button shows the action it will do: enter, or (when on) leave. */
+.fs-exit, .is-on .fs-enter { display: none; }
+.is-on .fs-exit { display: inline; }
+/* A plain checkbox with its label, at a comfortable size to tap. */
+label.check { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; font-weight: 600; cursor: pointer; }
+label.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--color-accent); }
+label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not-allowed; }
+/* Explore's view switch: two buttons that read as one control, the current one filled. */
+.view-switch { display: inline-flex; align-self: flex-start; border: 1px solid var(--color-accent); border-radius: 999px; overflow: hidden; }
+.view-switch button { min-height: 40px; padding: 0 var(--space-4); border: 0; background: var(--color-surface); color: var(--color-accent); font: inherit; font-weight: 600; cursor: pointer; }
+.view-switch button + button { border-left: 1px solid var(--color-accent); }
+.view-switch button[aria-pressed="true"] { background: var(--color-accent); color: var(--color-accent-contrast); }
+[data-role="contrib-title"] { font-weight: 600; }
+
+
+/* "Nothing you enter leaves your device", with its lock. */
+.private { display: flex; align-items: center; gap: var(--space-2); margin: 0; }
+
+/* The calculator: Explore's card, the result beside what changes it on wide screens; on a phone a
+   line at the bottom of the screen keeps the result in sight while the reader changes spending. */
+.calc-block figcaption h2 { margin: 0; }
+@media (min-width: 960px) {
+  .calc-block { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--space-5); align-items: start; }
+  .calc-block figure.chart { position: sticky; top: var(--space-4); }
+  .calc-block .chart-controls { border-top: none; padding-top: 0; border-left: 1px solid var(--color-border); padding-left: var(--space-5); }
+  .calc-sticky { display: none; }
+}
+.calc-sticky { position: sticky; bottom: 0; margin: 0; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-accent); border-radius: 6px; background: var(--color-surface); font-weight: 700; font-variant-numeric: tabular-nums; }
+.euro-grid { display: grid; gap: var(--space-3); }
+.euro-row { display: grid; grid-template-columns: minmax(0, 1fr) 8em; grid-template-areas: "label input" "share share"; gap: 2px var(--space-3); align-items: center; padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border); }
+.euro-row label { grid-area: label; font-weight: 600; line-height: 1.3; }
+.euro-row input { grid-area: input; min-height: 40px; font: inherit; font-variant-numeric: tabular-nums; text-align: right; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); }
+.euro-row input[aria-invalid] { border: 2px solid var(--color-flag-low-reliability); }
+.euro-row span { grid-area: share; }

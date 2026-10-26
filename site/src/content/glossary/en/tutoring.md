@@ -2,6 +2,7 @@
 term: "Tutoring (φροντιστήρια)"
 forms: ["tutoring"]
 other: "Φροντιστήρια"
+category: weights
 short: "Private lessons and language schools, a large part of Greek households' education spending."
 sources: [elstat-cpi-items, elstat-hbs-puf]
 related: [weights, coicop]

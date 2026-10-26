@@ -2,6 +2,7 @@
 term: "Democratic weighting"
 forms: ["democratic weighting", "democratic weights", "democratic"]
 other: "Δημοκρατική στάθμιση"
+category: weights
 short: "A group's weights as the average of each household's own shares, so every household counts equally."
 sources: [cpi-manual-2020, ons-hci-method-2017]
 related: [plutocratic-weighting]

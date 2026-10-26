@@ -1,0 +1,247 @@
+---
+// A country's groups for inflation by group: who is in each group Explore offers, with this
+// country's numbers. First a finder (which groups a household is in, from its people, income,
+// home and main income), then income fifths (which one a household is in, in euros or purchasing power),
+// tenure, pensioner households, and household types when their series come. The definitions are
+// the glossary's own entries, so the site says the same thing everywhere.
+import { getEntry, render } from "astro:content";
+import Breadcrumb from "../../../../components/Breadcrumb.astro";
+import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
+import SourceList from "../../../../components/SourceList.astro";
+import Base from "../../../../layouts/Base.astro";
+import { equivalentSize, eur, FIFTHS, HOUSEHOLD_TYPES, pps, ranges } from "../../../../lib/income";
+import cutoffs from "../../../../lib/income-cutoffs.json";
+import { href, LANGS, num, t, type Lang } from "../../../../lib/i18n";
+import { countryPaths, topicHref, trail } from "../../../../lib/topics";
+
+export function getStaticPaths() {
+  return countryPaths("inflation-by-group", LANGS);
+}
+
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const countryName = t(lang, `country.${country}`);
+
+// Who is in each income fifth: Eurostat's published cut-offs for now (ours come with the
+// household-type series), in euros or in purchasing power standards (PPS), the artificial currency
+// Eurostat uses to compare incomes across countries without price differences. Exchange rates are
+// not offered: they would mix currency movements into incomes. The page shows one adult in euros;
+// the panel's script redraws for other households and the other unit.
+const eu = cutoffs.eurostat;
+const firstSize = equivalentSize(1, 0);
+const rangeText = (r: { from: number | null; to: number | null }, per: "year" | "month") => {
+  const d = per === "year" ? 1 : 12;
+  if (r.from === null) return t(lang, `income.${per}.upto`, { amount: eur(r.to! / d) });
+  if (r.to === null) return t(lang, `income.${per}.over`, { amount: eur(r.from / d) });
+  return t(lang, `income.${per}.between`, { from: eur(r.from / d), to: eur(r.to / d) });
+};
+const firstRows = ranges(eu.top_cutoffs, firstSize);
+// The note's example: the poorest fifth's limit in both units. Its wording says a euro buys more
+// than one PPS's worth in this country; the build stops if the figures stop saying so.
+if (!(eu.top_cutoffs_pps.Q1 > eu.top_cutoffs.Q1)) throw new Error("the PPS note says a euro buys more than one PPS here; the figures no longer say so");
+const ppsNote = t(lang, `income.unit.note.${country}`, { eur: eur(eu.top_cutoffs.Q1), pps: pps(eu.top_cutoffs_pps.Q1) });
+const incomeConfig = {
+  lang,
+  cutoffs: { eur: eu.top_cutoffs, pps: eu.top_cutoffs_pps },
+  types: Object.fromEntries(HOUSEHOLD_TYPES.map((h) => [h.key, [h.older, h.children]])),
+  text: Object.fromEntries(["year.upto", "year.between", "year.over", "month.upto", "month.between", "month.over", "size"].map((k) => [k, t(lang, `income.${k}`, k === "size" ? { size: "{size}" } : k.endsWith("between") ? { from: "{from}", to: "{to}" } : { amount: "{amount}" })])),
+};
+const INCOME_SOURCES = ["eurostat-ilc-di01", "eurostat-equivalence-scale", "eurostat-silc-guidelines-2024", "elstat-hbs-2025-instructions", "eurostat-pps-glossary", "eurostat-ppp-glossary"];
+
+// Tenure and pensioner households, explained by their glossary entries (one sentence, then more).
+const defined = await Promise.all(["tenure", "pensioner-household"].map(async (slug) => {
+  const entry = await getEntry("glossary", `${lang}/${slug}`);
+  if (!entry) throw new Error(`no glossary entry ${slug} in ${lang}`);
+  return { slug, entry, Content: (await render(entry)).Content };
+}));
+const [tenure, pensioners] = defined;
+
+// The finder places an income with the same limits the table shows, in euros (the reader enters
+// euros), and links to the calculator and to Explore with the groups it found.
+const GROUP_KEYS = [...FIFTHS, "tenure/renter", "tenure/owner", "tenure/rent_free", "pensioners/pensioners", "pensioners/other"];
+const finderConfig = {
+  lang,
+  cutoffs: eu.top_cutoffs,
+  names: Object.fromEntries(GROUP_KEYS.map((k) => [k, t(lang, `group.${k}`)])),
+  inNames: Object.fromEntries(GROUP_KEYS.map((k) => [k, t(lang, `group.in.${k}`)])),
+  calculator: topicHref(lang, "inflation-by-group", country, "calculator"),
+  explore: topicHref(lang, "inflation-by-group", country, "explore"),
+  text: { size: t(lang, "income.size", { size: "{size}" }), near: t(lang, "find.near", { group: "{group}" }) },
+};
+---
+<Base lang={lang} title={t(lang, "groups.title")} description={t(lang, "groups.lead", { country: countryName })} topic={{ slug: "inflation-by-group", country, section: "groups" }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={trail(lang, country, [t(lang, "nav.groups")])} />
+      <h1>{t(lang, "groups.title")}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "groups.lead", { country: countryName })}</p>
+      <nav aria-label={t(lang, "opendata.country.topics")} class="chips">
+        <a class="chip" href="#find" style="text-decoration: none">{t(lang, "find.title")}</a>
+        <a class="chip" href="#income" style="text-decoration: none">{t(lang, "family.income")}</a>
+        <a class="chip" href="#tenure" style="text-decoration: none">{t(lang, "family.tenure")}</a>
+        <a class="chip" href="#pensioners" style="text-decoration: none">{t(lang, "groups.pensioners.title")}</a>
+        <a class="chip" href="#household" style="text-decoration: none">{t(lang, "family.household")}</a>
+      </nav>
+    </header>
+
+    <section class="panel stack finder" id="find" aria-labelledby="find-h" data-finder={JSON.stringify(finderConfig)} style="gap: var(--space-4)">
+      <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+        <h2 id="find-h">{t(lang, "find.title")}</h2>
+        <p>{t(lang, "find.lead")}</p>
+        <p class="small muted private">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>
+          {t(lang, "find.private")}
+        </p>
+      </div>
+      <p class="muted" data-find="noscript">{t(lang, "find.noscript")}</p>
+      <div class="finder-grid" data-find="form" hidden>
+        <div class="stack" style="gap: var(--space-3)">
+          <fieldset class="option">
+            <legend>{t(lang, "find.who")}</legend>
+            <div class="other-household">
+              <label>{t(lang, "income.older")} <input type="number" data-find="older" min="1" max="12" step="1" value="1" inputmode="numeric" /></label>
+              <label>{t(lang, "income.children")} <input type="number" data-find="children" min="0" max="12" step="1" value="0" inputmode="numeric" /></label>
+            </div>
+            <p class="note" data-find="size" aria-live="polite"></p>
+          </fieldset>
+          <fieldset class="option">
+            <legend>{t(lang, "find.income")}</legend>
+            <p class="note" style="margin-top: 0">{t(lang, "find.income.hint")}</p>
+            <input type="text" class="amount" data-find="income" inputmode="numeric" autocomplete="off" aria-label={t(lang, "find.income")} placeholder="€" />
+            <div class="values" role="radiogroup" aria-label={t(lang, "find.per")}>
+              <label><input type="radio" name="per" value="year" checked /><span>{t(lang, "find.per.year")}</span></label>
+              <label><input type="radio" name="per" value="month" /><span>{t(lang, "find.per.month")}</span></label>
+            </div>
+            <p class="note">{t(lang, "find.per.note")}</p>
+          </fieldset>
+          <fieldset class="option">
+            <legend>{t(lang, "find.home")}</legend>
+            <div class="values">
+              {["renter", "owner", "rent_free"].map((k) => <label><input type="radio" name="home" value={k} /><span>{t(lang, `find.home.${k}`)}</span></label>)}
+            </div>
+          </fieldset>
+          <fieldset class="option">
+            <legend>{t(lang, "find.pension")}</legend>
+            <div class="values">
+              <label><input type="radio" name="pension" value="yes" /><span>{t(lang, "find.yes")}</span></label>
+              <label><input type="radio" name="pension" value="no" /><span>{t(lang, "find.no")}</span></label>
+            </div>
+          </fieldset>
+        </div>
+        <div class="finder-result stack" aria-live="polite" style="gap: var(--space-3)">
+          <h3>{t(lang, "find.result")}</h3>
+          <p class="muted" data-find="empty">{t(lang, "find.empty")}</p>
+          <dl class="finder-list">
+            <div data-find="income-row" hidden><dt>{t(lang, "find.r.income")}</dt><dd data-find="income-value"></dd></div>
+            <div data-find="home-row" hidden><dt>{t(lang, "find.r.home")}</dt><dd data-find="home-value"></dd></div>
+            <div data-find="pension-row" hidden><dt>{t(lang, "find.r.pension")}</dt><dd data-find="pension-value"></dd></div>
+          </dl>
+          <p class="small" data-find="near" hidden></p>
+          <p class="small muted">{t(lang, "find.limits", { year: eu.income_year })}</p>
+          <div class="stack" data-find="next" hidden style="gap: var(--space-2)">
+            <p class="small" style="font-weight: 600">{t(lang, "find.start")}</p>
+            <ul class="button-row finder-starts" data-find="starts"></ul>
+            <p class="small muted">{t(lang, "find.one_at_a_time")}</p>
+            <a data-find="compare" href={finderConfig.explore} style="font-weight: 600">{t(lang, "find.compare")} →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel stack income" id="income" aria-labelledby="income-h" data-income={JSON.stringify(incomeConfig)} style="gap: var(--space-4)">
+      <h2 id="income-h">{t(lang, "income.title")}</h2>
+      <p style="max-width: var(--text-max)">{t(lang, "income.lead")}</p>
+      <fieldset class="option">
+        <legend>{t(lang, "income.household")}</legend>
+        <div class="values">
+          {[...HOUSEHOLD_TYPES.map((h) => h.key), "other"].map((k) => (
+            <label><input type="radio" name="household" value={k} checked={k === "one"} /><span>{t(lang, `income.hh.${k}`)}</span></label>
+          ))}
+        </div>
+        <div class="other-household" data-income-role="other" hidden>
+          <label>{t(lang, "income.older")} <input type="number" name="older" min="1" max="12" step="1" value="3" inputmode="numeric" /></label>
+          <label>{t(lang, "income.children")} <input type="number" name="children" min="0" max="12" step="1" value="1" inputmode="numeric" /></label>
+        </div>
+        <p class="note" data-income-role="size" aria-live="polite">{t(lang, "income.size", { size: num(lang, firstSize) })}</p>
+      </fieldset>
+      <fieldset class="option">
+        <legend>{t(lang, "income.source")}</legend>
+        <div class="values">
+          <label><input type="radio" name="income-source" value="ours" disabled /><span>{t(lang, "income.source.ours")}</span></label>
+          <label><input type="radio" name="income-source" value="eurostat" checked /><span>{t(lang, "income.source.eurostat")}</span></label>
+        </div>
+        <p class="note">{t(lang, "income.source.ours_soon")}</p>
+        <p class="note">{t(lang, "income.source.eurostat_note", { survey: eu.survey_year, income: eu.income_year })}</p>
+      </fieldset>
+      <fieldset class="option">
+        <legend>{t(lang, "income.unit")}</legend>
+        <div class="values">
+          <label><input type="radio" name="income-unit" value="eur" checked /><span>{t(lang, "income.unit.eur")}</span></label>
+          <label><input type="radio" name="income-unit" value="pps" /><span>{t(lang, "income.unit.pps")}</span></label>
+        </div>
+        <p class="note"><span><GlossaryTerm lang={lang} term="purchasing-power-standard" label={t(lang, "income.unit.pps_term")} />: {ppsNote}</span></p>
+      </fieldset>
+      <div class="table-wrap">
+        <table class="data-table income-table">
+          <thead><tr><th scope="col">{t(lang, "income.group")}</th><th scope="col">{t(lang, "income.per_year")}</th><th scope="col">{t(lang, "income.per_month")}</th></tr></thead>
+          <tbody>
+            {FIFTHS.map((q, i) => (
+              <tr>
+                <th scope="row">{t(lang, `group.${q}`)}</th>
+                <td data-income-year={q}>{rangeText(firstRows[i], "year")}</td>
+                <td data-income-month={q}>{rangeText(firstRows[i], "month")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <details class="more">
+        <summary>{t(lang, "income.why")}</summary>
+        <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+          <p>{t(lang, "income.why1")}</p>
+          <p>{t(lang, "income.why2")}</p>
+        </div>
+      </details>
+      <details class="more">
+        <summary>{t(lang, "income.sources")}</summary>
+        <SourceList keys={INCOME_SOURCES} lang={lang} />
+      </details>
+    </section>
+
+    <section class="panel stack" id="tenure" aria-labelledby="tenure-h" style="gap: var(--space-2)">
+      <h2 id="tenure-h">{t(lang, "family.tenure")}: {t(lang, "group.tenure/renter")}, {t(lang, "group.tenure/owner")}, {t(lang, "group.tenure/rent_free")}</h2>
+      <p class="definition">{tenure.entry.data.short}</p>
+      <div class="prose"><tenure.Content /></div>
+      <p class="small"><a href={href(lang, "glossary/tenure")}>{t(lang, "glossary.more")} →</a></p>
+    </section>
+
+    <section class="panel stack" id="pensioners" aria-labelledby="pensioners-h" style="gap: var(--space-2)">
+      <h2 id="pensioners-h">{t(lang, "groups.pensioners.title")}</h2>
+      <p class="definition">{pensioners.entry.data.short}</p>
+      <div class="prose"><pensioners.Content /></div>
+      <p class="small"><a href={href(lang, "glossary/pensioner-household")}>{t(lang, "glossary.more")} →</a></p>
+    </section>
+
+    <section class="panel stack" id="household" aria-labelledby="household-h" style="gap: var(--space-2)">
+      <h2 id="household-h">{t(lang, "family.household")} <span class="planned-tag">{t(lang, "soon")}</span></h2>
+      <p class="muted" style="max-width: var(--text-max)">{t(lang, "family.household.note")}</p>
+    </section>
+
+    <section class="callout stack method-cta" aria-labelledby="next-h">
+      <h2 id="next-h">{t(lang, "groups.next.title")}</h2>
+      <div class="button-row">
+        <a class="button primary" href={topicHref(lang, "inflation-by-group", country, "explore")}>{t(lang, "groups.next.explore")} →</a>
+        <a class="button" href={topicHref(lang, "inflation-by-group", country, "method/grouping")}>{t(lang, "groups.next.method")}</a>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { startFinder } from "../../../../scripts/finder";
+  import { startIncome } from "../../../../scripts/income";
+  const finder = document.getElementById("find");
+  if (finder) startFinder(finder);
+  const income = document.getElementById("income");
+  if (income) startIncome(income);
+</script>

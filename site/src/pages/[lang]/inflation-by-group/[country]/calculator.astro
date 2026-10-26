@@ -1,0 +1,151 @@
+---
+// The personal calculator. Everything runs in the browser from the published calculator file;
+// nothing a visitor enters leaves the device. Untouched, it shows a preset group's official
+// series exactly (the parity test checks that). Laid out like Explore: what to do, then one card
+// with the result and chart above what changes them (the starting group and the spending, as
+// shares or as euros a month), then how it is calculated.
+import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
+import Breadcrumb from "../../../../components/Breadcrumb.astro";
+import Base from "../../../../layouts/Base.astro";
+import { calculator, labels, m1Dir } from "../../../../lib/data";
+import { LANGS, LOCALE, t, type Lang } from "../../../../lib/i18n";
+import { countryPaths, topicHref, trail } from "../../../../lib/topics";
+import el from "../../../../i18n/el.json";
+import en from "../../../../i18n/en.json";
+
+export function getStaticPaths() {
+  return countryPaths("inflation-by-group", LANGS);
+}
+
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const calc = calculator(country);
+const names = labels().labels;
+const divisions = Object.fromEntries(Object.entries(names).filter(([c]) => c.length === 2).map(([c, l]) => [c, l[lang]]));
+const PRESETS = ["all/all", "B/Q1", "B/Q2", "B/Q3", "B/Q4", "B/Q5", "tenure/renter", "tenure/owner", "tenure/rent_free", "pensioners/pensioners", "pensioners/other"];
+const presetName = (k: string) => t(lang, `group.${k.startsWith("B/") ? k.slice(2) : k}`);
+// The starting groups by family, as Explore lists them; household types come later.
+const FAMILIES: [string, string[]][] = [
+  ["family.income", PRESETS.filter((k) => k.startsWith("B/"))],
+  ["family.tenure", PRESETS.filter((k) => k.startsWith("tenure/"))],
+  ["family.other", PRESETS.filter((k) => k === "all/all" || k.startsWith("pensioners/"))],
+];
+if (FAMILIES.flatMap(([, ks]) => ks).length !== PRESETS.length) throw new Error("a starting group is in no family");
+for (const p of PRESETS) if (!calc.presets[p]) throw new Error(`calculator file lacks preset ${p}`);
+const config = {
+  lang, locale: LOCALE[lang], src: `/data/v1/${m1Dir(country)}/calculator.json`,
+  presets: PRESETS.map((k) => ({ key: k, name: presetName(k) })),
+  divisions, strings: lang === "el" ? el : en,
+};
+---
+<Base lang={lang} title={t(lang, "calc.title")} description={t(lang, "calc.lead")} topic={{ slug: "inflation-by-group", country, section: "calculator" }}>
+  <div class="stack-lg" id="calculator" data-config={JSON.stringify(config)}>
+    <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={trail(lang, country, [t(lang, "nav.calculator")])} />
+      <h1>{t(lang, "calc.title")}</h1>
+      <p class="muted">{t(lang, "calc.lead")}</p>
+      <p class="small muted private">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>
+        {t(lang, "calc.private")}
+      </p>
+    </div>
+
+    <section class="howto" aria-labelledby="howto-h">
+      <h2 id="howto-h" class="eyebrow accent">{t(lang, "explore.how.title")}</h2>
+      <ol>
+        {[1, 2, 3].map((n) => <li><span class="n" aria-hidden="true">{n}</span><span>{t(lang, `calc.how.${n}`)}</span></li>)}
+      </ol>
+    </section>
+
+    <section class="panel chart-block calc-block" aria-label={t(lang, "calc.title")}>
+      <figure class="chart">
+        <figcaption><h2>{t(lang, "calc.result")}</h2></figcaption>
+        <div data-role="loading" class="stack" aria-busy="true">
+          <div class="skeleton" style="height: 160px"></div>
+          <span class="small muted">{t(lang, "calc.loading")}</span>
+        </div>
+        <div class="result" data-role="result" aria-live="polite" hidden>
+          <span class="small muted" data-role="yours-label"></span>
+          <span class="big" data-role="yours"></span>
+          <span class="flag first-estimate" data-role="same" style="align-self: flex-start; border-color: var(--color-accent); color: var(--color-text)"></span>
+          <span data-role="diff" hidden></span>
+          <div class="result-compare">
+            <div class="stack" style="gap: 0"><span class="small muted" data-role="preset-name"></span><span class="num" data-role="preset-rate"></span></div>
+            <div class="stack" style="gap: 0"><span class="small muted">{t(lang, "group.all/all")}</span><span class="num" data-role="all-rate"></span></div>
+          </div>
+        </div>
+        <div class="stack" data-role="over-time" hidden style="gap: var(--space-2)">
+          <h3 class="small" style="margin: 0">{t(lang, "calc.over_time")}</h3>
+          <div class="chart-area" role="img" data-role="chart"></div>
+        </div>
+      </figure>
+
+      <div class="chart-controls">
+        <h2 class="eyebrow accent">{t(lang, "calc.controls")}</h2>
+        <div class="stack" style="gap: 6px">
+          <label class="stack" style="gap: 6px; font-weight: 600; max-width: 360px">{t(lang, "calc.preset")}
+            <select data-role="preset">
+              {FAMILIES.map(([family, keys]) => (
+                <optgroup label={t(lang, family)}>
+                  {keys.map((k) => <option value={k} selected={k === "B/Q1"}>{presetName(k)}</option>)}
+                </optgroup>
+              ))}
+              <option disabled>{t(lang, "calc.soon_household")}</option>
+            </select>
+          </label>
+          <a class="small" href={`${topicHref(lang, "inflation-by-group", country, "groups")}#find`}>{t(lang, "calc.find")} →</a>
+        </div>
+
+        <div class="stack" data-role="sliders-box" hidden style="gap: var(--space-3)">
+          <div class="stack" style="gap: 6px">
+            <span style="font-weight: 600" id="mode-label">{t(lang, "calc.mode")}</span>
+            <div class="view-switch" role="group" aria-labelledby="mode-label">
+              <button type="button" data-mode="shares" aria-pressed="true">{t(lang, "calc.mode.shares")}</button>
+              <button type="button" data-mode="euros" aria-pressed="false">{t(lang, "calc.mode.euros")}</button>
+            </div>
+          </div>
+
+          <div class="stack" data-role="pane-shares" style="gap: 0">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3)">
+              <h3 style="margin: 0">{t(lang, "calc.where")}</h3>
+              <span class="small"><GlossaryTerm lang={lang} term="weights" /></span>
+              <span class="small muted num">{t(lang, "calc.total")}</span>
+            </div>
+            <div class="callout caution" data-role="rescaled" hidden style="margin: var(--space-2) 0">
+              <span>{t(lang, "calc.rescaled")}</span>
+            </div>
+            <div data-role="sliders"></div>
+          </div>
+
+          <div class="stack" data-role="pane-euros" hidden style="gap: var(--space-3)">
+            <p class="small muted" style="margin: 0; max-width: var(--text-max)">{t(lang, "calc.euros.note")}</p>
+            <div class="euro-grid" data-role="euros"></div>
+            <p style="margin: 0; font-weight: 700" data-role="euros-total" aria-live="polite"></p>
+            <p class="small muted" style="margin: 0" data-role="euros-empty">{t(lang, "calc.euros.empty")}</p>
+          </div>
+
+          <button type="button" class="button" data-role="reset" hidden style="align-self: flex-start; border-color: var(--color-accent); color: var(--color-accent)"></button>
+          <p class="calc-sticky small" data-role="sticky" aria-hidden="true"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="stack more-block" aria-labelledby="more-h">
+      <h2 id="more-h">{t(lang, "explore.more")}</h2>
+      <details class="panel">
+        <summary>{t(lang, "calc.how.title")}</summary>
+        <div class="stack" style="gap: var(--space-2); margin-top: var(--space-3); max-width: var(--text-max)">
+          <p>{t(lang, "calc.how.text", { from: calc.first_year })}</p>
+          <p>{t(lang, "calc.how.inside")} {t(lang, "find.one_at_a_time")}</p>
+          <a href={topicHref(lang, "inflation-by-group", country, "method")} style="font-weight: 600">{t(lang, "nav.method")} →</a>
+        </div>
+      </details>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { start } from "../../../../scripts/calculator";
+  const root = document.getElementById("calculator");
+  if (root) start(root);
+</script>

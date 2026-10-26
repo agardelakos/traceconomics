@@ -2,6 +2,7 @@
 term: "Δείκτης τιμών και έτος βάσης"
 forms: ["δείκτης τιμών", "δείκτη τιμών", "δείκτες τιμών", "δεικτών τιμών", "έτος βάσης", "έτους βάσης"]
 other: "Price index and base year"
+category: prices
 short: "Ένας αριθμός που παρακολουθεί την τιμή ενός καλαθιού στον χρόνο, ίσος με 100 σε μια επιλεγμένη περίοδο βάσης."
 sources: [cpi-manual-2020, hicp-manual-2024]
 related: [annual-rate, chain-linking]

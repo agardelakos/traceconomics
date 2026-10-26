@@ -1,4 +1,4 @@
-// The header's theme switch: device setting, light or dark. A choice of light or dark is kept in
+// The header's theme setting: device setting, light or dark. A choice of light or dark is kept in
 // this browser (localStorage, one value, never sent anywhere), so it holds from page to page;
 // "device setting" removes it. The control says so next to the options: under EU guidance a
 // preference remembered for longer than a session needs that notice (no banner). The page head
@@ -27,13 +27,19 @@ function apply(theme: Theme) {
   }
 }
 
-export function start(box: HTMLElement) {
-  const radios = [...box.querySelectorAll<HTMLInputElement>('input[name="theme"]')];
-  const current = stored();
+export function start(boxes: HTMLElement[]) {
+  // The same choice can be shown twice (the settings button, and the phone menu): every copy
+  // shows the current value and changes with the others.
+  const radios = boxes.flatMap((box) => [...box.querySelectorAll<HTMLInputElement>('input[type="radio"]')]);
+  const show = (theme: Theme) => { for (const r of radios) r.checked = r.value === theme; };
+  show(stored());
   for (const r of radios) {
-    r.checked = r.value === current;
-    r.addEventListener("change", () => { if (r.checked) apply(r.value as Theme); });
+    r.addEventListener("change", () => {
+      if (!r.checked) return;
+      apply(r.value as Theme);
+      show(r.value as Theme);
+    });
   }
   // Without a script the switch can't work, so it stays hidden until now.
-  box.hidden = false;
+  for (const box of boxes) box.hidden = false;
 }

@@ -2,6 +2,7 @@
 term: "Inflation"
 forms: ["inflation"]
 other: "Πληθωρισμός"
+category: prices
 short: "The rise in the prices of the things households buy, measured as the change in a price index over twelve months."
 sources: [cpi-manual-2020, hicp-manual-2024]
 related: [consumer-price-index, annual-rate, price-index]

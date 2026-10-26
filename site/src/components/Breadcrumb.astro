@@ -1,0 +1,11 @@
+---
+// The trail above a page's title: Home, then each level up to the page itself (not a link).
+import { href, t, type Lang } from "../lib/i18n";
+
+interface Props { lang: Lang; trail: [label: string, link?: string][] }
+const { lang, trail } = Astro.props;
+---
+<nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}>
+  <a href={href(lang)}>{t(lang, "nav.home")}</a>
+  {trail.map(([label, link]) => <> / {link ? <a href={link}>{label}</a> : label}</>)}
+</nav>

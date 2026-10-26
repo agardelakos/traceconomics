@@ -130,7 +130,8 @@ export function mount(top: HTMLElement, gap: HTMLElement | null, spec: () => Cha
   let last = -1;
   const el = top;
   const run = () => {
-    if (el.clientWidth === last) return;
+    // A hidden chart (the other view is showing) has no width: draw it when it is shown.
+    if (el.clientWidth === 0 || el.clientWidth === last) return;
     last = el.clientWidth;
     const s = spec();
     const [series, gapPanel] = draw(el.clientWidth, s);

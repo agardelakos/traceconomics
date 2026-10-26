@@ -2,6 +2,7 @@
 term: "Αλυσιδωτή σύνδεση"
 forms: ["αλυσιδωτή σύνδεση", "αλυσιδωτής σύνδεσης"]
 other: "Chain-linking"
+category: weights
 short: "Η σύνδεση του δείκτη κάθε έτους με τον επόμενο τον Δεκέμβριο, ώστε οι σταθμίσεις να αλλάζουν κάθε χρόνο χωρίς να σπάει η σειρά."
 sources: [hicp-manual-2024]
 related: [price-index, price-updating]

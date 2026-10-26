@@ -2,6 +2,7 @@
 term: "Πληθωρισμός"
 forms: ["πληθωρισμός", "πληθωρισμού", "πληθωρισμό"]
 other: "Inflation"
+category: prices
 short: "Η άνοδος των τιμών όσων αγοράζουν τα νοικοκυριά, μετρημένη ως η μεταβολή ενός δείκτη τιμών σε δώδεκα μήνες."
 sources: [cpi-manual-2020, hicp-manual-2024]
 related: [consumer-price-index, annual-rate, price-index]

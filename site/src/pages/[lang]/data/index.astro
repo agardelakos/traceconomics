@@ -1,0 +1,52 @@
+---
+// Open data for the whole site: one card per country (its page holds every topic's files), then
+// how the published files are laid out and the licence. Data are by country first, as the files
+// are (/data/v1/{country}/{module}/).
+import { getEntry, render } from "astro:content";
+import Breadcrumb from "../../../components/Breadcrumb.astro";
+import Base from "../../../layouts/Base.astro";
+import { LANGS, t, type Lang } from "../../../lib/i18n";
+import { dataCountries, dataHref, TOPICS } from "../../../lib/topics";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const entry = await getEntry("pages", `${lang}/open-data`);
+if (!entry) throw new Error(`no open-data page for ${lang}`);
+const { Content } = await render(entry);
+const countries = dataCountries().map((c) => ({
+  code: c,
+  live: TOPICS.filter((tp) => tp.status === "live" && tp.countries.includes(c)).map((tp) => t(lang, `topic.${tp.slug}`)),
+  soon: TOPICS.filter((tp) => tp.status !== "live").map((tp) => t(lang, `topic.${tp.slug}`)),
+}));
+---
+<Base lang={lang} title={entry.data.title} description={entry.data.summary} path="data" current="data">
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={[[t(lang, "nav.data")]]} />
+      <h1>{entry.data.title}</h1>
+      <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
+    </header>
+    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
+      <h2 id="countries-h">{t(lang, "hub.countries")}</h2>
+      <div class="cards">
+        {countries.map((c) => (
+          <a class="card" href={dataHref(lang, c.code)}>
+            <span class="title">{t(lang, `country.${c.code}`)} →</span>
+            <span class="text">{c.live.join(", ")}</span>
+            {c.soon.length > 0 && <span class="small muted">{t(lang, "soon")}: {c.soon.join(", ")}</span>}
+            <code class="path">/data/v1/{c.code}/</code>
+          </a>
+        ))}
+        <div class="card planned">
+          <span class="chip-status">{t(lang, "soon")}</span>
+          <span class="title">{t(lang, "country.more")}</span>
+          <span class="text">{t(lang, "hub.countries.text")}</span>
+        </div>
+      </div>
+    </nav>
+    <section class="prose"><Content /></section>
+  </article>
+</Base>

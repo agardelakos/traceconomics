@@ -2,6 +2,7 @@
 term: "Διαφορά πληθωρισμού"
 forms: ["διαφορά πληθωρισμού", "διαφοράς πληθωρισμού"]
 other: "Inflation gap"
+category: prices
 short: "Ο ετήσιος πληθωρισμός του φτωχότερου 20% μείον του πλουσιότερου 20%, σε ποσοστιαίες μονάδες."
 sources: [jaravel-2021]
 related: [quintile, percentage-point, standard-error]

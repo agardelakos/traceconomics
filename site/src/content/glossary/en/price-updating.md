@@ -2,6 +2,7 @@
 term: "Price-updating"
 forms: ["price-updating", "price-updated", "price updating"]
 other: "Αναπροσαρμογή στις τιμές"
+category: weights
 short: "Moving survey shares to the prices of December of the year before, since relative prices have changed since the survey."
 sources: [hicp-manual-2024, elstat-cpi-qr-2026]
 related: [weights, chain-linking]

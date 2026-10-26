@@ -2,6 +2,7 @@
 term: "Σταθμίσεις"
 forms: ["σταθμίσεις", "σταθμίσεων", "στάθμιση", "στάθμισης"]
 other: "Weights"
+category: weights
 short: "Το μερίδιο κάθε είδους στη δαπάνη μιας ομάδας: πόσο μετρά η μεταβολή της τιμής του στον πληθωρισμό της ομάδας."
 sources: [cpi-manual-2020, reg-2020-1148]
 related: [plutocratic-weighting, price-updating, weights-timing]

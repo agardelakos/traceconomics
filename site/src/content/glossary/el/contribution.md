@@ -2,6 +2,7 @@
 term: "Συμβολή"
 forms: ["συμβολή", "συμβολής", "συμβολές", "συμβολών"]
 other: "Contribution"
+category: prices
 short: "Πόσες μονάδες προσθέτει μια κατηγορία σε έναν ετήσιο ρυθμό πληθωρισμού· οι συμβολές των κατηγοριών αθροίζουν στον ρυθμό."
 sources: [hicp-manual-2024, eurostat-contrib-2018]
 related: [percentage-point, weights]

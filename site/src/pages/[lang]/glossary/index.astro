@@ -1,9 +1,12 @@
 ---
-// The glossary's index: every term with its one-sentence explanation, in the language's own
-// alphabetical order. The search box filters the list where scripts run; without them, the
-// whole list is there.
+// The glossary's index: every term with its one-sentence explanation, grouped by category in
+// reading order (lib/glossary.ts) and alphabetical within each, in the language's own order. A row
+// of links at the top jumps to each category. The search box filters every term where scripts run
+// and hides the categories left empty; without scripts, the whole list is there.
 import { getCollection } from "astro:content";
+import Breadcrumb from "../../../components/Breadcrumb.astro";
 import Base from "../../../layouts/Base.astro";
+import { GLOSSARY_CATEGORIES } from "../../../lib/glossary";
 import { href, LANGS, LOCALE, t, type Lang } from "../../../lib/i18n";
 
 export function getStaticPaths() {
@@ -15,34 +18,51 @@ const collator = new Intl.Collator(LOCALE[lang]);
 const terms = (await getCollection("glossary", (e) => e.id.startsWith(`${lang}/`)))
   .map((e) => ({ slug: e.id.split("/")[1], ...e.data }))
   .sort((a, b) => collator.compare(a.term, b.term));
+const groups = GLOSSARY_CATEGORIES.map((key) => ({ key, terms: terms.filter((e) => e.category === key) }))
+  .filter((g) => g.terms.length > 0);
 ---
 <Base lang={lang} title={t(lang, "glossary.title")} description={t(lang, "glossary.lead")} path="glossary" current="glossary">
   <div class="stack-lg" style="max-width: 760px">
     <div class="stack" style="gap: var(--space-2)">
-      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, "nav.glossary")}</nav>
+      <Breadcrumb lang={lang} trail={[[t(lang, "nav.glossary")]]} />
       <h1>{t(lang, "glossary.title")}</h1>
       <p class="muted">{t(lang, "glossary.lead")}</p>
     </div>
+    <nav aria-label={t(lang, "glossary.jump")} class="chips">
+      {groups.map((g) => <a class="chip" href={`#${g.key}`} style="text-decoration: none">{t(lang, `glossary.cat.${g.key}`)}</a>)}
+    </nav>
     <label class="stack" style="gap: 6px; font-weight: 600">{t(lang, "glossary.search")}
       <input type="search" id="glossary-search" autocomplete="off" />
     </label>
-    <ul class="stack" style="list-style: none; margin: 0; padding: 0; gap: 0" id="glossary-list">
-      {terms.map((e) => (
-        <li data-text={`${e.term} ${e.other} ${e.short}`.toLowerCase()} style="padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border)">
-          <a href={href(lang, `glossary/${e.slug}`)} style="font-weight: 700">{e.term}</a>
-          <p class="muted" style="margin-top: 2px">{e.short}</p>
-        </li>
+    <div class="stack-lg" id="glossary-list">
+      {groups.map((g) => (
+        <section class="stack glossary-group" aria-labelledby={g.key} style="gap: 0">
+          <h2 id={g.key}>{t(lang, `glossary.cat.${g.key}`)}</h2>
+          <p class="muted small" style="margin: 2px 0 var(--space-2)">{t(lang, `glossary.cat.${g.key}.text`)}</p>
+          <ul class="stack" style="list-style: none; margin: 0; padding: 0; gap: 0">
+            {g.terms.map((e) => (
+              <li data-text={`${e.term} ${e.other} ${e.short}`.toLowerCase()} style="padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border)">
+                <a href={href(lang, `glossary/${e.slug}`)} style="font-weight: 700">{e.term}</a>
+                <p class="muted" style="margin-top: 2px">{e.short}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   </div>
 </Base>
 
 <script>
   const input = document.getElementById("glossary-search") as HTMLInputElement | null;
-  const items = Array.from(document.querySelectorAll<HTMLElement>("#glossary-list > li"));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>("#glossary-list > .glossary-group"));
   const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
   input?.addEventListener("input", () => {
     const q = fold(input.value.trim());
-    for (const li of items) li.hidden = q !== "" && !fold(li.dataset.text ?? "").includes(q);
+    for (const group of groups) {
+      const items = Array.from(group.querySelectorAll<HTMLElement>("li"));
+      for (const li of items) li.hidden = q !== "" && !fold(li.dataset.text ?? "").includes(q);
+      group.hidden = items.every((li) => li.hidden);
+    }
   });
 </script>

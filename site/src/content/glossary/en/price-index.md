@@ -2,6 +2,7 @@
 term: "Price index and base year"
 forms: ["price index", "price indices", "base year"]
 other: "Δείκτης τιμών και έτος βάσης"
+category: prices
 short: "A number that follows the price of a basket over time, set to 100 in a chosen base period."
 sources: [cpi-manual-2020, hicp-manual-2024]
 related: [annual-rate, chain-linking]

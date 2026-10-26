@@ -2,6 +2,7 @@
 term: "Equivalence scale"
 forms: ["equivalence scale", "equivalence scales", "modified OECD scale"]
 other: "Κλίμακα ισοδυναμίας"
+category: households
 short: "How many 'adult equivalents' a household counts as: the modified OECD scale gives 1 to the first adult, 0.5 to each other person aged 14 or over and 0.3 to each child under 14."
 sources: [eurostat-equivalence-scale]
 related: [equivalised-income]

@@ -1,12 +1,12 @@
 ---
-// Short text pages: about and changelog.
+// Short text pages: about (with the list of changes at its end).
 import { getEntry, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import { href, LANGS, t, type Lang } from "../../lib/i18n";
 
 export function getStaticPaths() {
   // Inside: getStaticPaths runs on its own, without the rest of this file.
-  return LANGS.flatMap((lang) => ["about", "changelog"].map((page) => ({ params: { lang, page } })));
+  return LANGS.flatMap((lang) => ["about"].map((page) => ({ params: { lang, page } })));
 }
 
 const lang = Astro.params.lang as Lang;

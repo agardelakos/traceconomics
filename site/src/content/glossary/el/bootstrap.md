@@ -2,6 +2,7 @@
 term: "Bootstrap"
 forms: ["bootstrap"]
 other: "Bootstrap"
+category: surveys
 short: "Μέθοδος για να μετρηθεί η αβεβαιότητα μιας έρευνας, παίρνοντας πολλά νέα δείγματα από το ίδιο το δείγμα και ξαναϋπολογίζοντας τα πάντα."
 sources: [rao-wu-1988, preston-2009, eurostat-precision-2013]
 related: [standard-error]

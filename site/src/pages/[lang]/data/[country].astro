@@ -1,0 +1,80 @@
+---
+// One country's data: every file of every topic that covers it, one section per topic (a topic not
+// built yet is marked "coming soon"), then the source data: the official tables the files are
+// built from, each linked to its publisher. The archived copies of the exact files used will be
+// linked there too once the raw archive is published.
+import { getEntry } from "astro:content";
+import Breadcrumb from "../../../components/Breadcrumb.astro";
+import M1Files from "../../../components/M1Files.astro";
+import SourceList from "../../../components/SourceList.astro";
+import Base from "../../../layouts/Base.astro";
+import { href, LANGS, t, type Lang } from "../../../lib/i18n";
+import { dataCountries, m1Text, topicHref, TOPICS } from "../../../lib/topics";
+
+export function getStaticPaths() {
+  return LANGS.flatMap((lang) => dataCountries().map((country) => ({ params: { lang, country } })));
+}
+
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const countryName = t(lang, `country.${country}`);
+
+// Each topic's section. A live topic that covers this country brings its files and its text; every
+// live topic needs its own files component here, so a new one can't be listed without its files.
+const sections = await Promise.all(TOPICS.map(async (tp) => {
+  if (tp.status !== "live") return { tp, live: false as const };
+  if (!tp.countries.includes(country)) return null;
+  if (tp.module !== "m1") throw new Error(`no files component for topic "${tp.slug}" on the data page`);
+  const entry = await getEntry("pages", m1Text(country, lang, "data"));
+  if (!entry) throw new Error(`no data text for ${tp.slug} in ${country}, ${lang}`);
+  return { tp, live: true as const, entry };
+}));
+const shown = sections.filter((s) => s !== null);
+const sourceKeys = [...new Set(shown.flatMap((s) => (s.live ? s.entry.data.sources : [])))];
+const title = t(lang, "opendata.country.title", { country: countryName });
+---
+<Base lang={lang} title={title} description={t(lang, "opendata.country.lead", { country: countryName })} path={`data/${country}`} current="data">
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={[[t(lang, "nav.data"), href(lang, "data")], [countryName]]} />
+      <h1>{title}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "opendata.country.lead", { country: countryName })}</p>
+      <nav aria-label={t(lang, "opendata.country.topics")} class="chips">
+        {shown.map((s) => <a class="chip" href={`#${s.tp.slug}`} style="text-decoration: none">{t(lang, `topic.${s.tp.slug}`)}</a>)}
+        <a class="chip" href="#source-data" style="text-decoration: none">{t(lang, "opendata.source")}</a>
+      </nav>
+    </header>
+
+    {shown.map((s) => (
+      <section class="stack data-topic" aria-labelledby={s.tp.slug} style="gap: var(--space-3)">
+        <div class="section-head">
+          <h2 id={s.tp.slug}>{t(lang, `topic.${s.tp.slug}`)}</h2>
+          {s.live
+            ? <a href={topicHref(lang, s.tp.slug, country)}>{t(lang, "opendata.country.see_topic", { topic: t(lang, `topic.${s.tp.slug}`) })} →</a>
+            : <span class="planned-tag">{t(lang, "soon")}</span>}
+        </div>
+        {s.live ? <M1Files lang={lang} country={country} entry={s.entry} /> : <p class="muted">{t(lang, `topic.${s.tp.slug}.text`)}</p>}
+      </section>
+    ))}
+
+    <section class="stack" aria-labelledby="source-data" style="gap: var(--space-2)">
+      <h2 id="source-data">{t(lang, "opendata.source")}</h2>
+      <p class="muted" style="max-width: var(--text-max)">{t(lang, "opendata.source.lead")}</p>
+      <SourceList keys={sourceKeys} lang={lang} />
+    </section>
+  </article>
+</Base>
+
+<script>
+  // A link to one setting's files (#setting-…, as Explore sends) opens that setting's fold and the
+  // list around it, then shows it.
+  function openTarget() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const target = id ? document.getElementById(id) : null;
+    if (!(target instanceof HTMLDetailsElement)) return;
+    for (let d: HTMLDetailsElement | null = target; d; d = d.parentElement?.closest("details") ?? null) d.open = true;
+    target.scrollIntoView();
+  }
+  openTarget();
+  window.addEventListener("hashchange", openTarget);
+</script>

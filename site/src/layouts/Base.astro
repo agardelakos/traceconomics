@@ -1,6 +1,8 @@
 ---
 // Every page: language, title, description, fonts (served from this site; no outside requests),
-// the design tokens, header and footer.
+// the design tokens, header and footer. A topic's pages pass `topic`: the header marks the topic,
+// the topic bar (country switch, the topic's pages) sits under the header, and the language
+// switch leads to the same address.
 import "@fontsource/source-sans-3/400.css";
 import "@fontsource/source-sans-3/600.css";
 import "@fontsource/source-sans-3/700.css";
@@ -10,10 +12,17 @@ import "../styles/tokens.css";
 import "../styles/global.css";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import TopicBar from "../components/TopicBar.astro";
 import { href, otherLang, t, type Lang } from "../lib/i18n";
+import { topicPath } from "../lib/topics";
 
-interface Props { lang: Lang; title: string; description: string; path?: string; current?: string }
-const { lang, title, description, path = "", current } = Astro.props;
+interface Props {
+  lang: Lang; title: string; description: string; path?: string; current?: string;
+  topic?: { slug: string; country?: string; section?: string };
+}
+const { lang, title, description, topic } = Astro.props;
+const path = topic ? topicPath(topic.slug, topic.country, topic.section) : (Astro.props.path ?? "");
+const current = topic ? topic.slug : Astro.props.current;
 const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "site.name")}`;
 ---
 <!doctype html>
@@ -32,6 +41,7 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
   <body>
     <a class="skip-link" href="#content">{t(lang, "skip")}</a>
     <SiteHeader lang={lang} path={path} current={current} />
+    {topic && <TopicBar lang={lang} slug={topic.slug} country={topic.country} section={topic.section} />}
     <main id="content">
       <div class="container">
         <slot />

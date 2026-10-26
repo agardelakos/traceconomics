@@ -2,6 +2,7 @@
 term: "Consumer price index (CPI)"
 forms: ["consumer price index", "consumer price indices", "CPI"]
 other: "Δείκτης Τιμών Καταναλωτή (ΔΤΚ)"
+category: prices
 short: "ELSTAT's monthly index of the prices Greek households pay, the national measure of inflation."
 sources: [elstat-cpi-items, elstat-cpi-qr-2026, cpi-manual-2020]
 related: [hicp, price-index, weights]

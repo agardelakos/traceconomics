@@ -2,6 +2,7 @@
 term: "Annual rate"
 forms: ["annual rate", "annual rates"]
 other: "Ετήσιος ρυθμός"
+category: prices
 short: "The change in a price index compared with the same month a year earlier, in percent: the headline inflation figure."
 sources: [hicp-manual-2024]
 related: [annual-average, monthly-rate, percentage-point]

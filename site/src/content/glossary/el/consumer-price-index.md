@@ -2,6 +2,7 @@
 term: "Δείκτης Τιμών Καταναλωτή (ΔΤΚ)"
 forms: ["δείκτης τιμών καταναλωτή", "δείκτη τιμών καταναλωτή", "δείκτες τιμών καταναλωτή", "ΔΤΚ"]
 other: "Consumer price index (CPI)"
+category: prices
 short: "Ο μηνιαίος δείκτης της ΕΛΣΤΑΤ για τις τιμές που πληρώνουν τα νοικοκυριά στην Ελλάδα, το εθνικό μέτρο του πληθωρισμού."
 sources: [elstat-cpi-items, elstat-cpi-qr-2026, cpi-manual-2020]
 related: [hicp, price-index, weights]

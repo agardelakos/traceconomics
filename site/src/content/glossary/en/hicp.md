@@ -2,6 +2,7 @@
 term: "Harmonised index of consumer prices (HICP)"
 forms: ["harmonised index of consumer prices", "HICP"]
 other: "Εναρμονισμένος Δείκτης Τιμών Καταναλωτή (ΕνΔΤΚ)"
+category: prices
 short: "The European Union's common measure of inflation, compiled the same way in every member state."
 sources: [hicp-manual-2024, reg-2016-792, eurostat-prc-hicp-minr]
 related: [consumer-price-index, weights]

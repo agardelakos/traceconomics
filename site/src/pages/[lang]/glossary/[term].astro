@@ -1,6 +1,6 @@
 ---
-// One glossary term at a fixed address: the plain sentence, the longer explanation, related
-// terms and the sources. The same address works in both languages.
+// One glossary term at a fixed address: its category, the plain sentence, the longer
+// explanation, related terms and the sources. The same address works in both languages.
 import { getCollection, render } from "astro:content";
 import SourceList from "../../../components/SourceList.astro";
 import Base from "../../../layouts/Base.astro";
@@ -29,6 +29,7 @@ for (const r of entry.data.related) if (!names[r]) throw new Error(`glossary ${s
       </nav>
       <h1>{entry.data.term}</h1>
       <p class="muted" lang={lang === "el" ? "en" : "el"}>{entry.data.other}</p>
+      <p class="small">{t(lang, "glossary.category")}: <a href={`${href(lang, "glossary")}#${entry.data.category}`}>{t(lang, `glossary.cat.${entry.data.category}`)}</a></p>
     </header>
     <p class="definition">{entry.data.short}</p>
     <section class="prose">

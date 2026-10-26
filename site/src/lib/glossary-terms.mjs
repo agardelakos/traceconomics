@@ -50,15 +50,18 @@ export function matcher(terms) {
   return { re, owner };
 }
 
-/** Same id scheme as TermPopover (term plus a short code of its label), marked as from Markdown. */
-function popoverId(slug, label) {
+/**
+ * Same id scheme as TermPopover (term plus a short code of its label), marked as from Markdown.
+ * `doc` names the file when several files share one page (a topic's steps), so their ids differ.
+ */
+function popoverId(slug, label, doc) {
   let h = 0;
   for (const ch of label) h = (h * 31 + ch.codePointAt(0)) >>> 0;
-  return `term-${slug}-${h.toString(36)}-md`;
+  return `term-${slug}-${h.toString(36)}-md${doc ? `-${doc}` : ""}`;
 }
 
-function popover(t, label, lang, more) {
-  const id = popoverId(t.slug, label);
+function popover(t, label, lang, more, doc) {
+  const id = popoverId(t.slug, label, doc);
   const el = (tagName, properties, children) => ({ type: "element", tagName, properties, children });
   const text = (value) => ({ type: "text", value });
   return el("span", { className: ["term-wrap"] }, [
@@ -75,8 +78,8 @@ function popover(t, label, lang, more) {
  * The state for one page: which terms it can mark and which it already has. `self` is the slug
  * of the term whose page this is (never marked).
  */
-export function pageState({ lang, terms, more, self = null }) {
-  return { lang, more, ...matcher(terms), used: new Set(self ? [self] : []), marked: [] };
+export function pageState({ lang, terms, more, self = null, doc = null }) {
+  return { lang, more, doc, ...matcher(terms), used: new Set(self ? [self] : []), marked: [] };
 }
 
 /** One text node's value, split around the first mentions it holds; null when it holds none. */
@@ -90,7 +93,7 @@ export function markText(value, state) {
     state.used.add(t.slug);
     state.marked.push(t.slug);
     if (m.index > last) out.push({ type: "text", value: value.slice(last, m.index) });
-    out.push(popover(t, m[0], state.lang, state.more));
+    out.push(popover(t, m[0], state.lang, state.more, state.doc));
     last = m.index + m[0].length;
   }
   if (last === 0) return null;
@@ -136,7 +139,10 @@ export function glossaryTerms({ contentDir = path.resolve("src/content"), i18nDi
     const parts = rel.split(path.sep);
     if (rel.startsWith("..") || parts.length !== 3 || !LANGS.includes(parts[1]) || !parts[2].endsWith(".md")) return null;
     const [collection, lang, name] = parts;
-    const state = pageState({ lang, ...forLang(lang), self: collection === "glossary" ? name.slice(0, -3) : null });
+    // A topic's steps are several files on one page: each marks its own first mentions, with ids
+    // of its own.
+    const state = pageState({ lang, ...forLang(lang), self: collection === "glossary" ? name.slice(0, -3) : null,
+      doc: collection === "steps" ? name.slice(0, -3) : null });
     return {
       name: "glossary-terms",
       text(node, ctx) {

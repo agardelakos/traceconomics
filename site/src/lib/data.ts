@@ -7,7 +7,9 @@ import path from "node:path";
 // Relative to the site folder, where `npm run build` runs: pages run from a bundled copy during
 // the build, so a path relative to this file would point elsewhere.
 export const DATA_ROOT = path.join(process.cwd(), "public", "data", "v1");
-export const LATEST = "gr/m1/latest";
+
+/** A country's current release of the inflation-by-group files, relative to DATA_ROOT. */
+export const m1Dir = (country: string) => `${country}/m1/latest`;
 
 export function readJson<T = any>(rel: string): T {
   const file = path.join(DATA_ROOT, rel);
@@ -43,10 +45,10 @@ export interface Settings {
   settings: (Record<string, string> & { slug: string; default: boolean })[];
 }
 
-export const settings = () => readJson<Settings>(`${LATEST}/settings.json`);
-export const series = (slug: string) => readJson<SeriesFile>(`${LATEST}/series/${slug}.json`);
-export const availability = () => readJson<any>(`${LATEST}/availability.json`);
-export const calculator = () => readJson<any>(`${LATEST}/calculator.json`);
+export const settings = (country: string) => readJson<Settings>(`${m1Dir(country)}/settings.json`);
+export const series = (country: string, slug: string) => readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
+export const availability = (country: string) => readJson<any>(`${m1Dir(country)}/availability.json`);
+export const calculator = (country: string) => readJson<any>(`${m1Dir(country)}/calculator.json`);
 export const labels = () => readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>("labels/coicop18.json");
 
 /** The month axis of a series file. */

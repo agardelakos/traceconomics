@@ -1,0 +1,86 @@
+---
+// Inflation by group, for every country. First the topic explained for a curious reader with no
+// economics background (src/content/steps/<lang>/m1-*.md, nothing country-specific), then what
+// the site offers for each country, then one card per country with its latest headline. A country
+// not built yet is greyed out, with the reason, and is not a link.
+import { getCollection, render } from "astro:content";
+import Breadcrumb from "../../../components/Breadcrumb.astro";
+import Base from "../../../layouts/Base.astro";
+import { BASE_AMOUNT, BASE_MONTH, headline } from "../../../lib/headline";
+import { eur } from "../../../lib/income";
+import { LANGS, month, t, type Lang } from "../../../lib/i18n";
+import { topic, topicHref } from "../../../lib/topics";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const SLUG = "inflation-by-group";
+const tp = topic(SLUG);
+const steps = await Promise.all(
+  (await getCollection("steps", (e) => e.id.startsWith(`${lang}/${tp.module}-`)))
+    .sort((a, b) => a.data.order - b.data.order)
+    .map(async (e) => ({ title: e.data.title, Content: (await render(e)).Content })),
+);
+if (!steps.length) throw new Error(`no ${tp.module} steps for ${lang}`);
+const countries = tp.countries.map((c) => {
+  const h = headline(c);
+  const cost = Object.fromEntries(h.baskets.map((b) => [b.group, eur(b.cost, 1)]));
+  return {
+    code: c,
+    latest: t(lang, "m1.latest", { month: month(lang, h.latestMonth) }),
+    text: t(lang, "m1.landing.country_text", {
+      amount: eur(BASE_AMOUNT), base: lang === "el" ? month(lang, BASE_MONTH, "acc") : month(lang, BASE_MONTH), q1: cost.Q1, q5: cost.Q5,
+    }),
+  };
+});
+const offers = tp.sections.map((s) => ({ name: t(lang, s ? `nav.${s}` : "nav.overview"), text: t(lang, `m1.offer.${s || "overview"}`) }));
+---
+<Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={[[t(lang, `topic.${SLUG}`)]]} />
+      <h1>{t(lang, "home.title")}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "m1.landing.lead")}</p>
+    </header>
+
+    <section class="stack" aria-labelledby="steps-h" style="gap: var(--space-3)">
+      <h2 id="steps-h">{t(lang, "m1.steps.title")}</h2>
+      <ol class="steps">
+        {steps.map((s, i) => (
+          <li class="panel stack" style="gap: var(--space-2)">
+            <span class="step-number" aria-hidden="true">{i + 1}</span>
+            <h3>{s.title}</h3>
+            <div class="prose"><s.Content /></div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="stack" aria-labelledby="offer-h" style="gap: var(--space-3)">
+      <h2 id="offer-h">{t(lang, "m1.offer.title")}</h2>
+      <dl class="offer-grid">
+        {offers.map((o) => <div><dt>{o.name}</dt><dd>{o.text}</dd></div>)}
+      </dl>
+    </section>
+
+    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
+      <h2 id="countries-h">{t(lang, "m1.landing.countries")}</h2>
+      <div class="cards">
+        {countries.map((c) => (
+          <a class="card" href={topicHref(lang, SLUG, c.code)}>
+            <span class="chip-status">{c.latest}</span>
+            <span class="title">{t(lang, `country.${c.code}`)} →</span>
+            <span class="text">{c.text}</span>
+          </a>
+        ))}
+        <div class="card planned">
+          <span class="chip-status">{t(lang, "soon")}</span>
+          <span class="title">{t(lang, "country.more")}</span>
+          <span class="text">{t(lang, "m1.landing.more_text")}</span>
+        </div>
+      </div>
+    </nav>
+  </div>
+</Base>

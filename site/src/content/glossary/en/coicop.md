@@ -2,6 +2,7 @@
 term: "COICOP"
 forms: ["COICOP"]
 other: "COICOP"
+category: weights
 short: "The international classification of household spending by purpose, from food (01) to personal care (13)."
 sources: [eu-vocabularies-ecoicop2, hicp-manual-2024]
 related: [weights]

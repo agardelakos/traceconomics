@@ -2,6 +2,7 @@
 term: "Weights"
 forms: ["weights"]
 other: "Σταθμίσεις"
+category: weights
 short: "Each item's share of a group's spending: how much its price change counts in the group's inflation."
 sources: [cpi-manual-2020, reg-2020-1148]
 related: [plutocratic-weighting, price-updating, weights-timing]

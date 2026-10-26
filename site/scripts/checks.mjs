@@ -1,12 +1,15 @@
 // Checks on the source and on the built site (dist/), run after `astro build`. Any failure exits 1.
 //
-//  1. Text: both languages have the same keys; every content page exists in both languages.
+//  1. Text: both languages have the same keys; every content page exists in both languages, and
+//     each glossary term sits in the same category in both.
 //  2. Sources: every source key in the content exists in the bibliography.
 //  3. Nothing private or internal in the built pages: no decision numbers ("D45"), no links to
 //     the private notes ("docs/"), no local paths, no e-mail addresses.
 //  4. Security: no inline scripts; scripts, styles, fonts and images only from this site.
 //  5. Budgets: each page's HTML, CSS and scripts at most 300 KB compressed; any file at most
 //     20 MiB; at most 20,000 files (the hosts' limits).
+//  6. Links: every link to a page or file of this site leads to one that was built, and every page
+//     but the root lives under a language (/el/ or /en/), so addresses stay stable.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve, extname } from "node:path";
@@ -35,6 +38,12 @@ for (const collection of readdirSync(content)) {
   const b = names("en");
   for (const f of a) if (!b.has(f)) fail(`${collection}/${f}: Greek only`);
   for (const f of b) if (!a.has(f)) fail(`${collection}/${f}: English only`);
+}
+
+// A glossary term sits in the same category in both languages.
+const category = (lang, f) => readFileSync(join(content, "glossary", lang, f), "utf-8").match(/^category:\s*(\S+)/m)?.[1];
+for (const f of readdirSync(join(content, "glossary", "en")).filter((f) => f.endsWith(".md"))) {
+  if (existsSync(join(content, "glossary", "el", f)) && category("en", f) !== category("el", f)) fail(`glossary/${f}: a different category in Greek and English`);
 }
 
 // 2. Sources.
@@ -86,6 +95,18 @@ else {
       const hit = text.match(re);
       if (hit) fail(`${name}: ${what} ("${hit[0]}")`);
     }
+    // Links to this site's own pages and files lead somewhere.
+    for (const m of html.matchAll(/<a\b[^>]*\bhref="([^"#?]*)[^"]*"/g)) {
+      const url = m[1];
+      if (!local(url)) continue;
+      const target = join(dist, decodeURIComponent(url));
+      if (!existsSync(url.endsWith("/") ? join(target, "index.html") : target)) fail(`${name}: link to missing ${url}`);
+    }
+    // Every id once per page: popovers and labels find their element by id.
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    const dup = ids.find((id, i) => ids.indexOf(id) !== i);
+    if (dup) fail(`${name}: the id "${dup}" is used twice`);
+    if (name !== "index.html" && !/^(el|en)\//.test(name.replaceAll("\\", "/")) && !name.startsWith("404")) fail(`${name}: a page outside /el/ and /en/`);
     // Budget: HTML, CSS and scripts (with their imports), compressed.
     const seen = new Set();
     let bytes = gz(page);

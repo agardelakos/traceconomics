@@ -5,6 +5,7 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { GLOSSARY_CATEGORIES } from "./lib/glossary";
 
 const glossary = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/glossary" }),
@@ -15,6 +16,7 @@ const glossary = defineCollection({
     forms: z.array(z.string()).min(1),
     short: z.string(),                 // one plain sentence: the popover and the index
     other: z.string(),                 // the term in the other site language
+    category: z.enum(GLOSSARY_CATEGORIES),  // where the glossary's index lists it (lib/glossary.ts)
     sources: z.array(z.string()).min(1),
     related: z.array(z.string()).default([]),
   }),
@@ -40,4 +42,15 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { glossary, method, pages };
+// A topic's explainer for the curious non-expert, one short step per file, shown as cards in order
+// on the topic's page (src/content/steps/<lang>/<topic module>-<n>.md). Nothing country-specific.
+const steps = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/steps" }),
+  schema: z.object({
+    title: z.string(),
+    order: z.number(),
+    sources: z.array(z.string()).default([]),
+  }),
+});
+
+export const collections = { glossary, method, pages, steps };

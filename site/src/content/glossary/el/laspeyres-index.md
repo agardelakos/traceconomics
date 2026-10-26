@@ -2,6 +2,7 @@
 term: "Δείκτης τύπου Laspeyres"
 forms: ["δείκτης τύπου Laspeyres", "δείκτη τύπου Laspeyres", "Laspeyres"]
 other: "Laspeyres-type index"
+category: weights
 short: "Δείκτης του οποίου οι σταθμίσεις προέρχονται από περίοδο πριν από τις τιμές που μετρά: τέτοιοι είναι ο ΔΤΚ και ο ΕνΔΤΚ."
 sources: [reg-2016-792, cpi-manual-2020]
 related: [weights-timing, weights]

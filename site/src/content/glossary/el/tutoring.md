@@ -2,6 +2,7 @@
 term: "Φροντιστήρια"
 forms: ["φροντιστήριο", "φροντιστηρίου", "φροντιστήρια", "φροντιστηρίων"]
 other: "Tutoring"
+category: weights
 short: "Ιδιαίτερα μαθήματα και φροντιστήρια ξένων γλωσσών, μεγάλο μέρος της δαπάνης των ελληνικών νοικοκυριών για εκπαίδευση."
 sources: [elstat-cpi-items, elstat-hbs-puf]
 related: [weights, coicop]

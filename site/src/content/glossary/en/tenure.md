@@ -2,6 +2,7 @@
 term: "Tenure"
 forms: ["tenure"]
 other: "Καθεστώς κατοικίας"
+category: households
 short: "Whether a household rents its home, owns it, or lives rent-free."
 sources: [elstat-hbs-puf]
 related: [actual-rent, imputed-rent]

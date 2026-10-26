@@ -8,8 +8,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { chromium } from "playwright";
 
 const base = process.argv[2] ?? "http://localhost:4321";
-const PATHS = ["", "start/", "explore/", "explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter", "calculator/",
-  "glossary/", "glossary/imputed-rent/", "method/", "method/weights-timing/", "data/", "about/", "changelog/"];
+const M1 = "inflation-by-group/gr/";
+const PATHS = ["", "inflation-by-group/", M1, `${M1}explore/`,
+  `${M1}explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter`, `${M1}calculator/`,
+  `${M1}method/`, `${M1}method/weights-timing/`, `${M1}groups/`, "data/gr/",
+  "glossary/", "glossary/imputed-rent/", "data/", "about/"];
 const pages = ["/", ...["el", "en"].flatMap((l) => PATHS.map((p) => `/${l}/${p}`))];
 
 const browser = await chromium.launch({ channel: "chrome" });

@@ -2,6 +2,7 @@
 term: "Percentage point"
 forms: ["percentage point", "percentage points"]
 other: "Ποσοστιαία μονάδα"
+category: prices
 short: "The difference between two percentages: from 9.0% to 10.8% is 1.8 percentage points."
 sources: [cpi-manual-2020]
 related: [gap, contribution]

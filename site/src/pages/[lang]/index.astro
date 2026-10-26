@@ -1,124 +1,91 @@
 ---
-// Home: what the site is, in plain words, and the main finding as sentences. No chart, no tiles,
-// no table: the numbers live on Explore. Every number comes from the default series file at
-// build time.
+// The site's home: what TracEconomics is, in plain words, the latest headline as a sentence, every
+// topic and the countries. No chart, no tiles, no table: the numbers live on each topic's pages.
+// Each place links to a page once. A planned topic is greyed out, with the reason, and is not a
+// link.
 import Base from "../../layouts/Base.astro";
-import { calculator, months, series, settings } from "../../lib/data";
+import { BASE_AMOUNT, BASE_MONTH, headline } from "../../lib/headline";
 import { eur } from "../../lib/income";
-import { href, LANGS, month, num, pct, t, type Lang } from "../../lib/i18n";
+import { href, LANGS, month, t, type Lang } from "../../lib/i18n";
+import { topic, topicHref, TOPICS } from "../../lib/topics";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
 }
 
-// The month the euro example starts from: just before the 2021-2022 price surge.
-const BASE_MONTH = "2021-01";
-const BASE_AMOUNT = 100;
-
 const lang = Astro.params.lang as Lang;
-const slug = settings().default;
-const s = series(slug);
-const axis = months(s);
 const acc = (p: string) => month(lang, p, "acc");
+const names = (codes: string[]) => codes.map((c) => t(lang, `country.${c}`)).join(", ");
 
-// What the base month's shopping costs now: each group's chain-linked index, latest month over
-// the base month. The latest month is the last one every shown group has.
-const SHOWN = ["B/Q1", "B/Q5"];
-const at = (g: string, p: string) => s.groups[g].index[axis.indexOf(p)];
-let last = axis.length - 1;
-while (last >= 0 && SHOWN.some((g) => s.groups[g].index[last] === null)) last--;
-const latestMonth = axis[last];
-const baskets = SHOWN.map((g) => {
-  const from = at(g, BASE_MONTH);
-  const to = s.groups[g].index[last];
-  if (from === null || from === undefined || to === null) throw new Error(`no index for ${g} in ${BASE_MONTH} or ${latestMonth}`);
-  return { group: g.slice(2), cost: (BASE_AMOUNT * to) / from };
-});
-
-// The year the poorest and the richest fifth differed most, by the largest monthly gap.
-const gaps = s.gaps["B"].rch_a;
-const peakI = gaps.reduce((best: number, v, i) => (v !== null && v > (gaps[best] ?? -Infinity) ? i : best), 0);
-const peak = { period: axis[peakI], value: gaps[peakI] as number };
-const peakYear = peak.period.slice(0, 4);
-const avgQ1 = s.groups["B/Q1"].avg[peakYear];
-const avgQ5 = s.groups["B/Q5"].avg[peakYear];
-if (!(peak.value > 0 && avgQ1 > avgQ5)) throw new Error(`the headline says the poorest were hit harder in ${peakYear}; the data no longer say so`);
-
-// Food's share of spending (division 01) in the newest year's weights, from the calculator file.
-const calc = calculator();
-const foodShare = (preset: string) => {
-  const years = Object.keys(calc.presets[preset]).sort();
-  const rows: [number, number][] = calc.presets[preset][years[years.length - 1]];
-  const total = rows.reduce((a, [, w]) => a + w, 0);
-  const food = rows.filter(([i]) => calc.codes[i].startsWith("01")).reduce((a, [, w]) => a + w, 0);
-  return Math.round((food / total) * 100);
-};
-
+// The headline comes from the first country of the first live topic.
+const M1 = "inflation-by-group";
+const country = topic(M1).countries[0];
+const h = headline(country);
 const SWATCH: Record<string, string> = { Q1: "var(--series-q1)", Q5: "var(--series-q5)" };
-const cards = ["start", "explore", "calculator", "method"] as const;
+const countryName = t(lang, `country.${country}`);
+const covered = [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x) => x.countries))];
 ---
-<Base lang={lang} title={t(lang, "home.title")} description={t(lang, "site.tagline")} current="home">
+<Base lang={lang} title={t(lang, "site.name")} description={t(lang, "site.tagline")} current="home">
   <div class="stack-lg">
     <section class="home-intro">
       <div class="stack" style="gap: var(--space-4)">
-        <p class="eyebrow">{t(lang, "home.eyebrow", { country: t(lang, "country.gr"), month: month(lang, latestMonth) })}</p>
-        <h1 class="home-title">{t(lang, "home.title")}</h1>
-        <p class="lead">{t(lang, "home.intro1")}</p>
-        <p class="lead-2">{t(lang, "home.intro2")}</p>
-        <div class="button-row">
-          <a class="button primary" href={href(lang, "start")}>{t(lang, "home.cta.start")} →</a>
-          <a class="button" href={href(lang, "explore")}>{t(lang, "home.cta.explore")}</a>
-        </div>
+        <p class="eyebrow accent">{t(lang, "hub.eyebrow")}</p>
+        <h1 class="home-title">{t(lang, "hub.title")}</h1>
+        <p class="lead">{t(lang, "hub.intro1")}</p>
+        <p class="lead-2">{t(lang, "hub.intro2")}</p>
       </div>
       <aside class="panel euros" aria-labelledby="euros-h">
-        <p class="eyebrow">{t(lang, "home.euros.eyebrow")}</p>
-        <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(lang, BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
+        <p class="eyebrow">{t(lang, "hub.latest.eyebrow", { country: countryName })} · {t(lang, `topic.${M1}`)}</p>
+        <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
         <dl class="euros-list">
-          {baskets.map((b) => (
+          {h.baskets.map((b) => (
             <div>
               <dt>
                 <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><line x1="1" y1="4" x2="15" y2="4" stroke={SWATCH[b.group]} stroke-width="3" stroke-linecap="round"></line></svg>
                 {t(lang, "home.euros.for", { group: t(lang, `group.in.${b.group}`) })}
               </dt>
-              <dd>{lang === "el" ? `${num(lang, b.cost, 2)} €` : `€${num(lang, b.cost, 2)}`}</dd>
+              <dd>{eur(b.cost, 1)}</dd>
             </div>
           ))}
         </dl>
-        <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, latestMonth) })}</p>
+        <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, h.latestMonth) })}</p>
+        <a href={topicHref(lang, M1, country)} style="font-weight: 600">{t(lang, "hub.latest.link", { country: countryName })} →</a>
       </aside>
     </section>
 
-    <section class="callout home-peak" aria-labelledby="peak-h">
-      <div class="stack" style="gap: var(--space-2)">
-        <h2 id="peak-h">{t(lang, "home.peak.title", { year: peakYear })}</h2>
-        <p>{t(lang, "home.peak.text", { year: peakYear, q1: pct(lang, avgQ1), q5: pct(lang, avgQ5) })}</p>
-        <details>
-          <summary>{t(lang, "more")}</summary>
-          <div class="stack" style="gap: var(--space-2); margin-top: var(--space-2)">
-            <p>{t(lang, "home.peak.detail", { peakMonth: acc(peak.period), peak: num(lang, peak.value) })}</p>
-            <p>{t(lang, "home.why.text", { q1food: `${foodShare("B/Q1")}%`, q5food: `${foodShare("B/Q5")}%` })}</p>
-            <p><a href={href(lang, "explore")}>{t(lang, "home.peak.link")} →</a></p>
+    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
+      <div class="section-head">
+        <h2 id="topics-h">{t(lang, "hub.topics")}</h2>
+        <p class="muted">{t(lang, "hub.topics.lead")}</p>
+      </div>
+      <div class="cards">
+        {TOPICS.map((tp) => tp.status === "live" ? (
+          <a class="card" href={topicHref(lang, tp.slug)}>
+            <span class="chip-status">{t(lang, "hub.status.live", { list: names(tp.countries) })}</span>
+            <span class="title">{t(lang, `topic.${tp.slug}`)} →</span>
+            <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
+          </a>
+        ) : (
+          <div class="card planned">
+            <span class="chip-status">{t(lang, "soon")}</span>
+            <span class="title">{t(lang, `topic.${tp.slug}`)}</span>
+            <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
           </div>
-        </details>
+        ))}
       </div>
     </section>
 
-    <nav class="stack" aria-labelledby="next-h" style="gap: var(--space-3)">
-      <h2 id="next-h">{t(lang, "nav.next")}</h2>
-      <div class="cards four">
-        {cards.map((k) => (
-          <a class="card" href={href(lang, k)}>
-            <span class="title">{t(lang, `home.card.${k}`)} →</span>
-            <span class="text">{t(lang, `home.card.${k}.text`)}</span>
-          </a>
-        ))}
-      </div>
-    </nav>
+    <section class="panel countries-strip" aria-labelledby="countries-h">
+      <h2 id="countries-h">{t(lang, "hub.countries")}</h2>
+      {covered.map((c) => <span class="country-chip">{t(lang, `country.${c}`)}</span>)}
+      <span class="country-chip planned">{t(lang, "country.more")}</span>
+      <p class="small muted">{t(lang, "hub.countries.text")}</p>
+    </section>
 
     <section class="stack" style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)">
       <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">{t(lang, "home.open.title")}</h2>
-      <p class="muted" style="max-width: var(--text-max)">{t(lang, "home.open.text")}</p>
-      <a href={href(lang, "data")} style="font-weight: 600">{t(lang, "home.data_link")}</a>
+      <p class="muted" style="max-width: var(--text-max)">{t(lang, "opendata.lead")}</p>
+      <a href={href(lang, "data")} style="font-weight: 600">{t(lang, "opendata.title")} →</a>
     </section>
   </div>
 </Base>

@@ -2,6 +2,7 @@
 term: "Πραγματικό ενοίκιο"
 forms: ["πραγματικό ενοίκιο", "πραγματικού ενοικίου", "πραγματικά ενοίκια", "πραγματικών ενοικίων"]
 other: "Actual rent"
+category: households
 short: "Το ενοίκιο που πληρώνουν οι ενοικιαστές για το σπίτι στο οποίο μένουν."
 sources: [elstat-cpi-items]
 related: [imputed-rent, tenure]

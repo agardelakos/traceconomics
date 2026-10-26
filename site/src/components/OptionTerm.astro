@@ -1,15 +1,16 @@
 ---
 // A method option's name: pressing it opens the option's one-line summary with a link to its
-// method page (TermPopover), the same way glossary terms open theirs.
+// method page for the country (TermPopover), the same way glossary terms open theirs.
 import { getEntry } from "astro:content";
 import TermPopover from "./TermPopover.astro";
-import { href, t, type Lang } from "../lib/i18n";
+import { t, type Lang } from "../lib/i18n";
+import { m1Text, topicHref } from "../lib/topics";
 
-interface Props { lang: Lang; option: string; label: string }
-const { lang, option, label } = Astro.props;
+interface Props { lang: Lang; country: string; option: string; label: string }
+const { lang, country, option, label } = Astro.props;
 const page = option.replace("_", "-");
-const entry = await getEntry("method", `${lang}/${page}`);
+const entry = await getEntry("method", m1Text(country, lang, page));
 if (!entry) throw new Error(`no method page "${page}" in ${lang}`);
 ---
 <TermPopover key={`option-${page}`} label={label} heading={entry.data.title} text={entry.data.summary}
-  href={href(lang, `method/${page}`)} more={t(lang, "option.more")} />
+  href={topicHref(lang, "inflation-by-group", country, `method/${page}`)} more={t(lang, "option.more")} />

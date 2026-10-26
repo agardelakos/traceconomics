@@ -1,0 +1,53 @@
+---
+// Inflation by group's files for one country, as a section of that country's data page: what the
+// files are, then (folded away until opened) the shared files and every setting's files with
+// their sizes. The text is the
+// country's own (src/content/pages/<lang>/data.md for Greece); its sources go into the page's
+// source-data list.
+import fs from "node:fs";
+import path from "node:path";
+import { render, type CollectionEntry } from "astro:content";
+import { DATA_ROOT, m1Dir, settings } from "../lib/data";
+import { num, t, type Lang } from "../lib/i18n";
+
+interface Props { lang: Lang; country: string; entry: CollectionEntry<"pages"> }
+const { lang, country, entry } = Astro.props;
+const { Content } = await render(entry);
+const base = `/data/v1/${m1Dir(country)}`;
+const size = (bytes: number) => (bytes > 1e6 ? `${num(lang, bytes / 1e6)} MB` : `${num(lang, bytes / 1e3, 0)} KB`);
+const stat = (rel: string) => fs.statSync(path.join(DATA_ROOT, m1Dir(country), rel)).size;
+const keys = ["spending", "imputed_rent", "price_source", "weights_timing", "tutoring"];
+const rows = settings(country).settings.map((s) => {
+  const dir = path.join(DATA_ROOT, m1Dir(country), "downloads", s.slug);
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).sort() : [];
+  if (!files.length) throw new Error(`no downloads for ${s.slug}: run the full export`);
+  return {
+    slug: s.slug, isDefault: s.default,
+    label: keys.map((k) => t(lang, `option.${k}.${s[k]}`)).join(" · "),
+    files: files.map((f) => ({ name: f, href: `${base}/downloads/${s.slug}/${f}`, size: size(fs.statSync(path.join(dir, f)).size) })),
+  };
+});
+const shared = ["SHA256SUMS", "availability.json", "metadata.json", "settings.json"].map((f) => ({ name: f, href: `${base}/${f}`, size: size(stat(f)) }));
+---
+<p class="small muted"><code class="path">{base}/</code></p>
+<div class="prose"><Content /></div>
+<details class="panel downloads-all">
+  <summary><h3>{t(lang, "explore.downloads")}</h3></summary>
+  <div class="stack" style="gap: var(--space-3); margin-top: var(--space-3)">
+  <div class="downloads">
+    {shared.map((f) => (
+      <div class="row"><a href={f.href} download>{f.name}</a><span class="small muted num">{f.size}</span></div>
+    ))}
+  </div>
+  {rows.map((r) => (
+    <details class="panel" id={`setting-${r.slug}`} open={r.isDefault}>
+      <summary>{r.label}{r.isDefault && <> <span class="badge-default">{t(lang, "option.default")}</span></>}</summary>
+      <div class="downloads" style="margin-top: var(--space-3)">
+        {r.files.map((f) => (
+          <div class="row"><a href={f.href} download>{f.name}</a><span class="small muted num">{f.size}</span></div>
+        ))}
+      </div>
+    </details>
+  ))}
+  </div>
+</details>

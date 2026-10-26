@@ -2,6 +2,7 @@
 term: "Εναρμονισμένος Δείκτης Τιμών Καταναλωτή (ΕνΔΤΚ)"
 forms: ["εναρμονισμένος δείκτης τιμών καταναλωτή", "εναρμονισμένου δείκτη τιμών καταναλωτή", "εναρμονισμένο δείκτη τιμών καταναλωτή", "ΕνΔΤΚ"]
 other: "Harmonised index of consumer prices (HICP)"
+category: prices
 short: "Το κοινό μέτρο πληθωρισμού της Ευρωπαϊκής Ένωσης, που υπολογίζεται με τον ίδιο τρόπο σε κάθε κράτος μέλος."
 sources: [hicp-manual-2024, reg-2016-792, eurostat-prc-hicp-minr]
 related: [consumer-price-index, weights]

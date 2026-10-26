@@ -1,0 +1,55 @@
+---
+// Under the header on a topic's pages, one left-aligned column read top to bottom like a path:
+// the topic, then the country (a drop-down), then that country's pages. On the topic's own page no
+// country is chosen yet, so the drop-down asks for one and there are no page tabs.
+//
+// The drop-down is a popover, so it opens without a script. Each country leads to the same page
+// for that country; a country not built yet is listed greyed out, marked "coming soon", and is not
+// a link.
+import { t, type Lang } from "../lib/i18n";
+import { topic, topicHref } from "../lib/topics";
+
+interface Props { lang: Lang; slug: string; country?: string; section?: string }
+const { lang, slug, country, section = "" } = Astro.props;
+const tp = topic(slug);
+const top = section.split("/")[0];
+const current = country === undefined ? null : t(lang, `country.${country}`);
+---
+<div class="topic-bar">
+  <div class="container topic-stack">
+    <div class="topic-title">
+      <span class="eyebrow">{t(lang, "topic.eyebrow")}</span>
+      <a class="topic-name" href={topicHref(lang, slug)} aria-current={country === undefined ? "page" : undefined}>{t(lang, `topic.${slug}.long`)}</a>
+    </div>
+    <div class="country-row">
+      <span class="small" id="country-label">{t(lang, current ? "country.switch" : "country.choose")}</span>
+      <button type="button" class="country-button" popovertarget="country-menu" style="anchor-name: --country-menu"
+        aria-labelledby="country-label country-value" aria-haspopup="true">
+        <span id="country-value">{current ?? t(lang, "country.pick")}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+      <div popover id="country-menu" class="country-menu" style="position-anchor: --country-menu">
+        <ul>
+          {tp.countries.map((c) => (
+            <li>
+              <a href={topicHref(lang, slug, c, top)} aria-current={c === country ? "true" : undefined}>
+                {t(lang, `country.${c}`)}
+                {c === country && <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>}
+              </a>
+            </li>
+          ))}
+          <li><span class="planned">{t(lang, "country.more")} <span class="planned-tag">{t(lang, "soon")}</span></span></li>
+        </ul>
+      </div>
+    </div>
+    {country !== undefined && (
+      <nav class="topic-nav" aria-label={t(lang, "topic.nav", { topic: t(lang, `topic.${slug}`), country: t(lang, `country.${country}`) })}>
+        <ul>
+          {tp.sections.map((s) => (
+            <li><a href={topicHref(lang, slug, country, s)} aria-current={s === top ? "page" : undefined}>{t(lang, s ? `nav.${s}` : "nav.overview")}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </div>
+</div>

@@ -1,0 +1,113 @@
+---
+// A country's overview for inflation by group: only what belongs to that country. The topic
+// itself is explained on the topic's page, so here: the latest month, the euro example, what
+// stands out, the two baskets behind it, and an invitation to the method (the next tab). No chart, no tiles, no table:
+// the numbers live on Explore. Every number comes from the default series and the calculator
+// file at build time.
+import Breadcrumb from "../../../../components/Breadcrumb.astro";
+import Base from "../../../../layouts/Base.astro";
+import { calculator } from "../../../../lib/data";
+import { BASE_AMOUNT, BASE_MONTH, headline } from "../../../../lib/headline";
+import { eur } from "../../../../lib/income";
+import { LANGS, month, num, pct, t, type Lang } from "../../../../lib/i18n";
+import { countryPaths, dataHref, topicHref, trail } from "../../../../lib/topics";
+
+export function getStaticPaths() {
+  return countryPaths("inflation-by-group", LANGS);
+}
+
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const SLUG = "inflation-by-group";
+const h = headline(country);
+const acc = (p: string) => month(lang, p, "acc");
+const countryName = t(lang, `country.${country}`);
+const SWATCH: Record<string, string> = { Q1: "var(--series-q1)", Q5: "var(--series-q5)" };
+
+// Each group's spending split into the divisions that differ most between rich and poor, and the
+// rest, from the calculator's newest weights (the same weights the series use).
+const calc = calculator(country);
+const PARTS = [
+  { code: "01", color: "var(--series-q3)" },
+  { code: "04", color: "var(--series-q4)" },
+  { code: "07", color: "var(--series-q2)" },
+];
+const basket = (preset: string) => {
+  const years = Object.keys(calc.presets[preset]).sort();
+  const year = years[years.length - 1];
+  const rows: [number, number][] = calc.presets[preset][year];
+  const total = rows.reduce((a, [, w]) => a + w, 0);
+  const share = (code: string) => (100 * rows.filter(([i]) => calc.codes[i].startsWith(code)).reduce((a, [, w]) => a + w, 0)) / total;
+  const parts = PARTS.map((p) => ({ label: t(lang, `division.short.${p.code}`), color: p.color, value: share(p.code) }));
+  const rest = 100 - parts.reduce((a, p) => a + p.value, 0);
+  return { year, parts: [...parts, { label: t(lang, "m1.baskets.rest"), color: "var(--color-disabled)", value: rest }] };
+};
+const groups = ["B/Q1", "B/Q5"].map((g) => ({ name: t(lang, `group.${g.slice(2)}`), ...basket(g) }));
+if (groups[0].year !== groups[1].year) throw new Error("the two baskets come from different years");
+---
+<Base lang={lang} title={t(lang, "m1.title", { country: countryName })} description={t(lang, `m1.sources.${country}`)} topic={{ slug: SLUG, country, section: "" }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={trail(lang, country, []).slice(0, 1).concat([[countryName]])} />
+      <p class="eyebrow accent">{t(lang, "m1.latest", { month: month(lang, h.latestMonth) })}</p>
+      <h1>{t(lang, "m1.title", { country: countryName })}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, `m1.sources.${country}`)}</p>
+    </header>
+
+    <div class="overview-grid">
+      <aside class="panel euros" aria-labelledby="euros-h">
+        <p class="eyebrow">{t(lang, "home.euros.eyebrow")}</p>
+        <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
+        <dl class="euros-list">
+          {h.baskets.map((b) => (
+            <div>
+              <dt>
+                <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><line x1="1" y1="4" x2="15" y2="4" stroke={SWATCH[b.group]} stroke-width="3" stroke-linecap="round"></line></svg>
+                {t(lang, "home.euros.for", { group: t(lang, `group.in.${b.group}`) })}
+              </dt>
+              <dd>{eur(b.cost, 1)}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, h.latestMonth) })}</p>
+      </aside>
+      <section class="callout stack standout" aria-labelledby="peak-h">
+        <p class="eyebrow">{t(lang, "m1.standout")}</p>
+        <h2 id="peak-h">{t(lang, "home.peak.title", { year: h.peakYear })}</h2>
+        <p>{t(lang, "home.peak.text", { year: h.peakYear, q1: pct(lang, h.avgQ1), q5: pct(lang, h.avgQ5) })}</p>
+        <a href={topicHref(lang, SLUG, country, "explore")} style="font-weight: 600">{t(lang, "home.peak.link")} →</a>
+      </section>
+    </div>
+
+    <section class="panel stack" aria-labelledby="baskets-h" style="gap: var(--space-4)">
+      <div class="stack" style="gap: var(--space-1)">
+        <h2 id="baskets-h">{t(lang, "m1.baskets.title")}</h2>
+        <p class="muted">{t(lang, "m1.baskets.lead", { year: groups[0].year })}</p>
+      </div>
+      {groups.map((g) => (
+        <div class="stack" style="gap: var(--space-2)">
+          <h3>{g.name}</h3>
+          <div class="basket-bar" aria-hidden="true">
+            {g.parts.map((p) => <span style={`width: ${p.value.toFixed(2)}%; background: ${p.color}`}></span>)}
+          </div>
+          <ul class="basket-legend">
+            {g.parts.map((p) => (
+              <li><span class="box" style={`background: ${p.color}`}></span>{p.label}: <strong>{num(lang, p.value, 1)}%</strong></li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+
+    <section class="callout method-cta" aria-labelledby="method-h">
+      <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+        <h2 id="method-h">{t(lang, "m1.method_cta.title")}</h2>
+        <p>{t(lang, `m1.method_cta.text.${country}`)}</p>
+        <div class="button-row">
+          <a class="button primary" href={topicHref(lang, SLUG, country, "method")}>{t(lang, "m1.method_cta.button")} →</a>
+          <a class="button" href={dataHref(lang, country)}>{t(lang, "opendata.all")}</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>

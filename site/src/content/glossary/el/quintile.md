@@ -2,6 +2,7 @@
 term: "Εισοδηματικά πεμπτημόρια"
 forms: ["εισοδηματικά πεμπτημόρια", "πεμπτημόριο", "πεμπτημορίου", "πεμπτημόρια", "πεμπτημορίων", "φτωχότερο 20%", "πλουσιότερο 20%"]
 other: "Income fifths (quintiles)"
+category: households
 short: "Ο πληθυσμός κατατάσσεται κατά εισόδημα και χωρίζεται σε πέντε ίσες ομάδες: το φτωχότερο 20%, το δεύτερο, το μεσαίο, το τέταρτο και το πλουσιότερο 20%."
 sources: [eurostat-equivalence-scale, elstat-hbs-puf]
 related: [equivalised-income, equivalence-scale]

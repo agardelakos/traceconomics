@@ -2,6 +2,7 @@
 term: "Ισοδύναμο εισόδημα"
 forms: ["ισοδύναμο εισόδημα", "ισοδύναμου εισοδήματος", "ισοδύναμα εισοδήματα"]
 other: "Equivalised income"
+category: households
 short: "Το εισόδημα ενός νοικοκυριού διαιρεμένο με ένα μέτρο του μεγέθους του, ώστε να συγκρίνονται νοικοκυριά διαφορετικού μεγέθους."
 sources: [eurostat-equivalence-scale]
 related: [equivalence-scale, quintile]

@@ -2,6 +2,7 @@
 term: "Καθεστώς κατοικίας"
 forms: ["καθεστώς κατοικίας", "καθεστώτος κατοικίας"]
 other: "Tenure"
+category: households
 short: "Αν ένα νοικοκυριό νοικιάζει το σπίτι του, το έχει δικό του ή μένει χωρίς ενοίκιο."
 sources: [elstat-hbs-puf]
 related: [actual-rent, imputed-rent]
