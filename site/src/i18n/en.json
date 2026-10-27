@@ -32,7 +32,7 @@
   "source.eurostat": "Eurostat",
   "topic.eyebrow": "Topic",
   "topic.inflation-by-group.long": "Inflation by household group",
-  "hub.eyebrow": "Open data · open method",
+  "hub.eyebrow": "Open data · open methods",
   "hub.countries": "Countries",
   "hub.countries.text": "Each topic adds countries as their official data allow.",
   "m1.latest": "Latest data {month}",
@@ -261,7 +261,7 @@
   "home.peak.link": "See it month by month in Explore",
   "more": "More detail",
   "home.card.explore": "Explore all groups",
-  "home.open.title": "Open data, open method",
+  "home.open.title": "Open data, open methods",
 
   "explore.title": "Explore inflation by household group",
   "explore.lead": "{country}: how fast prices rose for each group of households, month by month from 2010.",
