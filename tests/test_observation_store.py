@@ -125,6 +125,19 @@ def test_two_files_feed_one_dataset_without_withdrawing_each_other(tmp_path, con
     assert en.strip() == "CEREALS" and el is None   # no Greek file in this archive
 
 
+def test_table05_english_file_only(tmp_path, con):
+    archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
+    data = (FIX / "elstat_cpi05_2026_09.xlsx").read_bytes()
+    for doc, lang in (("doc-114837", "EN"), ("doc-114837-el", "GR")):
+        archive.store_bytes("elstat", doc, data, url="https://example.invalid/doc", retrieved_at=T1, ext=".xlsx",
+                            extra={"original_name": f"114837__A0515_DKT87_TS_MM_01_1959_09_2026_05_F_{lang}.xlsx"})
+    r = update(archive, store, con, only=["elstat:cpi05"])[0]
+    assert r.snapshots == 1
+    (value, text), = rows(con, store.root, "SELECT value, value_text FROM observations "
+                          "WHERE unit = 'RCH_A_FR' AND freq = 'M' AND ref_period = '2026-09'")
+    assert value == 0.05049184623573861 and text == "0.05049184623573861"
+
+
 def test_older_snapshot_arriving_late_rebuilds(tmp_path, con):
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, revised(minr_text()), T2, "2026-10-15T23:00:00+0200")

@@ -15,6 +15,7 @@ tests run without network access and fail if a parser stops understanding a form
 | `elstat_hbs_t103_2024.xlsx` | https://www.statistics.gr/en/statistics?…_documentID=573851 (HBS table 1.03, 2024, English) | 2026-10-13 | not trimmed |
 | `elstat_cpi07_2026.xlsx` | https://www.statistics.gr/en/statistics?…_documentID=585819 (CPI table 07, 2026, English) | 2026-10-13 | not trimmed |
 | `elstat_cpi07_2011_el.xls` | https://www.statistics.gr/en/statistics?…_documentID=114857&…_locale=el (CPI table 07, 2011, Greek) | 2026-10-18 | not trimmed |
+| `elstat_cpi05_2026_09.xlsx` | https://www.statistics.gr/en/statistics?…_documentID=114837 (CPI table 05, twelve-month rates, January 1959 to September 2026, English) | 2026-10-13 | not trimmed |
 | `eurostat_prc_hicp_{minr,iw,fpd,midx,inw,fp}.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/{DATASET}/?format=TSV&compressed=true | 2026-10-18, except `prc_hicp_fp` (research download of 2026-10-14) | header kept whole; rows for Greece, Cyprus and the euro area, all items and the food branch down to one subclass (plus games of chance and education not by level), units I25, I15 and RCH_A; plus the first row with an empty flagged cell |
 | `eurostat_v1_gr_{minr,iw}.tsv.gz` | same Eurostat bulk files (`prc_hicp_minr`, `prc_hicp_iw`) | 2026-10-18 | Greece only. minr: unit I25 for every category, plus RCH_A for all items, periods from 2014-12. iw: every category, years from 2015 |
 
@@ -36,3 +37,4 @@ and compare hashes. `tests/test_fixtures.py` checks that the stored files still 
 | `elstat_hbs_t103_2024.xlsx` | `cfccb45f78bedf799b71c7f589e36cb33b1d14986037c9a1f2c7b0b28c46b345` |
 | `elstat_cpi07_2026.xlsx` | `11baa71c365f5203f36ba5e9745e31df38ead23a3bb9e5ac27cf439fc0448593` |
 | `elstat_cpi07_2011_el.xls` | `6f7496fe0925d0ac7931264e6cfb338ceff7f890d9f8af033f9e234499f74eb7` |
+| `elstat_cpi05_2026_09.xlsx` | `28c992705281c33702a98d798b6a6aa28a017f4a4563306fe107a0c8f2f0fbf3` |

@@ -2,14 +2,25 @@
 //
 // Every label is a key in the language files (src/i18n/<lang>.json); a missing key is an error,
 // never a silent fallback to the other language. Numbers and months: `format.ts`.
+//
+// Every language is built, but only the languages in src/i18n/languages.json are offered: linked
+// from the language switch, the root address and other pages. A language not offered yet (Greek,
+// until its text has had a native speaker's review) keeps its pages at their addresses, unlinked.
 
 import el from "../i18n/el.json";
 import en from "../i18n/en.json";
+import languages from "../i18n/languages.json";
 import { fill, type Lang } from "./format";
 
 export { LOCALE, month, num, pct, type Lang } from "./format";
 
 export const LANGS = ["el", "en"] as const;
+
+/** The languages offered to readers (src/i18n/languages.json). */
+export const OFFERED = languages.offered as Lang[];
+if (!OFFERED.length || OFFERED.some((l) => !LANGS.includes(l))) throw new Error(`bad offered languages: ${OFFERED}`);
+
+export const isOffered = (lang: Lang) => OFFERED.includes(lang);
 
 const STRINGS: Record<Lang, Record<string, string>> = { el, en };
 

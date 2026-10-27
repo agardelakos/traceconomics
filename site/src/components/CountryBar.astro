@@ -1,0 +1,36 @@
+---
+// Under the header on every page of a country, the same bar, so the reader always knows which
+// country they are in: the country's name, then a tab for all its topics and one for each topic
+// it has. On a topic's pages a second, smaller row holds that topic's pages. Topics not built yet
+// are not tabs: the country's page lists them, greyed out. The country switch is in the header.
+import { t, type Lang } from "../lib/i18n";
+import { countryHref, topic, topicHref, TOPICS } from "../lib/topics";
+
+interface Props { lang: Lang; country: string; slug?: string; section?: string }
+const { lang, country, slug, section = "" } = Astro.props;
+const name = t(lang, `country.${country}`);
+const live = TOPICS.filter((tp) => tp.status === "live" && tp.countries.includes(country));
+const top = section.split("/")[0];
+---
+<div class="topic-bar">
+  <div class="container topic-stack">
+    <a class="topic-name" href={countryHref(lang, country)}>{name}</a>
+    <nav class="topic-nav" aria-label={t(lang, "country.nav", { country: name })}>
+      <ul>
+        <li><a href={countryHref(lang, country)} aria-current={slug === undefined ? "page" : undefined}>{t(lang, "country.all")}</a></li>
+        {live.map((tp) => (
+          <li><a href={topicHref(lang, tp.slug, country)} aria-current={tp.slug === slug ? "true" : undefined}>{t(lang, `topic.${tp.slug}`)}</a></li>
+        ))}
+      </ul>
+    </nav>
+    {slug !== undefined && (
+      <nav class="topic-nav sub" aria-label={t(lang, "topic.nav", { topic: t(lang, `topic.${slug}`), country: name })}>
+        <ul>
+          {topic(slug).sections.map((s) => (
+            <li><a href={topicHref(lang, slug, country, s)} aria-current={s === top ? "page" : undefined}>{t(lang, s ? `nav.${s}` : "nav.overview")}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </div>
+</div>

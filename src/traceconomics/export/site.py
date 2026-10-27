@@ -13,6 +13,9 @@
                                      in full in downloads/availability.json)
         metadata.json                dimensions, units, sources, licence, input manifest
         settings.json                the settings, their file names and labels' keys
+        official.json                the official CPI's latest annual rate, the context the site
+                                     shows next to the groups' rates: ours from ELSTAT's index
+                                     levels and ELSTAT's published one, compared (`official_rate`)
         SHA256SUMS                   a checksum for every file above
     <out>/v1/labels/coicop18.json    the spending categories' names in English and Greek (`labels`)
     <out>/v1/references.json         the bibliography, for the site's source lists (`bibliography`)
@@ -36,14 +39,17 @@ from pathlib import Path
 import duckdb
 
 from traceconomics.checks import require
-from traceconomics.module1 import combinations
+from traceconomics.engine import rates
+from traceconomics.module1 import combinations, prices
 from traceconomics.module1.output import FLAGS, REST, TABLES
+from traceconomics.sources.elstat.parse import TOTAL
 
 FORMAT = "v1"
 OPTION_KEYS = list(combinations.OPTIONS)        # spending, imputed_rent, price_source, weights_timing, tutoring
 GAP = "Q1-Q5"
 SERIES_BUDGET = 150 * 1024                       # gzip bytes per setting's series file
 FILE_LIMIT = 20 * 1024 * 1024                    # any one file (hosts limit files to 25 MiB)
+PUBLISHED_RATE = "elstat:cpi05"                  # ELSTAT's own twelve-month rates (table 05)
 
 
 def slug(setting: dict) -> str:
@@ -171,6 +177,61 @@ def downloads(con, setting: dict, folder: Path) -> list[Path]:
     return written
 
 
+# Our rate and ELSTAT's published one agree when they differ by no more than floating-point noise:
+# both come from the same index levels, so any larger gap means something changed on one side.
+AGREE = 1e-9    # percentage points
+
+
+def official_rate(blocks: dict, published: dict[str, float]) -> dict:
+    """The official CPI's annual rate in its latest month: ours, and ELSTAT's published one.
+
+    Ours is computed from ELSTAT's overall index in table 07, not copied, like every rate on the
+    site: the month over the same month a year before, each level from its own year's file (the
+    overall index is one published series, so the files' levels are on the same base), at full
+    precision, as ELSTAT computes it. ELSTAT's own rate is from table 05 (`published`: "YYYY-MM"
+    -> rate as a fraction, as the file holds it). Each carries its own month; where they share
+    one, the file says whether they agree. A disagreement is published, never hidden: it is a
+    finding to explain.
+    """
+    year = max(blocks)
+    total = {p: v for y in (year - 1, year) for p, v in blocks.get(y, {}).get(TOTAL, {}).items()
+             if p.startswith(f"{y}-")}
+    latest = max(p for p in total if p.startswith(f"{year}-"))
+    ours = rates.annual_rate(total, latest)
+    require(ours is not None, f"no overall CPI index a year before {latest}")
+    require(bool(published), "no published rate from ELSTAT's table 05")
+    theirs_period = max(published)
+    theirs = published[theirs_period] * 100
+    out = {
+        "format": FORMAT, "series": "CPI, all items", "unit": "percent",
+        "computed": {"source": prices.DATASET, "reference": "elstat-cpi-items", "period": latest,
+                     "annual_rate": float(f"{ours:.1f}"), "annual_rate_full": ours},
+        "published": {"source": PUBLISHED_RATE, "reference": "elstat-cpi-rates", "period": theirs_period,
+                      "annual_rate": float(f"{theirs:.1f}"), "annual_rate_full": theirs},
+    }
+    if theirs_period == latest:
+        gap = ours - theirs
+        out["comparison"] = {"period": latest, "difference": gap, "agree": abs(gap) <= AGREE}
+    return out
+
+
+def published_rates(store_con) -> dict[str, float]:
+    """ELSTAT's twelve-month rates of the overall CPI (table 05), as published: "YYYY-MM" -> fraction."""
+    rows = store_con.execute("""
+        SELECT ref_period, value FROM observations
+        WHERE dataset = $d AND freq = 'M' AND unit = 'RCH_A_FR'
+        QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
+            AND status <> 'withdrawn'
+        ORDER BY ref_period
+    """, {"d": PUBLISHED_RATE}).fetchall()
+    return {p: v for p, v in rows if v is not None}
+
+
+def official_file(store_con) -> dict:
+    """`official_rate` on the CPI in the store."""
+    return official_rate(prices.cpi_blocks(store_con), published_rates(store_con))
+
+
 def checksums(root: Path) -> Path:
     lines = []
     for path in sorted(p for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS"):
@@ -258,6 +319,7 @@ def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool
                                 "labels": names}))
     shutil.copyfile(m1 / "metadata.json", root / "metadata.json")
     written.append(root / "metadata.json")
+    written.append(_write_json(root / "official.json", official_file(store_con)))
     written.append(_write_json(root / "settings.json", {"format": FORMAT, "options": combinations.OPTIONS,
                                                         "default": slug(combinations.DEFAULT), "settings": settings}))
     from traceconomics.export import bibliography

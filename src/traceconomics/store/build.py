@@ -30,12 +30,14 @@ import duckdb
 from traceconomics.archive.store import Archive, read_jsonl
 from traceconomics.catalog import DatasetSpec, datasets
 from traceconomics.sources.elstat import parse as elstat_parse
+from traceconomics.sources.elstat import table05 as elstat_table05
 from traceconomics.sources import oet_local
 from traceconomics.sources.eurostat import parse as eurostat_parse
 from traceconomics.store.registry import Snapshot, label_files, snapshots
 
 LOADED = "loaded.jsonl"
 PARSERS = {"eurostat-tsv": eurostat_parse.PARSER_VERSION, "elstat-cpi07": elstat_parse.PARSER_VERSION,
+           "elstat-cpi05": elstat_table05.PARSER_VERSION,
            **{fmt: oet_local.PARSER_VERSION for fmt in oet_local.FORMATS}}
 COMMON_HEAD = ["dataset", "archive_dataset", "key"]
 COMMON_TAIL = ["ref_period", "published_at", "published_at_quality", "retrieved_at", "value", "value_text",
@@ -172,6 +174,12 @@ def _parse_into(con, spec: DatasetSpec, snap: Snapshot, table: str) -> None:
                     "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)")
         con.executemany(f"INSERT INTO {table} VALUES (?, ?, ?, 'GR', ?, ?, ?, NULL)",
                         [(f, u, c, p, repr(v), v) for f, u, c, p, v in t.rows()])
+    elif spec.format == "elstat-cpi05":
+        t5 = elstat_table05.parse(snap.path)
+        con.execute(f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, geo VARCHAR, "
+                    "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)")
+        con.executemany(f"INSERT INTO {table} VALUES (?, ?, 'GR', ?, ?, ?, NULL)",
+                        [(f, u, p, repr(v), v) for f, u, p, v in t5.rows()])
     elif spec.format in oet_local.FORMATS:
         dims = oet_local.FORMATS[spec.format]["dims"]
         cols = ", ".join(f'"{d}" VARCHAR' for d in (*dims, "measure"))

@@ -4,13 +4,12 @@
 // stands out, the two baskets behind it, and an invitation to the method (the next tab). No chart, no tiles, no table:
 // the numbers live on Explore. Every number comes from the default series and the calculator
 // file at build time.
-import Breadcrumb from "../../../../components/Breadcrumb.astro";
 import Base from "../../../../layouts/Base.astro";
 import { calculator } from "../../../../lib/data";
 import { BASE_AMOUNT, BASE_MONTH, headline } from "../../../../lib/headline";
 import { eur } from "../../../../lib/income";
 import { LANGS, month, num, pct, t, type Lang } from "../../../../lib/i18n";
-import { countryPaths, dataHref, topicHref, trail } from "../../../../lib/topics";
+import { countryPaths, dataHref, topicHref } from "../../../../lib/topics";
 
 export function getStaticPaths() {
   return countryPaths("inflation-by-group", LANGS);
@@ -48,7 +47,6 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
 <Base lang={lang} title={t(lang, "m1.title", { country: countryName })} description={t(lang, `m1.sources.${country}`)} topic={{ slug: SLUG, country, section: "" }}>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
-      <Breadcrumb lang={lang} trail={trail(lang, country, []).slice(0, 1).concat([[countryName]])} />
       <p class="eyebrow accent">{t(lang, "m1.latest", { month: month(lang, h.latestMonth) })}</p>
       <h1>{t(lang, "m1.title", { country: countryName })}</h1>
       <p style="font-size: var(--text-lg)">{t(lang, `m1.sources.${country}`)}</p>

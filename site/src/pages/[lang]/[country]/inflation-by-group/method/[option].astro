@@ -3,10 +3,9 @@
 // it makes, and the sources. Choices no source settles are labelled as ours in the text.
 import { getCollection, render } from "astro:content";
 import SourceList from "../../../../../components/SourceList.astro";
-import Breadcrumb from "../../../../../components/Breadcrumb.astro";
 import Base from "../../../../../layouts/Base.astro";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
-import { m1Text, topic, topicHref, trail } from "../../../../../lib/topics";
+import { m1Text, topic, topicHref } from "../../../../../lib/topics";
 
 export async function getStaticPaths() {
   const all = await getCollection("method", (e) => Boolean(e.data.option));
@@ -24,7 +23,6 @@ const explore = topicHref(lang, "inflation-by-group", country, "explore");
 <Base lang={lang} title={entry.data.title} description={entry.data.summary} topic={{ slug: "inflation-by-group", country, section: `method/${slug}` }}>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
-      <Breadcrumb lang={lang} trail={trail(lang, country, [[t(lang, "nav.method"), topicHref(lang, "inflation-by-group", country, "method")]])} />
       <h1>{entry.data.title}</h1>
       <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
     </header>

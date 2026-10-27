@@ -1,8 +1,9 @@
 ---
 // Every page: language, title, description, fonts (served from this site; no outside requests),
-// the design tokens, header and footer. A topic's pages pass `topic`: the header marks the topic,
-// the topic bar (country switch, the topic's pages) sits under the header, and the language
-// switch leads to the same address.
+// the design tokens, header and footer. A country's pages (its own page passes `country`, its
+// topics' pages `topic` with a country) get the country bar under the header, the same on each, and
+// the header's country switch leads to the same page for another country. A topic's page across
+// countries gets the topic bar. The language switch leads to the same address.
 import "@fontsource/source-sans-3/400.css";
 import "@fontsource/source-sans-3/600.css";
 import "@fontsource/source-sans-3/700.css";
@@ -12,17 +13,22 @@ import "../styles/tokens.css";
 import "../styles/global.css";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import CountryBar from "../components/CountryBar.astro";
 import TopicBar from "../components/TopicBar.astro";
-import { href, otherLang, t, type Lang } from "../lib/i18n";
-import { topicPath } from "../lib/topics";
+import { href, isOffered, otherLang, t, type Lang } from "../lib/i18n";
+import { countryHref, topic as topicOf, topicHref, topicPath } from "../lib/topics";
 
 interface Props {
-  lang: Lang; title: string; description: string; path?: string; current?: string;
+  lang: Lang; title: string; description: string; path?: string; current?: string; country?: string;
   topic?: { slug: string; country?: string; section?: string };
 }
 const { lang, title, description, topic } = Astro.props;
 const path = topic ? topicPath(topic.slug, topic.country, topic.section) : (Astro.props.path ?? "");
 const current = topic ? topic.slug : Astro.props.current;
+const country = topic?.country ?? Astro.props.country;
+// Another country's version of this page, where it has the topic; its own page otherwise.
+const countryLink = topic?.country === undefined ? undefined : (c: string) =>
+  topicOf(topic.slug).countries.includes(c) ? topicHref(lang, topic.slug, c, topic.section?.split("/")[0]) : countryHref(lang, c);
 const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "site.name")}`;
 ---
 <!doctype html>
@@ -34,14 +40,15 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{full}</title>
-    <link rel="alternate" hreflang={otherLang(lang)} href={href(otherLang(lang), path)} />
+    {isOffered(otherLang(lang)) && <link rel="alternate" hreflang={otherLang(lang)} href={href(otherLang(lang), path)} />}
     <link rel="alternate" hreflang={lang} href={href(lang, path)} />
     <script is:inline src="/theme.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#content">{t(lang, "skip")}</a>
-    <SiteHeader lang={lang} path={path} current={current} />
-    {topic && <TopicBar lang={lang} slug={topic.slug} country={topic.country} section={topic.section} />}
+    <SiteHeader lang={lang} path={path} current={current} country={country} countryLink={countryLink} />
+    {country !== undefined && <CountryBar lang={lang} country={country} slug={topic?.slug} section={topic?.section} />}
+    {topic && topic.country === undefined && <TopicBar lang={lang} slug={topic.slug} />}
     <main id="content">
       <div class="container">
         <slot />

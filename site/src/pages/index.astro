@@ -1,36 +1,36 @@
 ---
-// The root address: sends a visitor to the Greek or English site by the browser's language
-// (public/lang.js, in the head so the redirect happens before the page is drawn; a module script
-// would run only after the page has loaded). Nothing is stored (no cookie, no local storage): the
-// choice is made again on every visit here. Without scripts, the two links do the job.
+// The root address: sends a visitor to the site in their browser's language, among the offered
+// ones (public/lang.js, in the head so the redirect happens before the page is drawn; a module
+// script would run only after the page has loaded). Nothing is stored (no cookie, no local
+// storage): the choice is made again on every visit here. Without scripts, the links do the job.
 import "@fontsource/source-sans-3/400.css";
 import "@fontsource/source-sans-3/600.css";
 import "@fontsource/source-serif-4/600.css";
 import "../styles/tokens.css";
 import "../styles/global.css";
+import { OFFERED as LANGS } from "../lib/i18n";
+
+const NAMES = { el: ["Ελληνικά", "Επιλέξτε γλώσσα"], en: ["English", "Choose a language"] };
 ---
 <!doctype html>
-<html lang="el">
+<html lang={LANGS[0]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>TracEconomics</title>
-    <meta name="description" content="Πληθωρισμός ανά ομάδα νοικοκυριών · Inflation by household group" />
-    <link rel="alternate" hreflang="el" href="/el/" />
-    <link rel="alternate" hreflang="en" href="/en/" />
+    <meta name="description" content="Numbers the official statistics don’t publish" />
+    {LANGS.map((l) => <link rel="alternate" hreflang={l} href={`/${l}/`} />)}
     <link rel="alternate" hreflang="x-default" href="/" />
     <script is:inline src="/lang.js"></script>
   </head>
   <body>
     <main class="container stack" style="padding-top: var(--space-8); max-width: 520px">
       <h1>TracEconomics</h1>
-      <p lang="el">Επιλέξτε γλώσσα</p>
-      <p lang="en">Choose a language</p>
+      {LANGS.length > 1 && LANGS.map((l) => <p lang={l}>{NAMES[l][1]}</p>)}
       <div class="button-row">
-        <a class="button primary" href="/el/" lang="el">Ελληνικά</a>
-        <a class="button" href="/en/" lang="en">English</a>
+        {LANGS.map((l, i) => <a class={i === 0 ? "button primary" : "button"} href={`/${l}/`} lang={l}>{NAMES[l][0]}</a>)}
       </div>
     </main>
   </body>

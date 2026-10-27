@@ -7,11 +7,10 @@
 import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import OptionTerm from "../../../../components/OptionTerm.astro";
 import SourceList from "../../../../components/SourceList.astro";
-import Breadcrumb from "../../../../components/Breadcrumb.astro";
 import Base from "../../../../layouts/Base.astro";
 import { availability, labels, m1Dir, settings } from "../../../../lib/data";
 import { LANGS, LOCALE, t, type Lang } from "../../../../lib/i18n";
-import { countryPaths, dataHref, topicHref, trail } from "../../../../lib/topics";
+import { countryPaths, dataHref, topicHref } from "../../../../lib/topics";
 import el from "../../../../i18n/el.json";
 import en from "../../../../i18n/en.json";
 
@@ -57,7 +56,6 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
 <Base lang={lang} title={t(lang, "explore.title")} description={t(lang, "explore.lead", { country: t(lang, `country.${country}`) })} topic={{ slug: "inflation-by-group", country, section: "explore" }}>
   <div class="stack-lg" id="explore" data-config={JSON.stringify(config)}>
     <div class="stack" style="gap: var(--space-2)">
-      <Breadcrumb lang={lang} trail={trail(lang, country, [t(lang, "nav.explore")])} />
       <h1>{t(lang, "explore.title")}</h1>
       <p class="muted" style="max-width: var(--text-max)">{t(lang, "explore.lead", { country: t(lang, `country.${country}`) })}</p>
     </div>

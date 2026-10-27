@@ -5,14 +5,13 @@
 // tenure, pensioner households, and household types when their series come. The definitions are
 // the glossary's own entries, so the site says the same thing everywhere.
 import { getEntry, render } from "astro:content";
-import Breadcrumb from "../../../../components/Breadcrumb.astro";
 import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import SourceList from "../../../../components/SourceList.astro";
 import Base from "../../../../layouts/Base.astro";
 import { equivalentSize, eur, FIFTHS, HOUSEHOLD_TYPES, pps, ranges } from "../../../../lib/income";
 import cutoffs from "../../../../lib/income-cutoffs.json";
 import { href, LANGS, num, t, type Lang } from "../../../../lib/i18n";
-import { countryPaths, topicHref, trail } from "../../../../lib/topics";
+import { countryPaths, topicHref } from "../../../../lib/topics";
 
 export function getStaticPaths() {
   return countryPaths("inflation-by-group", LANGS);
@@ -72,7 +71,6 @@ const finderConfig = {
 <Base lang={lang} title={t(lang, "groups.title")} description={t(lang, "groups.lead", { country: countryName })} topic={{ slug: "inflation-by-group", country, section: "groups" }}>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
-      <Breadcrumb lang={lang} trail={trail(lang, country, [t(lang, "nav.groups")])} />
       <h1>{t(lang, "groups.title")}</h1>
       <p style="font-size: var(--text-lg)">{t(lang, "groups.lead", { country: countryName })}</p>
       <nav aria-label={t(lang, "opendata.country.topics")} class="chips">

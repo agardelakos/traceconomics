@@ -104,3 +104,38 @@ def test_downloads_csv_only_for_core_tables_except_the_default(tmp_path):
     assert "m1_weights_used.csv" in names
     sums = site.checksums(tmp_path / "d2").read_text(encoding="utf-8")
     assert "m1_rates.csv" in sums and len(sums.splitlines()) == 8
+
+
+def test_official_rate_from_the_published_levels_of_two_files():
+    # Each year's file holds its own months plus the previous December; only its own months count.
+    b = {2025: {"TOTAL": {"2024-12": 1.0, "2025-09": 122.06030611018821, "2025-12": 122.5}},
+         2026: {"TOTAL": {"2025-12": 999.0, "2026-08": 125.6, "2026-09": 128.223356317791}}}
+    out = site.official_rate(b, {"2026-08": 0.037, "2026-09": 0.05049184623573861})
+    ours, theirs = out["computed"], out["published"]
+    # Full precision, as ELSTAT computes it: rounding the indices first would give 5.0467.
+    assert ours["period"] == theirs["period"] == "2026-09"
+    assert abs(ours["annual_rate_full"] - 5.049184623573844) < 1e-12
+    assert ours["annual_rate"] == theirs["annual_rate"] == 5.0
+    assert ours["source"] == "elstat:cpi07" and theirs["source"] == "elstat:cpi05"
+    assert out["comparison"]["agree"] is True
+
+
+def test_official_rate_reports_a_disagreement_instead_of_hiding_it():
+    b = {2025: {"TOTAL": {"2025-09": 100.0}}, 2026: {"TOTAL": {"2026-09": 105.0}}}
+    out = site.official_rate(b, {"2026-09": 0.051})
+    assert out["computed"]["annual_rate"] == 5.0 and out["published"]["annual_rate"] == 5.1
+    assert out["comparison"]["agree"] is False
+    assert abs(out["comparison"]["difference"] + 0.1) < 1e-9
+
+
+def test_official_rate_keeps_each_figure_in_its_own_month():
+    # ELSTAT's table 05 a month ahead of table 07 (or behind): both shown, not compared.
+    b = {2025: {"TOTAL": {"2025-09": 100.0}}, 2026: {"TOTAL": {"2026-09": 105.0}}}
+    out = site.official_rate(b, {"2026-09": 0.05, "2026-10": 0.06})
+    assert out["computed"]["period"] == "2026-09" and out["published"]["period"] == "2026-10"
+    assert "comparison" not in out
+
+
+def test_official_rate_refuses_a_year_without_the_one_before():
+    with pytest.raises(FormatError):
+        site.official_rate({2026: {"TOTAL": {"2026-09": 128.2}}}, {"2026-09": 0.05})

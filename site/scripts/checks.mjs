@@ -40,6 +40,11 @@ for (const collection of readdirSync(content)) {
   for (const f of b) if (!a.has(f)) fail(`${collection}/${f}: English only`);
 }
 
+// The root page's redirect script offers the same languages as the site.
+const offered = JSON.parse(readFileSync(join(site, "src/i18n/languages.json"), "utf-8")).offered;
+const langJs = readFileSync(join(site, "public/lang.js"), "utf-8").match(/var SITE = (\[[^\]]*\])/);
+if (!langJs || JSON.stringify(JSON.parse(langJs[1])) !== JSON.stringify(offered)) fail(`public/lang.js: SITE isn't ${JSON.stringify(offered)}`);
+
 // A glossary term sits in the same category in both languages.
 const category = (lang, f) => readFileSync(join(content, "glossary", lang, f), "utf-8").match(/^category:\s*(\S+)/m)?.[1];
 for (const f of readdirSync(join(content, "glossary", "en")).filter((f) => f.endsWith(".md"))) {

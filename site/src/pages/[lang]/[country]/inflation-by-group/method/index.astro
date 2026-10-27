@@ -2,10 +2,9 @@
 // The method for one country in plain language, with links to each option's page and the sources.
 import { getCollection, render } from "astro:content";
 import SourceList from "../../../../../components/SourceList.astro";
-import Breadcrumb from "../../../../../components/Breadcrumb.astro";
 import Base from "../../../../../layouts/Base.astro";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
-import { countryPaths, m1Text, topicHref, trail } from "../../../../../lib/topics";
+import { countryPaths, m1Text, topicHref } from "../../../../../lib/topics";
 
 export function getStaticPaths() {
   return countryPaths("inflation-by-group", LANGS);
@@ -22,7 +21,6 @@ const { Content } = await render(main);
 <Base lang={lang} title={main.data.title} description={main.data.summary} topic={{ slug: "inflation-by-group", country, section: "method" }}>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
-      <Breadcrumb lang={lang} trail={trail(lang, country, [t(lang, "nav.method")])} />
       <h1>{main.data.title}</h1>
       <p style="font-size: var(--text-lg)">{main.data.summary}</p>
     </header>

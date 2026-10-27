@@ -1,20 +1,24 @@
-// What the site covers: its topics, the countries each one covers, and every page's address.
+// What the site covers: its countries, the topics each one has, and every page's address.
 //
 // Addresses never change once published, so they are built here and nowhere else:
 //
-//   /{lang}/                                   the site's home: every topic, every country
-//   /{lang}/{topic}/                           a topic: what it is, which countries it covers
-//   /{lang}/{topic}/{country}/                 a topic for one country: the headline figures
-//   /{lang}/{topic}/{country}/{section}/...    its pages (explore, calculator, method)
+//   /{lang}/                                   the site's home: every country, every topic
+//   /{lang}/{country}/                         a country: every topic it has, and what is coming
+//   /{lang}/{country}/{topic}/                 a topic for one country: the headline figures
+//   /{lang}/{country}/{topic}/{section}/...    its pages (explore, calculator, method)
+//   /{lang}/{topic}/                           a topic across countries: what it is, who has it
 //   /{lang}/data/  ·  /{lang}/data/{country}/  every file, by country, grouped by topic on the page
 //   /{lang}/glossary/ · /about/                pages for the whole site
 //
-// The topic comes before the country because some topics compare countries (forecasts can be
-// scored for every country at once), while others need a country's own survey and grow one
-// country at a time. A planned topic or country is listed, greyed out, but has no page and no
-// address yet: it gets one when there is something to show.
+// The country comes first because most readers come for one country: they read its language,
+// follow its releases and want every topic it has. A topic still has its own page, above the
+// countries, for readers who compare countries; some topics (forecast scores, revisions) compare
+// well, others need each country's own survey. Countries are two-letter codes and every other
+// first-level name (topics, data, glossary, about) is longer, so the two can never clash.
+// A planned topic or country is listed, greyed out, but has no page and no address yet: it gets
+// one when there is something to show.
 
-import { href, t, type Lang } from "./i18n";
+import { href, type Lang } from "./i18n";
 
 export type Status = "live" | "planned";
 
@@ -32,8 +36,10 @@ export const TOPICS: Topic[] = [
     // In reading order: what it is, how it was measured, who the groups are, then the tools.
     sections: ["", "method", "groups", "explore", "calculator"],
   },
+  { slug: "official-figures-checked", module: "m5", status: "planned", countries: [], sections: [] },
   { slug: "forecast-scorecard", module: "m2", status: "planned", countries: [], sections: [] },
   { slug: "gdp-nowcast", module: "m3", status: "planned", countries: [], sections: [] },
+  { slug: "revisions", module: "m4", status: "planned", countries: [], sections: [] },
 ];
 
 // The official sources the footer names: each covered country's statistics office, then Eurostat.
@@ -58,19 +64,32 @@ export function topic(slug: string): Topic {
   return found;
 }
 
-/** The address of a topic's page: its landing page, a country's overview or one of its pages. */
+/** The address of a topic's page: its page across countries, or one country's overview or page. */
 export function topicHref(lang: Lang, slug: string, country?: string, section = ""): string {
   const tp = topic(slug);
   if (tp.status !== "live") throw new Error(`topic "${slug}" is planned: it has no page yet`);
   if (country === undefined) return href(lang, slug);
   if (!tp.countries.includes(country)) throw new Error(`topic "${slug}" has no page for "${country}"`);
   if (!tp.sections.includes(section.split("/")[0])) throw new Error(`topic "${slug}" has no section "${section}"`);
-  return href(lang, [slug, country, section].filter(Boolean).join("/"));
+  return href(lang, topicPath(slug, country, section));
 }
 
 /** The path inside a language (no /{lang}/), as the layout needs it for the language switch. */
 export function topicPath(slug: string, country?: string, section = ""): string {
-  return [slug, country, section].filter(Boolean).join("/");
+  return (country === undefined ? [slug] : [country, slug, section]).filter(Boolean).join("/");
+}
+
+/** The countries with pages: every country a live topic covers, in the order first listed. */
+export function countries(): string[] {
+  const found = [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x) => x.countries))];
+  for (const c of found) if (!/^[a-z]{2}$/.test(c)) throw new Error(`country "${c}" is not a two-letter code`);
+  return found;
+}
+
+/** A country's page: every topic it has. */
+export function countryHref(lang: Lang, country: string): string {
+  if (!countries().includes(country)) throw new Error(`no page for country "${country}"`);
+  return href(lang, country);
 }
 
 /**
@@ -80,7 +99,7 @@ export function topicPath(slug: string, country?: string, section = ""): string 
  * a module ever computes them; it is not for copies of Eurostat's own tables.
  */
 export function dataCountries(): string[] {
-  return [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x) => x.countries))];
+  return countries();
 }
 
 /** The site's data pages: the hub, or one country's page. */
@@ -93,15 +112,6 @@ export function dataHref(lang: Lang, country?: string): string {
 /** getStaticPaths for a topic's per-country pages: every language × every country it covers. */
 export function countryPaths(slug: string, langs: readonly Lang[]) {
   return langs.flatMap((lang) => topic(slug).countries.map((country) => ({ params: { lang, country } })));
-}
-
-/** A breadcrumb trail inside a topic: the topic, the country, then the given levels. */
-export function trail(lang: Lang, country: string, rest: (string | [string, string])[], slug = "inflation-by-group"): [string, string?][] {
-  return [
-    [t(lang, `topic.${slug}`), topicHref(lang, slug)],
-    [t(lang, `country.${country}`), topicHref(lang, slug, country)],
-    ...rest.map((r): [string, string?] => (typeof r === "string" ? [r] : r)),
-  ];
 }
 
 /**

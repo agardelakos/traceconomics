@@ -1,0 +1,38 @@
+---
+// A country's page: every topic the site has for it, as the question each one answers, then the
+// topics still to come, then its data. Most readers come for one country, so this is where the
+// header's country switch leads.
+import TopicCards from "../../../components/TopicCards.astro";
+import Base from "../../../layouts/Base.astro";
+import { LANGS, t, type Lang } from "../../../lib/i18n";
+import { countries, dataHref, topicHref } from "../../../lib/topics";
+
+export function getStaticPaths() {
+  return LANGS.flatMap((lang) => countries().map((country) => ({ params: { lang, country } })));
+}
+
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const name = t(lang, `country.${country}`);
+---
+<Base lang={lang} title={name} description={t(lang, "country.lead")} path={country} country={country}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <h1>{name}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "country.lead")}</p>
+    </header>
+
+    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
+      <h2 id="topics-h">{t(lang, "hub.topics")}</h2>
+      <TopicCards lang={lang}
+        link={(tp) => (tp.status === "live" && tp.countries.includes(country) ? topicHref(lang, tp.slug, country) : null)}
+      />
+    </section>
+
+    <section class="stack" style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)">
+      <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">{t(lang, "opendata.country.title", { country: name })}</h2>
+      <p class="muted" style="max-width: var(--text-max)">{t(lang, "opendata.country.lead", { country: name })}</p>
+      <a href={dataHref(lang, country)} style="font-weight: 600">{t(lang, "opendata.all")} →</a>
+    </section>
+  </div>
+</Base>

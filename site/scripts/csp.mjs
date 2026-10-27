@@ -33,7 +33,7 @@ for (const path of list) {
   await page.waitForTimeout(400);
 }
 // Interact with the pages that draw on demand.
-await page.goto(base + "/en/inflation-by-group/gr/explore/", { waitUntil: "networkidle" });
+await page.goto(base + "/en/gr/inflation-by-group/explore/", { waitUntil: "networkidle" });
 for (const sel of await page.$$("select")) { const opts = await sel.$$("option"); if (opts.length > 1) await sel.selectOption({ index: 1 }); }
 await page.waitForTimeout(800);
 console.log(`${list.length} pages visited; violations: ${violations.length}`);

@@ -52,11 +52,13 @@ main { padding: var(--space-5) 0 var(--space-7); }
 
 /* The main navigation. One element: on a phone a popover under the menu button (it opens without
    a script), on wider screens a row in the header (the popover's own hiding is switched off). */
-.site-nav ul { list-style: none; margin-block: 0; display: flex; gap: 2px; }
-.site-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; color: var(--color-text); text-decoration: none; }
-.site-nav a:hover { background: var(--color-disabled); }
-.site-nav a[aria-current="page"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 600; }
-.site-nav .planned { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 var(--space-3); }
+.site-nav > ul { list-style: none; margin-block: 0; display: flex; gap: 2px; }
+.site-nav > ul > li > a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; color: var(--color-text); text-decoration: none; }
+.site-nav > ul > li > a:hover { background: var(--color-disabled); }
+.site-nav > ul > li > a[aria-current="page"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 600; }
+/* The country switch looks like the other items; its arrow says it opens a list. */
+.nav-country { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3); border: 0; border-radius: 6px; background: none; color: var(--color-text); font: inherit; cursor: pointer; }
+.nav-country:hover { background: var(--color-disabled); }
 .menu-settings fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-m); margin: var(--space-3) 0 0; padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; }
 .menu-settings legend { font-weight: 700; padding: 0 var(--space-1); }
 .menu-settings label { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; cursor: pointer; }
@@ -65,15 +67,14 @@ main { padding: var(--space-5) 0 var(--space-7); }
 @media (max-width: 899px) {
   .settings { display: none; }
   .site-nav[popover] { inset: 64px var(--space-2) auto; margin: 0; width: auto; max-height: calc(100dvh - 80px); overflow: auto; padding: var(--space-2) 0; background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
-  .site-nav ul { flex-direction: column; padding-inline: var(--space-2); }
-  .site-nav a, .site-nav .planned { min-height: 48px; justify-content: space-between; }
-  .site-nav li.push { border-top: 1px solid var(--color-border); margin-top: var(--space-2); padding-top: var(--space-2); }
+  .site-nav > ul { flex-direction: column; padding-inline: var(--space-2); }
+  .site-nav > ul > li > a { min-height: 48px; justify-content: space-between; }
+  .nav-country { width: 100%; min-height: 48px; justify-content: space-between; }
 }
 @media (min-width: 900px) {
   .menu-button, .menu-settings { display: none !important; }
   .site-nav[popover] { display: block; position: static; inset: auto; width: auto; height: auto; margin: 0; padding: 0 0 6px; border: 0; background: none; color: inherit; overflow: visible; }
-  .site-nav ul { flex-wrap: wrap; align-items: center; }
-  .site-nav li.push { margin-left: auto; }
+  .site-nav > ul { flex-wrap: wrap; align-items: center; }
 }
 
 /* Not built yet: a topic, country or option listed ahead of time. Greyed, not a link, and always
@@ -92,9 +93,9 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .topic-bar:has(.topic-nav) .topic-stack { padding-bottom: 0; }
 .topic-title { display: flex; flex-direction: column; }
 .topic-title .eyebrow { font-size: var(--text-xs); font-weight: 700; color: var(--color-accent); }
+.topic-title a.eyebrow { align-self: flex-start; display: inline-flex; align-items: center; min-height: 24px; text-decoration: none; }
+.topic-title a.eyebrow:hover { text-decoration: underline; }
 .topic-name { font-family: var(--font-serif); font-weight: 600; font-size: var(--text-xl); color: var(--color-text); text-decoration: none; }
-.country-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.country-button { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3) 0 var(--space-4); border: 1px solid var(--color-accent); border-radius: 999px; background: var(--color-surface); color: var(--color-accent); font: inherit; font-weight: 600; cursor: pointer; }
 .country-menu { min-width: 240px; padding: var(--space-1); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
 .country-menu ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .country-menu a, .country-menu .planned { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; text-decoration: none; }
@@ -109,7 +110,10 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .topic-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-bottom: 3px solid transparent; color: var(--color-text); text-decoration: none; white-space: nowrap; }
 .topic-nav li:first-child a { padding-left: 0; }
 .topic-nav a:hover { border-bottom-color: var(--color-border); }
-.topic-nav a[aria-current="page"] { border-bottom-color: var(--color-accent); color: var(--color-accent); font-weight: 700; }
+.topic-nav a[aria-current] { border-bottom-color: var(--color-accent); color: var(--color-accent); font-weight: 700; }
+/* A topic's own pages, under the country's tabs: smaller, so the two rows read as levels. */
+.topic-nav.sub a { min-height: 40px; font-size: var(--text-sm); border-bottom-width: 2px; }
+.topic-nav.sub a[aria-current] { font-weight: 600; }
 
 /* The settings menu, under its button */
 .theme-menu { max-width: 280px; padding: var(--space-3) var(--space-4); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
@@ -127,6 +131,7 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .lang-switch { display: flex; border: 1px solid var(--color-border); border-radius: 6px; overflow: hidden; font-size: var(--text-sm); }
 .lang-switch a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-3); color: var(--color-text); text-decoration: none; }
 .lang-switch a[aria-current="true"] { background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 600; }
+.lang-switch .unpublished { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-3); color: var(--color-disabled-text); background: var(--color-disabled); cursor: default; }
 
 /* SiteFooter */
 .site-footer { border-top: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-muted); font-size: var(--text-sm); }
@@ -143,6 +148,8 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-m); padding: var(--space-4); }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-3); }
 .card { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-m); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); text-decoration: none; }
+.card .label { margin-top: var(--space-2); font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-accent); }
+.card.planned .label { color: var(--color-disabled-text); }
 .card .title { font-family: var(--font-serif); font-size: 1.1875rem; font-weight: 600; line-height: 1.25; }
 .card .text { color: var(--color-text-muted); }
 
@@ -328,11 +335,6 @@ button.term { font: inherit; color: inherit; background: none; border: none; pad
 .eyebrow.accent, .accent-text { color: var(--color-accent); font-weight: 700; }
 .section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
 .section-head p { margin: 0; }
-.countries-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
-.countries-strip h2 { font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700; margin: 0; }
-.countries-strip p { flex: 1 1 280px; margin: 0; }
-.country-chip { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-3); border: 1px solid var(--color-accent); border-radius: 999px; color: var(--color-accent); font-weight: 600; }
-.country-chip.planned { border: 1px dashed var(--color-disabled-text); background: var(--color-disabled); color: var(--color-disabled-text); font-weight: 400; }
 .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-3); }
 .step-number { font-family: var(--font-serif); font-weight: 600; color: var(--color-accent); }
 .steps h3 { margin: 0; font-size: var(--text-lg); }
@@ -418,3 +420,16 @@ label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not
 .euro-row input { grid-area: input; min-height: 40px; font: inherit; font-variant-numeric: tabular-nums; text-align: right; padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); }
 .euro-row input[aria-invalid] { border: 2px solid var(--color-flag-low-reliability); }
 .euro-row span { grid-area: share; }
+
+/* Flags: always next to the country's name, never instead of it. */
+.country-flag { flex: none; border-radius: 2px; box-shadow: 0 0 0 1px var(--color-border); vertical-align: -2px; }
+.country-name { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+/* A country's card on the home page: its name, then a few figures in one month, then the source. */
+.country-card { gap: var(--space-2); }
+.country-card .title { color: var(--color-text); text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; align-self: flex-start; }
+.country-card .title:hover { text-decoration: underline; }
+.country-card .eyebrow, .country-card p { margin: 0; }
+.facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.facts dt { font-size: var(--text-sm); color: var(--color-text-muted); }
+.facts dd { margin: 0; font-family: var(--font-serif); font-size: var(--text-xl); font-weight: 600; font-variant-numeric: tabular-nums; }

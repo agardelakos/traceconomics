@@ -18,6 +18,6 @@ def listed() -> dict[str, str]:
 
 def test_untouched_fixtures_match_their_published_hashes():
     hashes = listed()
-    assert len(hashes) == 7
+    assert len(hashes) == 8
     for name, expected in hashes.items():
         assert hashlib.sha256((FIXTURES / name).read_bytes()).hexdigest() == expected, name

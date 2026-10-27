@@ -1,0 +1,27 @@
+---
+// Every topic as a card: the question it answers as the title, under its short name. A topic with
+// a page here is a link; one not built yet is greyed out, marked "coming soon", and is not a link.
+// The caller decides where each topic leads: its page across countries, or one country's page.
+import { t, type Lang } from "../lib/i18n";
+import { TOPICS, type Topic } from "../lib/topics";
+
+interface Props { lang: Lang; link: (tp: Topic) => string | null }
+const { lang, link } = Astro.props;
+const cards = TOPICS.map((tp) => ({ tp, link: link(tp) }));
+---
+<div class="cards">
+  {cards.map(({ tp, link }) => link ? (
+    <a class="card" href={link}>
+      <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
+      <span class="title">{t(lang, `topic.${tp.slug}.question`)} →</span>
+      <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
+    </a>
+  ) : (
+    <div class="card planned">
+      <span class="chip-status">{t(lang, "soon")}</span>
+      <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
+      <span class="title">{t(lang, `topic.${tp.slug}.question`)}</span>
+      <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
+    </div>
+  ))}
+</div>

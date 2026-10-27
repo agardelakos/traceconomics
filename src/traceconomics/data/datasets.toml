@@ -85,6 +85,16 @@ dimensions = ["freq", "unit", "coicop18", "geo"]
 coicop = "coicop18"
 classification = "coicop2018"
 
+# ELSTAT's CPI table 05: the overall index and its published twelve-month rate of change, monthly
+# from 1959, one file overwritten every month. Kept so ELSTAT's own rate can be compared with the
+# one we compute from table 07. freq M: unit I20 the index (2020=100), RCH_A_FR the rate as the
+# file holds it, a fraction (0.05 = 5%); freq A: the annual averages and their rates.
+[elstat.cpi05]
+archive = ["elstat/doc-*"]
+file_name = 'DKT87_TS_MM_\d\d_1959_\d\d_\d{4}_05_F_EN\.xlsx$'
+format = "elstat-cpi05"
+dimensions = ["freq", "unit", "geo"]
+
 # Our own weights tables, built locally from the household budget survey microdata (aggregates only).
 ["oet-local".hbs_weights]
 archive = ["oet-local/hbs-weights-gr-*"]

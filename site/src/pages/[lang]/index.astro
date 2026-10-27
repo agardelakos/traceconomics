@@ -1,13 +1,18 @@
 ---
-// The site's home: what TracEconomics is, in plain words, the latest headline as a sentence, every
-// topic and the countries. No chart, no tiles, no table: the numbers live on each topic's pages.
-// Each place links to a page once. A planned topic is greyed out, with the reason, and is not a
-// link.
+// The site's home: what TracEconomics is, in plain words, and the latest headline as a sentence;
+// then the countries, first, because most readers come for one; then every topic (as the question
+// it answers, under its short name), each leading to its page across countries. No chart, no
+// tiles, no table: the numbers live on each topic's pages. Each place links to a page once. A
+// planned topic or country is greyed out, with the reason, and is not a link.
 import Base from "../../layouts/Base.astro";
 import { BASE_AMOUNT, BASE_MONTH, headline } from "../../lib/headline";
 import { eur } from "../../lib/income";
-import { href, LANGS, month, t, type Lang } from "../../lib/i18n";
-import { topic, topicHref, TOPICS } from "../../lib/topics";
+import { href, LANGS, month, num, pct, t, type Lang } from "../../lib/i18n";
+import TopicCards from "../../components/TopicCards.astro";
+import { countryFacts } from "../../lib/context";
+import { flag } from "../../lib/flags";
+import { reference } from "../../lib/references";
+import { countries, countryHref, OFFICES, topic, topicHref } from "../../lib/topics";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -15,7 +20,6 @@ export function getStaticPaths() {
 
 const lang = Astro.params.lang as Lang;
 const acc = (p: string) => month(lang, p, "acc");
-const names = (codes: string[]) => codes.map((c) => t(lang, `country.${c}`)).join(", ");
 
 // The headline comes from the first country of the first live topic.
 const M1 = "inflation-by-group";
@@ -23,7 +27,26 @@ const country = topic(M1).countries[0];
 const h = headline(country);
 const SWATCH: Record<string, string> = { Q1: "var(--series-q1)", Q5: "var(--series-q5)" };
 const countryName = t(lang, `country.${country}`);
-const covered = [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x) => x.countries))];
+// Each country's card: a few headline figures, each as the office published it and as we compute
+// it from the office's own lower-level data, with whether the two agree and the source (both come
+// from the office's statistics page). Inflation today; more figures as the topics that need them arrive. An
+// official figure is shown only where one of our topics gives it context, never on its own. A
+// figure whose month differs from the card's carries its own month.
+const cards = countries().map((c) => ({
+  code: c,
+  ...card(c),
+}));
+function card(c: string) {
+  const facts = countryFacts(c);
+  const { computed, published, comparison } = facts.official;
+  const office = t(lang, `source.${OFFICES[c].key}`);
+  const figures = [
+    { label: t(lang, "country.card.published", { office }), value: published.annual_rate, period: published.period },
+    { label: t(lang, "country.card.computed"), value: computed.annual_rate, period: computed.period },
+  ];
+  // The card's month is the published figure's; ours says so if it is for another month.
+  return { facts, office, figures, month: published.period, check: comparison };
+}
 ---
 <Base lang={lang} title={t(lang, "site.name")} description={t(lang, "site.tagline")} current="home">
   <div class="stack-lg">
@@ -35,7 +58,7 @@ const covered = [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x
         <p class="lead-2">{t(lang, "hub.intro2")}</p>
       </div>
       <aside class="panel euros" aria-labelledby="euros-h">
-        <p class="eyebrow">{t(lang, "hub.latest.eyebrow", { country: countryName })} · {t(lang, `topic.${M1}`)}</p>
+        <p class="eyebrow">{t(lang, "hub.fact.eyebrow", { country: countryName })}</p>
         <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
         <dl class="euros-list">
           {h.baskets.map((b) => (
@@ -49,37 +72,42 @@ const covered = [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x
           ))}
         </dl>
         <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, h.latestMonth) })}</p>
-        <a href={topicHref(lang, M1, country)} style="font-weight: 600">{t(lang, "hub.latest.link", { country: countryName })} →</a>
       </aside>
     </section>
 
-    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
-      <div class="section-head">
-        <h2 id="topics-h">{t(lang, "hub.topics")}</h2>
-        <p class="muted">{t(lang, "hub.topics.lead")}</p>
-      </div>
+    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
+      <h2 id="countries-h">{t(lang, "hub.countries.title")}</h2>
       <div class="cards">
-        {TOPICS.map((tp) => tp.status === "live" ? (
-          <a class="card" href={topicHref(lang, tp.slug)}>
-            <span class="chip-status">{t(lang, "hub.status.live", { list: names(tp.countries) })}</span>
-            <span class="title">{t(lang, `topic.${tp.slug}`)} →</span>
-            <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
-          </a>
-        ) : (
-          <div class="card planned">
-            <span class="chip-status">{t(lang, "soon")}</span>
-            <span class="title">{t(lang, `topic.${tp.slug}`)}</span>
-            <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
+        {cards.map((c) => (
+          <div class="card country-card">
+            <a class="title" href={countryHref(lang, c.code)}><Fragment set:html={flag(c.code)} /> {t(lang, `country.${c.code}`)} →</a>
+            <p class="eyebrow">{t(lang, "country.card.month", { month: month(lang, c.month) })}</p>
+            <dl class="facts">
+              {c.figures.map((f) => (
+                <div>
+                  <dt>{f.label}{f.period !== c.month && <> ({month(lang, f.period)})</>}</dt>
+                  <dd>{pct(lang, f.value)}</dd>
+                </div>
+              ))}
+            </dl>
+            <p class="small muted">
+              {c.check === undefined ? null : c.check.agree
+                ? t(lang, "country.card.agree", { office: c.office })
+                : <strong>{t(lang, "country.card.differ", { office: c.office, points: num(lang, c.check.difference, 4) })}</strong>}
+              {" "}<a href={reference(c.facts.official.published.reference).url}>{t(lang, "country.card.source")}</a>
+            </p>
           </div>
         ))}
+        <div class="card planned">
+          <span class="chip-status">{t(lang, "soon")}</span>
+          <span class="title">{t(lang, "country.more")}</span>
+        </div>
       </div>
-    </section>
+    </nav>
 
-    <section class="panel countries-strip" aria-labelledby="countries-h">
-      <h2 id="countries-h">{t(lang, "hub.countries")}</h2>
-      {covered.map((c) => <span class="country-chip">{t(lang, `country.${c}`)}</span>)}
-      <span class="country-chip planned">{t(lang, "country.more")}</span>
-      <p class="small muted">{t(lang, "hub.countries.text")}</p>
+    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
+      <h2 id="topics-h">{t(lang, "hub.topics")}</h2>
+      <TopicCards lang={lang} link={(tp) => (tp.status === "live" ? topicHref(lang, tp.slug) : null)} />
     </section>
 
     <section class="stack" style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)">
