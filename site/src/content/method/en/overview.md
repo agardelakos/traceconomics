@@ -41,7 +41,7 @@ Each category's contribution to an annual rate follows Eurostat's method, so con
 
 ## Uncertainty
 
-The weights come from a sample, so each group's rates carry an error band: two standard errors either side, from a bootstrap that redraws the survey's sampling areas 1,000 times and ranks households into groups again each time. The band covers the sampling of households only, so it is a lower bound. The 2017–2019 surveys lack the information needed, so the years that use them have no band.
+The weights come from a sample, so each group's rates carry an error band: two standard errors either side, from a bootstrap that redraws the survey's sampling areas 1 000 times and ranks households into groups again each time. The band covers the sampling of households only, so it is a lower bound. The 2017–2019 surveys lack the information needed, so the years that use them have no band.
 
 ## Checks
 

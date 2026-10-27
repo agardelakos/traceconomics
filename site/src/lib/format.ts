@@ -4,13 +4,19 @@
 export type Lang = "el" | "en";
 export const LOCALE: Record<Lang, string> = { el: "el-GR", en: "en-GB" };
 
-/** A published number as the reader's language writes it (5,1 or 5.1). Negative zero shows as 0. */
+/** A published number with the reader's decimal mark (5,1 or 5.1). Negative zero shows as 0.
+ *  Thousands are split by a narrow no-break space in both languages ("6 123"), the SI and EU
+ *  style convention: a comma or a point there would be read the other way round in one of them. */
 export function num(lang: Lang, value: number, digits = 1): string {
   return new Intl.NumberFormat(LOCALE[lang], {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
     signDisplay: "negative",
-  }).format(value);
+    useGrouping: "always",
+  })
+    .formatToParts(value)
+    .map((p) => (p.type === "group" ? " " : p.value))
+    .join("");
 }
 
 export const pct = (lang: Lang, value: number, digits = 1) => `${num(lang, value, digits)}%`;

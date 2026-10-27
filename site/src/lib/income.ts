@@ -43,10 +43,10 @@ export function ranges(topCutoffs: Record<string, number>, size: number): Range[
   }));
 }
 
-/** "€7,110" in English, "7.110 €" in Greek. */
 // Amounts are written one way on every page, in both languages: a point before the decimals and a
-// narrow space between thousands ("€130.8", "€14 931", "8 272 PPS"). The space is used because a
-// comma or a point there would be read the other way round in one of the languages.
+// narrow no-break space between thousands ("€130.8", "€14 931", "8 272 PPS"). The space is the SI
+// and EU style convention, and the only mark read the same way in both languages: a comma or a
+// point there would be read the other way round in one of them.
 function digits3(value: number, digits: number): string {
   const [whole, frac] = Math.abs(value).toFixed(digits).split(".");
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f");
