@@ -17,7 +17,9 @@ const LICENCES = {
   <div class="container">
     <p>{t(lang, "footer.public")}</p>
     <p>{t(lang, "footer.official")} {sources.map((s, i) => (
-      <>{i > 0 && " · "}<a href={s.href[lang]}>{t(lang, `source.${s.key}`)}</a>{has(lang, `source.${s.key}.long`) && ` (${t(lang, `source.${s.key}.long`)})`}</>
+      <>{i > 0 && " · "}{s.shown
+        ? <>{t(lang, `source.${s.key}`)} ({has(lang, `source.${s.key}.long`) && `${t(lang, `source.${s.key}.long`)}, `}<a href={s.href[lang]}>{s.shown}</a>)</>
+        : <><a href={s.href[lang]}>{t(lang, `source.${s.key}`)}</a>{has(lang, `source.${s.key}.long`) && ` (${t(lang, `source.${s.key}.long`)})`}</>}</>
     ))}</p>
     <p>{t(lang, "footer.data")} <a href={LICENCES.data.href}>{LICENCES.data.name}</a> · {t(lang, "footer.code")} <a href={LICENCES.code.href}>{LICENCES.code.name}</a></p>
   </div>

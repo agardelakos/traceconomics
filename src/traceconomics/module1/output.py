@@ -315,9 +315,14 @@ def write_metadata(folder: Path, *, first_period, last_period, manifest: dict, n
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "manifest": manifest,
         "licence": "CC BY 4.0",
-        "attribution": ("Prices: ELSTAT, Consumer Price Index (table 07), and Eurostat, HICP item indices "
-                        "(prc_hicp_minr). Weights: computed by TracEconomics from ELSTAT's Household Budget "
-                        "Survey public use files. ELSTAT and Eurostat bear no responsibility for these figures."),
+        # The publishers' reuse terms ask for the source, a clear statement that the data were
+        # modified, and that they bear no responsibility for the result (SOURCES.md).
+        "attribution": ("Computed by TracEconomics from data of the Hellenic Statistical Authority (ELSTAT, "
+                        "www.statistics.gr) and Eurostat: prices from ELSTAT's Consumer Price Index (table 07) "
+                        "and Eurostat's HICP item indices (prc_hicp_minr, doi:10.2908/PRC_HICP_MINR), weights "
+                        "from ELSTAT's Household Budget Survey public use files. The data have been modified: "
+                        "these are our own calculations, not official statistics. ELSTAT and Eurostat bear no "
+                        "responsibility for the result of the modification."),
     }
     path = Path(folder) / "metadata.json"
     path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")

@@ -93,7 +93,7 @@ function card(c: string) {
               {c.check === undefined ? null : c.check.agree
                 ? t(lang, "country.card.agree", { office: c.office })
                 : <strong>{t(lang, "country.card.differ", { office: c.office, points: num(lang, c.check.difference, 4) })}</strong>}
-              {" "}<a href={reference(c.facts.official.published.reference).url}>{t(lang, "country.card.source")}</a>
+              {" "}{t(lang, "country.card.source")}: <a href={reference(c.facts.official.published.reference).url}>{new URL(reference(c.facts.official.published.reference).url!).hostname}</a>
             </p>
           </div>
         ))}

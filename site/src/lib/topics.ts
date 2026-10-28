@@ -44,9 +44,11 @@ export const TOPICS: Topic[] = [
 
 // The official sources the footer names: each covered country's statistics office, then Eurostat.
 // Each links to the publisher's own home page, in the reader's language where it has one.
-export interface Office { key: string; href: Record<Lang, string> }
+// `shown`: the address written out as the link's text, for a publisher whose reuse terms ask that
+// links to it name its website in full (ELSTAT: www.statistics.gr).
+export interface Office { key: string; href: Record<Lang, string>; shown?: string }
 export const OFFICES: Record<string, Office> = {
-  gr: { key: "elstat", href: { en: "https://www.statistics.gr/en/home", el: "https://www.statistics.gr/el/home" } },
+  gr: { key: "elstat", href: { en: "https://www.statistics.gr/en/home", el: "https://www.statistics.gr/el/home" }, shown: "www.statistics.gr" },
 };
 export const EUROSTAT: Office = { key: "eurostat", href: { en: "https://ec.europa.eu/eurostat", el: "https://ec.europa.eu/eurostat" } };
 

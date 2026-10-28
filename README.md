@@ -135,6 +135,8 @@ The tests use small saved extracts of real pages (`tests/fixtures/`) and never t
 - Eurostat, https://ec.europa.eu/eurostat. Reused under Eurostat's copyright notice. Eurostat bears no responsibility for anything derived from its data here.
 - Publications Office of the European Union, EU Vocabularies: the English and Greek names of the spending categories (ECOICOP version 2).
 
+Every source, its reuse terms and how we meet them: [SOURCES.md](SOURCES.md).
+
 ## Licence
 
 Copyright 2026 agardelakos. Code: [Apache-2.0](LICENSE), with the notices in [NOTICE](NOTICE). Data published by this project: CC BY 4.0.
