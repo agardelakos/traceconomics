@@ -47,7 +47,7 @@ const config = {
   lang, locale: LOCALE[lang], base: `/data/v1/${m1Dir(country)}`, defaultSlug: set.default,
   optionKeys: OPTIONS, values, defaults, colors: COLORS,
   dash: Object.fromEntries(FAMILIES.flatMap((f) => f.groups).map((g) => [g, dashOf(g)])),
-  availability: avail.options, divisions, dataPage: dataHref(lang, country),
+  availability: avail.options, divisions, dataPage: dataHref(lang, country), country: t(lang, `country.${country}`),
   strings: lang === "el" ? el : en,
 };
 

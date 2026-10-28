@@ -17,6 +17,7 @@ interface Config {
   dash: Record<string, string>;
   availability: Record<string, Record<string, { index: string[]; annual_rates: string[] | null; greyed: any[]; notes: any[] }>>;
   dataPage: string;
+  country: string;
   divisions: Record<string, string>;
   strings: Record<string, string>;
 }
@@ -187,7 +188,7 @@ export function start(root: HTMLElement): void {
   function renderDownloads() {
     ($("files-this") as unknown as HTMLAnchorElement).href = `${cfg.dataPage}#setting-${slug()}`;
     const opts = [options.grouping, ...SETTING_KEYS.map((k) => t(`option.${k}.${options[k]}`))].join(", ");
-    $("cite").textContent = t("explore.cite_text", { year: new Date().getFullYear(), options: opts, url: location.href });
+    $("cite").textContent = t("explore.cite_text", { year: new Date().getFullYear(), country: cfg.country, options: opts, url: location.href });
   }
 
   async function render() {

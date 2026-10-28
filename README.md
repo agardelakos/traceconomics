@@ -53,7 +53,7 @@ npm run preview                                         # look at it on http://l
 npm run a11y                                            # accessibility check (axe), with the preview running
 ```
 
-`npm run check` fails on a missing translation, an unknown source, an inline script, a resource from another site, or a page over its size budget. Building needs Node.js 22 or later.
+`npm run check` fails on a missing translation, an unknown source, an inline script, a resource from another site, or a page over its size budget. Building needs Node.js 22 or later. More on running and checking the site: [site/README.md](site/README.md).
 
 ## Install
 
