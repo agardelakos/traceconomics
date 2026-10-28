@@ -13,11 +13,11 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from traceconomics import backup, heartbeat
+from traceconomics import analytics, backup, heartbeat
 from traceconomics.archive.store import Archive, iso, utc_now
 from traceconomics.config import Config
 from traceconomics.notify import notify
@@ -28,6 +28,8 @@ from traceconomics.sources.base import HttpClient, RunContext
 STATE_FILE = "state/state.json"
 LOCK_FILE = "state/run.lock"
 STALE_LOCK = timedelta(hours=6)
+# Cloudflare keeps exact visit-count rows for 7 days: alert while there are still a few left.
+ANALYTICS_ALERT_DAYS = 4
 
 
 # -- state (a rebuildable cache next to the archive) ------------------------
@@ -120,6 +122,12 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     if not (due.due or force):
         record = {"started": iso(started), "result": "not-due", "reason": due.reason}
         if not dry_run:
+            with RunLock(root):
+                visits = export_analytics(config, archive, state, now)
+                save_state(root, state)
+            record["analytics"] = visits
+            if visits.get("stored"):
+                record["backup"] = backup.sync(root)
             record["heartbeat"] = heartbeat.send(record)
             archive.append_run(record)
         return record
@@ -134,6 +142,7 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     with RunLock(root):
         archive.clean_tmp()
         _run_sources(ctx, state)
+        visits = export_analytics(config, archive, state, now)
         good = not ctx.failures
         run_days = set(state.get("run_days", []))
         run_days.add(now.date().isoformat())
@@ -155,9 +164,9 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         "release_days": [d.isoformat() for d in due.release_days],
         "missed": [d.isoformat() for d in due.missed],
         "stored": len(stored), "unchanged": len(unchanged), "failures": ctx.failures,
-        "alerts": len(ctx.alerts), "report": sent_to,
+        "alerts": len(ctx.alerts), "report": sent_to, "analytics": visits,
     }
-    if stored:
+    if stored or visits.get("stored"):
         record["backup"] = backup.sync(root)
     record["heartbeat"] = heartbeat.send(record)
     archive.append_run(record)
@@ -167,6 +176,34 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         if new_inputs := release.feeds_store(archive, stored):
             record["release"] = release.build(config, reason="new data: " + ", ".join(sorted(set(new_inputs))))["id"]
     return record
+
+
+def export_analytics(config: Config, archive: Archive, state: dict, now: datetime) -> dict:
+    """Copy the finished days of visit counts into the archive; alert if it falls behind.
+
+    A failure doesn't fail the run (the sources are what the run is for), but Cloudflare keeps
+    exact rows for only 7 days, so after ANALYTICS_ALERT_DAYS missing days an email goes out.
+    """
+    today = now.astimezone(UTC).date()
+    if analytics.STATE_KEY not in state:
+        # The state is a rebuildable cache: the latest finished day in the archive came last (a
+        # manual export of one day may be stored after later ones, or be today's, not yet over).
+        days = [d for s in archive.snapshots(analytics.SOURCE, analytics.DATASET)
+                if (d := archive.manifest(s).get("day")) and date.fromisoformat(d) < today]
+        if days:
+            state[analytics.STATE_KEY] = max(days)
+    result = analytics.export(archive, state, today)
+    if result.get("result") == "failed":
+        through = state.get(analytics.STATE_KEY)
+        behind = (today - date.fromisoformat(through)).days - 1 if through else None
+        if behind is None or behind >= ANALYTICS_ALERT_DAYS:
+            missing = "no day copied yet" if behind is None else f"{behind} days not copied"
+            result["alert"] = notify(
+                config, f"ALERT: analytics export failing, {missing}",
+                f"The visit-count export failed: {result.get('error')}\n\nCloudflare keeps exact rows for 7 days. "
+                f"Last day copied: {through or 'none'}. Fix the cause (a 401 or 403 means the token expired or "
+                "was revoked), then run `traceconomics analytics export`.\n")
+    return result
 
 
 def _run_sources(ctx: RunContext, state: dict) -> None:

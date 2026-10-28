@@ -199,3 +199,55 @@ def test_release_is_off_by_default(tmp_path, fake_http, monkeypatch):
 
     monkeypatch.setattr(release, "build", lambda *a, **k: pytest.fail("no release on a machine without [release]"))
     assert "release" not in job.run(cfg(tmp_path), now=at(2026, 10, 18, 14))
+
+
+# -- visit counts (exported every day, due or not) ---------------------------
+
+def _not_due_state(tmp_path):
+    root = tmp_path / "archive"
+    (root / "state").mkdir(parents=True)
+    job.save_state(root, state_with([date(2026, 11, 10)], "2026-11-10"))
+
+
+def test_a_quiet_day_still_exports_visit_counts_and_backs_them_up(tmp_path, monkeypatch):
+    _not_due_state(tmp_path)
+    seen, synced = [], []
+
+    def fake_export(archive, state, today):
+        seen.append(today)
+        archive.store_bytes("cloudflare", "web-analytics", b'{"day": "2026-11-11"}\n', url=None,
+                            retrieved_at=datetime(2026, 11, 12, 11, tzinfo=ZoneInfo("UTC")), ext=".json",
+                            extra={"day": "2026-11-11"})
+        state["analytics_through"] = "2026-11-11"
+        return {"result": "ok", "days": ["2026-11-11"], "stored": 1}
+
+    monkeypatch.setattr(job.analytics, "export", fake_export)
+    monkeypatch.setattr(job.backup, "sync", lambda root: synced.append(root) or {"result": "ok", "sent": 1})
+    monkeypatch.setattr(job.heartbeat, "send", lambda record: "sent")
+    rec = job.run(cfg(tmp_path), now=at(2026, 11, 12, 13))
+    assert rec["result"] == "not-due" and rec["analytics"]["stored"] == 1 and rec["backup"]["result"] == "ok"
+    assert seen == [date(2026, 11, 12)] and len(synced) == 1
+    assert job.load_state(tmp_path / "archive")["analytics_through"] == "2026-11-11"
+
+
+def test_the_bookmark_is_rebuilt_from_the_archive(tmp_path, monkeypatch):
+    archive = Archive(tmp_path / "archive")
+    # Stored last but not the latest day (a manual fill), and today's, not over yet: neither counts.
+    for day, stored_hour in (("2026-11-09", 11), ("2026-11-05", 12), ("2026-11-12", 13)):
+        archive.store_bytes("cloudflare", "web-analytics", f'{{"day": "{day}"}}\n'.encode(), url=None,
+                            retrieved_at=datetime(2026, 11, 12, stored_hour, tzinfo=ZoneInfo("UTC")), ext=".json",
+                            extra={"day": day})
+    seen = []
+    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today: seen.append(dict(state)) or {"result": "off"})
+    job.export_analytics(cfg(tmp_path), archive, {}, at(2026, 11, 12, 13))
+    assert seen[0]["analytics_through"] == "2026-11-09"
+
+
+@pytest.mark.parametrize("through, alerts", [("2026-11-10", 0), ("2026-11-07", 1), (None, 1)])
+def test_a_failing_export_alerts_only_when_days_are_running_out(tmp_path, monkeypatch, through, alerts):
+    sent = []
+    monkeypatch.setattr(job, "notify", lambda config, subject, body: sent.append(subject) or "outbox")
+    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today: {"result": "failed", "error": "401"})
+    state = {} if through is None else {"analytics_through": through}
+    job.export_analytics(cfg(tmp_path), Archive(tmp_path / "archive"), state, at(2026, 11, 12, 13))
+    assert len(sent) == alerts and all(s.startswith("ALERT: analytics export") for s in sent)

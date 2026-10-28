@@ -84,6 +84,12 @@ def test_upload_is_a_preview_version_named_from_the_config(tmp_path):
     assert up.argv[up.argv.index("--assets") + 1] == str(cfg.release.site_dir / "dist")
 
 
+def test_release_builds_carry_the_visit_count_beacon(monkeypatch):
+    # The site's build adds the beacon only when this is set: never in local builds or tests.
+    monkeypatch.delenv("TRACECONOMICS_ANALYTICS", raising=False)
+    assert release._env(None)["TRACECONOMICS_ANALYTICS"] == "on"
+
+
 def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path):
     cfg = config(tmp_path)
     bad = release.build(cfg, now=datetime(2026, 11, 4, tzinfo=UTC),

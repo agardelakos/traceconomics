@@ -97,6 +97,10 @@ def main(argv: list[str] | None = None) -> int:
     bk = sub.add_parser("backup", help="copy new archive files to private cloud storage (never the microdata)")
     bk.add_argument("action", choices=["sync", "plan"], help="sync: send them; plan: list what would be sent")
 
+    an = sub.add_parser("analytics", help="copy the site's visit counts from Cloudflare into the archive")
+    an.add_argument("action", choices=["export"], help="export: every finished day not yet copied (the daily run does this)")
+    an.add_argument("--day", help="one UTC day (YYYY-MM-DD) only, without moving the bookmark: for a test or a gap")
+
     rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
     rl.add_argument("action", choices=["build", "promote", "status"])
     rl.add_argument("id", nargs="?", help="promote: the build to publish (from `release status`)")
@@ -609,6 +613,22 @@ def _dispatch(args, cfg) -> int:
         result = backup.sync(cfg.archive_dir)
         print(json.dumps(result))
         return 0 if result["result"] in ("ok", "off") else 1
+
+    if args.command == "analytics":
+        from datetime import UTC, datetime
+
+        from traceconomics import analytics
+
+        archive = Archive(cfg.archive_dir)
+        if args.day:
+            result = analytics.export_day(archive, date.fromisoformat(args.day))
+        else:
+            with job.RunLock(cfg.archive_dir):
+                state = job.load_state(cfg.archive_dir)
+                result = job.export_analytics(cfg, archive, state, datetime.now(UTC))
+                job.save_state(cfg.archive_dir, state)
+        print(json.dumps(result))
+        return 0 if result.get("result") in ("ok", "off") else 1
 
     if args.command == "release":
         from traceconomics import release

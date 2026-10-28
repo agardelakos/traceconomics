@@ -5,7 +5,8 @@
 //  2. Sources: every source key in the content exists in the bibliography.
 //  3. Nothing private or internal in the built pages: no decision numbers ("D45"), no links to
 //     the private notes ("docs/"), no local paths, no e-mail addresses.
-//  4. Security: no inline scripts; scripts, styles, fonts and images only from this site.
+//  4. Security: no inline scripts; scripts, styles, fonts and images only from this site, except the
+//     visit-count beacon in release builds: that exact file, once per page, with the site's token.
 //  5. Budgets: each page's HTML, CSS and scripts at most 300 KB compressed; any file at most
 //     20 MiB; at most 20,000 files (the hosts' limits).
 //  6. Links: every link to a page or file of this site leads to one that was built, and every page
@@ -14,6 +15,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve, extname } from "node:path";
 import { gzipSync } from "node:zlib";
+import { BEACON, TOKEN } from "../src/lib/analytics.ts";
 
 const site = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..");
 const dist = join(site, "dist");
@@ -87,12 +89,21 @@ else {
       if (!/\bsrc=/.test(m[1]) && m[2].trim()) fail(`${name}: inline script`);
     }
     for (const m of html.matchAll(/<style\b/g)) fail(`${name}: inline style block`);
-    // Resources only from this site (links to sources may point anywhere).
+    // Resources only from this site (links to sources may point anywhere), but for the beacon.
+    let beacons = 0;
     for (const m of html.matchAll(/<(script|link|img|source|iframe)\b[^>]*\b(src|href)="([^"]+)"/g)) {
       const [, tag, , url] = m;
       if (tag === "link" && !/rel="(stylesheet|icon|modulepreload|preload)"/.test(m[0])) continue;
+      if (tag === "script" && url === BEACON) {
+        beacons += 1;
+        const tagText = html.slice(m.index, html.indexOf(">", m.index + m[0].length) + 1);
+        const config = tagText.match(/\bdata-cf-beacon="([^"]*)"/)?.[1].replaceAll("&quot;", '"').replaceAll("&#34;", '"');
+        if (config !== JSON.stringify({ token: TOKEN })) fail(`${name}: the beacon without the site's token`);
+        continue;
+      }
       if (!local(url)) fail(`${name}: ${tag} from ${url}`);
     }
+    if (beacons > 1) fail(`${name}: the beacon ${beacons} times`);
     // Nothing private or internal in the text.
     const text = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/data-config="[^"]*"/g, "");
     for (const [re, what] of [[/\bD\d{2,3}\b/, "a decision number"], [/\bdocs\//, "a link to private notes"],

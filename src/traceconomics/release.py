@@ -97,6 +97,8 @@ def _env(config_path: Path | None) -> dict:
     if config_path is not None:
         env[CONFIG_ENV] = str(config_path)
     env.setdefault("WRANGLER_SEND_METRICS", "false")
+    # Release builds carry the visit-count beacon; local builds and tests don't (site/src/lib/analytics.ts).
+    env["TRACECONOMICS_ANALYTICS"] = "on"
     return env
 
 
