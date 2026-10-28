@@ -336,7 +336,7 @@
   "income.month.over": "more than {amount} a month",
   "income.why": "Why our figures and Eurostat's differ",
   "income.why1": "Our figures come from the household budget survey, the same survey our groups are built from. Eurostat's come from a different survey (EU-SILC), the official source for incomes.",
-  "income.why2": "Eurostat takes property tax and the self-employed's insurance contributions off income; the household budget survey doesn't. So, for the same people, ours come out a little higher. Eurostat's figures also describe the year before the survey.",
+  "income.why2": "Eurostat takes property tax, the self-employed's insurance contributions and money paid regularly to other households off income. The household budget survey doesn't take off the first two, and takes off the third only from 2024, if at all: ELSTAT hasn't said. So, for the same people, ours come out a little higher. Eurostat's figures also describe the year before the survey.",
   "income.sources": "Sources",
   "m1.baskets.title": "Different households, different baskets",
   "m1.baskets.lead": "How the poorest and the richest fifth share out their spending, in the weights used for {year}.",
