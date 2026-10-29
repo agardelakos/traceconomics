@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "An open, transparent economy tracker built only on public data."
 readme = "README.md"
 license = "Apache-2.0"
-license-files = ["LICENSE"]
+# NOTICE travels with every copy of the code, as Apache-2.0 section 4(d) asks.
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.14"
 # Pinned exactly: this is an application, and reproducible runs matter more than flexibility.
 dependencies = [

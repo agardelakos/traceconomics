@@ -19,8 +19,11 @@ tests run without network access and fail if a parser stops understanding a form
 | `eurostat_prc_hicp_{minr,iw,fpd,midx,inw,fp}.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/{DATASET}/?format=TSV&compressed=true | 2026-10-18, except `prc_hicp_fp` (research download of 2026-10-14) | header kept whole; rows for Greece, Cyprus and the euro area, all items and the food branch down to one subclass (plus games of chance and education not by level), units I25, I15 and RCH_A; plus the first row with an empty flagged cell |
 | `eurostat_v1_gr_{minr,iw}.tsv.gz` | same Eurostat bulk files (`prc_hicp_minr`, `prc_hicp_iw`) | 2026-10-18 | Greece only. minr: unit I25 for every category, plus RCH_A for all items, periods from 2014-12. iw: every category, years from 2015 |
 
-Source: ELSTAT (Hellenic Statistical Authority) and Eurostat, reused under their reuse
-policies. The files were shortened; the content of the kept parts is unchanged.
+Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, and Eurostat, reused under
+their reuse policies (see SOURCES.md). The files marked "not trimmed" are stored exactly as
+published. The others were modified by TracEconomics: shortened to the parts the tests read,
+with the content of the kept parts unchanged. ELSTAT and Eurostat bear no responsibility for
+the result of the modification.
 
 ## Untouched files
 

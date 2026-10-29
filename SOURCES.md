@@ -68,6 +68,14 @@ Data for countries outside the EU, EFTA and the EU's acceding and candidate coun
 
 **Modified:** we take off the code number at the start of each name and the marker of the kind of product at its end, for example "(ND)" for non-durable. The words of the names are unchanged; they are the EU's official translation, never ours.
 
+## Copies in this repository
+
+The tests run offline, on small copies of the publishers' own files in `tests/fixtures/`: ELSTAT's CPI and household budget survey tables, pages from its website and release calendar, and extracts of Eurostat's HICP files, metadata and release calendar. Each file's source address and retrieval date are listed in `tests/fixtures/README.md`.
+
+**Modified?** Some are stored exactly as published, byte for byte, and checked against their hashes. The others are shortened to the parts the tests read; the content of the kept parts is unchanged.
+
+**Notice** (also in `tests/fixtures/README.md`): "Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, and Eurostat. The shortened files were modified by TracEconomics; ELSTAT and Eurostat bear no responsibility for the result of the modification."
+
 ## What we never publish
 
 - **Survey microdata.** ELSTAT's public use files are used on our own machines only. We publish aggregates computed from them, never the files or any record from them.

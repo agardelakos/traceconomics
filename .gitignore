@@ -9,6 +9,10 @@ dist/
 
 # Local settings (copy config.example.toml to your user config folder instead)
 config.toml
+# Secrets live outside the repository (see config.example.toml); never commit an env file by mistake
+.env
+.env.*
+*.env
 
 # Website: dependencies, build output, and data files written by `traceconomics export`
 site/node_modules/
