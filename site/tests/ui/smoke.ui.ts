@@ -14,6 +14,11 @@ const PAGES = [
 const BEACON = /cloudflareinsights\.com/;
 const remote = !!process.env.BASE_URL;
 
+// The console errors in full, in the report next to the screenshot (the assertion shows only a diff).
+async function attachErrors(errors: string[]) {
+  if (errors.length) await test.info().attach("console errors", { body: errors.join("\n\n"), contentType: "text/plain" });
+}
+
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on("console", (m) => {
@@ -36,6 +41,7 @@ for (const path of PAGES) {
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("");
+    await attachErrors(errors);
     expect(errors).toEqual([]);
   });
 }
@@ -44,6 +50,7 @@ test("the root address moves on to a language", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto("/");
   await expect(page).toHaveURL(/\/(en|el)\/$/);
+  await attachErrors(errors);
   expect(errors).toEqual([]);
 });
 

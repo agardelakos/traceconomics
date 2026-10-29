@@ -51,7 +51,10 @@ npm ci                                                  # exact versions from pa
 npm run check                                           # type check, tests (incl. calculator parity), build, site checks
 npm run preview                                         # look at it on http://localhost:4321
 npm run a11y                                            # accessibility check (axe), with the preview running
+npm run test:ui                                         # browser smoke test on the built site (once: npx playwright install chromium)
 ```
+
+Without the microdata, `python tests/sitedata.py site/public/data` writes made-up data in the same format, through the same export code (see "Contributing").
 
 `npm run check` fails on a missing translation, an unknown source, an inline script, a resource from another site, or a page over its size budget. Building needs Node.js 22 or later. More on running and checking the site: [site/README.md](site/README.md).
 
@@ -116,8 +119,9 @@ python -m traceconomics notify-test        # check that reports reach you
 python -m traceconomics backup-done        # record that you've just backed up the archive
 python -m traceconomics backup sync        # copy new archive files to cloud storage (`plan`: list them; never microdata)
 python -m traceconomics analytics export   # the site's daily visit counts into the archive (the daily run does this)
-python -m traceconomics release build      # recompute, check, build the site, upload a private preview
-python -m traceconomics release promote ID --to staging|production   # publish a build (`release status` lists them)
+python -m traceconomics release build      # recompute, check, build and browser-test the site, upload a private preview, test it there
+python -m traceconomics release promote ID --to staging|production   # publish a build (`release status` lists them), then check the address serves it
+python -m traceconomics release retest ID  # a build held back by its browser tests: the same tests again, on the same files
 python -m traceconomics schedule units --out ~/.config/systemd/user   # Linux: the daily timer (see below)
 python -m traceconomics schedule install   # Windows: the daily trigger in Task Scheduler
 ```
@@ -139,6 +143,8 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$HOME:$HOME" -e "HOME=$HOME" -w "
     ~/traceconomics-venv/bin/pip install --require-hashes --no-deps -r requirements-local.txt &&
     ~/traceconomics-venv/bin/pip install --no-deps --no-build-isolation -e .'
 # config: ~/.config/traceconomics/config.toml (see config.example.toml, including [release])
+# a machine that builds releases also needs `image` under [schedule]: the image above plus a browser
+# for the release's browser tests (built from it with `npx playwright install --with-deps chromium`)
 # secrets: ~/.config/traceconomics/env, mode 600, one NAME=value per line (names in config.example.toml)
 docker run --rm --user "$(id -u):$(id -g)" -v "$HOME:$HOME" -e "HOME=$HOME" -w "$HOME/traceconomics" $IMAGE \
   ~/traceconomics-venv/bin/python -I -m traceconomics schedule units --out ~/.config/systemd/user
@@ -154,7 +160,8 @@ traceconomics status                       # last runs, next release days
 traceconomics release status               # every release build: result, where it is (staging, production), preview address
 traceconomics release build                # by hand; the daily job does this after new data
 traceconomics release promote <id> --to staging      # a build you've looked at, to the private staging address
-traceconomics release promote <id> --to production   # or to the public site; no default, choose each time
+traceconomics release promote <id> --to production   # or to the public site; no default, choose each time (needs [release] production_url)
+traceconomics release retest <id>          # a build held back by its browser tests: test it again
 traceconomics backup plan                  # archive files the cloud copy still lacks (never microdata)
 systemctl --user list-timers               # when the next run is
 journalctl --user -u traceconomics-archive # the job's output

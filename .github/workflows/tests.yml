@@ -74,3 +74,17 @@ jobs:
       # Playwright's own Chromium, the version the locked Playwright expects, with its system libraries.
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui
+      # On the run's page: both suites' results, each failure named; also after a failure.
+      - name: Test summary
+        if: ${{ !cancelled() }}
+        run: node scripts/test-summary.mjs
+      # Only when something failed: the browser test's HTML report (screenshots, console errors,
+      # traces), kept 7 days. Made-up data only, so nothing in it is private.
+      - name: Upload the browser test's report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ui-test-report
+          path: site/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore

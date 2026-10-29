@@ -297,3 +297,44 @@ def test_the_public_address_is_read_from_the_config_without_a_trailing_slash(tmp
     c = parse({**base, "release": {"site_dir": str(tmp_path / "site"), "production_url": "https://example.org/"}}, tmp_path)
     assert c.release.production_url == "https://example.org"
     assert parse(base, tmp_path).release.production_url is None
+
+
+PLAYWRIGHT_RESULTS = {
+    "suites": [{"title": "smoke.ui.ts", "specs": [
+        {"title": "/en/ loads", "tests": [{"status": "expected", "results": [{"status": "passed"}]}]},
+    ], "suites": [{"title": "on the host", "specs": [
+        {"title": "pages carry the security headers", "tests": [{"status": "unexpected", "results": [
+            {"status": "failed", "error": {"message": "\u001b[2mexpect(\u001b[22mreceived).toContain()\n\nExpected substring"}}]}]},
+    ]}]}],
+    "errors": [{"message": "Error: Timed out waiting 60000ms from config.webServer."}],
+}
+
+
+def test_the_failing_browser_tests_are_named_from_their_results_file(tmp_path):
+    results = tmp_path / "results.json"
+    results.write_text(json.dumps(PLAYWRIGHT_RESULTS), encoding="utf-8")
+    assert release.ui_failures(results) == [
+        "smoke.ui.ts › on the host › pages carry the security headers: expect(received).toContain()",
+        "(outside the tests): Error: Timed out waiting 60000ms from config.webServer.",
+    ]
+    assert release.ui_failures(tmp_path / "missing.json") == []
+
+
+def test_a_browser_test_failure_email_names_the_tests_and_the_report(tmp_path, no_email):
+    cfg = config(tmp_path)
+
+    class WritesResults(FakeSteps):
+        def __call__(self, step, env, log):
+            if step.name == "ui-test":
+                Path(env["UI_JSON"]).parent.mkdir(parents=True, exist_ok=True)
+                Path(env["UI_JSON"]).write_text(json.dumps(PLAYWRIGHT_RESULTS), encoding="utf-8")
+            return super().__call__(step, env, log)
+
+    rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WritesResults(cfg.release.site_dir, fail="ui-test"))
+    folder = cfg.release.releases_dir / rec["id"]
+    assert rec["ui_report"] == str(folder / "ui" / "ui-test" / "report" / "index.html")
+    body = no_email[0][1]
+    assert "Failing browser tests:" in body and "pages carry the security headers" in body and rec["ui_report"] in body
+    # A retest that passes clears them.
+    again = release.retest(cfg, rec["id"], runner=FakeSteps(cfg.release.site_dir), now=datetime(2026, 11, 10, 12, tzinfo=UTC))
+    assert "ui_failures" not in again and "ui_report" not in again

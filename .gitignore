@@ -22,3 +22,4 @@ site/.wrangler/
 site/public/data/
 site/test-results/
 site/playwright-report/
+site/test-reports/

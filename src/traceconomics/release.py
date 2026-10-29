@@ -108,7 +108,46 @@ def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> l
 
 
 def _ui_env(folder: Path) -> tuple[tuple[str, str], ...]:
-    return (("UI_OUTPUT", str(folder / "results")), ("UI_REPORT", str(folder / "report")))
+    return (("UI_OUTPUT", str(folder / "results")), ("UI_REPORT", str(folder / "report")),
+            ("UI_JSON", str(folder / "results.json")))
+
+
+BROWSER_STEPS = ("ui-test", "smoke")
+
+
+def ui_failures(results: Path) -> list[str]:
+    """"<test>: <first line of its error>" for each failed test in a Playwright results file, and
+    errors outside any test (a server that didn't start); [] if the file is missing or unreadable."""
+    try:
+        data = json.loads(results.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    out = []
+
+    def first(text) -> str:
+        lines = [x.strip() for x in re.sub(r"\x1b\[[0-9;]*m", "", str(text or "")).splitlines() if x.strip()]
+        return lines[0][:200] if lines else ""
+
+    def walk(suite: dict, path: list[str]) -> None:
+        for spec in suite.get("specs", []):
+            for t in spec.get("tests", []):
+                if t.get("status") in ("unexpected", "flaky"):
+                    error = next((r["error"].get("message") for r in t.get("results", []) if r.get("error")), "")
+                    out.append(f"{' › '.join(x for x in [*path, spec.get('title', '')] if x)}: {first(error)}")
+        for s in suite.get("suites", []):
+            walk(s, [*path, s.get("title", "")])
+
+    for s in data.get("suites", []):
+        walk(s, [s.get("title", "")])                     # the top level is the test file
+    out += [f"(outside the tests): {first(e.get('message'))}" for e in data.get("errors", [])]
+    return out
+
+
+def _note_ui(record: dict, ui: Path, step: str) -> None:
+    """After a failed browser step: which tests failed, and where their report is."""
+    if step in BROWSER_STEPS:
+        record["ui_failures"] = ui_failures(ui / step / "results.json")
+        record["ui_report"] = str(ui / step / "report" / "index.html")
 
 
 def ui_fingerprint(site: Path) -> str:
@@ -182,6 +221,7 @@ def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual
                             after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")})
         if failed:
             record.update(result="failed", failed_step=failed[0], log_tail=failed[1])
+            _note_ui(record, folder / "ui", failed[0])
         else:
             _passed(cfg, folder, record)
     record["finished"] = iso(utc_now())
@@ -229,8 +269,8 @@ def _passed(cfg: Config, folder: Path, record: dict) -> None:
     """Fill in a build that has passed every step."""
     r = cfg.release
     record.update(result="ok", preview_url=_preview_url(folder / "logs"))
-    record.pop("failed_step", None)
-    record.pop("log_tail", None)
+    for key in ("failed_step", "log_tail", "ui_failures", "ui_report"):
+        record.pop(key, None)
     _write_sums(folder, ["outputs", "dist"])
     previous = record.get("baseline")
     record["changes"] = changes(previous and r.releases_dir / previous / "outputs", folder / "outputs")
@@ -282,6 +322,7 @@ def retest(cfg: Config, build_id: str, config_path: Path | None = None, *, runne
     record.setdefault("retests", []).append(attempt)
     if failed:
         record.update(failed_step=failed[0], log_tail=failed[1])
+        _note_ui(record, folder / "ui" / tag, failed[0])
         subject = f"ALERT: release {build_id} failed its retest at {failed[0]}"
     else:
         _passed(cfg, folder, record)
@@ -362,8 +403,12 @@ def render(record: dict) -> str:
                       + (f", largest {c['largest_revision_pp']:.1f} pp" if c["revised_values"] else "")]
         lines += ["", f"To publish it: traceconomics release promote {record['id']} --to staging (or --to production)"]
     else:
-        lines += ["", "Nothing was published: staging and the public site are unchanged.",
-                  "", f"Failed at {record['failed_step']}. Last lines of its log:", ""]
+        lines += ["", "Nothing was published: staging and the public site are unchanged."]
+        if "ui_failures" in record:
+            lines += ["", "Failing browser tests:"]
+            lines += [f"  - {f}" for f in record["ui_failures"] or ["(none named: see the log)"]]
+            lines += [f"Report (screenshots, console errors, traces): {record['ui_report']}"]
+        lines += ["", f"Failed at {record['failed_step']}. Last lines of its log:", ""]
         lines += [f"  {line}" for line in record["log_tail"]]
         if record["failed_step"] in RETESTABLE:
             lines += ["", "If the cause was passing (the network, the host), test it again: "
