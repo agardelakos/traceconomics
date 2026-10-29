@@ -28,4 +28,6 @@ The data on this site are published under the Creative Commons Attribution 4.0 l
 
 Computed by TracEconomics from data of the Hellenic Statistical Authority (ELSTAT, [www.statistics.gr](https://www.statistics.gr/en/home)) and Eurostat: prices from ELSTAT's Consumer Price Index and Eurostat's HICP, weights from ELSTAT's Household Budget Survey public use files. The data have been modified: these are our own calculations, not official statistics. ELSTAT and Eurostat bear no responsibility for the result of the modification. If you reuse our files, credit TracEconomics and keep this notice.
 
+Every source we use, its reuse terms and this notice are listed in [SOURCES.md](https://github.com/agardelakos/traceconomics/blob/main/SOURCES.md), in the code repository.
+
 ELSTAT's published inflation rate, shown beside ours as a check, and Eurostat's income cut-offs are shown as published. The names of the spending categories are the EU's official ones (EU Vocabularies, ECOICOP version 2, Publications Office of the European Union), with the code number and the kind-of-product marker taken off; where the EU list lacks a category, ELSTAT's name from its Household Budget Survey tables is used.
