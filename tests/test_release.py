@@ -95,10 +95,10 @@ def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path)
     bad = release.build(cfg, now=datetime(2026, 11, 4, tzinfo=UTC),
                         runner=FakeSteps(cfg.release.site_dir, fail="series"))
     with pytest.raises(SystemExit):
-        release.promote(cfg, bad["id"], runner=FakeSteps(cfg.release.site_dir))
+        release.promote(cfg, bad["id"], "staging", runner=FakeSteps(cfg.release.site_dir))
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     fake = FakeSteps(cfg.release.site_dir)
-    done = release.promote(cfg, good["id"], runner=fake)
+    done = release.promote(cfg, good["id"], "staging", runner=fake)
     assert done["to"] == "staging" and done["url"] == "https://staging-traceconomics.example.workers.dev"
     assert "versions" in fake.argvs[-1] and str(cfg.release.releases_dir / good["id"] / "dist") in fake.argvs[-1]
     assert release.baseline(cfg.release.releases_dir)["id"] == good["id"]
@@ -108,7 +108,7 @@ def test_pruning_keeps_the_newest_and_the_promoted_build(tmp_path):
     cfg = config(tmp_path)
     ids = [release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))["id"]
            for d in (1, 2)]
-    release.promote(cfg, ids[0], runner=FakeSteps(cfg.release.site_dir))
+    release.promote(cfg, ids[0], "staging", runner=FakeSteps(cfg.release.site_dir))
     for d in (3, 4):
         release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     left = sorted(p.name for p in cfg.release.releases_dir.iterdir() if p.is_dir() and p.name != "state")
@@ -142,11 +142,41 @@ def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
 
 
 def test_promoting_to_production_publishes_on_the_public_address(tmp_path):
-    from dataclasses import replace
-
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
-    live = replace(cfg, release=replace(cfg.release, promote_to="production"))
     fake = FakeSteps(cfg.release.site_dir)
-    release.promote(live, good["id"], runner=fake)
+    release.promote(cfg, good["id"], "production", runner=fake)
     assert fake.argvs[-1][:4] == ("npx", "--no-install", "wrangler", "deploy")
+
+
+def test_the_target_is_chosen_on_each_promote(tmp_path):
+    cfg = config(tmp_path)
+    good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
+    with pytest.raises(SystemExit):
+        release.promote(cfg, good["id"], "preview", runner=FakeSteps(cfg.release.site_dir))
+    assert not (cfg.release.releases_dir / release.PROMOTED).exists()
+
+
+def test_staging_and_production_serve_their_own_builds(tmp_path):
+    cfg, keep = config(tmp_path), FakeSteps(tmp_path / "site")
+    ids = [release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=keep)["id"] for d in (1, 2)]
+    release.promote(cfg, ids[0], "production", runner=keep)
+    release.promote(cfg, ids[1], "staging", runner=keep)
+    on = release.promoted(cfg.release.releases_dir)
+    assert on["production"]["id"] == ids[0] and on["staging"]["id"] == ids[1]
+    # The public site is what the next build is compared with.
+    assert release.baseline(cfg.release.releases_dir)["id"] == ids[0]
+    assert {b["id"]: b["on"] for b in release.status(cfg.release.releases_dir)} == {
+        ids[1]: ["staging"], ids[0]: ["production"]}
+    for d in (3, 4, 5):
+        release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=keep)
+    left = sorted(p.name for p in cfg.release.releases_dir.iterdir() if (p / "release.json").is_file())
+    assert set(ids) <= set(left)
+
+
+def test_a_promote_record_from_before_targets_reads_as_staging(tmp_path):
+    folder = tmp_path / "releases"
+    folder.mkdir()
+    (folder / release.PROMOTED).write_text(json.dumps({"id": "20261028T155928Z", "to": "staging"}), encoding="utf-8")
+    assert release.promoted(folder) == {"staging": {"id": "20261028T155928Z", "to": "staging"}}
+    assert release.baseline(folder)["id"] == "20261028T155928Z"

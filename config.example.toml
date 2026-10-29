@@ -52,5 +52,4 @@ memory_limit = "2GB"
 # dir = "~/traceconomics-releases"
 # site_dir = "~/traceconomics/site"
 # worker_name = "traceconomics"
-# promote_to = "staging"           # a private preview alias; "production" once the site is public
 # keep = 12

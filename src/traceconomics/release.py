@@ -9,7 +9,9 @@ preview link and what changed since the last release.
 The site is hosted as static files on Cloudflare Workers. An upload creates a version with its own
 preview address and leaves the live site as it is. Nothing reaches the public address until the
 owner looks at the preview and promotes the build (`promote`): a person checks every release
-before it is published.
+before it is published. Each promote names its target: `staging`, a private preview alias that
+stays after launch as a place to look at a build in its final setting, or `production`, the
+public address. The two can serve different builds, so a rollback is per target too.
 """
 
 from __future__ import annotations
@@ -33,9 +35,9 @@ from traceconomics.notify import notify
 
 PROMOTED = "promoted.json"
 PREVIEW_URL = re.compile(r"https://[\w.-]+\.workers\.dev\b[^\s\"']*")
-# Promoting to this target publishes on the site's public address; any other name is a private
-# preview alias (used until launch).
-PRODUCTION = "production"
+# Promoting to production publishes on the site's public address; staging is a private preview alias.
+STAGING, PRODUCTION = "staging", "production"
+TARGETS = (STAGING, PRODUCTION)
 LOG_TAIL = 40
 
 
@@ -228,7 +230,7 @@ def render(record: dict) -> str:
                       f" ({c['new_values']} values)",
                       f"  revised values: {c['revised_values']}"
                       + (f", largest {c['largest_revision_pp']:.1f} pp" if c["revised_values"] else "")]
-        lines += ["", f"To publish it: traceconomics release promote {record['id']}"]
+        lines += ["", f"To publish it: traceconomics release promote {record['id']} --to staging (or --to production)"]
     else:
         lines += ["", f"Failed at {record['failed_step']}. Last lines of its log:", ""]
         lines += [f"  {line}" for line in record["log_tail"]]
@@ -237,30 +239,43 @@ def render(record: dict) -> str:
 
 # -- promoting and listing ------------------------------------------------------
 
+def promoted(releases_dir: Path) -> dict[str, dict]:
+    """What each target serves now: {target: {id, to, promoted, url}}."""
+    path = releases_dir / PROMOTED
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    # Written before promotes named a target: one record, for the only target there was.
+    return {data["to"]: data} if "id" in data else data
+
+
 def baseline(releases_dir: Path) -> dict | None:
-    """The build the next one is compared with: the promoted one, else the newest good one."""
-    promoted = releases_dir / PROMOTED
-    if promoted.is_file():
-        return json.loads(promoted.read_text(encoding="utf-8"))
+    """The build the next one is compared with: the one on production, else on staging, else the
+    newest good one."""
+    on = promoted(releases_dir)
+    if on:
+        return on.get(PRODUCTION) or on[STAGING]
     good = [b for b in status(releases_dir) if b.get("result") == "ok"]
     return good[0] if good else None
 
 
-def promote(cfg: Config, build_id: str, *, runner: Runner = run_step) -> dict:
+def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step) -> dict:
+    if to not in TARGETS:
+        raise SystemExit(f"promote to {' or '.join(TARGETS)}, not {to!r}")
     r = cfg.release
     folder = r.releases_dir / build_id
     record = json.loads((folder / "release.json").read_text(encoding="utf-8"))
     if record.get("result") != "ok":
         raise SystemExit(f"release {build_id} did not pass its checks; it can't be promoted")
-    argv = (_publish(folder / "dist", r.worker_name, build_id) if r.promote_to == PRODUCTION
-            else _upload(folder / "dist", r.worker_name, r.promote_to, build_id))
+    argv = (_publish(folder / "dist", r.worker_name, build_id) if to == PRODUCTION
+            else _upload(folder / "dist", r.worker_name, to, build_id))
     step = Step("promote", argv, r.site_dir)
-    log = folder / "logs" / f"promote-{stamp(utc_now())}.log"
+    log = folder / "logs" / f"promote-{to}-{stamp(utc_now())}.log"
     code = runner(step, _env(None), log)
     if code != 0:
         raise SystemExit(f"upload failed; see {log}")
-    done = {"id": build_id, "to": r.promote_to, "promoted": iso(utc_now()), "url": _url_in(log)}
-    _write_json(r.releases_dir / PROMOTED, done)
+    done = {"id": build_id, "to": to, "promoted": iso(utc_now()), "url": _url_in(log)}
+    _write_json(r.releases_dir / PROMOTED, {**promoted(r.releases_dir), to: done})
     return done
 
 
@@ -274,21 +289,24 @@ def _url_in(log: Path) -> str | None:
 
 
 def status(releases_dir: Path) -> list[dict]:
-    """Every build, newest first."""
+    """Every build, newest first, with the targets it is on."""
+    on = promoted(releases_dir)
     out = []
     for f in sorted(releases_dir.glob("*/release.json"), reverse=True):
         rec = json.loads(f.read_text(encoding="utf-8"))
-        out.append({k: rec.get(k) for k in ("id", "result", "reason", "failed_step", "preview_url")})
+        row = {k: rec.get(k) for k in ("id", "result", "reason", "failed_step", "preview_url")}
+        row["on"] = [t for t in TARGETS if on.get(t, {}).get("id") == rec.get("id")]
+        out.append(row)
     return out
 
 
 def prune(releases_dir: Path, keep: int) -> list[str]:
-    """Delete all but the newest `keep` builds; the promoted build is always kept."""
-    promoted = baseline(releases_dir) if (releases_dir / PROMOTED).is_file() else None
+    """Delete all but the newest `keep` builds; a build on staging or production is always kept."""
+    live = {rec["id"] for rec in promoted(releases_dir).values()}
     builds = sorted((p for p in releases_dir.iterdir() if (p / "release.json").is_file()), reverse=True)
     gone = []
     for p in builds[keep:]:
-        if promoted and p.name == promoted["id"]:
+        if p.name in live:
             continue
         shutil.rmtree(p)
         gone.append(p.name)

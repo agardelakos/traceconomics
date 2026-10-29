@@ -104,6 +104,8 @@ def main(argv: list[str] | None = None) -> int:
     rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
     rl.add_argument("action", choices=["build", "promote", "status"])
     rl.add_argument("id", nargs="?", help="promote: the build to publish (from `release status`)")
+    rl.add_argument("--to", choices=["staging", "production"],
+                    help="promote: the private staging address or the public site; no default, choose each time")
 
     sc = sub.add_parser("schedule", help="the daily trigger: Windows Task Scheduler, or systemd units on Linux")
     sc.add_argument("action", choices=["install", "remove", "show", "units"],
@@ -641,11 +643,15 @@ def _dispatch(args, cfg) -> int:
             if not args.id:
                 print("Which build? See `traceconomics release status`.")
                 return 2
-            done = release.promote(cfg, args.id)
+            if not args.to:
+                print("Where to? Pass --to staging or --to production.")
+                return 2
+            done = release.promote(cfg, args.id, args.to)
             print(f"Promoted {done['id']} to {done['to']}: {done.get('url') or '(no address in the log)'}")
             return 0
         for b in release.status(cfg.release.releases_dir):
-            print(f"  {b['id']}  {b['result']:7s}  {b.get('failed_step') or ''}  {b.get('preview_url') or ''}")
+            on = ",".join(b["on"])
+            print(f"  {b['id']}  {b['result']:7s}  {on:18s}  {b.get('failed_step') or ''}  {b.get('preview_url') or ''}")
         return 0
 
     if args.command == "schedule":

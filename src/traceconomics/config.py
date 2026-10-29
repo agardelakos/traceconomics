@@ -46,9 +46,7 @@ class ReleaseConfig:
     # The website project (the repository's site/ folder) and its name on the host.
     site_dir: Path | None = None
     worker_name: str = "traceconomics"
-    # Where promoting a build puts it: a private preview alias until launch, then "production".
-    promote_to: str = "staging"
-    # Builds kept on disk, newest first; the promoted one is always kept.
+    # Builds kept on disk, newest first; those on staging or production are always kept.
     keep: int = 12
     replicates: int = 1000
 
@@ -118,7 +116,6 @@ def parse(raw: dict, base_dir: Path) -> Config:
             releases_dir=_path(rel.get("dir", "~/traceconomics-releases"), base_dir),
             site_dir=_path(rel["site_dir"], base_dir) if "site_dir" in rel else None,
             worker_name=str(rel.get("worker_name", "traceconomics")),
-            promote_to=str(rel.get("promote_to", "staging")),
             keep=int(rel.get("keep", 12)),
             replicates=int(rel.get("replicates", 1000)),
         )
