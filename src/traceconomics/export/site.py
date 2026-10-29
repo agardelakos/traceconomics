@@ -275,8 +275,11 @@ def used_codes(con) -> set[str]:
     return {c for c in codes if c and c != "TOTAL"}
 
 
-def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool = True, log=print) -> list[Path]:
-    """Write the site's data from module 1's outputs folder (`traceconomics module1 run`) and the store."""
+def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool = True, log=print,
+           blocks=None, baskets=None) -> list[Path]:
+    """Write the site's data from module 1's outputs folder (`traceconomics module1 run`) and the store.
+    `blocks` and `baskets`: the calculator's inputs, as `combinations.iterate` takes them (default:
+    loaded from the store and archive)."""
     import gzip
 
     from traceconomics.export import calculator
@@ -305,9 +308,9 @@ def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool
             written += downloads(con, setting, root / "downloads" / s)
         settings.append({**setting, "slug": s, "default": setting == combinations.DEFAULT})
         log(f"{s}: series {size // 1024} KB compressed")
-    first, series_list, blocks = next(combinations.iterate(store_con, archive, only=[combinations.DEFAULT],
-                                                           groups=calculator.PRESETS))
-    written.append(_write_json(root / "calculator.json", calculator.build_checked(series_list, blocks["cpi"])))
+    first, series_list, used = next(combinations.iterate(store_con, archive, only=[combinations.DEFAULT],
+                                                         groups=calculator.PRESETS, blocks=blocks, baskets=baskets))
+    written.append(_write_json(root / "calculator.json", calculator.build_checked(series_list, used["cpi"])))
     written.append(_write_json(root / "availability.json", {k: v for k, v in availability.items()
                                                            if k not in ("series", "identical")}))
     if with_downloads:

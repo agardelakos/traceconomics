@@ -51,11 +51,16 @@ def label(setting: dict) -> str:
     return "/".join(setting[k] for k in OPTIONS)
 
 
-def iterate(con, archive, *, when=None, only=None, groups=None):
+def iterate(con, archive, *, when=None, only=None, groups=None, blocks=None, baskets=None):
     """(setting, its series, {price source: blocks}) for every setting in `only` (default: all 48),
-    one setting at a time, so a caller can write and drop each before the next."""
-    blocks = {"cpi": index.price_blocks(con, archive, when), "hicp": hicp_blocks(con, when=when)}
-    baskets = {}
+    one setting at a time, so a caller can write and drop each before the next.
+
+    `blocks` ({price source: blocks}) and `baskets` ({(spending, imputed rent): baskets}) are
+    used instead of loading them from the store and archive: the site's browser tests run on
+    made-up prices and weights through this same code."""
+    if blocks is None:
+        blocks = {"cpi": index.price_blocks(con, archive, when), "hicp": hicp_blocks(con, when=when)}
+    baskets = {} if baskets is None else dict(baskets)
     for setting in only or settings():
         key = (setting["spending"], setting["imputed_rent"])
         if key not in baskets:
