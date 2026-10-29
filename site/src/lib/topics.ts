@@ -15,8 +15,9 @@
 // countries, for readers who compare countries; some topics (forecast scores, revisions) compare
 // well, others need each country's own survey. Countries are two-letter codes and every other
 // first-level name (topics, data, glossary, about) is longer, so the two can never clash.
-// A planned topic or country is listed, greyed out, but has no page and no address yet: it gets
-// one when there is something to show.
+// A planned topic or country has no page and no address yet: it gets one when there is something
+// to show. Planned ones aren't named on the site, except a topic marked `shown`: a greyed card,
+// "coming soon", with its question. The rest hide behind one small "more topics" card.
 
 import { href, type Lang } from "./i18n";
 
@@ -28,6 +29,7 @@ export interface Topic {
   status: Status;
   countries: string[];       // ISO 3166-1 alpha-2, lower case, with a page for this topic
   sections: string[];        // the pages each country has, in menu order ("" is its overview)
+  shown?: boolean;           // a planned topic named on the site as "coming soon" (topic cards only)
 }
 
 export const TOPICS: Topic[] = [
@@ -36,7 +38,7 @@ export const TOPICS: Topic[] = [
     // In reading order: what it is, how it was measured, who the groups are, then the tools.
     sections: ["", "method", "groups", "explore", "calculator"],
   },
-  { slug: "official-figures-checked", module: "m5", status: "planned", countries: [], sections: [] },
+  { slug: "official-figures-checked", module: "m5", status: "planned", countries: [], sections: [], shown: true },
   { slug: "forecast-scorecard", module: "m2", status: "planned", countries: [], sections: [] },
   { slug: "gdp-nowcast", module: "m3", status: "planned", countries: [], sections: [] },
   { slug: "revisions", module: "m4", status: "planned", countries: [], sections: [] },

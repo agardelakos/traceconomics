@@ -1,0 +1,26 @@
+---
+// Every topic, as the home page shows them: the live ones lead to their page across countries;
+// the header's Topics label leads here.
+import Base from "../../layouts/Base.astro";
+import { LANGS, href, t, type Lang } from "../../lib/i18n";
+import TopicCards from "../../components/TopicCards.astro";
+import { topicHref } from "../../lib/topics";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+---
+<Base lang={lang} title={t(lang, "nav.topics")} description={t(lang, "topics.lead")} path="topics" current="topics">
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, "nav.topics")}</nav>
+      <h1>{t(lang, "nav.topics")}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "topics.lead")}</p>
+    </header>
+    <section class="stack" style="gap: var(--space-3)">
+      <TopicCards lang={lang} link={(tp) => (tp.status === "live" ? topicHref(lang, tp.slug) : null)} />
+    </section>
+  </article>
+</Base>

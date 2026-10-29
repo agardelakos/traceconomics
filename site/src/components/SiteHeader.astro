@@ -1,21 +1,22 @@
 ---
 // The header on every page: wordmark, the language switch (always in view: a reader who lands
 // on the wrong language must find it at once), the settings button (the colour theme today, other
-// reader preferences later) and the main navigation, all alike: home, the country switch, then the
-// pages for the whole site. Most readers come for one country, so the country is the first choice; topics
-// are listed on each country's page and on the home page, not here, so the header stays one line
-// however many topics the site grows.
+// reader preferences later) and the main navigation, all alike: home, then the two ways in, topics
+// and countries, then the pages for the whole site. The labels never change; the one the reader is in
+// is highlighted.
 //
-// The country switch is a popover, so it opens without a script. Each country leads to the page
-// the reader is on, for that country, where it has one, and to the country's page otherwise. A
-// country not built yet is listed greyed out, marked "coming soon", and is not a link.
+// Topics and Countries are each two controls: the label leads to the page listing them all, the
+// arrow opens a quick list (a popover, so it opens without a script), with the current one ticked.
+// In the countries list each country leads to the page the reader is on, for that country, where it
+// has one, and to the country's page otherwise. Planned ones follow the cards' rule: no planned
+// country is named, a planned topic only if marked `shown`, the rest as one "more" line.
 //
 // On a phone the navigation and the settings fold into one menu button. The menu is a popover,
 // so it opens without a script; on wider screens the same element is shown in the page as a row.
 // The theme controls need a script, so they stay hidden until it runs (scripts/theme.ts).
 import { href, isOffered, t, type Lang } from "../lib/i18n";
 import { flag } from "../lib/flags";
-import { countries, countryHref } from "../lib/topics";
+import { countries, countryHref, TOPICS, topicHref } from "../lib/topics";
 
 interface Props { lang: Lang; path: string; current?: string; country?: string; countryLink?: (c: string) => string }
 const { lang, path, current, country } = Astro.props;
@@ -23,6 +24,12 @@ const countryLink = Astro.props.countryLink ?? ((c: string) => countryHref(lang,
 const site = ["glossary", "data", "about"].map((key) => ({ key, link: href(lang, key), label: t(lang, `nav.${key}`) }));
 // A language not offered yet is shown greyed and is not a link (on its own pages it stays marked as current).
 const SWITCH: { code: Lang; label: string }[] = [{ code: "el", label: "ΕΛ" }, { code: "en", label: "EN" }];
+const inCountries = country !== undefined || current === "countries";
+const inTopics = current === "topics" || (country === undefined && TOPICS.some((tp) => tp.slug === current));
+const liveTopics = TOPICS.filter((tp) => tp.status === "live");
+const shownTopics = TOPICS.filter((tp) => tp.status === "planned" && tp.shown);
+const moreTopics = TOPICS.length > liveTopics.length + shownTopics.length;
+const section = (inSection: boolean, key: string) => (current === key ? "page" : inSection ? "true" : undefined);
 const check = '<path d="M3 7.5 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>';
 ---
 <header class="site-header">
@@ -66,13 +73,35 @@ const check = '<path d="M3 7.5 L6 10 L11 4" fill="none" stroke="currentColor" st
   <nav popover id="site-menu" class="site-nav" aria-label={t(lang, "nav.label")}>
     <ul class="container">
       <li><a href={href(lang)} aria-current={current === "home" ? "page" : undefined}>{t(lang, "nav.home")}</a></li>
-      <li>
-        <button type="button" class="nav-country" popovertarget="country-menu" style="anchor-name: --country-menu" aria-haspopup="true"
-          aria-label={country ? `${t(lang, "country.switch")}: ${t(lang, `country.${country}`)}` : t(lang, "country.choose")}>
-          {country ? t(lang, `country.${country}`) : t(lang, "nav.countries")}
+      <li class="nav-split" style="anchor-name: --topic-menu">
+        <a href={href(lang, "topics")} aria-current={section(inTopics, "topics")}>{t(lang, "nav.topics")}</a>
+        <button type="button" class="nav-arrow" popovertarget="topic-menu" aria-label={t(lang, "nav.quick", { name: t(lang, "nav.topics") })}>
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         </button>
-        <div popover id="country-menu" class="country-menu" style="position-anchor: --country-menu">
+        <div popover id="topic-menu" class="nav-list" style="position-anchor: --topic-menu">
+          <ul>
+            {liveTopics.map((tp) => (
+              <li>
+                <a href={topicHref(lang, tp.slug)} aria-current={tp.slug === current ? "true" : undefined}>
+                  <span>{t(lang, `topic.${tp.slug}`)}</span>
+                  {tp.slug === current && <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" set:html={check}></svg>}
+                </a>
+              </li>
+            ))}
+            {shownTopics.map((tp) => (
+              <li><span class="planned">{t(lang, `topic.${tp.slug}`)} <span class="planned-tag">{t(lang, "soon")}</span></span></li>
+            ))}
+            {moreTopics && <li><span class="planned">{t(lang, "topic.more")} <span class="planned-tag">{t(lang, "soon")}</span></span></li>}
+            <li class="nav-all"><a href={href(lang, "topics")}>{t(lang, "country.all")} →</a></li>
+          </ul>
+        </div>
+      </li>
+      <li class="nav-split" style="anchor-name: --country-menu">
+        <a href={href(lang, "countries")} aria-current={section(inCountries, "countries")}>{t(lang, "nav.countries")}</a>
+        <button type="button" class="nav-arrow" popovertarget="country-menu" aria-label={t(lang, "nav.quick", { name: t(lang, "nav.countries") })}>
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
+        <div popover id="country-menu" class="nav-list" style="position-anchor: --country-menu">
           <ul>
             {countries().map((c) => (
               <li>
@@ -83,6 +112,7 @@ const check = '<path d="M3 7.5 L6 10 L11 4" fill="none" stroke="currentColor" st
               </li>
             ))}
             <li><span class="planned">{t(lang, "country.more")} <span class="planned-tag">{t(lang, "soon")}</span></span></li>
+            <li class="nav-all"><a href={href(lang, "countries")}>{t(lang, "topic.all_countries")} →</a></li>
           </ul>
         </div>
       </li>

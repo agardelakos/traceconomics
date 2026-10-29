@@ -15,7 +15,7 @@ from traceconomics.notify import notify
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="traceconomics", description="Traceconomics: archive public statistics.")
+    p = argparse.ArgumentParser(prog="traceconomics", description="TracEconomics: an open economy tracker built only on public data.")
     p.add_argument("--version", action="version", version=__version__)
     p.add_argument("--config", type=Path, help="config file (default: the user config folder)")
     sub = p.add_subparsers(dest="command", required=True)

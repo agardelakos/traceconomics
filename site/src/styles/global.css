@@ -56,9 +56,14 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .site-nav > ul > li > a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; color: var(--color-text); text-decoration: none; }
 .site-nav > ul > li > a:hover { background: var(--color-disabled); }
 .site-nav > ul > li > a[aria-current="page"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 600; }
-/* The country switch looks like the other items; its arrow says it opens a list. */
-.nav-country { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-3); border: 0; border-radius: 6px; background: none; color: var(--color-text); font: inherit; cursor: pointer; }
-.nav-country:hover { background: var(--color-disabled); }
+/* Topics and Countries: the label is a link like the other items; the arrow beside it, a separate
+   button behind a faint divider, opens the quick list. Both are full-height targets. */
+.nav-split { display: flex; align-items: center; }
+.site-nav .nav-split > a { padding-right: var(--space-2); border-radius: 6px 0 0 6px; }
+.nav-arrow:hover { background: var(--color-disabled); }
+/* The section the reader is in (its page, or a page inside it): label and arrow tinted. */
+.site-nav .nav-split > a[aria-current], .nav-split:has(> a[aria-current]) > .nav-arrow { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 600; }
+.nav-arrow { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 32px; padding: 0; border: 0; border-left: 1px solid var(--color-border); border-radius: 0 6px 6px 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .menu-settings fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-m); margin: var(--space-3) 0 0; padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; }
 .menu-settings legend { font-weight: 700; padding: 0 var(--space-1); }
 .menu-settings label { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; cursor: pointer; }
@@ -69,7 +74,12 @@ main { padding: var(--space-5) 0 var(--space-7); }
   .site-nav[popover] { inset: 64px var(--space-2) auto; margin: 0; width: auto; max-height: calc(100dvh - 80px); overflow: auto; padding: var(--space-2) 0; background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
   .site-nav > ul { flex-direction: column; padding-inline: var(--space-2); }
   .site-nav > ul > li > a { min-height: 48px; justify-content: space-between; }
-  .nav-country { width: 100%; min-height: 48px; justify-content: space-between; }
+  /* On a phone the quick lists are shown in the menu, under their labels, and the arrows go. */
+  .nav-split { flex-direction: column; align-items: stretch; }
+  .site-nav .nav-split > a { min-height: 48px; border-radius: 6px; }
+  .nav-arrow { display: none; }
+  .nav-list[popover] { display: block; position: static; inset: auto; margin: 0; padding: 0 0 0 var(--space-4); min-width: 0; border: 0; box-shadow: none; background: none; }
+  .nav-list .nav-all { display: none; }
 }
 @media (min-width: 900px) {
   .menu-button, .menu-settings { display: none !important; }
@@ -91,19 +101,17 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .topic-bar { background: var(--color-accent-tint); border-bottom: 1px solid var(--color-border); }
 .topic-stack { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); padding-bottom: var(--space-3); }
 .topic-bar:has(.topic-nav) .topic-stack { padding-bottom: 0; }
-.topic-title { display: flex; flex-direction: column; }
-.topic-title .eyebrow { font-size: var(--text-xs); font-weight: 700; color: var(--color-accent); }
-.topic-title a.eyebrow { align-self: flex-start; display: inline-flex; align-items: center; min-height: 24px; text-decoration: none; }
-.topic-title a.eyebrow:hover { text-decoration: underline; }
 .topic-name { font-family: var(--font-serif); font-weight: 600; font-size: var(--text-xl); color: var(--color-text); text-decoration: none; }
-.country-menu { min-width: 240px; padding: var(--space-1); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
-.country-menu ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.country-menu a, .country-menu .planned { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; text-decoration: none; }
-.country-menu a { color: var(--color-text); }
-.country-menu a:hover { background: var(--color-disabled); }
-.country-menu a[aria-current="true"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 700; }
+.nav-list { min-width: 240px; padding: var(--space-1); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
+.nav-list ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.nav-list a, .nav-list .planned { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; padding: 0 var(--space-3); border-radius: 6px; text-decoration: none; }
+.nav-list a { color: var(--color-text); }
+.nav-list a:hover { background: var(--color-disabled); }
+.nav-list .nav-all { margin-top: var(--space-1); border-top: 1px solid var(--color-border); padding-top: var(--space-1); }
+.nav-list .nav-all a { color: var(--color-link); font-weight: 600; }
+.nav-list a[aria-current="true"] { background: var(--color-accent-tint); color: var(--color-accent); font-weight: 700; }
 @supports (anchor-name: --a) {
-  .country-menu { margin: var(--space-1) 0; position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline; }
+  .nav-list { margin: var(--space-1) 0; position-area: bottom span-right; position-try-fallbacks: flip-block, flip-inline; }
 }
 .topic-nav { border-top: 1px solid var(--color-border); }
 .topic-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; overflow-x: auto; }
@@ -112,6 +120,7 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .topic-nav a:hover { border-bottom-color: var(--color-border); }
 .topic-nav a[aria-current] { border-bottom-color: var(--color-accent); color: var(--color-accent); font-weight: 700; }
 /* A topic's own pages, under the country's tabs: smaller, so the two rows read as levels. */
+.topic-nav a.with-flag { gap: var(--space-2); }
 .topic-nav.sub a { min-height: 40px; font-size: var(--text-sm); border-bottom-width: 2px; }
 .topic-nav.sub a[aria-current] { font-weight: 600; }
 
@@ -278,12 +287,35 @@ button.term { font: inherit; color: inherit; background: none; border: none; pad
 }
 
 /* Home: a plain introduction and the finding in sentences; the numbers live on Explore. */
-.home-intro { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-start; padding-top: var(--space-4); }
-.home-intro > .stack { flex: 999 1 520px; min-width: 0; }
-.home-title { max-width: 18ch; }
+/* The band under the header: the title on a light tint, over a faint line of real data (the
+   poorest group's prices since the euro example's base month) that echoes the sharing image.
+   Decoration only: faint enough to read as texture, not as a chart to be read. */
+/* The band, like the line inside it, is as wide as the content column (the container less its
+   padding), so its edges line up with the cards below; a card's border and corners to match. */
+.home-band { position: relative; overflow: hidden; width: calc(min(100%, var(--content-max)) - 2 * var(--space-4)); margin: 0 auto var(--space-7); padding: var(--space-8) 0 calc(var(--space-8) + var(--space-4)); background: var(--color-band); border: 1px solid var(--color-border); border-radius: var(--radius-m); }
+.home-band .container { position: relative; }
+.band-line { position: absolute; left: 0; bottom: 0; width: 100%; height: 65%; opacity: 0.15; }
+.band-line polyline { fill: none; stroke: var(--color-accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+@media (max-width: 599px) { .home-band { padding: var(--space-7) 0; } .band-line { height: 50%; opacity: 0.1; } }
+/* The title's meaning and the example share the row. */
+.home-intro { display: flex; flex-wrap: wrap; gap: var(--space-7); align-items: flex-start; }
+.home-intro > .promises { flex: 1 1 480px; min-width: 0; }
+/* The title's three phrases as rows: the phrase beside its meaning, stacked on narrow screens. */
+.promises { margin: 0; display: flex; flex-direction: column; }
+.promises > div { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: var(--space-2) var(--space-5); padding: var(--space-4) 0; border-top: 1px solid var(--color-border); }
+.promises > div:last-child { border-bottom: 1px solid var(--color-border); }
+.promises dt { font-family: var(--font-serif); font-weight: 600; font-size: var(--text-xl); line-height: var(--leading-tight); }
+.promises dd { margin: 0; font-size: var(--text-lg); line-height: var(--leading-normal); }
+@media (max-width: 599px) { .promises > div { grid-template-columns: minmax(0, 1fr); } }
+/* The site's purpose in one line: larger and tighter than other titles, its phrases joined by dots
+   in the accent colour (the only colour in it, so no words look like links). */
+.home-title { font-size: clamp(2rem, 1.25rem + 2.5vw, 2.75rem); letter-spacing: -0.02em; line-height: 1.1; text-align: center; }
+.home-title > span { white-space: nowrap; }
+.home-title .sep { color: var(--color-accent); padding-left: 0.3em; }
+@media (max-width: 599px) { .home-title > span { display: block; } .home-title .sep { display: none; } }
 .lead { font-size: var(--text-xl); line-height: 1.5; max-width: 58ch; margin: 0; }
 .lead-2 { font-size: var(--text-lg); max-width: 60ch; margin: 0; }
-.euros { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); }
+.euros { flex: 0 1 400px; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); }
 .euros-lead { font-family: var(--font-serif); font-size: var(--text-xl); line-height: 1.4; margin: 0; }
 .euros-list { margin: 0; display: flex; flex-direction: column; }
 .euros-list > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
@@ -426,6 +458,28 @@ label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not
 .country-name { display: inline-flex; align-items: center; gap: var(--space-2); }
 
 /* A country's card on the home page: its name, then a few figures in one month, then the source. */
+/* Countries and topics, wherever they are listed: the live cards share the row; the small "more"
+   card (MoreCard) sits beside them, and below them on phones. */
+.card-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: stretch; }
+.card-row > :not(.more-card) { flex: 1 1 520px; min-width: 0; }
+.topic-row > :not(.more-card) { flex-basis: 300px; }
+.card-row > .country-card { padding: var(--space-5) var(--space-5); gap: var(--space-4); }
+.more-card { flex: 0 0 168px; gap: var(--space-2); align-items: flex-start; }
+.more-card .title { font-size: 1.0625rem; }
+.country-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-2) var(--space-4); }
+.country-head .title { font-size: var(--text-2xl); }
+.figure-group { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.figure-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-3) var(--space-5); align-items: end; }
+.figure-row .facts { gap: var(--space-5); }
+.figure-row .facts dd { font-size: var(--text-2xl); }
+.check { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding-bottom: 6px; }
+.check svg { flex: none; width: 18px; height: 18px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.check.agree svg { stroke: var(--color-accent); }
+.check.differ svg { stroke: var(--color-flag-low-reliability); }
+@media (max-width: 599px) {
+  .figure-row { grid-template-columns: minmax(0, 1fr); }
+  .more-card { flex-basis: 100%; }
+}
 .country-card { gap: var(--space-2); }
 .country-card .title { color: var(--color-text); text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; align-self: flex-start; }
 .country-card .title:hover { text-decoration: underline; }

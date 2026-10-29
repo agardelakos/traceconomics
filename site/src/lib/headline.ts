@@ -11,6 +11,15 @@ export const BASE_MONTH = "2021-01";
 export const BASE_AMOUNT = 100;
 const SHOWN = ["B/Q1", "B/Q5"];
 
+// The poorest group's index from the base month, as the points of a line in a 330×112 box: the
+// faint line behind the home page's title. Decoration only, so no axes; it moves with the data.
+export function bandLine(country: string): string {
+  const s = series(country, settings(country).default);
+  const values = s.groups[SHOWN[0]].index.slice(months(s).indexOf(BASE_MONTH)).filter((v): v is number => v !== null);
+  const lo = Math.min(...values), hi = Math.max(...values);
+  return values.map((v, i) => `${((i / (values.length - 1)) * 330).toFixed(1)},${(108 - ((v - lo) / (hi - lo)) * 104).toFixed(1)}`).join(" ");
+}
+
 export function headline(country: string) {
   const s = series(country, settings(country).default);
   const axis = months(s);

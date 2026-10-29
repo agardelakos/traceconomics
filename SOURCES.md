@@ -35,6 +35,7 @@ ELSTAT's logo and third-party material are excluded. We use neither.
 | Consumer Price Index, original tables for 2009–2010 | Prices for those years. ELSTAT no longer publishes them; the files are ELSTAT's own, retrieved from the Internet Archive's Wayback Machine copy of ELSTAT's old website | Yes, as above |
 | Consumer Price Index, twelve-month rates of the overall index (table 05) | Shown beside our own calculation of the same rate, as a check | No: shown as published |
 | Household Budget Survey public use files, 2008–2024 | Spending weights by household group | Yes: we compute aggregates. The microdata files are never redistributed |
+| Household Budget Survey 2024 press release, coefficients of variation (table 17) | Checks of our standard errors only | Not published |
 | Household Budget Survey published tables (table 1.03) | Checks of our weights; names of the spending categories that the EU vocabulary lacks | Names as published; a name in capitals is replaced by its single sub-category's name when the two are the same words |
 
 **Notice:** "Source: Hellenic Statistical Authority (ELSTAT), www.statistics.gr. Data modified by TracEconomics; ELSTAT bears no responsibility for the result of the modification."

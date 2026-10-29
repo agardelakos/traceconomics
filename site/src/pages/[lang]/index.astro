@@ -1,18 +1,16 @@
 ---
-// The site's home: what TracEconomics is, in plain words, and the latest headline as a sentence;
-// then the countries, first, because most readers come for one; then every topic (as the question
-// it answers, under its short name), each leading to its page across countries. No chart, no
-// tiles, no table: the numbers live on each topic's pages. Each place links to a page once. A
-// planned topic or country is greyed out, with the reason, and is not a link.
+// The site's home: what the site is for, in one line across the page; beneath it, what TracEconomics
+// is, in plain words, beside one example from a live topic, linked to its full figures;
+// then every topic (as the question it answers, under its short name), each leading to its page
+// across countries; then the countries. No chart, no tiles, no table: the numbers live on each
+// topic's pages. Planned countries and topics follow the cards' rule (MoreCard.astro).
 import Base from "../../layouts/Base.astro";
-import { BASE_AMOUNT, BASE_MONTH, headline } from "../../lib/headline";
+import { BASE_AMOUNT, BASE_MONTH, bandLine, headline } from "../../lib/headline";
 import { eur } from "../../lib/income";
-import { href, LANGS, month, num, pct, t, type Lang } from "../../lib/i18n";
+import { LANGS, href, month, t, type Lang } from "../../lib/i18n";
+import CountryCards from "../../components/CountryCards.astro";
 import TopicCards from "../../components/TopicCards.astro";
-import { countryFacts } from "../../lib/context";
-import { flag } from "../../lib/flags";
-import { reference } from "../../lib/references";
-import { countries, countryHref, OFFICES, topic, topicHref } from "../../lib/topics";
+import { topicHref, countryHref, topic } from "../../lib/topics";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -27,87 +25,61 @@ const country = topic(M1).countries[0];
 const h = headline(country);
 const SWATCH: Record<string, string> = { Q1: "var(--series-q1)", Q5: "var(--series-q5)" };
 const countryName = t(lang, `country.${country}`);
-// Each country's card: a few headline figures, each as the office published it and as we compute
-// it from the office's own lower-level data, with whether the two agree and the source (both come
-// from the office's statistics page). Inflation today; more figures as the topics that need them arrive. An
-// official figure is shown only where one of our topics gives it context, never on its own. A
-// figure whose month differs from the card's carries its own month.
-const cards = countries().map((c) => ({
-  code: c,
-  ...card(c),
+// The title's phrases (one per line in its text), each with what it means here. The example card
+// says "group", not "fifth": the home page has not explained income fifths yet.
+const phrases = t(lang, "hub.title").split("\n");
+const promises = phrases.map((phrase, i) => ({
+  name: phrase,
+  text: t(lang, `hub.promise.${["data", "questions", "answers"][i]}`),
 }));
-function card(c: string) {
-  const facts = countryFacts(c);
-  const { computed, published, comparison } = facts.official;
-  const office = t(lang, `source.${OFFICES[c].key}`);
-  const figures = [
-    { label: t(lang, "country.card.published", { office }), value: published.annual_rate, period: published.period },
-    { label: t(lang, "country.card.computed"), value: computed.annual_rate, period: computed.period },
-  ];
-  // The card's month is the published figure's; ours says so if it is for another month.
-  return { facts, office, figures, month: published.period, check: comparison };
-}
 ---
 <Base lang={lang} title={t(lang, "site.name")} description={t(lang, "site.tagline")} current="home">
+  <section slot="band" class="home-band">
+    <svg class="band-line" viewBox="0 0 330 112" preserveAspectRatio="none" aria-hidden="true"><polyline points={bandLine(country)} /></svg>
+    <div class="container">
+      {/* One line where it fits, the phrases (one per line in the text) joined by teal dots; it breaks
+          only between phrases, a dot ending the line, never starting one. Screen readers hear a full
+          stop instead of the dot. On phones, one phrase per line and no dots. */}
+      <h1 class="home-title">{phrases.map((s, i) => <>{i > 0 && " "}<span>{s}{i < phrases.length - 1 && <><span class="visually-hidden">.</span><span class="sep" aria-hidden="true">·</span></>}</span></>)}</h1>
+    </div>
+  </section>
   <div class="stack-lg">
-    <section class="home-intro">
-      <div class="stack" style="gap: var(--space-4)">
-        <h1 class="home-title">{t(lang, "hub.title")}</h1>
-        <p class="lead">{t(lang, "hub.intro1")}</p>
-        <p class="lead-2">{t(lang, "hub.intro2")}</p>
-      </div>
+    <div class="home-intro">
+      <dl class="promises">
+        {promises.map((p) => (
+          <div>
+            <dt>{p.name}</dt>
+            <dd>{p.text}</dd>
+          </div>
+        ))}
+      </dl>
       <aside class="panel euros" aria-labelledby="euros-h">
-        <p class="eyebrow">{t(lang, "hub.fact.eyebrow", { country: countryName })}</p>
+        <p class="eyebrow">{t(lang, "hub.fact.eyebrow", { topic: t(lang, `topic.${M1}`), country: countryName })}</p>
         <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
         <dl class="euros-list">
           {h.baskets.map((b) => (
             <div>
               <dt>
                 <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><line x1="1" y1="4" x2="15" y2="4" stroke={SWATCH[b.group]} stroke-width="3" stroke-linecap="round"></line></svg>
-                {t(lang, "home.euros.for", { group: t(lang, `group.in.${b.group}`) })}
+                {t(lang, `hub.fact.group.${b.group}`)}
               </dt>
               <dd>{eur(b.cost, 1)}</dd>
             </div>
           ))}
         </dl>
-        <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, h.latestMonth) })}</p>
+        <a href={countryHref(lang, country)} style="font-weight: 600">{t(lang, "hub.fact.link")} →</a>
       </aside>
+    </div>
+
+    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
+      <h2 id="topics-h">{t(lang, "hub.topics.start")}</h2>
+      <TopicCards lang={lang} link={(tp) => (tp.status === "live" ? topicHref(lang, tp.slug) : null)} />
     </section>
 
     <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
       <h2 id="countries-h">{t(lang, "hub.countries.title")}</h2>
-      <div class="cards">
-        {cards.map((c) => (
-          <div class="card country-card">
-            <a class="title" href={countryHref(lang, c.code)}><Fragment set:html={flag(c.code)} /> {t(lang, `country.${c.code}`)} →</a>
-            <p class="eyebrow">{t(lang, "country.card.month", { month: month(lang, c.month) })}</p>
-            <dl class="facts">
-              {c.figures.map((f) => (
-                <div>
-                  <dt>{f.label}{f.period !== c.month && <> ({month(lang, f.period)})</>}</dt>
-                  <dd>{pct(lang, f.value)}</dd>
-                </div>
-              ))}
-            </dl>
-            <p class="small muted">
-              {c.check === undefined ? null : c.check.agree
-                ? t(lang, "country.card.agree", { office: c.office })
-                : <strong>{t(lang, "country.card.differ", { office: c.office, points: num(lang, c.check.difference, 4) })}</strong>}
-              {" "}{t(lang, "country.card.source")}: <a href={reference(c.facts.official.published.reference).url}>{new URL(reference(c.facts.official.published.reference).url!).hostname}</a>
-            </p>
-          </div>
-        ))}
-        <div class="card planned">
-          <span class="chip-status">{t(lang, "soon")}</span>
-          <span class="title">{t(lang, "country.more")}</span>
-        </div>
-      </div>
+      <CountryCards lang={lang} />
     </nav>
-
-    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
-      <h2 id="topics-h">{t(lang, "hub.topics")}</h2>
-      <TopicCards lang={lang} link={(tp) => (tp.status === "live" ? topicHref(lang, tp.slug) : null)} />
-    </section>
 
     <section class="stack" style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)">
       <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">{t(lang, "home.open.title")}</h2>

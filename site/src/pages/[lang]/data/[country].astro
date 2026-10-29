@@ -1,6 +1,6 @@
 ---
-// One country's data: every file of every topic that covers it, one section per topic (a topic not
-// built yet is marked "coming soon"), then the source data: the official tables the files are
+// One country's data: every file of every live topic that covers it, one section per topic, then
+// the source data: the official tables the files are
 // built from, each linked to its publisher. The archived copies of the exact files used will be
 // linked there too once the raw archive is published.
 import { getEntry } from "astro:content";
@@ -19,18 +19,18 @@ const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
 const countryName = t(lang, `country.${country}`);
 
-// Each topic's section. A live topic that covers this country brings its files and its text; every
-// live topic needs its own files component here, so a new one can't be listed without its files.
+// Each live topic's section, with its files and its text; planned topics aren't named (no promises
+// on the site). Every live topic needs its own files component here, so a new one can't be listed
+// without its files.
 const sections = await Promise.all(TOPICS.map(async (tp) => {
-  if (tp.status !== "live") return { tp, live: false as const };
-  if (!tp.countries.includes(country)) return null;
+  if (tp.status !== "live" || !tp.countries.includes(country)) return null;
   if (tp.module !== "m1") throw new Error(`no files component for topic "${tp.slug}" on the data page`);
   const entry = await getEntry("pages", m1Text(country, lang, "data"));
   if (!entry) throw new Error(`no data text for ${tp.slug} in ${country}, ${lang}`);
-  return { tp, live: true as const, entry };
+  return { tp, entry };
 }));
 const shown = sections.filter((s) => s !== null);
-const sourceKeys = [...new Set(shown.flatMap((s) => (s.live ? s.entry.data.sources : [])))];
+const sourceKeys = [...new Set(shown.flatMap((s) => s.entry.data.sources))];
 const title = t(lang, "opendata.country.title", { country: countryName });
 ---
 <Base lang={lang} title={title} description={t(lang, "opendata.country.lead", { country: countryName })} path={`data/${country}`} current="data">
@@ -49,11 +49,9 @@ const title = t(lang, "opendata.country.title", { country: countryName });
       <section class="stack data-topic" aria-labelledby={s.tp.slug} style="gap: var(--space-3)">
         <div class="section-head">
           <h2 id={s.tp.slug}>{t(lang, `topic.${s.tp.slug}`)}</h2>
-          {s.live
-            ? <a href={topicHref(lang, s.tp.slug, country)}>{t(lang, "opendata.country.see_topic", { topic: t(lang, `topic.${s.tp.slug}`) })} →</a>
-            : <span class="planned-tag">{t(lang, "soon")}</span>}
+          <a href={topicHref(lang, s.tp.slug, country)}>{t(lang, "opendata.country.see_topic", { topic: t(lang, `topic.${s.tp.slug}`) })} →</a>
         </div>
-        {s.live ? <M1Files lang={lang} country={country} entry={s.entry} /> : <p class="muted">{t(lang, `topic.${s.tp.slug}.text`)}</p>}
+        <M1Files lang={lang} country={country} entry={s.entry} />
       </section>
     ))}
 

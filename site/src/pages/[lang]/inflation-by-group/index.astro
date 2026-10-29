@@ -5,6 +5,7 @@
 // not built yet is greyed out, with the reason, and is not a link.
 import { getCollection, render } from "astro:content";
 import Breadcrumb from "../../../components/Breadcrumb.astro";
+import MoreCard from "../../../components/MoreCard.astro";
 import Base from "../../../layouts/Base.astro";
 import { BASE_AMOUNT, BASE_MONTH, headline } from "../../../lib/headline";
 import { eur } from "../../../lib/income";
@@ -67,7 +68,7 @@ const offers = tp.sections.map((s) => ({ name: t(lang, s ? `nav.${s}` : "nav.ove
 
     <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
       <h2 id="countries-h">{t(lang, "m1.landing.countries")}</h2>
-      <div class="cards">
+      <div class="card-row">
         {countries.map((c) => (
           <a class="card" href={topicHref(lang, SLUG, c.code)}>
             <span class="chip-status">{c.latest}</span>
@@ -75,11 +76,7 @@ const offers = tp.sections.map((s) => ({ name: t(lang, s ? `nav.${s}` : "nav.ove
             <span class="text">{c.text}</span>
           </a>
         ))}
-        <div class="card planned">
-          <span class="chip-status">{t(lang, "soon")}</span>
-          <span class="title">{t(lang, "country.more")}</span>
-          <span class="text">{t(lang, "m1.landing.more_text")}</span>
-        </div>
+        <MoreCard lang={lang} what="countries" />
       </div>
     </nav>
   </div>

@@ -32,6 +32,9 @@ const country = topic?.country ?? Astro.props.country;
 const countryLink = topic?.country === undefined ? undefined : (c: string) =>
   topicOf(topic.slug).countries.includes(c) ? topicHref(lang, topic.slug, c, topic.section?.split("/")[0]) : countryHref(lang, c);
 const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "site.name")}`;
+// The picture a shared link shows (made by scripts/og-image.mjs); services need its full address.
+const shareImage = new URL(`/og/${lang}.png`, Astro.site).href;
+const shareAlt = `${t(lang, "site.name")}: ${t(lang, "hub.title").split("\n").join(" · ")}`;
 ---
 <!doctype html>
 <html lang={lang}>
@@ -42,6 +45,15 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{full}</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t(lang, "site.name")} />
+    <meta property="og:title" content={full} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={shareImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={shareAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
     {isOffered(otherLang(lang)) && <link rel="alternate" hreflang={otherLang(lang)} href={href(otherLang(lang), path)} />}
     <link rel="alternate" hreflang={lang} href={href(lang, path)} />
     <script is:inline src="/theme.js"></script>
@@ -52,6 +64,7 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
     {country !== undefined && <CountryBar lang={lang} country={country} slug={topic?.slug} section={topic?.section} />}
     {topic && topic.country === undefined && <TopicBar lang={lang} slug={topic.slug} />}
     <main id="content">
+      <slot name="band" />
       <div class="container">
         <slot />
       </div>

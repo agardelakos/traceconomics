@@ -1,16 +1,20 @@
 ---
-// Every topic as a card: the question it answers as the title, under its short name. A topic with
-// a page here is a link; one not built yet is greyed out, marked "coming soon", and is not a link.
-// The caller decides where each topic leads: its page across countries, or one country's page.
+// The topics as cards: the question each answers as the title, under its short name. A topic with
+// a page here is a link (the caller decides where each leads: its page across countries, or one
+// country's page, or null where there is none); a planned topic marked `shown` is a greyed card,
+// "coming soon", not a link. Any other topic without a page here is behind the small "more topics"
+// card, which names none of them.
 import { t, type Lang } from "../lib/i18n";
 import { TOPICS, type Topic } from "../lib/topics";
+import MoreCard from "./MoreCard.astro";
 
 interface Props { lang: Lang; link: (tp: Topic) => string | null }
 const { lang, link } = Astro.props;
 const cards = TOPICS.map((tp) => ({ tp, link: link(tp) }));
+const listed = cards.filter((c) => c.link !== null || (c.tp.status === "planned" && c.tp.shown));
 ---
-<div class="cards">
-  {cards.map(({ tp, link }) => link ? (
+<div class="card-row topic-row">
+  {listed.map(({ tp, link }) => link ? (
     <a class="card" href={link}>
       <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
       <span class="title">{t(lang, `topic.${tp.slug}.question`)} →</span>
@@ -24,4 +28,5 @@ const cards = TOPICS.map((tp) => ({ tp, link: link(tp) }));
       <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
     </div>
   ))}
+  {listed.length < cards.length && <MoreCard lang={lang} what="topics" />}
 </div>

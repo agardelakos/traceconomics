@@ -5,7 +5,7 @@ Static pages built with [Astro](https://astro.build) and [Observable Plot](https
 ## What you need
 
 - **Node.js 22 or later** (CI uses 24).
-- **The data files** in `public/data/`. They are not in the repository: the pipeline writes them (from the repository root, `python -m traceconomics export site --out site/public/data`; see the root README). Without them the build stops.
+- **The data files** in `public/data/`. They are not in the repository: the pipeline writes them (from the repository root, `python -m traceconomics export site --out site/public/data`; see the root README). Without them the build stops, but `npm run check:code` (type check and unit tests, what CI runs) still works.
 
 Then, once, in this folder:
 

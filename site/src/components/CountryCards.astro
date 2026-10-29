@@ -1,0 +1,60 @@
+---
+// The countries as cards (the home page, the countries page): one wide card per country (one
+// country for a long time), each figure a group of its own (as the office published it, as we
+// compute it from the office's own lower-level data, whether they agree), so a new figure adds a
+// group, not a new card. An official figure is shown only where one of our topics gives it
+// context. Then the small "more countries" card.
+import { countryFacts } from "../lib/context";
+import { flag } from "../lib/flags";
+import { month, num, pct, t, type Lang } from "../lib/i18n";
+import { reference } from "../lib/references";
+import { countries, countryHref, OFFICES } from "../lib/topics";
+import MoreCard from "./MoreCard.astro";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+function card(c: string) {
+  const facts = countryFacts(c);
+  const { computed, published, comparison } = facts.official;
+  const office = t(lang, `source.${OFFICES[c].key}`);
+  const figures = [
+    { label: t(lang, "country.card.published", { office }), value: published.annual_rate, period: published.period },
+    { label: t(lang, "country.card.computed"), value: computed.annual_rate, period: computed.period },
+  ];
+  // The card's month is the published figure's; ours says so if it is for another month.
+  return { facts, office, figures, month: published.period, check: comparison };
+}
+
+const cards = countries().map((c) => ({
+  code: c,
+  ...card(c),
+}));
+---
+<div class="card-row">
+  {cards.map((c) => (
+    <div class="card country-card">
+      <div class="country-head">
+        <a class="title" href={countryHref(lang, c.code)}><Fragment set:html={flag(c.code)} /> {t(lang, `country.${c.code}`)} →</a>
+        <span class="small muted">{t(lang, "country.card.source")}: <a href={reference(c.facts.official.published.reference).url}>{new URL(reference(c.facts.official.published.reference).url!).hostname}</a></span>
+      </div>
+      <div class="figure-group">
+        <p class="eyebrow">{t(lang, "country.card.month", { month: month(lang, c.month) })}</p>
+        <div class="figure-row">
+          <dl class="facts">
+            {c.figures.map((f) => (
+              <div>
+                <dt>{f.label}{f.period !== c.month && <> ({month(lang, f.period)})</>}</dt>
+                <dd>{pct(lang, f.value)}</dd>
+              </div>
+            ))}
+          </dl>
+          {c.check !== undefined && (c.check.agree
+            ? <p class="check agree"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" /><path d="M5.5 9.2 L8 11.5 L12.5 6.5" /></svg>{t(lang, "country.card.match")}</p>
+            : <p class="check differ"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8" /><path d="M9 5 V10 M9 13 V13.01" /></svg><strong>{t(lang, "country.card.differ", { office: c.office, points: num(lang, c.check.difference, 4) })}</strong></p>)}
+        </div>
+      </div>
+    </div>
+  ))}
+  <MoreCard lang={lang} what="countries" />
+</div>

@@ -1,17 +1,26 @@
 ---
-// Under the header on a topic's page across countries: the topic's name. A country's pages have
-// their own bar (CountryBar.astro); this page lists the countries itself.
+// Under the header on a topic's page across countries, the mirror of a country's bar
+// (CountryBar.astro): the topic's name, then a tab for all its countries and one for each country
+// it covers. A country's tab leads to that country's page for the topic, where the country's own
+// bar takes over (the site is country first).
+import { flag } from "../lib/flags";
 import { t, type Lang } from "../lib/i18n";
-import { topicHref } from "../lib/topics";
+import { topic, topicHref } from "../lib/topics";
 
 interface Props { lang: Lang; slug: string }
 const { lang, slug } = Astro.props;
+const name = t(lang, `topic.${slug}`);
 ---
 <div class="topic-bar">
   <div class="container topic-stack">
-    <div class="topic-title">
-      <span class="eyebrow">{t(lang, "topic.eyebrow")}</span>
-      <a class="topic-name" href={topicHref(lang, slug)} aria-current="page">{t(lang, `topic.${slug}.long`)}</a>
-    </div>
+    <a class="topic-name" href={topicHref(lang, slug)}>{name}</a>
+    <nav class="topic-nav" aria-label={t(lang, "topic.countries_nav", { topic: name })}>
+      <ul>
+        <li><a href={topicHref(lang, slug)} aria-current="page">{t(lang, "topic.all_countries")}</a></li>
+        {topic(slug).countries.map((c) => (
+          <li><a href={topicHref(lang, slug, c)} class="with-flag"><Fragment set:html={flag(c)} />{t(lang, `country.${c}`)}</a></li>
+        ))}
+      </ul>
+    </nav>
   </div>
 </div>

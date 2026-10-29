@@ -1,0 +1,14 @@
+---
+// The one way the site says more is planned, for countries and for topics alike: a small card, the
+// "coming soon" pill and "More countries" or "More topics", nothing else. No planned country or
+// topic is named, and no reasons or dates are given: plans change, and the site promises only what
+// it has. It sits last in a `.card-row`, beside the live cards (and below them on phones).
+import { t, type Lang } from "../lib/i18n";
+
+interface Props { lang: Lang; what: "countries" | "topics" }
+const { lang, what } = Astro.props;
+---
+<div class="card planned more-card">
+  <span class="chip-status">{t(lang, "soon")}</span>
+  <span class="title">{t(lang, what === "countries" ? "country.more" : "topic.more")}</span>
+</div>

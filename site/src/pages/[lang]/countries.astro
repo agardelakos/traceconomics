@@ -1,0 +1,24 @@
+---
+// Every country, as the home page shows them; the header's Countries label leads here.
+import Base from "../../layouts/Base.astro";
+import { LANGS, href, t, type Lang } from "../../lib/i18n";
+import CountryCards from "../../components/CountryCards.astro";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+---
+<Base lang={lang} title={t(lang, "nav.countries")} description={t(lang, "countries.lead")} path="countries" current="countries">
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, "nav.countries")}</nav>
+      <h1>{t(lang, "nav.countries")}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "countries.lead")}</p>
+    </header>
+    <section class="stack" style="gap: var(--space-3)">
+      <CountryCards lang={lang} />
+    </section>
+  </article>
+</Base>

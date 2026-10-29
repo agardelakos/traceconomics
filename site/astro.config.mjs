@@ -5,6 +5,8 @@ import { glossaryTerms } from "./src/lib/glossary-terms.mjs";
 
 export default defineConfig({
   output: "static",
+  // The public address. Pages use it only where a full address is required (the sharing image).
+  site: "https://traceconomics.com",
   // Every page exists in Greek and English, under /el/ and /en/. The root page is our own: it
   // sends a visitor on by the browser's language, with plain links as a fallback.
   i18n: {
