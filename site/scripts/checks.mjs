@@ -85,10 +85,11 @@ else {
     const html = readFileSync(page, "utf-8");
     const name = relative(dist, page);
     // No inline scripts: every script is a file, so a strict Content Security Policy can be set.
-    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) {
+    // Case-insensitive, as browsers read tags: an inline <SCRIPT> must not slip past.
+    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
       if (!/\bsrc=/.test(m[1]) && m[2].trim()) fail(`${name}: inline script`);
     }
-    for (const m of html.matchAll(/<style\b/g)) fail(`${name}: inline style block`);
+    for (const m of html.matchAll(/<style\b/gi)) fail(`${name}: inline style block`);
     // Resources only from this site (links to sources may point anywhere), but for the beacon.
     let beacons = 0;
     for (const m of html.matchAll(/<(script|link|img|source|iframe)\b[^>]*\b(src|href)="([^"]+)"/g)) {
@@ -105,7 +106,7 @@ else {
     }
     if (beacons > 1) fail(`${name}: the beacon ${beacons} times`);
     // Nothing private or internal in the text.
-    const text = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/data-config="[^"]*"/g, "");
+    const text = html.replace(/<script\b[\s\S]*?<\/script\s*>/gi, "").replace(/data-config="[^"]*"/g, "");
     for (const [re, what] of [[/\bD\d{2,3}\b/, "a decision number"], [/\bdocs\//, "a link to private notes"],
       [/[A-Za-z]:\\\\?Users|\/home\/|\/Users\//, "a local path"], [/[\w.+-]+@[\w-]+\.[\w.]+/, "an e-mail address"]]) {
       const hit = text.match(re);
