@@ -46,6 +46,9 @@ class ReleaseConfig:
     # The website project (the repository's site/ folder) and its name on the host.
     site_dir: Path | None = None
     worker_name: str = "traceconomics"
+    # The public address, where a promote to production is checked (the domain is attached to the
+    # Worker by the host, so no upload log names it).
+    production_url: str | None = None
     # Builds kept on disk, newest first; those on staging or production are always kept.
     keep: int = 12
     replicates: int = 1000
@@ -116,6 +119,7 @@ def parse(raw: dict, base_dir: Path) -> Config:
             releases_dir=_path(rel.get("dir", "~/traceconomics-releases"), base_dir),
             site_dir=_path(rel["site_dir"], base_dir) if "site_dir" in rel else None,
             worker_name=str(rel.get("worker_name", "traceconomics")),
+            production_url=str(rel["production_url"]).rstrip("/") if "production_url" in rel else None,
             keep=int(rel.get("keep", 12)),
             replicates=int(rel.get("replicates", 1000)),
         )

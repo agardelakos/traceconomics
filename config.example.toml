@@ -52,4 +52,5 @@ memory_limit = "2GB"
 # dir = "~/traceconomics-releases"
 # site_dir = "~/traceconomics/site"
 # worker_name = "traceconomics"
+# production_url = "https://example.org"   # the public address: each promote to production is checked there
 # keep = 12

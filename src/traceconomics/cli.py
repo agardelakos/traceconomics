@@ -102,8 +102,9 @@ def main(argv: list[str] | None = None) -> int:
     an.add_argument("--day", help="one UTC day (YYYY-MM-DD) only, without moving the bookmark: for a test or a gap")
 
     rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
-    rl.add_argument("action", choices=["build", "promote", "status"])
-    rl.add_argument("id", nargs="?", help="promote: the build to publish (from `release status`)")
+    rl.add_argument("action", choices=["build", "promote", "retest", "status"],
+                    help="retest: run a held-back build's browser tests again, on the files it built")
+    rl.add_argument("id", nargs="?", help="promote, retest: the build (from `release status`)")
     rl.add_argument("--to", choices=["staging", "production"],
                     help="promote: the private staging address or the public site; no default, choose each time")
 
@@ -639,15 +640,19 @@ def _dispatch(args, cfg) -> int:
             result = release.build(cfg, args.config)
             print(release.render(result))
             return 0 if result["result"] == "ok" else 1
+        if args.action in ("promote", "retest") and not args.id:
+            print("Which build? See `traceconomics release status`.")
+            return 2
+        if args.action == "retest":
+            result = release.retest(cfg, args.id, args.config)
+            print(release.render(result))
+            return 0 if result["result"] == "ok" else 1
         if args.action == "promote":
-            if not args.id:
-                print("Which build? See `traceconomics release status`.")
-                return 2
             if not args.to:
                 print("Where to? Pass --to staging or --to production.")
                 return 2
             done = release.promote(cfg, args.id, args.to)
-            print(f"Promoted {done['id']} to {done['to']}: {done.get('url') or '(no address in the log)'}")
+            print(f"Promoted {done['id']} to {done['to']}: {done['url']} serves it (checked {done['confirmed']})")
             return 0
         for b in release.status(cfg.release.releases_dir):
             on = ",".join(b["on"])

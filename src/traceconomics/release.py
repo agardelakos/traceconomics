@@ -2,26 +2,35 @@
 
 `build` runs the steps below in order and stops at the first failure: update the store, compute
 every series and the error bands, run the checks, write the site's data, build and test the
-site, and upload it as a preview. Each build gets a folder (`<releases>/<id>/`) with every step's
-log, the outputs, the built site, checksums of both and a report, which is emailed with the
-preview link and what changed since the last release.
+site, open its pages in a browser, upload it as a preview, and open the preview's pages in a
+browser again (there the host's real headers apply). Each build gets a folder (`<releases>/<id>/`)
+with every step's log, the outputs, the built site, checksums of both and a report, which is
+emailed with the preview link and what changed since the last release.
+
+A build held back by its browser tests (or its upload) can be tested again with `retest`, after a
+network fault or a slow host: the same tests, on the same built files. A test or a page that was
+wrong needs a new build instead, which `retest` enforces by refusing when the tests changed.
 
 The site is hosted as static files on Cloudflare Workers. An upload creates a version with its own
 preview address and leaves the live site as it is. Nothing reaches the public address until the
 owner looks at the preview and promotes the build (`promote`): a person checks every release
 before it is published. Each promote names its target: `staging`, a private preview alias that
 stays after launch as a place to look at a build in its final setting, or `production`, the
-public address. The two can serve different builds, so a rollback is per target too.
+public address. The two can serve different builds, so a rollback is per target too. After each
+promote, the target address is checked: it must serve the promoted build's own files.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import time
+import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -39,6 +48,15 @@ PREVIEW_URL = re.compile(r"https://[\w.-]+\.workers\.dev\b[^\s\"']*")
 STAGING, PRODUCTION = "staging", "production"
 TARGETS = (STAGING, PRODUCTION)
 LOG_TAIL = 40
+# Stands in a step's environment for the build's preview address, known only once uploaded.
+PREVIEW = "<preview address>"
+# The steps a held-back build can run again (`retest`).
+RETESTABLE = ("ui-test", "upload", "smoke")
+# Every build's copy differs (it records when it was generated): the file that tells builds apart.
+METADATA = "data/v1/gr/m1/latest/metadata.json"
+# A new version takes a moment to reach every location of the host. Both are assumptions, to
+# adjust once measured: ask every 10 seconds, give up after 2 minutes.
+CONFIRM_EVERY, CONFIRM_FOR = 10, 120
 
 
 @dataclass(frozen=True)
@@ -46,6 +64,7 @@ class Step:
     name: str
     argv: tuple[str, ...]
     cwd: Path | None = None
+    env: tuple[tuple[str, str], ...] = ()
 
 
 # A runner executes one step, writing its output to the log file, and returns the exit code.
@@ -65,9 +84,10 @@ def _py(*args: str) -> tuple[str, ...]:
     return (sys.executable, "-I", "-m", "traceconomics", *args)
 
 
-def steps(cfg: Config, folder: Path, build_id: str) -> list[Step]:
+def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> list[Step]:
+    """`ui`: where the browser tests keep their reports and traces (default `<build>/ui`)."""
     r = cfg.release
-    site, outputs = r.site_dir, folder / "outputs"
+    site, outputs, ui = r.site_dir, folder / "outputs", ui or folder / "ui"
     return [
         Step("store", _py("store", "update")),
         Step("series", _py("module1", "run", "--out", str(outputs), "--combinations", "all")),
@@ -79,8 +99,29 @@ def steps(cfg: Config, folder: Path, build_id: str) -> list[Step]:
         Step("export", _py("export", "site", "--out", str(site / "public" / "data"), "--outputs", str(outputs))),
         Step("npm-ci", ("npm", "ci", "--no-audit", "--no-fund"), site),
         Step("site-check", ("npm", "run", "check"), site),
+        # The built pages in a browser, on a local server, before anything leaves this machine.
+        Step("ui-test", ("npm", "run", "test:ui"), site, _ui_env(ui / "ui-test")),
         Step("upload", _upload(site / "dist", r.worker_name, f"build-{build_id.lower()}", build_id), site),
+        # The same tests on the uploaded preview: what the host really serves, headers included.
+        Step("smoke", ("npm", "run", "test:ui"), site, (("BASE_URL", PREVIEW), *_ui_env(ui / "smoke"))),
     ]
+
+
+def _ui_env(folder: Path) -> tuple[tuple[str, str], ...]:
+    return (("UI_OUTPUT", str(folder / "results")), ("UI_REPORT", str(folder / "report")))
+
+
+def ui_fingerprint(site: Path) -> str:
+    """The browser tests as they are: their files, their config, and the lock file that pins
+    Playwright. A retest must run the tests its build ran."""
+    files = [site / "playwright.config.ts", site / "package-lock.json",
+             *sorted((site / "tests" / "ui").rglob("*"))]
+    h = hashlib.sha256()
+    for f in files:
+        if f.is_file():
+            h.update(f.relative_to(site).as_posix().encode() + b"\0")
+            h.update(f.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    return h.hexdigest()[:16]
 
 
 def _upload(folder: Path, name: str, alias: str, message: str) -> tuple[str, ...]:
@@ -134,33 +175,118 @@ def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual
     logs.mkdir(parents=True, exist_ok=False)
     previous = baseline(r.releases_dir)
     record = {"id": build_id, "started": iso(now), "reason": reason, "steps": [],
-              "baseline": previous["id"] if previous else None}
+              "baseline": previous["id"] if previous else None, "ui_fingerprint": ui_fingerprint(r.site_dir)}
     env = _env(config_path)
     with RunLock(r.releases_dir):
-        for n, step in enumerate(steps(cfg, folder, build_id), 1):
-            log = logs / f"{n:02d}-{step.name}.log"
-            started = utc_now()
-            code = runner(step, env, log)
-            record["steps"].append({"name": step.name, "code": code, "seconds": int((utc_now() - started).total_seconds())})
-            if code != 0:
-                record.update(result="failed", failed_step=step.name, log_tail=_tail(log))
-                break
+        failed = _run_steps(steps(cfg, folder, build_id), env, logs, logs, runner, record["steps"],
+                            after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")})
+        if failed:
+            record.update(result="failed", failed_step=failed[0], log_tail=failed[1])
         else:
-            record["result"] = "ok"
-            record["preview_url"] = _preview_url(logs)
-            dist = folder / "dist"
-            shutil.copytree(r.site_dir / "dist", dist)
-            _write_sums(folder, ["outputs", "dist"])
-            record["changes"] = changes(previous and r.releases_dir / previous["id"] / "outputs", folder / "outputs")
+            _passed(cfg, folder, record)
     record["finished"] = iso(utc_now())
+    subject = (f"release {build_id} ready for review" if record["result"] == "ok"
+               else f"ALERT: release {build_id} failed at {record['failed_step']}")
+    _report(cfg, folder, record, subject)
+    prune(r.releases_dir, r.keep)
+    return record
+
+
+def _run_steps(todo: list[Step], env: dict, logs: Path, step_logs: Path, runner: Runner, ran: list,
+               after: dict | None = None) -> tuple[str, list[str]] | None:
+    """Run the steps in order, each logged in `step_logs`; None, or (failed step, its log's last lines).
+    `logs`: the build's log folder, where the preview address is looked up. `after`: step name ->
+    what to do once that step has passed."""
+    for n, step in enumerate(todo, 1):
+        log = step_logs / f"{n:02d}-{step.name}.log"
+        started = utc_now()
+        step_env = _step_env(step, env, logs)
+        if step_env is None:
+            log.write_text(f"{step.name}: no preview address in the upload log\n", encoding="utf-8")
+            code = 1
+        else:
+            code = runner(step, step_env, log)
+        ran.append({"name": step.name, "code": code, "seconds": int((utc_now() - started).total_seconds())})
+        if code != 0:
+            return step.name, _tail(log)
+        if after and step.name in after:
+            after[step.name]()
+    return None
+
+
+def _step_env(step: Step, env: dict, logs: Path) -> dict | None:
+    out = dict(env)
+    for key, value in step.env:
+        if value == PREVIEW:
+            value = _preview_url(logs)
+            if value is None:
+                return None
+        out[key] = value
+    return out
+
+
+def _passed(cfg: Config, folder: Path, record: dict) -> None:
+    """Fill in a build that has passed every step."""
+    r = cfg.release
+    record.update(result="ok", preview_url=_preview_url(folder / "logs"))
+    record.pop("failed_step", None)
+    record.pop("log_tail", None)
+    _write_sums(folder, ["outputs", "dist"])
+    previous = record.get("baseline")
+    record["changes"] = changes(previous and r.releases_dir / previous / "outputs", folder / "outputs")
+
+
+def _report(cfg: Config, folder: Path, record: dict, subject: str) -> None:
     _write_json(folder / "release.json", record)
     report = render(record)
     (folder / "report.txt").write_text(report, encoding="utf-8", newline="\n")
-    subject = (f"release {build_id} ready for review" if record["result"] == "ok"
-               else f"ALERT: release {build_id} failed at {record['failed_step']}")
     record["report"] = notify(cfg, subject, report)
     _write_json(folder / "release.json", record)
-    prune(r.releases_dir, r.keep)
+
+
+def retest(cfg: Config, build_id: str, config_path: Path | None = None, *, runner: Runner = run_step,
+           now: datetime | None = None) -> dict:
+    """Run a held-back build's browser tests again, and its upload if it never got that far, on
+    the files it built. A pass makes it a good build, ready to promote."""
+    r = cfg.release
+    if r.site_dir is None:
+        raise SystemExit("release.site_dir is not set in the config")
+    folder = r.releases_dir / build_id
+    if not (folder / "release.json").is_file():
+        raise SystemExit(f"no release {build_id}; see `traceconomics release status`")
+    record = json.loads((folder / "release.json").read_text(encoding="utf-8"))
+    if record.get("result") == "ok":
+        raise SystemExit(f"release {build_id} already passed its checks")
+    if record.get("failed_step") not in RETESTABLE:
+        raise SystemExit(f"release {build_id} failed at {record.get('failed_step')}: only a build held back at "
+                         f"{', '.join(RETESTABLE)} can be retested; build again")
+    if record.get("ui_fingerprint") != ui_fingerprint(r.site_dir):
+        raise SystemExit(f"the browser tests here are not the ones release {build_id} was built with: build again")
+    now = now or utc_now()
+    tag = f"retest-{stamp(now)}"
+    logs = folder / "logs"
+    (logs / tag).mkdir(parents=True)
+    attempt = {"started": iso(now), "steps": []}
+    with RunLock(r.releases_dir):
+        # The local test serves the site folder's dist/: put this build's own files there.
+        dist = r.site_dir / "dist"
+        if dist.exists():
+            shutil.rmtree(dist)
+        shutil.copytree(folder / "dist", dist)
+        todo = [s for s in steps(cfg, folder, build_id, ui=folder / "ui" / tag) if s.name in RETESTABLE]
+        if _preview_url(logs):
+            todo = [s for s in todo if s.name != "upload"]       # uploaded already: test that version
+        failed = _run_steps(todo, _env(config_path), logs, logs / tag, runner, attempt["steps"])
+    attempt["result"] = "failed" if failed else "ok"
+    attempt["finished"] = iso(utc_now())
+    record.setdefault("retests", []).append(attempt)
+    if failed:
+        record.update(failed_step=failed[0], log_tail=failed[1])
+        subject = f"ALERT: release {build_id} failed its retest at {failed[0]}"
+    else:
+        _passed(cfg, folder, record)
+        subject = f"release {build_id} passed its retest: ready for review"
+    _report(cfg, folder, record, subject)
     return record
 
 
@@ -169,7 +295,8 @@ def _tail(log: Path) -> list[str]:
 
 
 def _preview_url(logs: Path) -> str | None:
-    for log in sorted(logs.glob("*-upload.log")):
+    # A retest that uploads logs into its own subfolder.
+    for log in sorted(logs.rglob("*-upload.log")):
         if url := _url_in(log):
             return url
     return None
@@ -219,6 +346,9 @@ def render(record: dict) -> str:
     lines = [f"Release {record['id']} ({record['reason']}): {record['result'].upper()}", ""]
     for s in record["steps"]:
         lines.append(f"  {'ok  ' if s['code'] == 0 else 'FAIL'} {s['name']} ({s['seconds']} s)")
+    for a in record.get("retests", []):
+        lines += ["", f"Retest {a['started']}: {a['result'].upper()}"]
+        lines += [f"  {'ok  ' if s['code'] == 0 else 'FAIL'} {s['name']} ({s['seconds']} s)" for s in a["steps"]]
     if record["result"] == "ok":
         c = record.get("changes", {})
         lines += ["", f"Preview (private): {record.get('preview_url') or 'not found in the upload log'}", ""]
@@ -232,8 +362,12 @@ def render(record: dict) -> str:
                       + (f", largest {c['largest_revision_pp']:.1f} pp" if c["revised_values"] else "")]
         lines += ["", f"To publish it: traceconomics release promote {record['id']} --to staging (or --to production)"]
     else:
-        lines += ["", f"Failed at {record['failed_step']}. Last lines of its log:", ""]
+        lines += ["", "Nothing was published: staging and the public site are unchanged.",
+                  "", f"Failed at {record['failed_step']}. Last lines of its log:", ""]
         lines += [f"  {line}" for line in record["log_tail"]]
+        if record["failed_step"] in RETESTABLE:
+            lines += ["", "If the cause was passing (the network, the host), test it again: "
+                      f"traceconomics release retest {record['id']}. If a test or a page was wrong, fix it and build again."]
     return "\n".join(lines) + "\n"
 
 
@@ -259,10 +393,14 @@ def baseline(releases_dir: Path) -> dict | None:
     return good[0] if good else None
 
 
-def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step) -> dict:
+def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, fetch=None,
+            sleep=time.sleep) -> dict:
+    """Make a good build live on `to`, then check that the target serves it (`confirm`)."""
     if to not in TARGETS:
         raise SystemExit(f"promote to {' or '.join(TARGETS)}, not {to!r}")
     r = cfg.release
+    if to == PRODUCTION and not r.production_url:
+        raise SystemExit("release.production_url is not set in the config: the promote couldn't be checked")
     folder = r.releases_dir / build_id
     record = json.loads((folder / "release.json").read_text(encoding="utf-8"))
     if record.get("result") != "ok":
@@ -274,9 +412,42 @@ def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step) -
     code = runner(step, _env(None), log)
     if code != 0:
         raise SystemExit(f"upload failed; see {log}")
-    done = {"id": build_id, "to": to, "promoted": iso(utc_now()), "url": _url_in(log)}
+    url = r.production_url if to == PRODUCTION else _url_in(log)
+    done = {"id": build_id, "to": to, "promoted": iso(utc_now()), "url": url}
+    problem = confirm(url, (folder / "dist" / METADATA).read_bytes(), build_id,
+                      fetch=fetch or (lambda u: _fetch(u, cfg.user_agent)), sleep=sleep)
+    done["confirmed" if problem is None else "unconfirmed"] = iso(utc_now()) if problem is None else problem
     _write_json(r.releases_dir / PROMOTED, {**promoted(r.releases_dir), to: done})
+    if problem is not None:
+        raise SystemExit(f"promoted {build_id} to {to}, but {url or 'its address'} doesn't serve it ({problem}). "
+                         "Look at the address, then promote again or revert to the previous build.")
     return done
+
+
+def confirm(url: str | None, expected: bytes, build_id: str, *, fetch, sleep,
+            every: int = CONFIRM_EVERY, limit: int = CONFIRM_FOR) -> str | None:
+    """None once `url` serves the build's own `metadata.json` (byte for byte), else what was last seen."""
+    if not url:
+        return "no address to check"
+    last = "no answer"
+    for attempt in range(limit // every + 1):
+        if attempt:
+            sleep(every)
+        try:
+            # The query string keeps any cache from answering with an older copy.
+            if fetch(f"{url.rstrip('/')}/{METADATA}?promote={build_id}") == expected:
+                return None
+            last = f"after {attempt * every} s it still serves another build"
+        except OSError as e:             # includes HTTP errors and timeouts
+            last = f"{type(e).__name__}: {e}"
+    return last
+
+
+def _fetch(url: str, user_agent: str) -> bytes:
+    # Our own user agent, as for every fetch: the host turns away Python's default one (403).
+    headers = {"User-Agent": user_agent, "Cache-Control": "no-cache"}
+    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=20) as f:
+        return f.read()
 
 
 def _url_in(log: Path) -> str | None:
