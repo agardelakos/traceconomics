@@ -132,3 +132,14 @@ def test_the_shell_command_runs_the_same_container_as_the_timer():
     # The same container, user, mounts and secrets as the timer's command, minus its "archive" argument.
     timer_run = next(l for l in service.splitlines() if l.startswith("ExecStart="))
     assert run[len("exec "):-len(' "$@"')] == timer_run[len("ExecStart="):-len(" archive")]
+
+
+def test_units_and_shell_command_run_the_configured_image_else_the_pinned_one(tmp_path):
+    browser = "sha256:" + "ab" * 32
+    for image, expect in ((browser, browser), (None, schedule.IMAGE)):
+        out = tmp_path / str(image is None)
+        cfg = Config(archive_dir=Path("/a"), user_agent="t", image=image)
+        schedule.write_units(cfg, out / "units", bin_dir=out / "bin", node=Path("/n"), env_file=Path("/e"))
+        service = (out / "units" / "traceconomics-archive.service").read_text(encoding="utf-8")
+        command = (out / "bin" / "traceconomics").read_text(encoding="utf-8")
+        assert f" {expect} " in service and f" {expect} " in command

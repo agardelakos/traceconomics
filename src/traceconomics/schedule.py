@@ -7,7 +7,9 @@ makes the run due. A missed trigger runs as soon as it can, e.g. after the compu
 On Linux the job runs inside the official Python image, pinned by digest, so the server runs
 exactly the interpreter and system libraries the tests ran on. The container runs as the user,
 with the user's home folder mounted at the same path: every path in the config means the same
-inside and outside, and nothing runs as root.
+inside and outside, and nothing runs as root. A machine that builds releases runs an image
+built on that one with a browser added (`image` in the config): the release's browser tests need
+it, and every unit runs the same image, since the daily job starts releases itself.
 """
 
 from __future__ import annotations
@@ -167,6 +169,8 @@ def write_units(config: Config, out: Path, *, bin_dir: Path | None = None, node:
     where = dict(uid=os.getuid(), gid=os.getgid(), home=home, repo=Path(__file__).resolve().parents[2],
                  venv=Path(sys.prefix), node=node or home / "traceconomics-node",
                  env_file=env_file or default_config_path().with_name("env"))
+    if config.image:
+        where["image"] = config.image
     out.mkdir(parents=True, exist_ok=True)
     paths = []
     for name, text in systemd_units(config, **where).items():

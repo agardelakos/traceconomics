@@ -70,6 +70,9 @@ class Config:
     store_memory_limit: str = "2GB"
     store_threads: int | None = None
     release: ReleaseConfig = field(default_factory=ReleaseConfig)
+    # The container image the Linux units run in (`schedule units`); None: the pinned Python
+    # image. A machine that builds releases needs one with a browser for the site's browser tests.
+    image: str | None = None
 
 
 class ConfigError(Exception):
@@ -141,6 +144,7 @@ def parse(raw: dict, base_dir: Path) -> Config:
             store_memory_limit=str(store.get("memory_limit", "2GB")),
             store_threads=int(store["threads"]) if "threads" in store else None,
             release=release,
+            image=str(schedule["image"]) if "image" in schedule else None,
         )
     except KeyError as exc:
         raise ConfigError(f"Missing config field: {exc}") from exc

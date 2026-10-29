@@ -18,6 +18,10 @@ timezone = "Europe/Athens"
 run_after = "13:00"
 # Release dates added by hand, if a calendar can't be read (YYYY-MM-DD).
 extra_release_dates = []
+# Linux only: the image the job's container runs (`traceconomics schedule units`). Default: the
+# pinned Python image. A machine that builds releases needs that image plus a browser for the
+# site's browser tests, e.g. built from it with `npx playwright install --with-deps chromium`.
+# image = "sha256:..."
 
 [store]
 # The observation store: every parsed value, rebuilt from the archive on demand.
