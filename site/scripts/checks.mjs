@@ -85,8 +85,8 @@ else {
     const html = readFileSync(page, "utf-8");
     const name = relative(dist, page);
     // No inline scripts: every script is a file, so a strict Content Security Policy can be set.
-    // Case-insensitive, as browsers read tags: an inline <SCRIPT> must not slip past.
-    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+    // Read tags as browsers do (any case, anything after the end tag's name): an inline <SCRIPT> must not slip past.
+    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)) {
       if (!/\bsrc=/.test(m[1]) && m[2].trim()) fail(`${name}: inline script`);
     }
     for (const m of html.matchAll(/<style\b/gi)) fail(`${name}: inline style block`);
@@ -106,7 +106,7 @@ else {
     }
     if (beacons > 1) fail(`${name}: the beacon ${beacons} times`);
     // Nothing private or internal in the text.
-    const text = html.replace(/<script\b[\s\S]*?<\/script\s*>/gi, "").replace(/data-config="[^"]*"/g, "");
+    const text = html.replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, "").replace(/data-config="[^"]*"/g, "");
     for (const [re, what] of [[/\bD\d{2,3}\b/, "a decision number"], [/\bdocs\//, "a link to private notes"],
       [/[A-Za-z]:\\\\?Users|\/home\/|\/Users\//, "a local path"], [/[\w.+-]+@[\w-]+\.[\w.]+/, "an e-mail address"]]) {
       const hit = text.match(re);
