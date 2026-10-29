@@ -8,7 +8,7 @@ const PAGES = [
   "/en/", "/el/", "/en/countries/", "/en/topics/", "/en/gr/", "/en/inflation-by-group/",
   M1, `${M1}groups/`, `${M1}explore/`, `${M1}calculator/`, `${M1}method/`, `${M1}method/weights-timing/`,
   "/el/gr/inflation-by-group/explore/", "/en/data/", "/en/data/gr/", "/en/glossary/", "/en/glossary/imputed-rent/",
-  "/en/about/",
+  "/en/about-nope/",
 ];
 // The visit-count beacon is in release builds only; tests block it so they are never counted as visits.
 const BEACON = /cloudflareinsights\.com/;
