@@ -7,8 +7,8 @@ title: TracEconomics
 abstract: "An open, transparent tracker of the economy, built only on public data: an archive of the source statistics, a pipeline that rebuilds the official figures from their published parts, inflation by household group for Greece, and the website."
 authors:
   - alias: agardelakos
-version: 0.1.0
-date-released: 2026-10-25
+version: 0.1.1
+date-released: 2026-10-29
 license: Apache-2.0
 repository-code: "https://github.com/agardelakos/traceconomics"
 url: "https://traceconomics.com"
