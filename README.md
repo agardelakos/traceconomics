@@ -117,7 +117,7 @@ python -m traceconomics backup-done        # record that you've just backed up t
 python -m traceconomics backup sync        # copy new archive files to cloud storage (`plan`: list them; never microdata)
 python -m traceconomics analytics export   # the site's daily visit counts into the archive (the daily run does this)
 python -m traceconomics release build      # recompute, check, build the site, upload a private preview
-python -m traceconomics release promote ID # publish a build (`release status` lists them)
+python -m traceconomics release promote ID --to staging|production   # publish a build (`release status` lists them)
 python -m traceconomics schedule units --out ~/.config/systemd/user   # Linux: the daily timer (see below)
 python -m traceconomics schedule install   # Windows: the daily trigger in Task Scheduler
 ```
@@ -151,9 +151,10 @@ systemctl --user enable --now traceconomics-archive.timer        # daily at 13:0
 
 ```sh
 traceconomics status                       # last runs, next release days
-traceconomics release status               # every release build: result and preview address
+traceconomics release status               # every release build: result, where it is (staging, production), preview address
 traceconomics release build                # by hand; the daily job does this after new data
-traceconomics release promote <id>         # publish a build after looking at its preview
+traceconomics release promote <id> --to staging      # a build you've looked at, to the private staging address
+traceconomics release promote <id> --to production   # or to the public site; no default, choose each time
 traceconomics backup plan                  # archive files the cloud copy still lacks (never microdata)
 systemctl --user list-timers               # when the next run is
 journalctl --user -u traceconomics-archive # the job's output

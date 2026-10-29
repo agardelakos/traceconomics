@@ -2,7 +2,9 @@
 // (`dist/`, including `_headers`) is served as it is.
 //
 // Releases are uploaded as versions with preview addresses, which don't change the live site.
-// Until launch the public workers.dev address is off (workers_dev: false), so only previews exist.
+// The public address is a custom domain attached to the Worker in the Cloudflare dashboard. It is
+// not listed here on purpose: with no `routes`, `wrangler deploy` publishes no routes or domains
+// and leaves the dashboard's as they are. The workers.dev address stays off (workers_dev: false).
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "traceconomics",
