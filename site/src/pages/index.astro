@@ -21,8 +21,8 @@ const NAMES = { el: ["Ελληνικά", "Επιλέξτε γλώσσα"], en: [
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>TracEconomics</title>
     <meta name="description" content="Official data. Fair questions. Verifiable answers." />
-    {LANGS.map((l) => <link rel="alternate" hreflang={l} href={`/${l}/`} />)}
-    <link rel="alternate" hreflang="x-default" href="/" />
+    {LANGS.map((l) => <link rel="alternate" hreflang={l} href={new URL(`/${l}/`, Astro.site).href} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site).href} />
     <script is:inline src="/lang.js"></script>
   </head>
   <body>

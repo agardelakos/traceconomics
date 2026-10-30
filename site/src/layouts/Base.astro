@@ -35,6 +35,10 @@ const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "si
 // The picture a shared link shows (made by scripts/og-image.mjs); services need its full address.
 const shareImage = new URL(`/og/${lang}.png`, Astro.site).href;
 const shareAlt = `${t(lang, "site.name")}: ${t(lang, "hub.title").split("\n").join(" · ")}`;
+// For search engines, full addresses: the page's own (canonical: the one address to list it under)
+// and its twin in the other language, named only once that language is offered.
+const absolute = (p: string) => new URL(p, Astro.site).href;
+const canonical = absolute(Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.url.pathname}/`);
 ---
 <!doctype html>
 <html lang={lang}>
@@ -54,8 +58,9 @@ const shareAlt = `${t(lang, "site.name")}: ${t(lang, "hub.title").split("\n").jo
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={shareAlt} />
     <meta name="twitter:card" content="summary_large_image" />
-    {isOffered(otherLang(lang)) && <link rel="alternate" hreflang={otherLang(lang)} href={href(otherLang(lang), path)} />}
-    <link rel="alternate" hreflang={lang} href={href(lang, path)} />
+    <link rel="canonical" href={canonical} />
+    {isOffered(otherLang(lang)) && <link rel="alternate" hreflang={otherLang(lang)} href={absolute(href(otherLang(lang), path))} />}
+    <link rel="alternate" hreflang={lang} href={absolute(href(lang, path))} />
     <script is:inline src="/theme.js"></script>
   </head>
   <body>

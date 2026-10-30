@@ -1,0 +1,6 @@
+# Every page and data file may be read, by search engines and by AI tools alike: the data are
+# published to be reused (CC BY 4.0), and a tool that cites them sends readers to their source.
+User-agent: *
+Allow: /
+
+Sitemap: https://traceconomics.com/sitemap.xml

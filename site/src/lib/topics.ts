@@ -18,6 +18,10 @@
 // A planned topic or country has no page and no address yet: it gets one when there is something
 // to show. Planned ones aren't named on the site, except a topic marked `shown`: a greyed card,
 // "coming soon", with its question. The rest hide behind one small "more topics" card.
+//
+// A new live topic or country also needs its lines in public/llms.txt (written by hand, for AI
+// tools) and, for a topic, its dataset description on the data page: `npm run check` fails until
+// both are there.
 
 import { href, type Lang } from "./i18n";
 

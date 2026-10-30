@@ -3,13 +3,17 @@
 // the source data: the official tables the files are
 // built from, each linked to its publisher. The archived copies of the exact files used will be
 // linked there too once the raw archive is published.
+import fs from "node:fs";
+import path from "node:path";
 import { getEntry } from "astro:content";
 import Breadcrumb from "../../../components/Breadcrumb.astro";
 import M1Files from "../../../components/M1Files.astro";
 import SourceList from "../../../components/SourceList.astro";
 import Base from "../../../layouts/Base.astro";
+import { DATA_ROOT, m1Dir, readJson, settings } from "../../../lib/data";
 import { href, LANGS, t, type Lang } from "../../../lib/i18n";
-import { dataCountries, m1Text, topicHref, TOPICS } from "../../../lib/topics";
+import { dataset, ldJson } from "../../../lib/structured";
+import { dataCountries, EUROSTAT, m1Text, OFFICES, topicHref, TOPICS } from "../../../lib/topics";
 
 export function getStaticPaths() {
   return LANGS.flatMap((lang) => dataCountries().map((country) => ({ params: { lang, country } })));
@@ -32,6 +36,24 @@ const sections = await Promise.all(TOPICS.map(async (tp) => {
 const shown = sections.filter((s) => s !== null);
 const sourceKeys = [...new Set(shown.flatMap((s) => s.entry.data.sources))];
 const title = t(lang, "opendata.country.title", { country: countryName });
+
+// Each topic's files described for search engines and data tools (Google Dataset Search reads
+// this): the default setting's tables and the metadata; the page lists every setting's.
+const ld = shown.map(({ tp }) => {
+  const base = `/data/v1/${m1Dir(country)}`;
+  const slug = settings(country).settings.find((s) => s.default)!.slug;
+  const files = fs.readdirSync(path.join(DATA_ROOT, m1Dir(country), "downloads", slug)).sort();
+  return ldJson(dataset({
+    site: Astro.site!, lang,
+    name: `${countryName}: ${t(lang, `topic.${tp.slug}`)}`,
+    description: `${t(lang, `topic.${tp.slug}.text`)} ${t(lang, "opendata.country.lead", { country: countryName })}`,
+    page: `${href(lang, `data/${country}`)}#${tp.slug}`,
+    metadata: readJson(`${m1Dir(country)}/metadata.json`),
+    place: countryName,
+    basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang]],
+    files: [...files.map((f) => `${base}/downloads/${slug}/${f}`), `${base}/metadata.json`],
+  }));
+});
 ---
 <Base lang={lang} title={title} description={t(lang, "opendata.country.lead", { country: countryName })} path={`data/${country}`} current="data">
   <article class="stack-lg">
@@ -61,6 +83,7 @@ const title = t(lang, "opendata.country.title", { country: countryName });
       <SourceList keys={sourceKeys} lang={lang} />
     </section>
   </article>
+  {ld.map((json) => <script is:inline type="application/ld+json" set:html={json} />)}
 </Base>
 
 <script>

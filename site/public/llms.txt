@@ -1,0 +1,36 @@
+# TracEconomics
+
+> An open tracker of the economy, built only on public data. It computes figures that official statistics don't publish, from the statistics offices' and Eurostat's own files, and publishes the method, the code and every number as open data (CC BY 4.0). Our figures are our own calculations, not official statistics.
+
+Live today: **inflation by household group, for Greece**: how much consumer prices rose for poorer and richer households, renters and owners, and pensioner households, month by month, from ELSTAT's and Eurostat's price indices and ELSTAT's Household Budget Survey. Updated each month after ELSTAT publishes the consumer price index. More topics and countries will follow.
+
+Prefer the data files over the pages for numbers: they hold every value at full precision, with the options each one was computed under. The pages state the same numbers in plain words, with the method behind them.
+
+## Inflation by household group: Greece
+
+- [Overview](https://traceconomics.com/en/gr/inflation-by-group/): the latest figures, and how far prices rose for the poorest and the richest fifth of households
+- [Explore](https://traceconomics.com/en/gr/inflation-by-group/explore/): every group's index and annual rate, month by month, under each setting of the options
+- [Who the groups are](https://traceconomics.com/en/gr/inflation-by-group/groups/): income fifths, renters and owners, pensioner households
+- [How it is measured](https://traceconomics.com/en/gr/inflation-by-group/method/): the method, each option, its default and why
+- [Calculator](https://traceconomics.com/en/gr/inflation-by-group/calculator/): inflation for a household's own spending pattern
+
+## Data
+
+- [Data for Greece](https://traceconomics.com/en/data/gr/): every file, what it holds, its licence and sources
+- [How the files are laid out](https://traceconomics.com/en/data/): `/data/v1/{country}/{topic}/latest/`; `latest` always holds the current release
+- [Annual and monthly rates, default setting (CSV)](https://traceconomics.com/data/v1/gr/m1/latest/downloads/purchases_excluded_cpi_N_priced/m1_rates.csv): one row per group, measure and month, for all spending (`coicop18` = `TOTAL`). `unit` is the measure: `RCH_A` the annual rate in percent, `RCH_M` the monthly rate, `RCH_A_AVG` the annual-average rate, `RCH_A_GAP` the poorest fifth's annual rate minus the richest fifth's, in percentage points. Groups: income fifths `Q1` (poorest) to `Q5` under `grouping` `B` (the default: people, by equivalised income), `A` (households, by total income) or `C` (people, by equivalised spending); `tenure`; `pensioners`. `quality` flags values to read with care.
+- [Index, default setting (CSV)](https://traceconomics.com/data/v1/gr/m1/latest/downloads/purchases_excluded_cpi_N_priced/m1_index.csv): each group's price index, 2025 = 100
+- [Metadata](https://traceconomics.com/data/v1/gr/m1/latest/metadata.json): the tables, their columns and units, the default options, the period covered, sources, licence and the attribution to keep
+- [Settings](https://traceconomics.com/data/v1/gr/m1/latest/settings.json): every combination of the options and its folder under `downloads/`
+- [Checksums](https://traceconomics.com/data/v1/gr/m1/latest/SHA256SUMS)
+- [Bibliography](https://traceconomics.com/data/v1/references.json): every source the method and pages cite
+
+## Attribution
+
+Credit TracEconomics and keep the notice in each dataset's `metadata.json`. The source data are ELSTAT's (Hellenic Statistical Authority, [www.statistics.gr](https://www.statistics.gr/en/home)) and [Eurostat](https://ec.europa.eu/eurostat)'s; they bear no responsibility for our calculations.
+
+## Optional
+
+- [Glossary](https://traceconomics.com/en/glossary/): the terms used, in plain words
+- [About](https://traceconomics.com/en/about/): who runs it, what it is and isn't
+- [Code](https://github.com/agardelakos/traceconomics): the pipeline that builds every file, Apache 2.0

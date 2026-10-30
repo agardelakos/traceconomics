@@ -2,11 +2,14 @@
 import { satteri } from "@astrojs/markdown-satteri";
 import { defineConfig } from "astro/config";
 import { glossaryTerms } from "./src/lib/glossary-terms.mjs";
+import { sitemap } from "./src/lib/sitemap.mjs";
 
 export default defineConfig({
   output: "static",
-  // The public address. Pages use it only where a full address is required (the sharing image).
+  // The public address. Pages use it only where a full address is required: the sharing image,
+  // the links for search engines (canonical, hreflang, the sitemap) and the dataset descriptions.
   site: "https://traceconomics.com",
+  integrations: [sitemap()],
   // Every page exists in Greek and English, under /el/ and /en/. The root page is our own: it
   // sends a visitor on by the browser's language, with plain links as a fallback.
   i18n: {
