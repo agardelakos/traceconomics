@@ -97,9 +97,10 @@ def main(argv: list[str] | None = None) -> int:
     bk = sub.add_parser("backup", help="copy new archive files to private cloud storage (never the microdata)")
     bk.add_argument("action", choices=["sync", "plan"], help="sync: send them; plan: list what would be sent")
 
-    an = sub.add_parser("analytics", help="copy the site's visit counts from Cloudflare into the archive")
+    an = sub.add_parser("analytics", help="copy the site's visit and download counts from Cloudflare into the archive")
     an.add_argument("action", choices=["export"], help="export: every finished day not yet copied (the daily run does this)")
     an.add_argument("--day", help="one UTC day (YYYY-MM-DD) only, without moving the bookmark: for a test or a gap")
+    an.add_argument("--feed", choices=["visits", "downloads"], help="only this feed (default: both)")
 
     rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
     rl.add_argument("action", choices=["build", "promote", "retest", "status"],
@@ -623,15 +624,22 @@ def _dispatch(args, cfg) -> int:
         from traceconomics import analytics
 
         archive = Archive(cfg.archive_dir)
+        feeds = [f for f in analytics.FEEDS if args.feed in (None, f.name)]
+        results = {}
         if args.day:
-            result = analytics.export_day(archive, date.fromisoformat(args.day))
+            for feed in feeds:
+                try:
+                    results[feed.name] = analytics.export_day(archive, date.fromisoformat(args.day), feed=feed)
+                except (analytics.AnalyticsError, OSError, ValueError) as exc:
+                    results[feed.name] = {"result": "failed", "error": str(exc)}
         else:
             with job.RunLock(cfg.archive_dir):
                 state = job.load_state(cfg.archive_dir)
-                result = job.export_analytics(cfg, archive, state, datetime.now(UTC))
+                for feed in feeds:
+                    results[feed.name] = job.export_analytics(cfg, archive, state, datetime.now(UTC), feed)
                 job.save_state(cfg.archive_dir, state)
-        print(json.dumps(result))
-        return 0 if result.get("result") in ("ok", "off") else 1
+        print(json.dumps(results))
+        return 0 if all(r.get("result") in ("ok", "off") for r in results.values()) else 1
 
     if args.command == "release":
         from traceconomics import release

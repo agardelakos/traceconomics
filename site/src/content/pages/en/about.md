@@ -17,7 +17,7 @@ And journalists, analysts, teachers and students, unions and consumer groups: an
 
 ## What it isn't
 
-Not an official statistic: the statistics offices and Eurostat publish the official figures, and bear no responsibility for these. Our own estimates are labelled as such, each with its method. There are no accounts, and the data are never sold. If you pick a light or dark theme, that one choice is kept in your browser so it holds from page to page; it is never sent anywhere. We count visits with Cloudflare Web Analytics, from the company that serves this site: which pages are viewed, the site a reader came from, and the country, device and browser, in totals only. It sets no cookies, stores nothing in your browser and keeps no IP address.
+Not an official statistic: the statistics offices and Eurostat publish the official figures, and bear no responsibility for these. Our own estimates are labelled as such, each with its method. There are no accounts, and the data are never sold. If you pick a light or dark theme, that one choice is kept in your browser so it holds from page to page; it is never sent anywhere. We count visits with Cloudflare Web Analytics, from the company that serves this site: which pages are viewed, the site a reader came from, and the country, device and browser, in totals only. It sets no cookies, stores nothing in your browser and keeps no IP address. We also count how often each data file is downloaded, from the same company's record of requests to this site: the file, the country, the device and browser type, and whether Cloudflare knows the client as a bot, in totals only, again with no IP address.
 
 ## Take part
 

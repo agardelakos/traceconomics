@@ -124,9 +124,10 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         if not dry_run:
             with RunLock(root):
                 visits = export_analytics(config, archive, state, now)
+                downloads = export_analytics(config, archive, state, now, analytics.DOWNLOADS)
                 save_state(root, state)
-            record["analytics"] = visits
-            if visits.get("stored"):
+            record["analytics"], record["downloads"] = visits, downloads
+            if visits.get("stored") or downloads.get("stored"):
                 record["backup"] = backup.sync(root)
             record["heartbeat"] = heartbeat.send(record)
             archive.append_run(record)
@@ -143,6 +144,7 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         archive.clean_tmp()
         _run_sources(ctx, state)
         visits = export_analytics(config, archive, state, now)
+        downloads = export_analytics(config, archive, state, now, analytics.DOWNLOADS)
         good = not ctx.failures
         run_days = set(state.get("run_days", []))
         run_days.add(now.date().isoformat())
@@ -165,8 +167,9 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         "missed": [d.isoformat() for d in due.missed],
         "stored": len(stored), "unchanged": len(unchanged), "failures": ctx.failures,
         "alerts": len(ctx.alerts), "report": sent_to, "analytics": visits,
+        "downloads": downloads,
     }
-    if stored or visits.get("stored"):
+    if stored or visits.get("stored") or downloads.get("stored"):
         record["backup"] = backup.sync(root)
     record["heartbeat"] = heartbeat.send(record)
     archive.append_run(record)
@@ -178,31 +181,35 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     return record
 
 
-def export_analytics(config: Config, archive: Archive, state: dict, now: datetime) -> dict:
-    """Copy the finished days of visit counts into the archive; alert if it falls behind.
+def export_analytics(config: Config, archive: Archive, state: dict, now: datetime,
+                     feed: analytics.Feed = analytics.VISITS) -> dict:
+    """Copy the finished days of one feed (visit or download counts) into the archive; alert if it falls behind.
 
     A failure doesn't fail the run (the sources are what the run is for), but Cloudflare keeps
-    exact rows for only 7 days, so after ANALYTICS_ALERT_DAYS missing days an email goes out.
+    exact rows for a limited time (``feed.kept_days``), so after ANALYTICS_ALERT_DAYS missing days
+    an email goes out.
     """
     today = now.astimezone(UTC).date()
-    if analytics.STATE_KEY not in state:
+    if feed.state_key not in state:
         # The state is a rebuildable cache: the latest finished day in the archive came last (a
         # manual export of one day may be stored after later ones, or be today's, not yet over).
-        days = [d for s in archive.snapshots(analytics.SOURCE, analytics.DATASET)
+        days = [d for s in archive.snapshots(analytics.SOURCE, feed.dataset)
                 if (d := archive.manifest(s).get("day")) and date.fromisoformat(d) < today]
         if days:
-            state[analytics.STATE_KEY] = max(days)
-    result = analytics.export(archive, state, today)
+            state[feed.state_key] = max(days)
+    result = analytics.export(archive, state, today, feed=feed)
     if result.get("result") == "failed":
-        through = state.get(analytics.STATE_KEY)
+        through = state.get(feed.state_key)
         behind = (today - date.fromisoformat(through)).days - 1 if through else None
         if behind is None or behind >= ANALYTICS_ALERT_DAYS:
             missing = "no day copied yet" if behind is None else f"{behind} days not copied"
+            only = "" if feed is analytics.VISITS else f" --feed {feed.name}"
             result["alert"] = notify(
-                config, f"ALERT: analytics export failing, {missing}",
-                f"The visit-count export failed: {result.get('error')}\n\nCloudflare keeps exact rows for 7 days. "
-                f"Last day copied: {through or 'none'}. Fix the cause (a 401 or 403 means the token expired or "
-                "was revoked), then run `traceconomics analytics export`.\n")
+                config, f"ALERT: analytics export ({feed.name}) failing, {missing}",
+                f"The {feed.name} export failed: {result.get('error')}\n\nCloudflare keeps exact rows for "
+                f"{feed.kept_days} days. Last day copied: {through or 'none'}. Fix the cause (a 401 or 403 means "
+                f"the token expired, was revoked or lacks a permission), then run "
+                f"`traceconomics analytics export{only}`.\n")
     return result
 
 

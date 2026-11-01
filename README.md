@@ -118,7 +118,7 @@ python -m traceconomics status             # last runs, next release days, files
 python -m traceconomics notify-test        # check that reports reach you
 python -m traceconomics backup-done        # record that you've just backed up the archive
 python -m traceconomics backup sync        # copy new archive files to cloud storage (`plan`: list them; never microdata)
-python -m traceconomics analytics export   # the site's daily visit counts into the archive (the daily run does this)
+python -m traceconomics analytics export   # the site's daily visit and data-download counts into the archive (the daily run does this)
 python -m traceconomics release build      # recompute, check, build and browser-test the site, upload a private preview, test it there
 python -m traceconomics release promote ID --to staging|production   # publish a build (`release status` lists them), then check the address serves it
 python -m traceconomics release retest ID  # a build held back by its browser tests: the same tests again, on the same files

@@ -213,7 +213,9 @@ def test_a_quiet_day_still_exports_visit_counts_and_backs_them_up(tmp_path, monk
     _not_due_state(tmp_path)
     seen, synced = [], []
 
-    def fake_export(archive, state, today):
+    def fake_export(archive, state, today, feed):
+        if feed is not job.analytics.VISITS:
+            return {"result": "off"}
         seen.append(today)
         archive.store_bytes("cloudflare", "web-analytics", b'{"day": "2026-11-11"}\n', url=None,
                             retrieved_at=datetime(2026, 11, 12, 11, tzinfo=ZoneInfo("UTC")), ext=".json",
@@ -226,6 +228,7 @@ def test_a_quiet_day_still_exports_visit_counts_and_backs_them_up(tmp_path, monk
     monkeypatch.setattr(job.heartbeat, "send", lambda record: "sent")
     rec = job.run(cfg(tmp_path), now=at(2026, 11, 12, 13))
     assert rec["result"] == "not-due" and rec["analytics"]["stored"] == 1 and rec["backup"]["result"] == "ok"
+    assert rec["downloads"] == {"result": "off"}
     assert seen == [date(2026, 11, 12)] and len(synced) == 1
     assert job.load_state(tmp_path / "archive")["analytics_through"] == "2026-11-11"
 
@@ -238,7 +241,7 @@ def test_the_bookmark_is_rebuilt_from_the_archive(tmp_path, monkeypatch):
                             retrieved_at=datetime(2026, 11, 12, stored_hour, tzinfo=ZoneInfo("UTC")), ext=".json",
                             extra={"day": day})
     seen = []
-    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today: seen.append(dict(state)) or {"result": "off"})
+    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today, feed: seen.append(dict(state)) or {"result": "off"})
     job.export_analytics(cfg(tmp_path), archive, {}, at(2026, 11, 12, 13))
     assert seen[0]["analytics_through"] == "2026-11-09"
 
@@ -247,7 +250,24 @@ def test_the_bookmark_is_rebuilt_from_the_archive(tmp_path, monkeypatch):
 def test_a_failing_export_alerts_only_when_days_are_running_out(tmp_path, monkeypatch, through, alerts):
     sent = []
     monkeypatch.setattr(job, "notify", lambda config, subject, body: sent.append(subject) or "outbox")
-    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today: {"result": "failed", "error": "401"})
+    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today, feed: {"result": "failed", "error": "401"})
     state = {} if through is None else {"analytics_through": through}
     job.export_analytics(cfg(tmp_path), Archive(tmp_path / "archive"), state, at(2026, 11, 12, 13))
     assert len(sent) == alerts and all(s.startswith("ALERT: analytics export") for s in sent)
+
+
+def test_each_feed_has_its_own_bookmark_and_alert(tmp_path, monkeypatch):
+    archive = Archive(tmp_path / "archive")
+    archive.store_bytes("cloudflare", "downloads", b'{"day": "2026-11-07"}\n', url=None,
+                        retrieved_at=datetime(2026, 11, 9, 11, tzinfo=ZoneInfo("UTC")), ext=".json",
+                        extra={"day": "2026-11-07"})
+    sent, seen = [], []
+    monkeypatch.setattr(job, "notify", lambda config, subject, body: sent.append((subject, body)) or "outbox")
+    monkeypatch.setattr(job.analytics, "export",
+                        lambda archive, state, today, feed: seen.append(dict(state)) or {"result": "failed", "error": "403"})
+    state = {"analytics_through": "2026-11-11"}
+    job.export_analytics(cfg(tmp_path), archive, state, at(2026, 11, 12, 13), job.analytics.DOWNLOADS)
+    assert seen[0] == {"analytics_through": "2026-11-11", "downloads_through": "2026-11-07"}
+    (subject, body), = sent
+    assert subject == "ALERT: analytics export (downloads) failing, 4 days not copied"
+    assert "31 days" in body and "--feed downloads" in body

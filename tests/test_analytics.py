@@ -320,3 +320,83 @@ def test_export_day_stores_without_state():
     # The API call was made for the right day.
     call_day = json.loads(calls[0]["body"])["variables"]["day"]
     assert call_day == (today - timedelta(days=1)).isoformat()
+
+
+# -- downloads feed ------------------------------------------------------- #
+
+from traceconomics.analytics import DOWNLOADS  # noqa: E402
+
+
+def _download_group(path="/data/v1/gr/m1/latest/downloads/x/m1_index.csv", requests=3, bytes_=4096,
+                    bot="AI Crawler", interval=1):
+    return {
+        "count": requests,
+        "sum": {"edgeResponseBytes": bytes_},
+        "avg": {"sampleInterval": interval},
+        "dimensions": {
+            "date": "2026-10-27",
+            "clientRequestHTTPHost": "traceconomics.com",
+            "clientRequestPath": path,
+            "clientRequestHTTPMethodName": "GET",
+            "edgeResponseStatus": 200,
+            "clientCountryName": "NO",
+            "clientDeviceType": "desktop",
+            "userAgentBrowser": "Other",
+            "userAgentOS": "Other",
+            "verifiedBotCategory": bot,
+            "requestSource": "eyeball",
+        },
+    }
+
+
+def _zone_response(groups=None):
+    return {"data": {"viewer": {"zones": [{"httpRequestsAdaptiveGroups": groups or []}]}}}
+
+
+def test_downloads_off_without_zone(monkeypatch):
+    """The token alone isn't enough: the zone feed needs the zone id too."""
+    monkeypatch.delenv("CLOUDFLARE_ZONE_ID", raising=False)
+    a = Archive(Path(tempfile.mkdtemp()))
+    assert export(a, {}, date(2026, 10, 28), token="tok", account="acc", feed=DOWNLOADS) == {"result": "off"}
+
+
+def test_downloads_stored_in_their_own_dataset_with_their_own_bookmark():
+    today = date(2026, 10, 28)
+    post, calls = fake_post([_zone_response([_download_group(), _download_group(bot="", requests=1)])])
+    a = Archive(Path(tempfile.mkdtemp()))
+    state = {"analytics_through": "2026-10-20"}
+    result = export(a, state, today, token="tok", zone="zone1", post=post, now=_now(today), feed=DOWNLOADS)
+
+    assert result == {"result": "ok", "days": ["2026-10-27"], "stored": 1}
+    assert state == {"analytics_through": "2026-10-20", "downloads_through": "2026-10-27"}
+    assert a.datasets() == [("cloudflare", "downloads")]
+    body = json.loads(calls[0]["body"])
+    assert body["variables"] == {"zone": "zone1", "day": "2026-10-27", "hosts": ["traceconomics.com", "www.traceconomics.com"]}
+    assert "httpRequestsAdaptiveGroups" in body["query"] and '"%/downloads/%"' in body["query"]
+    # No IP address or full user-agent string is asked for.
+    assert "clientIP" not in body["query"] and "userAgent " not in body["query"]
+
+    snap = a.snapshots("cloudflare", "downloads")[0]
+    rows = json.loads((a.root / snap["path"]).read_bytes())["rows"]
+    assert {r["requests"] for r in rows} == {1, 3} and all(r["bytes"] == 4096 for r in rows)
+    assert {r["verifiedBotCategory"] for r in rows} == {"", "AI Crawler"}
+
+
+def test_downloads_rows_have_request_and_byte_counts():
+    post, _ = fake_post([_zone_response([_download_group(requests=5, bytes_=100, interval=2)])])
+    rows = fetch_day(date(2026, 10, 27), token="tok", zone="z", post=post, feed=DOWNLOADS)
+    assert len(rows) == 1
+    assert rows[0]["requests"] == 5 and rows[0]["bytes"] == 100 and rows[0]["sample_interval"] == 2
+    assert "page_views" not in rows[0]
+
+
+def test_downloads_missing_zone_in_response_fails():
+    post, _ = fake_post([{"data": {"viewer": {"zones": []}}}])
+    with pytest.raises(AnalyticsError, match="zone"):
+        fetch_day(date(2026, 10, 27), token="tok", zone="z", post=post, feed=DOWNLOADS)
+
+
+def test_export_day_downloads_needs_zone(monkeypatch):
+    monkeypatch.delenv("CLOUDFLARE_ZONE_ID", raising=False)
+    with pytest.raises(AnalyticsError, match="CLOUDFLARE_ZONE_ID"):
+        export_day(Archive(Path(tempfile.mkdtemp())), date(2026, 10, 27), token="tok", feed=DOWNLOADS)
