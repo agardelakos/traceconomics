@@ -24,3 +24,4 @@ site/test-results/
 site/playwright-report/
 site/test-reports/
 site/coverage/
+site/selenium-report/

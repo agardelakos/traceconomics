@@ -25,6 +25,8 @@ dev = ["pytest==9.1.1"]
 # Only for the microdata code that runs on the owner's machine (src/traceconomics/local); never needed to
 # use the published data.
 local = ["pandas==3.0.6", "py7zr==1.1.4"]
+# Only for the Selenium browser tests in tests/selenium (run with `pytest tests/selenium --selenium`).
+selenium = ["selenium==4.51.0", "pytest-xdist==3.8.0"]
 
 [project.scripts]
 traceconomics = "traceconomics.cli:main"
@@ -39,3 +41,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    "smoke: Selenium browser tests that also run against a deployed copy",
+    "host: Selenium browser tests that need a server applying the site's headers (--base-url)",
+]

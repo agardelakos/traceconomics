@@ -35,11 +35,18 @@ def test_lock_files_match_pyproject():
         data = tomllib.load(f)
     project = data["project"]
     base = pins(project["dependencies"])
-    for name, extra in [("requirements-dev.txt", "dev"), ("requirements-local.txt", "local")]:
+    # The Selenium browser tests have a lock of their own (with the dev extra), so their
+    # dependencies never enter the other two.
+    locks = [("requirements-dev.txt", ["dev"]), ("requirements-local.txt", ["local"]),
+             ("requirements-selenium.txt", ["dev", "selenium"])]
+    for name, extras in locks:
         have, text = locked(name)
-        wanted = base | pins(project["optional-dependencies"][extra])
+        wanted = dict(base)
+        for extra in extras:
+            wanted |= pins(project["optional-dependencies"][extra])
         for package, version in wanted.items():
             assert have.get(package) == version, f"{name}: {package} {have.get(package)}, pyproject {version}"
         # The build backend is locked too: the project is installed without build isolation.
         assert "setuptools" in have, f"{name}: setuptools missing"
-        assert f"--extra={extra}" in text, f"{name}: not compiled for the {extra} extra"
+        for extra in extras:
+            assert f"--extra={extra}" in text, f"{name}: not compiled for the {extra} extra"
