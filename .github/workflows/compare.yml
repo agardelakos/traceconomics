@@ -1,0 +1,71 @@
+# The two browser suites, Playwright and Selenium, compared fairly: several runs each, on one runner,
+# the same build of made-up data (`tests/sitedata.py`) and the same number of workers. Flaky tests
+# (failed in some runs, passed in others) show up only over several runs. Playwright runs with its
+# --fully-parallel flag, spreading single tests over the workers as pytest-xdist does. Started by
+# hand from the Actions tab ("Run workflow"): it takes about half an hour, too long for every push.
+#
+# Actions are pinned to a full commit (the tag is in the comment); the token is read-only.
+
+name: compare
+
+on:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: "Runs of each suite"
+        type: number
+        default: 5
+      per_file:
+        description: "Also run Playwright as its config stands (a file's tests one after another), next to --fully-parallel"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - run: python tests/sitedata.py site/public/data
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit
+        working-directory: site
+        env:
+          npm_config_fetch_retries: "5"
+      - run: npm run build
+        working-directory: site
+      # Both browsers fetched before the first timed run, so no run pays for a download: Playwright's
+      # own Chromium, and the pinned Chrome for Testing (one smoke test makes Selenium Manager fetch it).
+      - run: npx playwright install --with-deps chromium
+        working-directory: site
+      - run: python -I -m pytest tests/selenium --selenium -k "test_root_goes_to_english" -q
+      - name: Compare
+        env:
+          RUNS: ${{ inputs.runs }}
+          PER_FILE: ${{ inputs.per_file }}
+        run: |
+          extra=""
+          if [ "$PER_FILE" = "true" ]; then extra="--per-file"; fi
+          python -I tests/selenium/compare.py --runs "$RUNS" --workers "$(nproc)" $extra --out comparison.md
+      - name: Upload the comparison
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: comparison
+          path: comparison.md
+          retention-days: 30
+          if-no-files-found: ignore
