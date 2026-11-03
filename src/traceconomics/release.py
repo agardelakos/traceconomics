@@ -102,8 +102,10 @@ def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> l
         # The built pages in a browser, on a local server, before anything leaves this machine.
         Step("ui-test", ("npm", "run", "test:ui"), site, _ui_env(ui / "ui-test")),
         Step("upload", _upload(site / "dist", r.worker_name, f"build-{build_id.lower()}", build_id), site),
-        # The same tests on the uploaded preview: what the host really serves, headers included.
-        Step("smoke", ("npm", "run", "test:ui"), site, (("BASE_URL", PREVIEW), *_ui_env(ui / "smoke"))),
+        # The short set (tests tagged @smoke) on the uploaded preview: what the host really serves,
+        # headers included. The full suite already ran on the same files in ui-test.
+        Step("smoke", ("npm", "run", "test:ui", "--", "--grep", "@smoke"), site,
+             (("BASE_URL", PREVIEW), *_ui_env(ui / "smoke"))),
     ]
 
 

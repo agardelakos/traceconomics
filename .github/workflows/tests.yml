@@ -3,10 +3,12 @@
 # The website's build, its calculator parity test and its browser tests need the published data
 # files, which are generated from the raw archive and are not in the repository. Here the site
 # runs on made-up data instead (`tests/sitedata.py`), written by the real export code, so the files
-# have the real format: the full `npm run check`, then the browser smoke test.
+# have the real format: the full `npm run check`, then the browser tests, with one coverage count
+# for both (and, on main, the README's badge).
 #
 # The optional microdata dependencies are never installed here: those tests skip themselves.
-# Actions are pinned to a full commit (the tag is in the comment), and the token is read-only.
+# Actions are pinned to a full commit (the tag is in the comment), and the token is read-only,
+# except in the badge job (below).
 
 name: tests
 
@@ -70,21 +72,80 @@ jobs:
       - run: npm ci --no-audit
         env:
           npm_config_fetch_retries: "5"
+      # A coverage build (source maps, Vitest's coverage): this build is never published.
       - run: npm run check
+        env:
+          TRACECONOMICS_COVERAGE: "on"
       # Playwright's own Chromium, the version the locked Playwright expects, with its system libraries.
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui
-      # On the run's page: both suites' results, each failure named; also after a failure.
+        env:
+          TRACECONOMICS_COVERAGE: "on"
+      # One count from both suites: coverage/summary.json and an HTML report. Fails if a file of the
+      # site's own code is loaded by no test at all (it would otherwise drop out of the count).
+      - name: Coverage
+        if: ${{ !cancelled() }}
+        run: node scripts/coverage.mjs --strict
+      - name: Coverage badge
+        if: ${{ !cancelled() }}
+        run: node scripts/badge.mjs coverage/badge/coverage-site.svg
+      # On the run's page: both suites' results, each failure named, and the coverage; also after a failure.
       - name: Test summary
         if: ${{ !cancelled() }}
         run: node scripts/test-summary.mjs
-      # Only when something failed: the browser test's HTML report (screenshots, console errors,
-      # traces), kept 7 days. Made-up data only, so nothing in it is private.
+      # The coverage report, on every run, kept 7 days. Made-up data only.
+      - name: Upload the coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site-coverage
+          path: site/coverage/report/
+          retention-days: 7
+          if-no-files-found: ignore
+      # The browser tests' HTML report on every run, kept 7 days: every test with its result and
+      # time, and for a failure its screenshot, console errors and trace. Made-up data only.
       - name: Upload the browser test's report
-        if: failure()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ui-test-report
           path: site/playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+      - name: Upload the coverage badge
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-badge
+          path: site/coverage/badge/
+          retention-days: 1
+          if-no-files-found: error
+
+  # The README's coverage badge, after a push to main whose tests passed. The badge is the only
+  # file on the branch `badges`, kept as a single commit (force-pushed), so its history never grows.
+  # The only job that may write to the repository, and only to that branch.
+  badges:
+    needs: [python, site]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-badge
+          path: badge
+      - name: Push the badge to the branch badges
+        working-directory: badge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init -q -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coverage-site.svg
+          git commit -q -m "Coverage badge for ${GITHUB_SHA}"
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic ${auth}" push -q --force \
+            "https://github.com/${GITHUB_REPOSITORY}.git" badges:badges

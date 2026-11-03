@@ -8,7 +8,7 @@ import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import Base from "../../../../layouts/Base.astro";
 import { calculator, labels, m1Dir } from "../../../../lib/data";
 import { LANGS, LOCALE, t, type Lang } from "../../../../lib/i18n";
-import { countryPaths, topicHref } from "../../../../lib/topics";
+import { countryPaths, dataHref, topicHref } from "../../../../lib/topics";
 import el from "../../../../i18n/el.json";
 import en from "../../../../i18n/en.json";
 
@@ -58,7 +58,10 @@ const config = {
     <section class="panel chart-block calc-block" aria-label={t(lang, "calc.title")}>
       <figure class="chart">
         <figcaption><h2>{t(lang, "calc.result")}</h2></figcaption>
-        <div data-role="loading" class="stack" aria-busy="true">
+        {/* Without scripts the calculator can't work: this line says so (the script hides it and
+             shows the loading message instead). */}
+        <p class="muted" data-role="noscript">{t(lang, "calc.noscript")} <a href={dataHref(lang, country)}>{t(lang, "noscript.data")} →</a></p>
+        <div data-role="loading" class="stack" aria-busy="true" hidden>
           <div class="skeleton" style="height: 160px"></div>
           <span class="small muted">{t(lang, "calc.loading")}</span>
         </div>

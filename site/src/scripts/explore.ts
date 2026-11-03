@@ -119,6 +119,8 @@ export function start(root: HTMLElement): void {
     });
   }
   $<HTMLButtonElement>("retry").addEventListener("click", () => render());
+  // The script runs: the line for readers without one goes (the chart and loading show in render()).
+  $("noscript").hidden = true;
 
   let redraw: (() => void) | null = null;
   let current: ChartSpec | null = null;

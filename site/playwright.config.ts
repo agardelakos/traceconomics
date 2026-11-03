@@ -19,6 +19,8 @@ export default defineConfig({
   testDir: "tests/ui",
   // Not *.test.ts or *.spec.ts: Vitest runs those.
   testMatch: "**/*.ui.ts",
+  // Coverage, in a coverage build only: cleared before the run, written after it.
+  globalSetup: "./tests/ui/coverage-global.ts",
   retries: 0,
   forbidOnly: true,
   outputDir: process.env.UI_OUTPUT ?? "test-results",

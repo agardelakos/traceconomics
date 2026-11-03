@@ -12,10 +12,8 @@
     "test": "vitest run",
     "test:ui": "playwright test",
     "check": "astro check && vitest run && astro build && node scripts/checks.mjs",
-    "check:code": "astro check && vitest run --exclude src/lib/engine/parity.test.ts",
-    "a11y": "node scripts/a11y.mjs",
-    "shots": "node scripts/shots.mjs",
-    "csp": "node scripts/csp.mjs"
+    "check:code": "astro check && vitest run --exclude src/lib/engine/parity.test.ts --exclude src/lib/data-files.test.ts",
+    "shots": "node scripts/shots.mjs"
   },
   "dependencies": {
     "@fontsource/source-code-pro": "5.3.1",
@@ -30,10 +28,13 @@
     "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
+    "@vitest/coverage-v8": "5.0.5",
     "js-yaml": "4.3.2",
+    "monocart-coverage-reports": "3.0.0",
     "playwright": "1.64.1",
     "typescript": "6.0.3",
     "vitest": "5.0.5",
+    "vitest-monocart-coverage": "5.0.0",
     "wrangler": "4.154.0"
   }
 }

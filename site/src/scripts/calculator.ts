@@ -30,6 +30,10 @@ export async function start(root: HTMLElement): Promise<void> {
   };
   const $ = <T extends HTMLElement>(role: string) => root.querySelector<T>(`[data-role="${role}"]`)!;
 
+  // The script runs: the line for readers without one goes, the loading message shows.
+  $("noscript").hidden = true;
+  $("loading").hidden = false;
+
   let data: CalculatorData;
   try {
     const res = await fetch(cfg.src);

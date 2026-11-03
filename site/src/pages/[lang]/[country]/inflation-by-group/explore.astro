@@ -91,7 +91,10 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 L15 14 H1 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><path d="M8 6v4M8 12v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
           <span></span>
         </div>
-        <div data-role="loading" class="stack" aria-busy="true">
+        {/* Without scripts nothing below can draw: this line says so (the script hides it), and the
+             loading message and the empty chart stay hidden (the script shows them). */}
+        <p class="muted" data-role="noscript">{t(lang, "explore.noscript")} <a href={dataHref(lang, country)}>{t(lang, "noscript.data")} →</a></p>
+        <div data-role="loading" class="stack" aria-busy="true" hidden>
           <div class="skeleton" style="height: 240px"></div>
           <span class="small muted">{t(lang, "chart.loading")}</span>
         </div>
@@ -100,7 +103,7 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
           <span class="muted">{t(lang, "chart.failed_hint")}</span>
           <button type="button" class="button" data-role="retry" style="align-self: flex-start">{t(lang, "chart.retry")}</button>
         </div>
-        <div class="stack view-pane" data-role="view-time" style="gap: var(--space-3)">
+        <div class="stack view-pane" data-role="view-time" style="gap: var(--space-3)" hidden>
         <div class="chart-area" role="img" data-role="chart"></div>
         <p class="small" style="font-weight: 600" data-role="gap-title" hidden>{t(lang, "gap.long")}</p>
         <p class="small muted" data-role="gap-note" hidden>{t(lang, "explore.gap_not_drawn")}</p>

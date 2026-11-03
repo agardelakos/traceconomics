@@ -26,6 +26,8 @@ export default defineConfig({
     format: "directory",
   },
   vite: {
-    build: { assetsInlineLimit: 0 },
+    // Source maps only in a coverage build (CI's, TRACECONOMICS_COVERAGE=on), so the browser tests'
+    // coverage can be traced back to our source files. A release build never has them.
+    build: { assetsInlineLimit: 0, sourcemap: process.env.TRACECONOMICS_COVERAGE === "on" },
   },
 });
