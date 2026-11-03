@@ -158,7 +158,15 @@ jobs:
           npm_config_fetch_retries: "5"
       - run: npm run build
         working-directory: site
-      # Selenium Manager fetches the pinned Chrome for Testing and its driver on first use.
+      # Ubuntu 24.04 can stop programs outside the usual install folders from building Chrome's
+      # sandbox (AppArmor's restriction on unprivileged user namespaces), and Chrome for Testing lives
+      # in ~/.cache. Allowed here rather than running Chrome without its sandbox. Then the pinned
+      # Chrome is fetched and started once on its own, so a Chrome that can't start says why.
+      - name: Chrome starts
+        run: |
+          sysctl kernel.apparmor_restrict_unprivileged_userns || true
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          python -I tests/selenium/chrome.py
       - run: python -I -m pytest tests/selenium --selenium -n auto -ra --junitxml=site/selenium-report/junit.xml
       # On the run's page: passed, failed, skipped, each failure, per file; also after a failure.
       - name: Test summary

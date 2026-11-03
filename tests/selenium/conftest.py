@@ -5,10 +5,8 @@ building the site (`npm run build` in site/). They serve `site/dist` from this p
 `--base-url` points them at another server (the `host` tests need one that applies the site's
 headers, such as `npx wrangler dev`).
 
-Chrome is Chrome for Testing at one pinned version, fetched by Selenium Manager into
-~/.cache/selenium on first use, so every machine and CI run uses the same browser. Selenium Manager
-is asked once per process, one process at a time (a file lock): parallel workers asking at once
-download Chrome over each other and leave its metadata file half-written.
+Chrome is Chrome for Testing at one pinned version (chrome.py), fetched by Selenium Manager into
+~/.cache/selenium on first use, so every machine and CI run uses the same browser.
 
 One Chrome per worker is kept for the whole run and reset between tests (storage, cookies,
 emulation, logs), because starting Chrome for every test would cost about a second each. The
@@ -19,24 +17,17 @@ After every test the browser's console must hold no error; a test that expects o
 in site/selenium-report/failures/.
 """
 
-import fcntl
 import json
-import os
 import re
 import shutil
-from functools import cache
-from pathlib import Path
 
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.selenium_manager import SeleniumManager
 
+import chrome
 from helpers import DIST, REPORT, Site
 from server import StaticServer
-
-# Chrome for Testing 156.0.8078.47, published 2026-10-19 (at least two weeks before it was pinned).
-CHROME_VERSION = "156.0.8078.47"
 
 BLOCKED = ["*cloudflareinsights.com*"]
 DESKTOP = (1280, 900)
@@ -58,23 +49,9 @@ def pytest_sessionstart(session):
         shutil.rmtree(REPORT / "failures", ignore_errors=True)
 
 
-@cache
-def _chrome() -> dict[str, str]:
-    """The pinned Chrome and its driver, fetched if missing: paths to both."""
-    cache_dir = Path(os.environ.get("SE_CACHE_PATH", Path.home() / ".cache" / "selenium"))
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    with open(cache_dir / "traceconomics-tests.lock", "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)    # released when the file closes
-        paths = SeleniumManager().binary_paths(["--browser", "chrome", "--browser-version", CHROME_VERSION])
-    for key in ("driver_path", "browser_path"):
-        if not Path(paths.get(key) or "").is_file():
-            raise FileNotFoundError(f"Selenium Manager gave no {key} for Chrome {CHROME_VERSION}: {paths}")
-    return paths
-
-
 def _options(*, phone=False, scripts=True) -> webdriver.ChromeOptions:
     o = webdriver.ChromeOptions()
-    o.binary_location = _chrome()["browser_path"]
+    o.binary_location = chrome.paths()["browser_path"]
     o.add_argument("--headless=new")
     o.add_argument("--no-first-run")
     o.add_argument("--disable-search-engine-choice-screen")
@@ -101,7 +78,7 @@ class _Pool:
     def get(self, kind: str) -> webdriver.Chrome:
         if kind not in self._drivers:
             # With both paths given, Selenium doesn't call Selenium Manager again.
-            d = webdriver.Chrome(service=Service(_chrome()["driver_path"]),
+            d = webdriver.Chrome(service=Service(chrome.paths()["driver_path"]),
                                  options=_options(phone=kind == "phone", scripts=kind != "noscript"))
             d.set_page_load_timeout(30)
             d.execute_cdp_cmd("Network.enable", {})

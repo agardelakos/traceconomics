@@ -48,11 +48,18 @@ jobs:
           npm_config_fetch_retries: "5"
       - run: npm run build
         working-directory: site
-      # Both browsers fetched before the first timed run, so no run pays for a download: Playwright's
-      # own Chromium, and the pinned Chrome for Testing (one smoke test makes Selenium Manager fetch it).
+      # Both browsers fetched before the first timed run, so no run pays for a download.
       - run: npx playwright install --with-deps chromium
         working-directory: site
-      - run: python -I -m pytest tests/selenium --selenium -k "test_root_goes_to_english" -q
+      # Ubuntu 24.04 can stop programs outside the usual install folders from building Chrome's
+      # sandbox (AppArmor's restriction on unprivileged user namespaces), and Chrome for Testing lives
+      # in ~/.cache. Allowed here rather than running Chrome without its sandbox. Then the pinned
+      # Chrome is fetched and started once on its own, so a Chrome that can't start says why.
+      - name: Chrome starts
+        run: |
+          sysctl kernel.apparmor_restrict_unprivileged_userns || true
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          python -I tests/selenium/chrome.py
       - name: Compare
         env:
           RUNS: ${{ inputs.runs }}
