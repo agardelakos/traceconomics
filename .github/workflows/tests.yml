@@ -171,7 +171,7 @@ jobs:
       # On the run's page: passed, failed, skipped, each failure, per file; also after a failure.
       - name: Test summary
         if: ${{ !cancelled() }}
-        run: python -I tests/selenium/report.py selenium site/selenium-report/junit.xml
+        run: python -I tests/compare/report.py selenium site/selenium-report/junit.xml
       # Every test with its time (JUnit XML) and, for a failure, a screenshot, the page and the console.
       - name: Upload the Selenium report
         if: ${{ !cancelled() }}
@@ -208,7 +208,7 @@ jobs:
           name: selenium-report
           path: results/selenium
       - name: Comparison
-        run: python -I tests/selenium/report.py compare results/playwright/playwright.json results/selenium/junit.xml
+        run: python -I tests/compare/report.py compare results/playwright/playwright.json results/selenium/junit.xml
 
   # The README's coverage badge, after a push to main whose tests passed. The badge is the only
   # file on the branch `badges`, kept as a single commit (force-pushed), so its history never grows.

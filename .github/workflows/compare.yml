@@ -2,7 +2,8 @@
 # the same build of made-up data (`tests/sitedata.py`) and the same number of workers. Flaky tests
 # (failed in some runs, passed in others) show up only over several runs. Playwright runs with its
 # --fully-parallel flag, spreading single tests over the workers as pytest-xdist does. Started by
-# hand from the Actions tab ("Run workflow"): it takes about half an hour, too long for every push.
+# hand from the Actions tab ("Run workflow"): with every mode on, about one and a half to two hours
+# for 5 runs (UNVERIFIED estimate from this desktop's times), too long for every push.
 #
 # Actions are pinned to a full commit (the tag is in the comment); the token is read-only.
 
@@ -16,9 +17,13 @@ on:
         type: number
         default: 5
       per_file:
-        description: "Also run Playwright as its config stands (a file's tests one after another), next to --fully-parallel"
+        description: "Also run both suites by file (a file's tests one after another in one worker): Playwright as configured, Selenium with --dist loadfile"
         type: boolean
-        default: false
+        default: true
+      sequential:
+        description: "Also run both suites one test at a time (1 worker): the slowest mode, about half the workflow's time"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -26,7 +31,7 @@ permissions:
 jobs:
   compare:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,10 +69,12 @@ jobs:
         env:
           RUNS: ${{ inputs.runs }}
           PER_FILE: ${{ inputs.per_file }}
+          SEQUENTIAL: ${{ inputs.sequential }}
         run: |
           extra=""
           if [ "$PER_FILE" = "true" ]; then extra="--per-file"; fi
-          python -I tests/selenium/compare.py --runs "$RUNS" --workers "$(nproc)" $extra --out comparison.md
+          if [ "$SEQUENTIAL" = "true" ]; then extra="$extra --sequential"; fi
+          python -I tests/compare/compare.py --runs "$RUNS" --workers "$(nproc)" $extra --out comparison.md
       - name: Upload the comparison
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

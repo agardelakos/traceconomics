@@ -4,9 +4,9 @@ terminal. Reads the result files the two suites write, never the tests themselve
 - Playwright's JSON report (site/test-reports/playwright.json, written by its own config);
 - pytest's JUnit XML from the Selenium tests (site/selenium-report/junit.xml).
 
-    python -I tests/selenium/report.py selenium <junit.xml>
+    python -I tests/compare/report.py selenium <junit.xml>
         the Selenium section: passed, failed, skipped, time, each failure, per file
-    python -I tests/selenium/report.py compare <playwright.json> <junit.xml>
+    python -I tests/compare/report.py compare <playwright.json> <junit.xml>
         both suites from the same CI run, side by side
 
 A missing file is reported, not skipped: a suite that never ran (an earlier step failed) is worth
@@ -145,6 +145,17 @@ def compare_section(pw: Results | None, se: Results | None) -> str:
               "build and runs a file's tests one after another; Selenium spreads single tests over the workers. "
               "For a fair comparison (several runs, the same machine and workers, Playwright with `--fully-parallel`), "
               "run the `compare` workflow."]
+    lines += ["", "<details><summary>What the rows mean</summary>", "",
+              "- **Passed, Failed, Skipped**: the tests with each result in this run. Failed counts errors too. "
+              "Selenium's skipped tests are the host tests (security headers, CORS, the content security policy), "
+              "which need a server that sends the site's headers (`--base-url`).",
+              "- **Suite time**: the real time the suite took, as each tool reports it, from its first test to its "
+              "last. It includes starting the browsers, but not installing anything.",
+              "- **Summed test time**: every test's own duration added up: total work, not elapsed time. Above the "
+              "suite time when tests ran in parallel.",
+              "- **Test files**: the files that held at least one test.",
+              "- **Slowest files**: the three files with the largest summed test time.",
+              "", "</details>"]
     return "\n".join(lines) + "\n"
 
 
