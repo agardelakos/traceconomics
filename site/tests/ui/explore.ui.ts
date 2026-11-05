@@ -145,12 +145,15 @@ test("a shared address opens the same view; unknown values fall back to the defa
   await expect(summary(page)).toHaveText(summaryOf("en", await series(request, s.default), DEFAULT_GROUPS, "rch_a"));
 });
 
-test("an option that can't be had is greyed, with its reason", async ({ page }) => {
+test("an option Greece can't have is not offered; an old link asking for it falls back", async ({ page }) => {
+  // Imputed rent by user cost needs a price index Greece doesn't publish: the method page explains it.
   await page.goto(m1("en", "explore/"));
   await openOptions(page);
-  await expect(radio(page, "imputed_rent", "user_cost")).toBeDisabled();
-  const reason = t("en", "option.unavailable", { reason: t("en", "reason.user_cost") });
-  await expect(root(page).locator('fieldset[data-option="imputed_rent"]')).toContainText(reason);
+  await expect(radio(page, "imputed_rent", "user_cost")).toHaveCount(0);
+  await page.goto(`${m1("en", "explore/")}?imputed_rent=user_cost`);
+  await expect(radio(page, "imputed_rent", "excluded")).toBeChecked();
+  await expect(summary(page)).not.toBeEmpty();
+  await expect.poll(() => params(page).get("imputed_rent")).toBeNull();
 });
 
 test("the measure changes the summary; the gap panel is for the annual rate only", async ({ page, request }) => {

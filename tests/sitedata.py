@@ -202,6 +202,42 @@ def _band_rows():
                     yield "oet-local/hbs-bands-gr", d, p, round(0.08 + 0.04 * math.sin(n / 9) ** 2 + (0.05 if gap else 0), 4)
 
 
+LIMIT_DIMS = ["geo", "grouping", "group", "unit", "measure"]
+SILC_DIMS = ["freq", "quant_inc", "statinfo", "unit", "geo"]
+PPS_PER_EUR = 1 / 0.86                    # a made-up purchasing power factor, the same every year
+
+
+def _limit(year: int, k: int) -> float:
+    """A made-up upper limit of fifth k (1-4) in euros a year, rising by about 2% a year."""
+    return (4000 + 3200 * k + 60 * k * k) * 1.02 ** (year - 2008)
+
+
+def _limit_rows():
+    for year in SURVEYS:
+        for k in range(1, 5):
+            d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "unit": "EUR_PER_ADULT_EQ_Y"}
+            yield "oet-local/hbs-limits-gr", {**d, "measure": "limit"}, str(year), round(_limit(year, k))
+            yield "oet-local/hbs-limits-gr", {**d, "measure": "se"}, str(year), round(40 + 9 * k + (year % 5), 1)
+
+
+def _group_count_rows():
+    for year in SURVEYS:
+        for k in range(1, 6):
+            d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "measure": "n_households"}
+            yield "oet-local/hbs-groups-gr", d, str(year), 900 + 37 * k + (year % 7)
+
+
+def _silc_rows():
+    """Eurostat's limits (EU-SILC survey y describes incomes of y - 1): about 4% under ours, as in
+    the real data, for the survey years after each made-up household survey."""
+    for survey in range(SURVEYS[0] + 1, SURVEYS[-1] + 2):
+        for k in range(1, 5):
+            eur = round(_limit(survey - 1, k) * 0.96)
+            for unit, v in (("EUR", eur), ("PPS", round(eur * PPS_PER_EUR))):
+                yield "eurostat/ilc_di01", {"freq": "A", "quant_inc": f"QU{k}", "statinfo": "TC", "unit": unit,
+                                            "geo": "GR"}, str(survey), v
+
+
 def write_store(store: Path, cpi, hicp) -> None:
     _write_dataset(store, "elstat:cpi07", ["freq", "unit", "coicop18", "geo"],
                    (r for r in _cpi_rows(cpi) if int(r[0][-4:]) >= 2011))   # table 07 from 2011, as ELSTAT re-issued it
@@ -215,6 +251,9 @@ def write_store(store: Path, cpi, hicp) -> None:
                     for h in SURVEYS for c, v in basket(h, "all", "all", spending="purchases",
                                                          imputed_rent="excluded").shares.items()))
     _write_dataset(store, "oet-local:hbs_bands", BAND_DIMS, _band_rows())
+    _write_dataset(store, "oet-local:hbs_limits", LIMIT_DIMS, _limit_rows())
+    _write_dataset(store, "oet-local:hbs_groups", ["geo", "grouping", "group", "measure"], _group_count_rows())
+    _write_dataset(store, "eurostat:ilc_di01", SILC_DIMS, _silc_rows())
 
 
 # The archive: the label files the export reads, made up in their publishers' formats.

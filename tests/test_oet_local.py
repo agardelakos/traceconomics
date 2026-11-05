@@ -93,3 +93,14 @@ def test_bands_file_has_many_periods_per_series(tmp_path):
     p.write_text("# x\n" + head + row.format("2022-01") + row.format("2022-01"), encoding="utf-8")
     with pytest.raises(FormatError, match="duplicate"):
         list(oet_local.rows(p, "oet-bands"))
+
+
+def test_limits_file_reads_one_row_per_fifth(tmp_path):
+    p = tmp_path / "l.csv"
+    p.write_text("# x\ngeo,ref_year,grouping,group,unit,limit,se,se_design,source_version\n"
+                 "GR,2024,B,Q1,EUR_PER_ADULT_EQ_Y,7400,52.5,full,v\n"
+                 "GR,2024,B,Q2,EUR_PER_ADULT_EQ_Y,10600,,unavailable,v\n", encoding="utf-8")
+    got = list(oet_local.rows(p, "oet-limits"))
+    assert ("GR", "B", "Q1", "EUR_PER_ADULT_EQ_Y", "limit", "2024", "7400", 7400.0) in got
+    assert ("GR", "B", "Q2", "EUR_PER_ADULT_EQ_Y", "se_design", "2024", "unavailable", None) in got
+    assert not [r for r in got if r[1:5] == ("B", "Q2", "EUR_PER_ADULT_EQ_Y", "se")]     # an empty se is no row

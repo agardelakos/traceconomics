@@ -119,3 +119,14 @@ def test_cv_check_passes_on_our_own_values_and_fails_far_from_them():
     ours = {c: cv for c, _, cv in v2.cv_check(s, {"00": 1.0, "01": 1.0}, replicates=500).rows}
     assert v2.cv_check(s, ours, replicates=500).passed
     assert not v2.cv_check(s, {"01": ours["01"] * 2}, replicates=500).passed
+
+
+def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas():
+    from traceconomics.local.bootstrap import limit_errors
+    small, big = sample(strata=4, areas=3, households=6), sample(strata=16, areas=8, households=6)
+    d, se_small = limit_errors(small, replicates=200)
+    _, se_big = limit_errors(big, replicates=200)
+    assert d.status == "full" and len(se_small) == 4 and (se_small > 0).all()
+    assert se_big.mean() < se_small.mean()
+    assert (limit_errors(small, replicates=200)[1] == se_small).all()     # same seed, same errors
+    assert limit_errors(sample(design="no-clusters"), replicates=50)[1] is None

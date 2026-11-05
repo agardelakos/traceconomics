@@ -1,10 +1,12 @@
-"""Eurostat HICP datasets, all countries.
+"""Eurostat datasets, all countries: the HICP, and the EU-SILC income limits (`ilc_di01`).
 
 Each live dataset is downloaded in full (one compressed TSV file) only when
 Eurostat's "last data update" time has changed since our last copy. Eurostat
 keeps flash and first-final values itself (prc_hicp_fpd), so our copies mainly
 add later revisions. The ECOICOP v1 datasets are frozen since 2025-12 and are
-copied once, in case they are removed.
+copied once, in case they are removed. `ilc_di01` (income by fifths and tenths, in euros and in
+purchasing power standards) is checked daily like the HICP: the check is one small request, and
+the file changes a few times a year.
 """
 
 from __future__ import annotations
@@ -20,7 +22,7 @@ from traceconomics.sources.base import FetchError, RunContext
 SOURCE = "eurostat"
 API = "https://ec.europa.eu/eurostat/api/dissemination"
 
-LIVE = ("prc_hicp_minr", "prc_hicp_iw", "prc_hicp_fpd")
+LIVE = ("prc_hicp_minr", "prc_hicp_iw", "prc_hicp_fpd", "ilc_di01")
 FROZEN = ("prc_hicp_midx", "prc_hicp_inw", "prc_hicp_fp")
 METADATA = {"esms-prc_hicp": "https://ec.europa.eu/eurostat/cache/metadata/en/prc_hicp_esms.htm"}
 

@@ -64,6 +64,31 @@ def quintile_matrix(value: pd.Series, weights: np.ndarray, ids: pd.Series, parts
     return out
 
 
+def cut_points(value: pd.Series, weights: np.ndarray, ids: pd.Series, parts: int = 5) -> np.ndarray:
+    """(parts - 1) x R: where each part ends, per column of weights, in the units of `value`.
+
+    The limit between part k and part k + 1 is the midpoint of the last household ranked in part k
+    and the first ranked in part k + 1, in the same order and with the same parts as
+    `quintile_matrix`. The limits are published, so they are never one household's figure alone:
+    either between two households' values, or, when the two report the same, a value both share. A row with zero weight in a column (a household not drawn in a bootstrap
+    replicate) is skipped in that column. NaN where a part is empty."""
+    weights = np.asarray(weights, dtype=float).reshape(len(value), -1)
+    q = quintile_matrix(value, weights, ids, parts)
+    ok = value.notna().to_numpy()
+    ranked = pd.DataFrame({"v": value.to_numpy()[ok], "id": ids.to_numpy()[ok], "row": np.flatnonzero(ok)})
+    order = ranked.sort_values(["v", "id"], kind="mergesort").row.to_numpy()
+    v = value.to_numpy(dtype=float)[order]
+    out = np.full((parts - 1, weights.shape[1]), np.nan)
+    for j in range(weights.shape[1]):
+        kept = weights[order, j] > 0
+        qj, vj = q[order, j][kept], v[kept]
+        for k in range(1, parts):
+            below, above = np.flatnonzero(qj == k), np.flatnonzero(qj == k + 1)
+            if len(below) and len(above):
+                out[k - 1, j] = (vj[below[-1]] + vj[above[0]]) / 2
+    return out
+
+
 def quintiles(value: pd.Series, weight: pd.Series, ids: pd.Series, parts: int = 5) -> pd.Series:
     """Quintile 1-5 (or 1..parts) per row; rows with a missing value or weight get NA."""
     ok = value.notna() & weight.notna() & (weight > 0)

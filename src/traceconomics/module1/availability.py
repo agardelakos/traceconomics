@@ -5,7 +5,7 @@ combination actually covers, so the table can't promise a month the data don't h
 
     options     per option value: the periods available, the periods greyed out (with a reason),
                 and notes that apply to it
-    fixed       options that are greyed out altogether until they are built
+    fixed       option values this country can't have, and why
     identical   pairs of combinations that must agree, and over which periods
     series      per combination and group: periods, the survey behind each year's weights, and
                 the periods that carry a footnote
@@ -50,10 +50,6 @@ REASONS = {
 FIXED = [
     {"option": "imputed_rent", "value": "user_cost", "status": "greyed",
      "text": "Imputed rent by user cost or net acquisitions: Greece has no price index for either."},
-    {"option": "hh_weighting", "value": "democratic", "status": "greyed",
-     "text": "Democratic weighting (every household counts equally): not built yet."},
-    {"option": "income_support", "value": "shown", "status": "greyed",
-     "text": "An income-support view (subsidies paid as cash): not built yet."},
 ]
 
 

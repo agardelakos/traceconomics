@@ -1,13 +1,16 @@
-// The "who is in each income fifth" panel on Explore: redraws the ranges for the household and
-// the unit (euros or purchasing power standards) the reader picks. The page already shows one
-// adult's ranges in euros, so without scripts it still says something true.
+// The "who is in each income fifth" panel on the Groups page: redraws the ranges for the household,
+// the source (ours or Eurostat's) and the unit (euros or purchasing power standards) the reader
+// picks. The page already shows one adult's ranges in euros from our limits, so without scripts it
+// still says something true. A source without a PPS version greys the PPS choice, with its reason.
 
 import { fill, num, type Lang } from "../lib/format";
 import { amount, equivalentSize, FIFTHS, ranges, type Range, type Unit } from "../lib/income";
 
+type Source = "ours" | "eurostat";
+
 interface Config {
   lang: Lang;
-  cutoffs: Record<Unit, Record<string, number>>;
+  cutoffs: Record<Source, Record<Unit, Record<string, number> | null>>;
   types: Record<string, [number, number]>;
   text: Record<string, string>;
 }
@@ -18,6 +21,9 @@ export function startIncome(root: HTMLElement): void {
   const sizeNote = root.querySelector<HTMLElement>('[data-income-role="size"]')!;
   const older = root.querySelector<HTMLInputElement>('input[name="older"]')!;
   const children = root.querySelector<HTMLInputElement>('input[name="children"]')!;
+  const ppsRadio = root.querySelector<HTMLInputElement>('input[name="income-unit"][value="pps"]')!;
+  const eurRadio = root.querySelector<HTMLInputElement>('input[name="income-unit"][value="eur"]')!;
+  const ppsNone = root.querySelector<HTMLElement>('[data-income-role="pps-none"]');
 
   const text = (r: Range, per: "year" | "month", unit: Unit) => {
     const d = per === "year" ? 1 : 12;
@@ -40,8 +46,13 @@ export function startIncome(root: HTMLElement): void {
     const [o, c] = picked === "other" ? [count(older, 1), count(children, 0)] : cfg.types[picked];
     const size = equivalentSize(o, c);
     sizeNote.textContent = fill(cfg.text.size, { size: num(cfg.lang, size) });
+    const source = (root.querySelector<HTMLInputElement>('input[name="income-source"]:checked')?.value ?? "ours") as Source;
+    const noPps = cfg.cutoffs[source].pps === null;
+    ppsRadio.disabled = noPps;
+    if (ppsNone) ppsNone.hidden = !noPps;
+    if (noPps && ppsRadio.checked) eurRadio.checked = true;
     const unit = (root.querySelector<HTMLInputElement>('input[name="income-unit"]:checked')?.value ?? "eur") as Unit;
-    const rows = ranges(cfg.cutoffs[unit], size);
+    const rows = ranges(cfg.cutoffs[source][unit]!, size);
     FIFTHS.forEach((q, i) => {
       root.querySelector(`[data-income-year="${q}"]`)!.textContent = text(rows[i], "year", unit);
       root.querySelector(`[data-income-month="${q}"]`)!.textContent = text(rows[i], "month", unit);

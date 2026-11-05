@@ -17,6 +17,7 @@ tests run without network access and fail if a parser stops understanding a form
 | `elstat_cpi07_2011_el.xls` | https://www.statistics.gr/en/statistics?…_documentID=114857&…_locale=el (CPI table 07, 2011, Greek) | 2026-10-18 | not trimmed |
 | `elstat_cpi05_2026_09.xlsx` | https://www.statistics.gr/en/statistics?…_documentID=114837 (CPI table 05, twelve-month rates, January 1959 to September 2026, English) | 2026-10-13 | not trimmed |
 | `eurostat_prc_hicp_{minr,iw,fpd,midx,inw,fp}.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/{DATASET}/?format=TSV&compressed=true | 2026-10-18, except `prc_hicp_fp` (research download of 2026-10-14) | header kept whole; rows for Greece, Cyprus and the euro area, all items and the food branch down to one subclass (plus games of chance and education not by level), units I25, I15 and RCH_A; plus the first row with an empty flagged cell |
+| `eurostat_ilc_di01.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/ILC_DI01/?format=TSV&compressed=true | 2026-11-05 | header kept whole; rows for Greece and Cyprus, the five fifths (`QU1`-`QU5`), top cut-offs and shares, units EUR, NAC and PPS; plus one row (Austria) with flagged cells |
 | `eurostat_v1_gr_{minr,iw}.tsv.gz` | same Eurostat bulk files (`prc_hicp_minr`, `prc_hicp_iw`) | 2026-10-18 | Greece only. minr: unit I25 for every category, plus RCH_A for all items, periods from 2014-12. iw: every category, years from 2015 |
 
 Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, and Eurostat, reused under

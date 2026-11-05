@@ -29,7 +29,8 @@ test("a term's explanation still opens, with its link", async ({ page }) => {
 });
 
 test("the Groups page says the finder needs a script, and shows the income table", async ({ page }) => {
-  const cut = JSON.parse(readFileSync(new URL("../../src/lib/income-cutoffs.json", import.meta.url), "utf-8")).eurostat.top_cutoffs;
+  // The page is built showing our limits, for one adult, in euros.
+  const cut = JSON.parse(readFileSync(new URL("../../public/data/v1/gr/m1/latest/income-limits.json", import.meta.url), "utf-8")).ours.top_cutoffs;
   await page.goto(m1("en", "groups/"));
   await expect(page.getByText(t("en", "find.noscript"))).toBeVisible();
   await expect(page.locator('#find [data-find="form"]')).toBeHidden();

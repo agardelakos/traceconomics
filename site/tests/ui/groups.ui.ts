@@ -2,15 +2,18 @@
 // income, the site's groups it belongs to, with links that carry the groups and never the income.
 // The income panel: each fifth's income range for the household and unit the reader picks.
 //
-// Expected values come from the same cut-off file the page is built from and the site's own income
-// functions (which have their own unit tests): here we check the page shows what they give.
+// Expected values come from the same exported limits file the page is built from (ours first,
+// Eurostat's on the switch) and the site's own income functions (which have their own unit tests):
+// here we check the page shows what they give.
 import { readFileSync } from "node:fs";
 import type { Locator, Page } from "@playwright/test";
 import { amount, equivalentSize, FIFTHS, HOUSEHOLD_TYPES, placeIncome, ranges, type Unit } from "../../src/lib/income";
+import { pct } from "../../src/lib/format";
 import { expect, m1, num, t, test } from "./helpers";
 
-const cutoffs = JSON.parse(readFileSync(new URL("../../src/lib/income-cutoffs.json", import.meta.url), "utf-8")).eurostat;
-const TOP: Record<string, number> = cutoffs.top_cutoffs;
+const limits = JSON.parse(readFileSync(new URL("../../public/data/v1/gr/m1/latest/income-limits.json", import.meta.url), "utf-8"));
+type Source = "ours" | "eurostat";
+const TOP: Record<string, number> = limits.ours.top_cutoffs;
 const PAGE = m1("en", "groups/");
 
 const finder = (page: Page) => page.locator("#find");
@@ -122,8 +125,8 @@ test.describe("the group finder", () => {
 
 test.describe("the income panel", () => {
   /** The rows as the page should show them. */
-  function expected(size: number, unit: Unit) {
-    const cut: Record<string, number> = unit === "pps" ? cutoffs.top_cutoffs_pps : TOP;
+  function expected(size: number, unit: Unit, source: Source = "ours") {
+    const cut: Record<string, number> = limits[source][unit === "pps" ? "top_cutoffs_pps" : "top_cutoffs"];
     return ranges(cut, size).map((r) => (["year", "month"] as const).map((per) => {
       const d = per === "year" ? 1 : 12;
       const a = (v: number) => amount(unit, v / d);
@@ -133,8 +136,8 @@ test.describe("the income panel", () => {
     }));
   }
 
-  async function expectRows(page: Page, size: number, unit: Unit) {
-    const rows = expected(size, unit);
+  async function expectRows(page: Page, size: number, unit: Unit, source: Source = "ours") {
+    const rows = expected(size, unit, source);
     for (const [i, q] of FIFTHS.entries()) {
       await expect(panel(page).locator(`[data-income-year="${q}"]`)).toHaveText(rows[i][0]);
       await expect(panel(page).locator(`[data-income-month="${q}"]`)).toHaveText(rows[i][1]);
@@ -161,9 +164,42 @@ test.describe("the income panel", () => {
     await expectRows(page, equivalentSize(4, 2), "eur");
   });
 
-  test("purchasing power standards replace euros", async ({ page }) => {
+  test("purchasing power standards replace euros, or are greyed with the reason", async ({ page }) => {
     await page.goto(PAGE);
+    const pps = panel(page).getByLabel(t("en", "income.unit.pps"));
+    if (limits.ours.top_cutoffs_pps === null) {
+      // No conversion for our year's incomes yet.
+      await expect(pps).toBeDisabled();
+      await expect(panel(page).locator('[data-income-role="pps-none"]')).toBeVisible();
+    } else {
+      await pps.check();
+      await expectRows(page, 1, "pps");
+    }
+  });
+
+  test("Eurostat's limits are one click away, in both units", async ({ page }) => {
+    await page.goto(PAGE);
+    await expect(panel(page).getByLabel(t("en", "income.source.ours"))).toBeChecked();
+    await panel(page).getByLabel(t("en", "income.source.eurostat")).check();
+    await expectRows(page, 1, "eur", "eurostat");
     await panel(page).getByLabel(t("en", "income.unit.pps")).check();
-    await expectRows(page, 1, "pps");
+    await expectRows(page, 1, "pps", "eurostat");
+  });
+
+  test("our limits say how they are made, and how far Eurostat's are from them", async ({ page }) => {
+    const ours = limits.ours, eu = limits.eurostat;
+    await page.goto(PAGE);
+    const ses = Object.values(ours.se as Record<string, number | null>).filter((v): v is number => v !== null);
+    await expect(panel(page).locator('[data-income-role="ours-note"]')).toHaveText(t("en", "income.source.ours_note", {
+      survey: ours.survey_year, income: ours.income_year, se_from: amount("eur", Math.min(...ses)), se_to: amount("eur", Math.max(...ses)),
+    }));
+    if (eu.income_year === ours.income_year) {
+      const a = eu.top_cutoffs.Q1, b = ours.top_cutoffs.Q1;
+      const diff = t("en", a <= b ? "income.compare.lower" : "income.compare.higher", { pct: pct("en", (Math.abs(a - b) / b) * 100) });
+      await expect(panel(page).locator('[data-income-role="compare"]')).toHaveText(t("en", "income.source.compare", {
+        income: ours.income_year, eurostat: amount("eur", a), ours: amount("eur", b), diff,
+      }));
+    }
+    await expect(finder(page)).toContainText(t("en", "find.limits", { year: ours.survey_year }));
   });
 });

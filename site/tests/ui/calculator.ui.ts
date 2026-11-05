@@ -60,7 +60,8 @@ test("another starting group shows its own rate and goes in the address", async 
   await page.goto(m1("en", "calculator/"));
   await role(page, "preset").selectOption("tenure/renter");
   await expect(role(page, "yours")).toHaveText(pct("en", renter.value));
-  expect(new URL(page.url()).searchParams.get("from")).toBe("tenure/renter");
+  // The address is updated after the result is drawn: wait for it rather than read it once.
+  await expect.poll(() => new URL(page.url()).searchParams.get("from")).toBe("tenure/renter");
 });
 
 test("the group finder's link starts from its group; an unknown one from the default", async ({ page, request }) => {

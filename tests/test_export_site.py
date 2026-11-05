@@ -139,3 +139,19 @@ def test_official_rate_keeps_each_figure_in_its_own_month():
 def test_official_rate_refuses_a_year_without_the_one_before():
     with pytest.raises(FormatError):
         site.official_rate({2026: {"TOTAL": {"2026-09": 128.2}}}, {"2026-09": 0.05})
+
+
+def test_pps_factor_is_one_for_the_whole_year_and_least_bent_by_rounding():
+    # Eurostat's EU-SILC 2025 limits for Greece (ilc_di01), in euros and in PPS, each rounded to a whole unit.
+    eur = {"Q1": 7110, "Q2": 10269, "Q3": 13184, "Q4": 17056}
+    pps = {"Q1": 8272, "Q2": 11947, "Q3": 15338, "Q4": 19843}
+    f = site.pps_factor(eur, pps)
+    assert f == pytest.approx(47619 / 55400)
+    assert all(abs(eur[q] - f * pps[q]) <= 1 for q in eur)
+
+
+def test_pps_factor_refuses_limits_that_dont_share_one():
+    with pytest.raises(FormatError, match="one factor"):
+        site.pps_factor({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000})
+    with pytest.raises(FormatError, match="don't match"):
+        site.pps_factor({"Q1": 7110}, {"Q2": 8272})

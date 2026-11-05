@@ -71,6 +71,14 @@ coicop = "coicop"
 classification = "ecoicop1"
 release = "release"
 
+# EU-SILC: each fifth's top income limit (statinfo TC) in euros and in purchasing power
+# standards, per survey year (incomes of the year before). The site shows them next to ours.
+[eurostat.ilc_di01]
+archive = ["eurostat/ilc_di01"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "quant_inc", "statinfo", "unit", "geo"]
+
 # ELSTAT CPI table 07: every item's monthly index and the year's weights, one
 # document per year (2010 onward, re-issued in COICOP 2018 with 2020=100).
 # freq A carries the weights (unit PM, per mille) and annual averages; freq M the
@@ -109,6 +117,12 @@ archive = ["oet-local/hbs-groups-gr-*"]
 format = "oet-groups"
 freq = "A"
 dimensions = ["geo", "grouping", "group", "measure"]
+
+["oet-local".hbs_limits]
+archive = ["oet-local/hbs-limits-gr-*"]
+format = "oet-limits"
+freq = "A"
+dimensions = ["geo", "grouping", "group", "unit", "measure"]
 
 ["oet-local".hbs_bands]
 archive = ["oet-local/hbs-bands-gr"]

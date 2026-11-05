@@ -49,6 +49,18 @@ export const settings = (country: string) => readJson<Settings>(`${m1Dir(country
 export const series = (country: string, slug: string) => readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
 export const availability = (country: string) => readJson<any>(`${m1Dir(country)}/availability.json`);
 export const calculator = (country: string) => readJson<any>(`${m1Dir(country)}/calculator.json`);
+/** One source's upper limit of each income fifth (Q1-Q4), euros a year per adult equivalent. */
+export interface IncomeLimits {
+  survey_year: number;
+  income_year: number;
+  top_cutoffs: Record<string, number>;
+  top_cutoffs_pps: Record<string, number> | null;
+}
+export interface IncomeLimitsFile {
+  ours: IncomeLimits & { se: Record<string, number | null>; households: Record<string, string | null>; pps_reason: string | null };
+  eurostat: IncomeLimits & { top_cutoffs_pps: Record<string, number> };
+}
+export const incomeLimits = (country: string) => readJson<IncomeLimitsFile>(`${m1Dir(country)}/income-limits.json`);
 export const labels = () => readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>("labels/coicop18.json");
 
 /** The month axis of a series file. */

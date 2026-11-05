@@ -3,7 +3,8 @@
 The archived files are wide CSV tables, opened by `#` lines (their provenance). In the store each
 value is its own row, keyed by the table's dimensions plus a `measure` column: `share`, `se`,
 `n_households_unweighted`, `reliability` for the weights; `n_households`, `households_weighted`,
-`people_weighted`, `uncovered_purchases_share`, `se_design` for the groups. Text values ("<20",
+`people_weighted`, `uncovered_purchases_share`, `se_design` for the groups; `limit`, `se`,
+`se_design` for the income limits. Text values ("<20",
 "suppressed") stay in `value_text` with no number. Standard library only: the store is built
 without the microdata tools installed.
 """
@@ -31,6 +32,10 @@ FORMATS = {
         "dims": ("geo", "grouping", "group"),
         "measures": ("n_households", "households_weighted", "people_weighted", "uncovered_purchases_share",
                      "se_design"),
+    },
+    "oet-limits": {
+        "dims": ("geo", "grouping", "group", "unit"),
+        "measures": ("limit", "se", "se_design"),
     },
     "oet-bands": {
         "dims": ("geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",

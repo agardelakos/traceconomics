@@ -212,14 +212,13 @@ def test_at_most_six_groups_and_at_least_one(site):
     assert _pressed(site) == ["Q1"], "the last group could be removed"
 
 
-def test_greyed_option_is_disabled_with_its_reason(site):
+def test_option_greece_cant_have_is_not_offered(site):
+    # Imputed rent by user cost needs a price index Greece doesn't publish: the method page explains
+    # it, Explore doesn't offer it, and an old link asking for it falls back to the default.
     site.open(PAGE.format(lang="en"))
     _ready(site)
     _open_options(site)
-    radio = site.find('fieldset[data-option="imputed_rent"] input[value="user_cost"]')
-    assert not radio.is_enabled()
-    notes = site.find('fieldset[data-option="imputed_rent"]').text
-    assert t("en", "option.unavailable", reason=t("en", "reason.user_cost")) in notes
+    assert not site.all('fieldset[data-option="imputed_rent"] input[value="user_cost"]')
     site.open(PAGE.format(lang="en") + "?imputed_rent=user_cost")
     _ready(site)
     assert "imputed_rent" not in site.query

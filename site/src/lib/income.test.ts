@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import cutoffs from "./income-cutoffs.json";
 import { equivalentSize, eur, pps, HOUSEHOLD_TYPES, parseAmount, placeIncome, ranges } from "./income";
+
+// Eurostat's published top cut-offs for Greece, EU-SILC 2025 (incomes of 2024), euros a year per
+// adult equivalent (ilc_di01, checked 2026-11-05): real figures as test inputs.
+const top = { Q1: 7110, Q2: 10269, Q3: 13184, Q4: 17056 };
 
 describe("equivalentSize", () => {
   it("follows the modified OECD scale", () => {
@@ -26,8 +29,6 @@ describe("equivalentSize", () => {
 });
 
 describe("ranges", () => {
-  const top = cutoffs.eurostat.top_cutoffs;
-
   it("uses the published cut-offs as they are for one person", () => {
     expect(ranges(top, 1)).toEqual([
       { from: null, to: 7110 },
@@ -58,20 +59,7 @@ describe("eur", () => {
   });
 });
 
-describe("Eurostat's cut-offs", () => {
-  it("come in euros and in purchasing power standards, for the same fifths", () => {
-    const e = cutoffs.eurostat;
-    expect(Object.keys(e.top_cutoffs_pps)).toEqual(Object.keys(e.top_cutoffs));
-    // One conversion factor for the whole table: every fifth's PPS/EUR ratio agrees to rounding.
-    const ratios = Object.keys(e.top_cutoffs).map((q) => (e.top_cutoffs_pps as any)[q] / (e.top_cutoffs as any)[q]);
-    for (const r of ratios) expect(Math.abs(r - ratios[0])).toBeLessThan(0.002);
-  });
-});
-
-
 describe("placeIncome", () => {
-  const top = cutoffs.eurostat.top_cutoffs;   // 7110, 10269, 13184, 17056
-
   it("puts an income in its fifth, per adult equivalent", () => {
     expect(placeIncome(top, 1, 5000)).toEqual({ fifth: "Q1", neighbour: null });
     expect(placeIncome(top, 1, 12000)).toEqual({ fifth: "Q3", neighbour: null });

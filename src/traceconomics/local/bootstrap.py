@@ -36,7 +36,7 @@ import numpy as np
 import pandas as pd
 
 from traceconomics.checks import require
-from traceconomics.local.groups import RANKED, quintile_matrix, ranking
+from traceconomics.local.groups import RANKED, cut_points, quintile_matrix, ranking
 from traceconomics.local.puf import Survey
 from traceconomics.local.shares import PUBLISHED, basket, group_shares, memberships
 
@@ -136,6 +136,24 @@ def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPL
                 rows.append({"grouping": g, "group": label, "imputed_rent": t.option, "code": code,
                              "se": float(np.sqrt(max(v, 0.0)))})
     return d, pd.DataFrame(rows)
+
+
+def limit_errors(survey: Survey, grouping: str = "B", replicates: int = REPLICATES,
+                 seed: int = SEED) -> tuple[Design, np.ndarray | None]:
+    """(the design used, the standard error of each limit between the grouping's parts, or None
+    when the design is unavailable). The same replicates as `standard_errors` (same seed and
+    draws): in each one the households are ranked again and the limits recomputed."""
+    d = design(survey)
+    if d.status == "unavailable":
+        return d, None
+    factors = replicate_factors(d, replicates, np.random.default_rng([seed, survey.year]))
+    w = survey.households.weight.to_numpy(float)
+    values, size = ranking(survey)
+    value, by_people, parts, _ = RANKED[grouping]
+    basis = w * np.nan_to_num(size.to_numpy(float)) if by_people else w
+    cuts = np.concatenate([cut_points(values[value], basis[:, None] * factors[:, s:s + CHUNK], survey.households.hh, parts)
+                           for s in range(0, replicates, CHUNK)], axis=1)
+    return d, cuts.std(axis=1, ddof=1)
 
 
 def with_errors(shares: pd.DataFrame, errors: pd.DataFrame, d: Design) -> pd.DataFrame:

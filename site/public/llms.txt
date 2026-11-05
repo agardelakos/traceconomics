@@ -22,6 +22,7 @@ Prefer the data files over the pages for numbers: they hold every value at full 
 - [Index, default setting (CSV)](https://traceconomics.com/data/v1/gr/m1/latest/downloads/purchases_excluded_cpi_N_priced/m1_index.csv): each group's price index, 2025 = 100
 - [Metadata](https://traceconomics.com/data/v1/gr/m1/latest/metadata.json): the tables, their columns and units, the default options, the period covered, sources, licence and the attribution to keep
 - [Settings](https://traceconomics.com/data/v1/gr/m1/latest/settings.json): every combination of the options and its folder under `downloads/`
+- [Income limits](https://traceconomics.com/data/v1/gr/m1/latest/income-limits.json): each income fifth's upper limit in euros a year per adult equivalent, ours from the household budget survey (`ours`, every survey year under `years`, with standard errors) and Eurostat's from EU-SILC (`eurostat`), each with its survey and income year
 - [Checksums](https://traceconomics.com/data/v1/gr/m1/latest/SHA256SUMS)
 - [Bibliography](https://traceconomics.com/data/v1/references.json): every source the method and pages cite
 

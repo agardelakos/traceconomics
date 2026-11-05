@@ -28,9 +28,10 @@ const divisions = Object.fromEntries(Object.entries(names).filter(([c]) => c.len
 const OPTIONS = ["grouping", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring"] as const;
 const values: Record<string, string[]> = { grouping: ["B", "A", "C"], ...set.options };
 const defaults: Record<string, string> = { grouping: "B", ...Object.fromEntries(Object.entries(set.settings.find((s) => s.default)!).filter(([k]) => k in set.options)) };
-const fixedGreyed: Record<string, { value: string; reason: string }[]> = {
-  imputed_rent: [{ value: "user_cost", reason: "reason.user_cost" }],
-};
+// Values a reader might look for but this country can't have, shown greyed with the reason. None for
+// Greece today: imputed rent by user cost is explained on the method page instead, since no Greek
+// price index exists for it and a control that can never be chosen only adds noise.
+const fixedGreyed: Record<string, { value: string; reason: string }[]> = {};
 const FAMILIES = [
   { key: "income", groups: ["Q1", "Q2", "Q3", "Q4", "Q5"] },
   { key: "tenure", groups: ["tenure/renter", "tenure/owner", "tenure/rent_free"] },
@@ -186,14 +187,6 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
               <div class="note" data-role="note"></div>
             </fieldset>
           ))}
-          <fieldset class="option">
-            <legend>{t(lang, "option.hh_weighting.democratic")}</legend>
-            <p class="note"><span class="planned-tag">{t(lang, "soon")}</span></p>
-          </fieldset>
-          <fieldset class="option">
-            <legend>{t(lang, "option.income_support.shown")}</legend>
-            <p class="note"><span class="planned-tag">{t(lang, "soon")}</span></p>
-          </fieldset>
         </div>
       </details>
 

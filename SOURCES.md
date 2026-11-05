@@ -55,7 +55,7 @@ Data for countries outside the EU, EFTA and the EU's acceding and candidate coun
 | Dataset | How we use it | Modified? |
 |---|---|---|
 | HICP item indices, `prc_hicp_minr` ([doi:10.2908/PRC_HICP_MINR](https://doi.org/10.2908/PRC_HICP_MINR)) | Prices for the HICP option | Yes: chain-linked and weighted into indices by group |
-| Distribution of income by quantiles, `ilc_di01` (EU-SILC) | The income cut-offs that place a household in its fifth | No: shown as published |
+| Distribution of income by quantiles, `ilc_di01` (EU-SILC) | Eurostat's income cut-offs, shown next to ours; their euro-to-PPS ratio converts our own cut-offs to purchasing power standards | Shown as published; the ratio of its euro and PPS figures is applied to our own cut-offs |
 | Other HICP datasets (`prc_hicp_midx`, `prc_hicp_iw`, `prc_hicp_inw`, `prc_hicp_fpd`, `prc_hicp_fp`) | Checks of our calculations only | Not published |
 
 **Notice:** "Source: Eurostat. Data modified by TracEconomics; Eurostat bears no responsibility for the derived figures." Eurostat's suggested citation for a dataset is its DOI and the access date; each dataset's `metadata.json` lists the exact files and dates used.

@@ -69,6 +69,11 @@ def _fixed0(value: float) -> int:
     return int(Decimal(value).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 
 
+def pct(lang: str, value: float, digits: int = 1) -> str:
+    """A percentage as the site writes it (format.ts `pct`): the number, then "%"."""
+    return f"{num(lang, value, digits)}%"
+
+
 def eur(value: float) -> str:
     grouped = f"{_fixed0(abs(value)):,d}".replace(",", NNBSP)
     return ("\u2212\u20ac" if value < 0 else "\u20ac") + grouped
@@ -101,9 +106,9 @@ def data(rel: str):
     return json.loads((DIST / M1 / rel).read_text(encoding="utf-8"))
 
 
-@cache
-def cutoffs() -> dict:
-    return json.loads((SITE / "src" / "lib" / "income-cutoffs.json").read_text(encoding="utf-8"))["eurostat"]
+def cutoffs(source: str = "ours") -> dict:
+    """One source's income limits from the exported file: "ours" (the page's first) or "eurostat"."""
+    return data("income-limits.json")[source]
 
 
 def default_slug() -> str:

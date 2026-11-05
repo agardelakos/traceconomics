@@ -30,8 +30,16 @@ def test_every_dataset_fixture_parses(con, dataset_id):
     assert r.rows > 0 and r.series > 0
     geos = {g for (g,) in rows(con, "SELECT DISTINCT geo FROM parsed")}
     assert "GR" in geos and "EL" not in geos
-    codes = {c for (c,) in rows(con, f"SELECT DISTINCT {spec.coicop} FROM parsed")}
-    assert "TOTAL" in codes and not any(c.startswith("CP") for c in codes)
+    if spec.coicop:
+        codes = {c for (c,) in rows(con, f"SELECT DISTINCT {spec.coicop} FROM parsed")}
+        assert "TOTAL" in codes and not any(c.startswith("CP") for c in codes)
+
+
+def test_income_limits_parse_with_their_units(con):
+    parse.parse(con, FIX / "eurostat_ilc_di01.tsv.gz", SPECS["eurostat:ilc_di01"])
+    got = dict(rows(con, """SELECT unit, value FROM parsed
+        WHERE geo = 'GR' AND quant_inc = 'QU1' AND statinfo = 'TC' AND ref_period = '2025'"""))
+    assert got == {"EUR": 7110.0, "NAC": 7110.0, "PPS": 8272.0}
 
 
 def test_values_kept_as_published(con):

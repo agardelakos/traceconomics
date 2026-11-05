@@ -16,6 +16,9 @@
         official.json                the official CPI's latest annual rate, the context the site
                                      shows next to the groups' rates: ours from ELSTAT's index
                                      levels and ELSTAT's published one, compared (`official_rate`)
+        income-limits.json           each income fifth's upper limit in euros, ours (from the household
+                                     budget survey) and Eurostat's (EU-SILC), with years, standard
+                                     errors and PPS (`income_limits_file`)
         SHA256SUMS                   a checksum for every file above
     <out>/v1/labels/coicop18.json    the spending categories' names in English and Greek (`labels`)
     <out>/v1/references.json         the bibliography, for the site's source lists (`bibliography`)
@@ -232,6 +235,87 @@ def official_file(store_con) -> dict:
     return official_rate(prices.cpi_blocks(store_con), published_rates(store_con))
 
 
+def _latest(store_con, dataset: str, columns: str, where: str = "TRUE") -> list[tuple]:
+    """The newest value of each key and period of `dataset`, withdrawn rows left out, in a fixed order."""
+    return store_con.execute(f"""
+        SELECT {columns} FROM observations WHERE dataset = $d AND {where}
+        QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
+            AND status <> 'withdrawn'
+        ORDER BY {columns}
+    """, {"d": dataset}).fetchall()
+
+
+def pps_factor(eur: dict[str, float], pps: dict[str, float]) -> float:
+    """Euros per purchasing power standard, from one year of Eurostat's limits in both units: the
+    total in euros over the total in PPS (the least affected by their rounding to whole units).
+    Eurostat converts every limit of a year with one factor; a limit that doesn't fit it within
+    a euro means the file changed meaning, and is refused."""
+    require(eur.keys() == pps.keys() and eur, f"limits in EUR {sorted(eur)} and PPS {sorted(pps)} don't match")
+    factor = sum(eur.values()) / sum(pps.values())
+    off = {k: eur[k] - factor * pps[k] for k in eur if abs(eur[k] - factor * pps[k]) > 1}
+    require(not off, f"Eurostat's PPS limits don't share one factor: {off}")
+    return factor
+
+
+def income_limits_file(store_con) -> dict:
+    """Each income fifth's upper limit, ours and Eurostat's, for the site's Groups page.
+
+    Ours: the household budget survey's limits (`hbs_limits`) for its newest year, with standard
+    errors and each fifth's household count; every year's limits too, for the record. Eurostat's
+    (EU-SILC, `ilc_di01`, top cut-offs): the survey that describes the same year's incomes (SILC
+    survey y + 1 for our survey y), or its newest one when that isn't out yet. Ours in purchasing
+    power standards use the factor Eurostat applies to that income year (`pps_factor`), or are
+    null with a reason when Eurostat hasn't published it yet."""
+    ours: dict[int, dict] = {}
+    for year, group, measure, text, value in _latest(store_con, "oet-local:hbs_limits", "ref_period, \"group\", measure, value_text, value",
+                                                       "grouping = 'B' AND geo = 'GR'"):
+        ours.setdefault(int(year), {}).setdefault(measure, {})[group] = value if measure != "se_design" else text
+    require(ours, "no income limits in the store (oet-local:hbs_limits): run `traceconomics weights run`")
+    counts: dict[int, dict] = {}
+    for year, group, text in _latest(store_con, "oet-local:hbs_groups", "ref_period, \"group\", value_text",
+                                     "grouping = 'B' AND geo = 'GR' AND measure = 'n_households'"):
+        counts.setdefault(int(year), {})[group] = text
+    silc: dict[int, dict] = {}
+    for year, quant, unit, value in _latest(store_con, "eurostat:ilc_di01", "ref_period, quant_inc, unit, value",
+                                            "geo = 'GR' AND statinfo = 'TC' AND unit IN ('EUR', 'PPS') "
+                                            "AND quant_inc IN ('QU1', 'QU2', 'QU3', 'QU4') AND value IS NOT NULL"):
+        silc.setdefault(int(year), {}).setdefault(unit, {})["Q" + quant[-1]] = value
+    silc = {y: v for y, v in silc.items() if len(v.get("EUR", {})) == 4 and len(v.get("PPS", {})) == 4}
+    require(silc, "no Eurostat income limits in the store (eurostat:ilc_di01)")
+
+    def whole(x):
+        return None if x is None else int(round(x))
+
+    newest = max(ours)
+    mine = ours[newest]
+    matching = newest + 1
+    eurostat_year = matching if matching in silc else max(silc)
+    factor = pps_factor(silc[matching]["EUR"], silc[matching]["PPS"]) if matching in silc else None
+    groups = sorted(mine["limit"])
+    return {
+        "format": FORMAT,
+        "ours": {
+            "source": "oet-local:hbs_limits", "survey_year": newest, "income_year": newest,
+            "unit": "EUR a year per adult equivalent: money income after taxes over the modified OECD scale",
+            "method": "midpoint between the two households either side of each limit, rounded to the euro",
+            "top_cutoffs": {g: whole(mine["limit"][g]) for g in groups},
+            "se": {g: whole(mine.get("se", {}).get(g)) for g in groups},
+            "se_design": mine.get("se_design", {}).get(groups[0]),
+            "households": {g: counts.get(newest, {}).get(g) for g in [*groups, f"Q{len(groups) + 1}"]},
+            "top_cutoffs_pps": {g: whole(mine["limit"][g] / factor) for g in groups} if factor else None,
+            "pps_factor": round(factor, 6) if factor else None,
+            "pps_reason": None if factor else "no_factor",
+            "years": {str(y): {g: whole(v) for g, v in sorted(ours[y]["limit"].items())} for y in sorted(ours)},
+        },
+        "eurostat": {
+            "source": "eurostat:ilc_di01", "survey_year": eurostat_year, "income_year": eurostat_year - 1,
+            "unit": "EUR a year per adult equivalent: disposable income over the modified OECD scale",
+            "top_cutoffs": {g: whole(v) for g, v in sorted(silc[eurostat_year]["EUR"].items())},
+            "top_cutoffs_pps": {g: whole(v) for g, v in sorted(silc[eurostat_year]["PPS"].items())},
+        },
+    }
+
+
 def checksums(root: Path) -> Path:
     lines = []
     for path in sorted(p for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS"):
@@ -323,6 +407,7 @@ def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool
     shutil.copyfile(m1 / "metadata.json", root / "metadata.json")
     written.append(root / "metadata.json")
     written.append(_write_json(root / "official.json", official_file(store_con)))
+    written.append(_write_json(root / "income-limits.json", income_limits_file(store_con)))
     written.append(_write_json(root / "settings.json", {"format": FORMAT, "options": combinations.OPTIONS,
                                                         "default": slug(combinations.DEFAULT), "settings": settings}))
     from traceconomics.export import bibliography

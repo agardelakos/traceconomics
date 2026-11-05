@@ -5,7 +5,7 @@ household, in euros or purchasing power standards). Expected values from the pub
 import pytest
 from selenium.webdriver.common.keys import Keys
 
-from helpers import cutoffs, equivalent_size, eur, js_round, num, place_income, pps, t
+from helpers import cutoffs, equivalent_size, eur, js_round, num, pct, place_income, pps, t
 
 PAGE = "/{lang}/gr/inflation-by-group/groups/"
 
@@ -113,8 +113,8 @@ def test_finder_keeps_out_of_range_counts_in_bounds(site):
 
 # --- the income panel ---------------------------------------------------------------------------
 
-def _expected(lang, size, unit):
-    cuts = cutoffs()["top_cutoffs" if unit == "eur" else "top_cutoffs_pps"]
+def _expected(lang, size, unit, source="ours"):
+    cuts = cutoffs(source)["top_cutoffs" if unit == "eur" else "top_cutoffs_pps"]
     amount = eur if unit == "eur" else pps
     tops = [cuts[q] * size for q in ("Q1", "Q2", "Q3", "Q4")]
     rows = []
@@ -176,11 +176,34 @@ def test_income_panel_other_size_and_pps(site):
     _set_number(site, '#income input[name="children"]', 3)
     size = equivalent_size(4, 3)
     _same(site, _expected("en", size, "eur"))
+    _choose(site, "income-source", "eurostat")
+    _same(site, _expected("en", size, "eur", "eurostat"))
     _choose(site, "income-unit", "pps")
-    _same(site, _expected("en", size, "pps"))
+    _same(site, _expected("en", size, "pps", "eurostat"))
+    _choose(site, "income-source", "ours")
+    if cutoffs()["top_cutoffs_pps"] is None:
+        # No conversion for our year yet: PPS is greyed with its reason, and the table is in euros.
+        site.wait(lambda _: not site.find('input[name="income-unit"][value="pps"]').is_enabled())
+        site.visible("[data-income-role=pps-none]")
+        _same(site, _expected("en", size, "eur"))
+    else:
+        _same(site, _expected("en", size, "pps"))
 
 
-def test_income_panel_offers_only_published_cutoffs(site):
+def test_income_panel_starts_from_our_limits_and_says_how_they_are_made(site):
+    ours, eu = cutoffs(), cutoffs("eurostat")
     site.open(PAGE.format(lang="en"))
-    assert not site.find('input[name="income-source"][value="ours"]').is_enabled()
-    assert site.find('input[name="income-source"][value="eurostat"]').is_selected()
+    assert site.find('input[name="income-source"][value="ours"]').is_selected()
+    assert site.find('input[name="income-source"][value="eurostat"]').is_enabled()
+    ses = [v for v in ours["se"].values() if v is not None]
+    site.text("[data-income-role=ours-note]", t("en", "income.source.ours_note", survey=ours["survey_year"],
+              income=ours["income_year"], se_from=eur(min(ses)), se_to=eur(max(ses))))
+    site.text("[data-income-role=eurostat-note]", t("en", "income.source.eurostat_note", survey=eu["survey_year"],
+              income=eu["income_year"]))
+    if eu["income_year"] == ours["income_year"]:
+        # The gap between the two sources is shown in numbers, whichever way it goes.
+        a, b = eu["top_cutoffs"]["Q1"], ours["top_cutoffs"]["Q1"]
+        diff = t("en", "income.compare.lower" if a <= b else "income.compare.higher", pct=pct("en", abs(a - b) / b * 100))
+        site.text("[data-income-role=compare]", t("en", "income.source.compare", income=ours["income_year"],
+                  eurostat=eur(a), ours=eur(b), diff=diff))
+

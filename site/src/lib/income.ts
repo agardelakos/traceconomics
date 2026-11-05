@@ -69,8 +69,9 @@ export type Unit = "eur" | "pps";
 export const amount = (unit: Unit, value: number) => (unit === "pps" ? pps(value) : eur(value));
 
 /** How close to a limit an income can be before the finder says it could be in either fifth: 5%,
- *  a little more than the measured gap between the two surveys' income definitions (about 4% on
- *  the poorest fifth's line). A plain warning, not a statistical margin. */
+ *  an assumption. A reader's own figure rarely follows the survey's income definition exactly, and
+ *  the limits describe the survey's year, not this one. A plain warning, not a statistical margin
+ *  (the limits' standard errors are smaller: about 1-2% in recent surveys). */
 export const NEAR_LIMIT = 0.05;
 
 export interface Placement {

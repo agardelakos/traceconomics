@@ -243,3 +243,47 @@ def test_deciles_and_household_rankings():
     g = assign(survey(rows, persons))
     assert (g.BH == "Q1").sum() == 2 and (g.B == "Q1").sum() == 1
     assert set(g.B10.dropna()) <= {f"D{k}" for k in range(1, 11)} and (g.BH10 == "D10").sum() == 1
+
+
+# ---- income limits ---------------------------------------------------------------------------
+
+def test_cut_points_are_midpoints_between_neighbouring_households():
+    import numpy as np
+    from traceconomics.local.groups import cut_points
+    value = pd.Series([float(v) for v in range(10, 110, 10)])            # 10, 20, ... 100, two a fifth
+    ids = pd.Series(list("abcdefghij"))
+    cuts = cut_points(value, np.ones(10), ids)[:, 0]
+    assert cuts.tolist() == [25.0, 45.0, 65.0, 85.0]
+    # No limit is any household's own value.
+    assert not set(cuts) & set(value)
+
+
+def test_cut_points_skip_households_without_weight_and_follow_each_column():
+    import numpy as np
+    from traceconomics.local.groups import cut_points
+    value = pd.Series([float(v) for v in range(10, 110, 10)])
+    ids = pd.Series(list("abcdefghij"))
+    w = np.ones((10, 2))
+    w[2, 1] = 0                       # in the second column, 30 isn't drawn: the parts move
+    cuts = cut_points(value, w, ids)
+    assert cuts[:, 0].tolist() == [25.0, 45.0, 65.0, 85.0]
+    assert cuts[0, 1] != 25.0 and not np.isnan(cuts[:, 1]).any()
+
+
+def test_cut_points_ignore_missing_values_and_mark_an_empty_part():
+    import numpy as np
+    from traceconomics.local.groups import cut_points
+    value = pd.Series([10.0, None, 20.0])
+    cuts = cut_points(value, np.ones(3), pd.Series(list("abc")))[:, 0]
+    assert np.isnan(cuts).any()       # two households can't fill five parts
+
+
+def test_limits_table_rounds_midpoints_to_the_euro():
+    from traceconomics.local.weights import limits_table
+    rows = [(f"h{i:02d}", 1, 1000 * (i + 1) + 0.25, "1", {}) for i in range(20)]
+    s = survey(rows, adults([r[0] for r in rows]))
+    t = limits_table(s, 2015, replicates=0, source_version="test")
+    assert t.group.tolist() == ["Q1", "Q2", "Q3", "Q4"] and (t.unit == "EUR_PER_ADULT_EQ_Y").all()
+    # Four households a fifth: the limit between the 4th and 5th incomes is (4000.25 + 5000.25) / 2.
+    assert t.limit.tolist() == [4500, 8500, 12500, 16500]
+    assert t.se.isna().all()          # no replicates asked for

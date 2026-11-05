@@ -9,7 +9,8 @@ import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import SourceList from "../../../../components/SourceList.astro";
 import Base from "../../../../layouts/Base.astro";
 import { equivalentSize, eur, FIFTHS, HOUSEHOLD_TYPES, pps, ranges } from "../../../../lib/income";
-import cutoffs from "../../../../lib/income-cutoffs.json";
+import { incomeLimits } from "../../../../lib/data";
+import { pct } from "../../../../lib/format";
 import { href, LANGS, num, t, type Lang } from "../../../../lib/i18n";
 import { countryPaths, topicHref } from "../../../../lib/topics";
 
@@ -21,12 +22,15 @@ const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
 const countryName = t(lang, `country.${country}`);
 
-// Who is in each income fifth: Eurostat's published cut-offs for now (ours come with the
-// household-type series), in euros or in purchasing power standards (PPS), the artificial currency
-// Eurostat uses to compare incomes across countries without price differences. Exchange rates are
-// not offered: they would mix currency movements into incomes. The page shows one adult in euros;
-// the panel's script redraws for other households and the other unit.
-const eu = cutoffs.eurostat;
+// Who is in each income fifth: our limits (from the household budget survey, the survey the groups
+// are built from) first, Eurostat's (EU-SILC, the official income source) one click away, each
+// with its year; in euros or in purchasing power standards (PPS), the artificial currency Eurostat
+// uses to compare incomes across countries without price differences. Exchange rates are not
+// offered: they would mix currency movements into incomes. The page shows one adult in euros from
+// our limits; the panel's script redraws for other households, the other source and the other unit.
+const limits = incomeLimits(country);
+const ours = limits.ours;
+const eu = limits.eurostat;
 const firstSize = equivalentSize(1, 0);
 const rangeText = (r: { from: number | null; to: number | null }, per: "year" | "month") => {
   const d = per === "year" ? 1 : 12;
@@ -34,14 +38,31 @@ const rangeText = (r: { from: number | null; to: number | null }, per: "year" | 
   if (r.to === null) return t(lang, `income.${per}.over`, { amount: eur(r.from / d) });
   return t(lang, `income.${per}.between`, { from: eur(r.from / d), to: eur(r.to / d) });
 };
-const firstRows = ranges(eu.top_cutoffs, firstSize);
+const firstRows = ranges(ours.top_cutoffs, firstSize);
+// Our limits, said openly: how each is set, and how far off the sample could leave it.
+const ses = Object.values(ours.se).filter((v): v is number => v !== null);
+const oursNote = ses.length
+  ? t(lang, "income.source.ours_note", { survey: ours.survey_year, income: ours.income_year, se_from: eur(Math.min(...ses)), se_to: eur(Math.max(...ses)) })
+  : null;
+// Both sources side by side for the same year's incomes, the gap said in numbers, not smoothed.
+const compare = eu.income_year === ours.income_year
+  ? t(lang, "income.source.compare", {
+      income: ours.income_year, eurostat: eur(eu.top_cutoffs.Q1), ours: eur(ours.top_cutoffs.Q1),
+      diff: t(lang, eu.top_cutoffs.Q1 <= ours.top_cutoffs.Q1 ? "income.compare.lower" : "income.compare.higher",
+              { pct: pct(lang, (Math.abs(eu.top_cutoffs.Q1 - ours.top_cutoffs.Q1) / ours.top_cutoffs.Q1) * 100) }),
+    })
+  : null;
+const ppsNone = ours.top_cutoffs_pps ? null : t(lang, "income.unit.pps_none", { income: ours.income_year });
 // The note's example: the poorest fifth's limit in both units. Its wording says a euro buys more
 // than one PPS's worth in this country; the build stops if the figures stop saying so.
 if (!(eu.top_cutoffs_pps.Q1 > eu.top_cutoffs.Q1)) throw new Error("the PPS note says a euro buys more than one PPS here; the figures no longer say so");
 const ppsNote = t(lang, `income.unit.note.${country}`, { eur: eur(eu.top_cutoffs.Q1), pps: pps(eu.top_cutoffs_pps.Q1) });
 const incomeConfig = {
   lang,
-  cutoffs: { eur: eu.top_cutoffs, pps: eu.top_cutoffs_pps },
+  cutoffs: {
+    ours: { eur: ours.top_cutoffs, pps: ours.top_cutoffs_pps },
+    eurostat: { eur: eu.top_cutoffs, pps: eu.top_cutoffs_pps },
+  },
   types: Object.fromEntries(HOUSEHOLD_TYPES.map((h) => [h.key, [h.older, h.children]])),
   text: Object.fromEntries(["year.upto", "year.between", "year.over", "month.upto", "month.between", "month.over", "size"].map((k) => [k, t(lang, `income.${k}`, k === "size" ? { size: "{size}" } : k.endsWith("between") ? { from: "{from}", to: "{to}" } : { amount: "{amount}" })])),
 };
@@ -60,7 +81,7 @@ const [tenure, pensioners] = defined;
 const GROUP_KEYS = [...FIFTHS, "tenure/renter", "tenure/owner", "tenure/rent_free", "pensioners/pensioners", "pensioners/other"];
 const finderConfig = {
   lang,
-  cutoffs: eu.top_cutoffs,
+  cutoffs: ours.top_cutoffs,
   names: Object.fromEntries(GROUP_KEYS.map((k) => [k, t(lang, `group.${k}`)])),
   inNames: Object.fromEntries(GROUP_KEYS.map((k) => [k, t(lang, `group.in.${k}`)])),
   calculator: topicHref(lang, "inflation-by-group", country, "calculator"),
@@ -135,7 +156,7 @@ const finderConfig = {
             <div data-find="pension-row" hidden><dt>{t(lang, "find.r.pension")}</dt><dd data-find="pension-value"></dd></div>
           </dl>
           <p class="small" data-find="near" hidden></p>
-          <p class="small muted">{t(lang, "find.limits", { year: eu.income_year })}</p>
+          <p class="small muted">{t(lang, "find.limits", { year: ours.survey_year })}</p>
           <div class="stack" data-find="next" hidden style="gap: var(--space-2)">
             <p class="small" style="font-weight: 600">{t(lang, "find.start")}</p>
             <ul class="button-row finder-starts" data-find="starts"></ul>
@@ -165,18 +186,20 @@ const finderConfig = {
       <fieldset class="option">
         <legend>{t(lang, "income.source")}</legend>
         <div class="values">
-          <label><input type="radio" name="income-source" value="ours" disabled /><span>{t(lang, "income.source.ours")}</span></label>
-          <label><input type="radio" name="income-source" value="eurostat" checked /><span>{t(lang, "income.source.eurostat")}</span></label>
+          <label><input type="radio" name="income-source" value="ours" checked /><span>{t(lang, "income.source.ours")}</span></label>
+          <label><input type="radio" name="income-source" value="eurostat" /><span>{t(lang, "income.source.eurostat")}</span></label>
         </div>
-        <p class="note">{t(lang, "income.source.ours_soon")}</p>
-        <p class="note">{t(lang, "income.source.eurostat_note", { survey: eu.survey_year, income: eu.income_year })}</p>
+        {oursNote && <p class="note" data-income-role="ours-note">{oursNote}</p>}
+        <p class="note" data-income-role="eurostat-note">{t(lang, "income.source.eurostat_note", { survey: eu.survey_year, income: eu.income_year })}</p>
+        {compare && <p class="note" data-income-role="compare">{compare}</p>}
       </fieldset>
       <fieldset class="option">
         <legend>{t(lang, "income.unit")}</legend>
         <div class="values">
           <label><input type="radio" name="income-unit" value="eur" checked /><span>{t(lang, "income.unit.eur")}</span></label>
-          <label><input type="radio" name="income-unit" value="pps" /><span>{t(lang, "income.unit.pps")}</span></label>
+          <label><input type="radio" name="income-unit" value="pps" disabled={!ours.top_cutoffs_pps} /><span>{t(lang, "income.unit.pps")}</span></label>
         </div>
+        {ppsNone && <p class="note" data-income-role="pps-none">{ppsNone}</p>}
         <p class="note"><span><GlossaryTerm lang={lang} term="purchasing-power-standard" label={t(lang, "income.unit.pps_term")} />: {ppsNote}</span></p>
       </fieldset>
       <div class="table-wrap">

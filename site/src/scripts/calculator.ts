@@ -48,8 +48,12 @@ export async function start(root: HTMLElement): Promise<void> {
 
   const presetSel = $<HTMLSelectElement>("preset");
   const asked = new URLSearchParams(location.search).get("from");
-  if (asked && cfg.presets.some((p) => p.key === asked)) presetSel.value = asked;
+  const askedOk = !!asked && cfg.presets.some((p) => p.key === asked);
+  if (askedOk) presetSel.value = asked!;
   let preset = presetSel.value;
+  // The menu can hold another group before this script runs (picked while the page loaded, or
+  // restored by the browser on Back): the address must still say which group is shown.
+  if (!askedOk && !presetSel.selectedOptions[0]?.defaultSelected) writeFrom();
   let mode: "shares" | "euros" = "shares";
   let shares: Shares | null = null;          // shares mode; null: untouched, the preset as published
   let touched = false;
@@ -225,6 +229,11 @@ export async function start(root: HTMLElement): Promise<void> {
     render();
   }
 
+  function writeFrom() {
+    const u = new URL(location.href);
+    u.searchParams.set("from", preset);
+    history.replaceState(null, "", u);
+  }
   function clearShares() { shares = null; touched = false; moved.clear(); }
   function clearEuros() {
     euros.clear();
@@ -237,9 +246,7 @@ export async function start(root: HTMLElement): Promise<void> {
   presetSel.addEventListener("change", () => {
     preset = presetSel.value;
     if (mode === "shares") clearShares();
-    const u = new URL(location.href);
-    u.searchParams.set("from", preset);
-    history.replaceState(null, "", u);
+    writeFrom();
     render();
   });
   $("reset").addEventListener("click", () => { if (mode === "euros") clearEuros(); else clearShares(); render(); });
