@@ -266,3 +266,13 @@ def test_full_screen(site):
     button.click()
     site.wait(lambda _: site.js("return document.fullscreenElement") is None, "full screen did not end")
     site.attr("#explore [data-role=fullscreen]", "aria-label", t("en", "chart.fullscreen"))
+
+
+def test_household_types_are_offered_and_drawn_from_the_file(site):
+    types = ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"]
+    site.open(PAGE.format(lang="en") + "?groups=hhtype/A1,hhtype/A2_DCH")
+    _ready(site)
+    chips = {b.get_attribute("data-group") for b in site.all("#explore button.chip[data-group]")}
+    assert set(types) <= chips
+    series = data(f"series/{default_slug()}.json")
+    site.text("#explore [data-role=summary]", _summary("en", series, ["hhtype/A1", "hhtype/A2_DCH"]))

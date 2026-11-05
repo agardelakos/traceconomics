@@ -27,6 +27,22 @@ export function equivalentSize(older: number, children: number): number {
   return Math.round(10 + 5 * (older - 1) + 3 * children) / 10;
 }
 
+/** A household's type as Eurostat's household budget survey counts it (one, two, three or more
+ *  adults; "_DCH" with dependent children), from its people aged 14 or over, its children under 14,
+ *  and how many of those aged 14 or over are dependent children: under 16, or aged 16 to 24, living
+ *  with a parent and neither working nor looking for work. Null when nobody is an adult (the survey
+ *  has no such type). The size scale's age limit (14) and the types' (16) differ: both are
+ *  Eurostat's. */
+export function householdType(older: number, children: number, olderDependents: number): string | null {
+  for (const [n, lo] of [[older, 1], [children, 0], [olderDependents, 0]] as const) {
+    if (!Number.isInteger(n) || n < lo) throw new Error(`no household of ${older}, ${children} and ${olderDependents}`);
+  }
+  const adults = older - Math.min(olderDependents, older);
+  if (adults < 1) return null;
+  const base = adults === 1 ? "A1" : adults === 2 ? "A2" : "A_GE3";
+  return children + Math.min(olderDependents, older) > 0 ? `${base}_DCH` : base;
+}
+
 export interface Range { from: number | null; to: number | null }
 
 /** Each fifth's yearly net income range for a household of the given size. The richest fifth has

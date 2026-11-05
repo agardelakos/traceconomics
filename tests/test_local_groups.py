@@ -29,7 +29,8 @@ def survey(rows, persons, year=2015) -> Survey:
         "041": leaf["0411"], "0422": leaf["04221"], "042": leaf["0421"] + leaf["04221"], "045": leaf["0451"],
     })
     s["04"] = s["041"] + s["042"] + s["045"]
-    p = pd.DataFrame(persons, columns=["hh", "age"])
+    # persons: (hh, age) or (hh, age, relation, activity); by default a reference person at work.
+    p = pd.DataFrame([(*r, "1", "1")[:4] for r in persons], columns=["hh", "age", "relation", "activity"])
     return Survey(year=year, classification="ecoicop1", households=h, persons=p,
                   spending=s, purchases=s.copy(), design="full", source_sha256="0" * 64)
 
@@ -287,3 +288,45 @@ def test_limits_table_rounds_midpoints_to_the_euro():
     # Four households a fifth: the limit between the 4th and 5th incomes is (4000.25 + 5000.25) / 2.
     assert t.limit.tolist() == [4500, 8500, 12500, 16500]
     assert t.se.isna().all()          # no replicates asked for
+
+
+# ---- household types ---------------------------------------------------------------------------
+
+def test_household_types_follow_eurostats_dependent_child_rule():
+    from traceconomics.local.groups import household_type
+    rows = [(h, 1, 1000, "1", {}) for h in "abcdefg"]
+    persons = [
+        ("a", 70),                                          # one adult
+        ("b", 40), ("b", 15),                               # a parent and a child under 16
+        ("c", 40), ("c", 38), ("c", 20, "3", "4"),          # a 20-year-old student, child of the couple
+        ("d", 40), ("d", 38), ("d", 20, "3", "1"),          # the same, but working: an adult
+        ("e", 40), ("e", 38), ("e", 22, "5", "4"),          # a student who is a nephew: an adult
+        ("f", 40), ("f", 38), ("f", 70, "4", "3"), ("f", 25, "3", "4"),   # 25 is past the age limit
+        ("g", 10),                                          # no adult at all
+    ]
+    t = household_type(survey(rows, persons))
+    assert t.tolist()[:6] == ["A1", "A1_DCH", "A2_DCH", "A_GE3", "A_GE3", "A_GE3"]
+    assert pd.isna(t.iloc[6])
+
+
+def test_household_types_are_a_grouping_and_unplaced_households_are_left_out():
+    rows = [("a", 1, 1000, "1", {"0111": 10}), ("b", 1, 2000, "1", {"0111": 10}), ("c", 1, 3000, "1", {"0111": 10})]
+    g = assign(survey(rows, [("a", 40), ("b", 40), ("b", 5)]))       # c has no person records
+    assert g.hhtype.tolist()[:2] == ["A1", "A1_DCH"] and pd.isna(g.hhtype.iloc[2])
+
+
+def test_types_table_compares_with_elstats_type_and_stops_when_far_apart():
+    from traceconomics.checks import FormatError
+    from traceconomics.local import weights
+    rows = [(f"h{i}", 1, 1000, "1", {}) for i in range(10)]
+    s = survey(rows, adults([r[0] for r in rows]))
+    g = assign(s)
+    s.households["elstat_type"] = ["1"] * 9 + ["2"]                   # one of ten disagrees: 90%
+    t = weights.types_table(s, g, 2015, "v")
+    a1 = t.set_index("group").loc["A1"]
+    assert a1.n_households == "<20" and a1.share_households == 1.0 and a1.elstat_share_households == 0.9
+    assert t.agreement.iloc[0] == 0.9 and (t.elstat_status == "compared").all()
+    s.households["elstat_type"] = ["2"] * 10
+    with pytest.raises(FormatError, match="agree with ELSTAT's on 0.0%"):
+        weights.types_table(s, g, 2015, "v")
+    assert weights.types_table(s, g, 2023, "v").elstat_status.iloc[0].startswith("unusable")

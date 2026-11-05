@@ -39,7 +39,7 @@ from traceconomics.local.puf import Survey
 
 IMPUTED_RENT = "042"
 SPENDING = ("purchases", "all")
-GROUPINGS = ("all", "A", "B", "C", "tenure", "pensioners", *VALIDATION_ONLY)
+GROUPINGS = ("all", "A", "B", "C", "tenure", "pensioners", "hhtype", *VALIDATION_ONLY)
 PUBLISHED = tuple(g for g in GROUPINGS if g not in VALIDATION_ONLY)
 
 

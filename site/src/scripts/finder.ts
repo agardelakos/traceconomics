@@ -1,10 +1,11 @@
 // The group finder on the Groups page: from who lives in a household, its net income, its home and
-// its main income, which of the site's groups it belongs to. Everything stays in the page: there
+// its main income, which of the site's groups it belongs to (income fifth, household type, tenure,
+// pensioner or not). Everything stays in the page: there
 // is no form to send, nothing is stored, and the links it offers carry only the groups, never the
 // income.
 
 import { fill, num, type Lang } from "../lib/format";
-import { equivalentSize, parseAmount, placeIncome } from "../lib/income";
+import { equivalentSize, householdType, parseAmount, placeIncome } from "../lib/income";
 
 interface Config {
   lang: Lang;
@@ -35,7 +36,10 @@ export function startFinder(root: HTMLElement): void {
   };
 
   const draw = () => {
-    const size = equivalentSize(count($<HTMLInputElement>("older"), 1), count($<HTMLInputElement>("children"), 0));
+    const older = count($<HTMLInputElement>("older"), 1);
+    const children = count($<HTMLInputElement>("children"), 0);
+    const size = equivalentSize(older, children);
+    const type = householdType(older, children, Math.min(count($<HTMLInputElement>("dependents"), 0), older));
     $("size").textContent = fill(cfg.text.size, { size: num(cfg.lang, size) });
 
     const amount = parseAmount($<HTMLInputElement>("income").value);
@@ -46,6 +50,7 @@ export function startFinder(root: HTMLElement): void {
     const pension = value("pension");
     const groups: { calc: string; explore: string }[] = [];
     if (place) groups.push({ calc: `B/${place.fifth}`, explore: place.fifth });
+    if (type) groups.push({ calc: `hhtype/${type}`, explore: `hhtype/${type}` });
     if (home) groups.push({ calc: `tenure/${home}`, explore: `tenure/${home}` });
     if (pension) {
       const k = pension === "yes" ? "pensioners/pensioners" : "pensioners/other";
@@ -57,6 +62,8 @@ export function startFinder(root: HTMLElement): void {
     if (place) $("income-value").textContent = cfg.names[place.fifth];
     $("near").hidden = !place?.neighbour;
     if (place?.neighbour) $("near").textContent = fill(cfg.text.near, { group: cfg.inNames[place.neighbour] });
+    $("type-row").hidden = type === null;
+    if (type) $("type-value").textContent = cfg.names[`hhtype/${type}`];
     $("home-row").hidden = home === null;
     if (home) $("home-value").textContent = cfg.names[`tenure/${home}`];
     $("pension-row").hidden = pension === null;

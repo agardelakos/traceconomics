@@ -46,6 +46,12 @@
   --series-rent-free: #6250d6;
   --series-pensioners: #e87ba4;
   --series-other: #eda100;
+  --series-hh-one: #2a78d6;
+  --series-hh-one-children: #1baf7a;
+  --series-hh-two: #eda100;
+  --series-hh-two-children: #6250d6;
+  --series-hh-three: #eb6834;
+  --series-hh-three-children: #e34948;
 
   --font-sans: "Source Sans 3", system-ui, sans-serif;
   --font-serif: "Source Serif 4", Georgia, serif;
@@ -117,6 +123,12 @@
     --series-rent-free: #9085e9;
     --series-pensioners: #d55181;
     --series-other: #c98500;
+    --series-hh-one: #3987e5;
+    --series-hh-one-children: #199e70;
+    --series-hh-two: #c98500;
+    --series-hh-two-children: #9085e9;
+    --series-hh-three: #d95926;
+    --series-hh-three-children: #e66767;
   }
 }
 
@@ -156,6 +168,12 @@
   --series-rent-free: #9085e9;
   --series-pensioners: #d55181;
   --series-other: #c98500;
+  --series-hh-one: #3987e5;
+  --series-hh-one-children: #199e70;
+  --series-hh-two: #c98500;
+  --series-hh-two-children: #9085e9;
+  --series-hh-three: #d95926;
+  --series-hh-three-children: #e66767;
 }
 
 :root[data-theme="light"] { color-scheme: light; }

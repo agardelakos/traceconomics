@@ -29,7 +29,7 @@ def test_48_settings_with_the_default_first():
     s = combinations.settings()
     assert len(s) == 48 and s[0] == combinations.DEFAULT
     assert len({combinations.label(x) for x in s}) == 48
-    assert len(combinations.GROUPS) == 21
+    assert len(combinations.GROUPS) == 27          # 3 x 5 fifths, all, 3 tenures, 2 pensioner groups, 6 household types
 
 
 def test_quality_flags_follow_the_price_source():

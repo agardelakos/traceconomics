@@ -7,6 +7,9 @@ Groupings:
     C   people ranked by equivalised total spending, 20% of people per quintile
     tenure      renter, owner, or rent-free/subsidised (from the rent columns)
     pensioners  households whose main income source is a pension
+    hhtype      who lives in the household, Eurostat's six household-budget-survey types:
+                A1 one adult, A2 two adults, A_GE3 three or more adults, and the same with
+                dependent children (A1_DCH, A2_DCH, A_GE3_DCH)
     all         every household
 
 A household that can't be placed in a grouping (no person records, no rent of
@@ -17,6 +20,13 @@ Income is money income after taxes, without income in kind or imputed rent
 (Eurostat's definition of disposable income; KEPE ranks the same way).
 Equivalising uses the modified OECD scale: 1 for the first person aged 14 or
 over, 0.5 for each other person aged 14 or over, 0.3 for each child under 14.
+
+A dependent child, for the household types, follows Eurostat's written rule for the survey: anyone
+under 16, or aged 16 to 24, a child of the reference person or spouse (relationship code 3), and
+neither working nor unemployed (activity not 1 or 2). Everyone else is an adult. The files carry
+ELSTAT's own type too (`elstat_type`), but it is only compared with ours, never used: in the 2023
+file it doesn't match the households' own sizes. Note the two age limits: the size scale counts
+children under 14, the types count dependent children under 16 (or students up to 24).
 
 In a "people" quintile every member shares the household's equivalised
 value, so a household falls wholly in one quintile. The cut points are set on
@@ -32,6 +42,7 @@ import numpy as np
 import pandas as pd
 
 from traceconomics.local.puf import Survey
+from traceconomics.module1.index import HOUSEHOLD_TYPES  # noqa: F401  (the groups `household_type` gives)
 
 PENSION = "4"   # HI11: main income source "Pensions, retirement benefits" (every year's codebook)
 
@@ -94,6 +105,26 @@ def quintiles(value: pd.Series, weight: pd.Series, ids: pd.Series, parts: int = 
     ok = value.notna() & weight.notna() & (weight > 0)
     q = quintile_matrix(value.where(ok), weight.where(ok, 0).to_numpy(), ids, parts)[:, 0]
     return pd.Series(q, index=value.index, dtype="Int64").where(ok.to_numpy(), pd.NA)
+
+
+ELSTAT_TYPES = {"1": "A1", "2": "A2", "3": "A_GE3", "4": "A1_DCH", "5": "A2_DCH", "6": "A_GE3_DCH"}
+
+
+def dependent_child(persons: pd.DataFrame) -> pd.Series:
+    """True for a dependent child (see the module docstring), per person."""
+    young = (persons.age >= 16) & (persons.age <= 24) & (persons.relation == "3") & ~persons.activity.isin(["1", "2"])
+    return (persons.age < 16) | young
+
+
+def household_type(survey: Survey) -> pd.Series:
+    """Each household's type (aligned with survey.households); NA without person records or with
+    no adult (not seen in the data)."""
+    p = survey.persons
+    dep = dependent_child(p)
+    g = p.assign(adult=~dep, dep=dep).groupby("hh").agg(adults=("adult", "sum"), deps=("dep", "sum"))
+    base = g.adults.clip(upper=3).map({1: "A1", 2: "A2", 3: "A_GE3"})
+    t = (base + np.where(g.deps > 0, "_DCH", "")).where(g.adults > 0)
+    return pd.Series(survey.households.hh.map(t).to_numpy(), dtype="string")
 
 
 def tenure(survey: Survey) -> pd.Series:
@@ -166,6 +197,7 @@ def assign(survey: Survey) -> pd.DataFrame:
         "tenure": tenure(survey),
         "pensioners": pd.Series(np.where(h.main_income_source == PENSION, "pensioners", "other"))
                         .where(h.main_income_source != "", pd.NA),
+        "hhtype": household_type(survey),
         "all": "all",
     })
     for g, (_, _, _, prefix) in RANKED.items():

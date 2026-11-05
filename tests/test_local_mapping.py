@@ -92,7 +92,7 @@ def survey(year, columns):
     s = mapping.with_parents(leaf)
     from traceconomics.local.puf import classification
     return Survey(year=year, classification=classification(year), households=h,
-                  persons=pd.DataFrame({"hh": ["a", "b"], "age": [40, 40]}), spending=s, purchases=s.copy(),
+                  persons=pd.DataFrame({"hh": ["a", "b"], "age": [40, 40], "relation": "1", "activity": "1"}), spending=s, purchases=s.copy(),
                   design="full", source_sha256="0" * 64)
 
 

@@ -21,12 +21,14 @@ const country = Astro.params.country as string;
 const calc = calculator(country);
 const names = labels().labels;
 const divisions = Object.fromEntries(Object.entries(names).filter(([c]) => c.length === 2).map(([c, l]) => [c, l[lang]]));
-const PRESETS = ["all/all", "B/Q1", "B/Q2", "B/Q3", "B/Q4", "B/Q5", "tenure/renter", "tenure/owner", "tenure/rent_free", "pensioners/pensioners", "pensioners/other"];
+const HOUSEHOLD = ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"];
+const PRESETS = ["all/all", "B/Q1", "B/Q2", "B/Q3", "B/Q4", "B/Q5", "tenure/renter", "tenure/owner", "tenure/rent_free", ...HOUSEHOLD, "pensioners/pensioners", "pensioners/other"];
 const presetName = (k: string) => t(lang, `group.${k.startsWith("B/") ? k.slice(2) : k}`);
-// The starting groups by family, as Explore lists them; household types come later.
+// The starting groups by family, as Explore lists them.
 const FAMILIES: [string, string[]][] = [
   ["family.income", PRESETS.filter((k) => k.startsWith("B/"))],
   ["family.tenure", PRESETS.filter((k) => k.startsWith("tenure/"))],
+  ["family.household", PRESETS.filter((k) => k.startsWith("hhtype/"))],
   ["family.other", PRESETS.filter((k) => k === "all/all" || k.startsWith("pensioners/"))],
 ];
 if (FAMILIES.flatMap(([, ks]) => ks).length !== PRESETS.length) throw new Error("a starting group is in no family");
@@ -91,7 +93,6 @@ const config = {
                   {keys.map((k) => <option value={k} selected={k === "B/Q1"}>{presetName(k)}</option>)}
                 </optgroup>
               ))}
-              <option disabled>{t(lang, "calc.soon_household")}</option>
             </select>
           </label>
           <a class="small" href={`${topicHref(lang, "inflation-by-group", country, "groups")}#find`}>{t(lang, "calc.find")} →</a>

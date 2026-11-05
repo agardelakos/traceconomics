@@ -22,10 +22,11 @@ from __future__ import annotations
 from traceconomics.checks import FormatError, require
 from traceconomics.engine.chain import DROP, _price_ratio, link_month, months
 from traceconomics.engine.rates import rebase
-from traceconomics.module1.index import BASE_YEAR, Series
+from traceconomics.module1.index import BASE_YEAR, HOUSEHOLD_TYPES, Series
 
 PRESETS = [("all", "all")] + [("B", f"Q{k}") for k in range(1, 6)] + \
-          [("tenure", g) for g in ("renter", "owner", "rent_free")] + [("pensioners", g) for g in ("pensioners", "other")]
+          [("tenure", g) for g in ("renter", "owner", "rent_free")] + [("pensioners", g) for g in ("pensioners", "other")] + \
+          [("hhtype", g) for g in HOUSEHOLD_TYPES]
 
 
 def _sig(v: float, digits: int) -> float:

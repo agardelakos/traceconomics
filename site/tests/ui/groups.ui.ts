@@ -36,7 +36,26 @@ test.describe("the group finder", () => {
     const f = finder(page);
     await expect(f.getByText(t("en", "find.noscript"))).toBeHidden();
     await expect(f.getByText(t("en", "find.empty"))).toBeVisible();
-    await expect(f.getByRole("link", { name: new RegExp(t("en", "find.compare")) })).toBeHidden();
+    // Before anything is entered, the only group is the household type of the form as it starts.
+    await expect(f.locator('[data-find="type-value"]')).toHaveText(t("en", "group.hhtype/A1"));
+    await expect(f.locator('[data-find="starts"] a')).toHaveCount(1);
+  });
+
+  test("the household type follows Eurostat's dependent-child rule", async ({ page }) => {
+    await page.goto(PAGE);
+    const f = finder(page);
+    const type = f.locator('[data-find="type-value"]');
+    await setHousehold(f, 3, 0);
+    await expect(type).toHaveText(t("en", "group.hhtype/A_GE3"));
+    // One of the three is a student living at home: two adults with a dependent child.
+    await f.getByLabel(t("en", "find.dependents")).fill("1");
+    await expect(type).toHaveText(t("en", "group.hhtype/A2_DCH"));
+    await setHousehold(f, 1, 1);
+    await f.getByLabel(t("en", "find.dependents")).fill("0");
+    await expect(type).toHaveText(t("en", "group.hhtype/A1_DCH"));
+    // Nobody counts as an adult: the survey has no such type, so none is named.
+    await f.getByLabel(t("en", "find.dependents")).fill("1");
+    await expect(f.locator('[data-find="type-row"]')).toBeHidden();
   });
 
   test("places a yearly income in its fifth, and says how big the household counts", async ({ page }) => {
@@ -84,26 +103,26 @@ test.describe("the group finder", () => {
     await expect(f.locator('[data-find="pension-value"]')).toHaveText(t("en", "group.pensioners/pensioners"));
 
     const starts = f.locator('[data-find="starts"] a');
-    await expect(starts).toHaveCount(3);
+    await expect(starts).toHaveCount(4);
     const froms = await starts.evaluateAll((as) => as.map((a) => new URL((a as HTMLAnchorElement).href).searchParams.get("from")));
-    expect(froms).toEqual(["B/Q2", "tenure/renter", "pensioners/pensioners"]);
+    expect(froms).toEqual(["B/Q2", "hhtype/A1", "tenure/renter", "pensioners/pensioners"]);
     for (const a of await starts.all()) await expect(a).toHaveAttribute("href", new RegExp(`^${m1("en", "calculator/")}\\?`));
 
     const compare = f.getByRole("link", { name: new RegExp(t("en", "find.compare")) });
     const href = (await compare.getAttribute("href"))!;
-    expect(new URL(href, page.url()).searchParams.get("groups")).toBe("Q2,tenure/renter,pensioners/pensioners");
+    expect(new URL(href, page.url()).searchParams.get("groups")).toBe("Q2,hhtype/A1,tenure/renter,pensioners/pensioners");
     for (const h of [href, ...(await starts.evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).href)))]) {
       expect(h).not.toContain(String(yearly));
     }
   });
 
-  test("without an income, only the home and main-income groups", async ({ page }) => {
+  test("without an income, the household type, home and main-income groups", async ({ page }) => {
     await page.goto(PAGE);
     const f = finder(page);
     await f.getByLabel(t("en", "find.home.owner")).check();
     await f.getByLabel(t("en", "find.no"), { exact: true }).check();
     await expect(f.locator('[data-find="income-row"]')).toBeHidden();
-    await expect(f.locator('[data-find="starts"] a')).toHaveCount(2);
+    await expect(f.locator('[data-find="starts"] a')).toHaveCount(3);
   });
 
   test("out-of-range household numbers are kept within bounds for the sums", async ({ page }) => {
@@ -118,7 +137,7 @@ test.describe("the group finder", () => {
     const f = finder(page);
     await f.getByLabel(t("en", "find.home.renter")).check();
     await coverage.flush();
-    await f.locator('[data-find="starts"] a').first().click();
+    await f.locator('[data-find="starts"] a', { hasText: t("en", "group.tenure/renter") }).click();
     await expect(page).toHaveURL(/\/calculator\/\?from=tenure%2Frenter$/);
   });
 });
@@ -201,5 +220,20 @@ test.describe("the income panel", () => {
       }));
     }
     await expect(finder(page)).toContainText(t("en", "find.limits", { year: ours.survey_year }));
+  });
+});
+
+test.describe("household types", () => {
+  const types = JSON.parse(readFileSync(new URL("../../public/data/v1/gr/m1/latest/household-types.json", import.meta.url), "utf-8"));
+
+  test("each type's share of households and its surveyed households, from the file", async ({ page }) => {
+    await page.goto(PAGE);
+    const section = page.locator("#household");
+    for (const [k, v] of Object.entries(types.groups as Record<string, { share: number; households: string }>)) {
+      await expect(section.locator(`[data-household-share="${k}"]`)).toHaveText(pct("en", v.share * 100));
+      await expect(section.locator(`[data-household-n="${k}"]`)).toHaveText(v.households);
+    }
+    const compare = section.locator("[data-household-compare]");
+    expect(new URL((await compare.getAttribute("href"))!, page.url()).searchParams.get("groups")!.split(",")).toEqual(Object.keys(types.groups));
   });
 });

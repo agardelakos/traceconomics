@@ -61,6 +61,9 @@ export interface IncomeLimitsFile {
   eurostat: IncomeLimits & { top_cutoffs_pps: Record<string, number> };
 }
 export const incomeLimits = (country: string) => readJson<IncomeLimitsFile>(`${m1Dir(country)}/income-limits.json`);
+/** Each household type's share of households and surveyed households, newest survey year. */
+export const householdTypes = (country: string) =>
+  readJson<{ survey_year: number; groups: Record<string, { share: number; households: string }> }>(`${m1Dir(country)}/household-types.json`);
 export const labels = () => readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>("labels/coicop18.json");
 
 /** The month axis of a series file. */

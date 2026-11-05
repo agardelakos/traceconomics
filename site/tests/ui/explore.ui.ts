@@ -176,6 +176,17 @@ test("the measure changes the summary; the gap panel is for the annual rate only
   await expect(root(page).locator('[data-role="gap-title"]')).toBeHidden();
 });
 
+test("household types are a family of their own: each draws its line from the file", async ({ page, request }) => {
+  const s = await settings(request);
+  const file = await series(request, s.default);
+  const types = ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"];
+  await page.goto(m1("en", "explore/"));
+  for (const g of types) await expect(chip(page, "en", g)).toBeVisible();
+  await page.goto(`${m1("en", "explore/")}?groups=${encodeURIComponent("hhtype/A1,hhtype/A2_DCH")}`);
+  await expect(summary(page)).toHaveText(summaryOf("en", file, ["hhtype/A1", "hhtype/A2_DCH"], "rch_a"));
+  await expect(chip(page, "en", "hhtype/A2_DCH")).toHaveAttribute("aria-pressed", "true");
+});
+
 test("the gap note shows when the poorest or richest fifth isn't drawn", async ({ page }) => {
   await page.goto(`${m1("en", "explore/")}?groups=Q1,all/all`);
   await expect(root(page).locator('[data-role="gap-note"]')).toBeVisible();

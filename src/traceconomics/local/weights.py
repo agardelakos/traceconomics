@@ -1,6 +1,6 @@
 """The whole run for one survey year: archived microdata -> weights table -> archive (source `oet-local`).
 
-Per year, three CSV files, each opened by `#` lines with their provenance:
+Per year, four CSV files, each opened by `#` lines with their provenance:
 
 - `hbs-weights-gr-YYYY`: one row per spending concept, grouping, group, imputed-rent option and
   COICOP 2018 code:
@@ -13,7 +13,12 @@ Per year, three CSV files, each opened by `#` lines with their provenance:
   ranked by equivalised money income), one row per fifth with an upper limit: the limit in euros
   a year per adult equivalent, rounded to the euro, and its standard error. A limit is the
   midpoint between the two households either side of it (`groups.cut_points`), so it is never one
-  household's income alone (two households that report the same income share it).
+  household's income alone (two households that report the same income share it);
+- `hbs-hhtypes-gr-YYYY`: our household types next to ELSTAT's own (`HB074`): each type's household
+  count and weighted share by both, and how many households the two place alike. Kept as a
+  record for comparing our figures with the official ones; the site doesn't read it. If fewer
+  than 90% of households agree, the run stops for a look (our bug or theirs), unless the year is
+  a known case (`ELSTAT_TYPE_UNUSABLE`).
 
 Only aggregates are written, and the files are meant to be published, so a count under 20 is
 written as "<20" (as Eurostat does), never as a number. Cells under 20 keep their share: it is
@@ -39,7 +44,8 @@ from traceconomics import __version__
 from traceconomics.archive.store import Archive
 from traceconomics.checks import require
 from traceconomics.local import bootstrap, mapping, puf, v2
-from traceconomics.local.groups import RANKED, assign, cut_points, ranking
+from traceconomics.local.groups import ELSTAT_TYPES, RANKED, assign, cut_points, ranking
+from traceconomics.module1.index import HOUSEHOLD_TYPES
 from traceconomics.local.shares import PUBLISHED, SPENDING, memberships, shares
 from traceconomics.sources.elstat import hbs_tables
 
@@ -60,6 +66,12 @@ WEIGHT_COLUMNS = ["geo", "ref_year", "grouping", "group", "spending", "imputed_r
                   "se_design", "classification_native", "source_version"]
 GROUP_COLUMNS = ["geo", "ref_year", "grouping", "group", "n_households", "households_weighted",
                  "people_weighted", "uncovered_purchases_share", "se_design", "se_note", "source_version"]
+TYPES = "hbs-hhtypes-gr-{year}"
+TYPE_COLUMNS = ["geo", "ref_year", "group", "n_households", "share_households", "elstat_n_households",
+                "elstat_share_households", "agreement", "elstat_status", "source_version"]
+TYPE_AGREEMENT = 0.90               # an assumption: the lowest seen in 2008-2024 (2023 aside) is 95.2%
+# Years whose ELSTAT type can't be compared, and why (checked 2026-11-05).
+ELSTAT_TYPE_UNUSABLE = {2023: "HB074 doesn't match the households' own sizes: 34% of its one-adult households have one member"}
 LIMIT_COLUMNS = ["geo", "ref_year", "grouping", "group", "unit", "limit", "se", "se_design", "source_version"]
 CODE_FILES = ("puf.py", "groups.py", "shares.py", "bootstrap.py", "mapping.py", "weights.py")
 DATA_FILES = (mapping.V1_TO_2018, mapping.OLD_TO_V1, "hbs_puf_missing_items.toml")
@@ -126,6 +138,7 @@ def build(archive: Archive, year: int,
         })
     group_table = pd.DataFrame(group_rows)[GROUP_COLUMNS]
     limits = limits_table(survey, year, replicates, source_version)
+    types = types_table(survey, groups, year, source_version)
 
     provenance = {
         "survey": source_version,
@@ -136,7 +149,33 @@ def build(archive: Archive, year: int,
         "replicates": replicates if design.status != "unavailable" else 0, "seed": bootstrap.SEED,
         "uncovered_items_eur_month": {c: round(g, 2) for c, g in gaps.items()},
     }
-    return weights, group_table, limits, provenance
+    return weights, group_table, limits, types, provenance
+
+
+def types_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_version: str) -> pd.DataFrame:
+    """Our household types next to ELSTAT's own; refuses a year where they agree on fewer than
+    TYPE_AGREEMENT of households, unless it is a known case."""
+    h = survey.households
+    ours = groups["hhtype"]
+    theirs = pd.Series(h["elstat_type"].map(ELSTAT_TYPES).to_numpy(), dtype="string") if "elstat_type" in h else \
+        pd.Series(pd.NA, index=h.index, dtype="string")
+    agreement = float((ours == theirs).fillna(False).mean())
+    known = ELSTAT_TYPE_UNUSABLE.get(year)
+    require(known is not None or agreement >= TYPE_AGREEMENT,
+            f"{year}: our household types agree with ELSTAT's on {agreement:.1%} of households, under "
+            f"{TYPE_AGREEMENT:.0%}: look before going on (our bug or a change in their file)")
+    w = h.weight.to_numpy(float)
+    total = w.sum()
+    rows = []
+    for t in HOUSEHOLD_TYPES:
+        mine, theirs_t = (ours == t).fillna(False).to_numpy(bool), (theirs == t).fillna(False).to_numpy(bool)
+        rows.append({"geo": GEO, "ref_year": year, "group": t,
+                     "n_households": _count(int(mine.sum())), "share_households": float(w[mine].sum() / total),
+                     "elstat_n_households": _count(int(theirs_t.sum())),
+                     "elstat_share_households": float(w[theirs_t].sum() / total),
+                     "agreement": agreement, "elstat_status": f"unusable: {known}" if known else "compared",
+                     "source_version": source_version})
+    return pd.DataFrame(rows)[TYPE_COLUMNS]
 
 
 def limits_table(survey: puf.Survey, year: int, replicates: int, source_version: str) -> pd.DataFrame:
@@ -174,24 +213,28 @@ def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICAT
     """Build and archive each year; return one line of report per year."""
     report = []
     for year in years:
-        weights, group_table, limits, provenance = build(archive, year, replicates)
+        weights, group_table, limits, types, provenance = build(archive, year, replicates)
         head = [f"Greek household budget survey {year}: spending shares by group and COICOP 2018 code.",
                 "Built from the survey's public use file by Traceconomics; aggregates only. Counts under 20 are written as <20.",
                 "provenance: " + json.dumps(provenance, ensure_ascii=False, sort_keys=True)]
         now = datetime.now(UTC)
         results = []
-        for name, table in ((WEIGHTS, weights), (GROUPS, group_table), (LIMITS, limits)):
+        for name, table in ((WEIGHTS, weights), (GROUPS, group_table), (LIMITS, limits), (TYPES, types)):
             dataset = name.format(year=year)
             lines = head
             if name == LIMITS:
                 lines = [f"Greek household budget survey {year}: the income limits between the fifths of people "
                          "ranked by equivalised money income (midpoints, rounded to the euro).", *head[1:]]
+            elif name == TYPES:
+                lines = [f"Greek household budget survey {year}: our household types next to ELSTAT's own (HB074).",
+                         *head[1:]]
             r = archive.store_bytes(SOURCE, dataset, to_csv(table, lines), url=None, retrieved_at=now, ext=".csv",
                                     kind="local", extra={"original_name": f"{dataset}.csv", "note": "built locally"})
             results.append(r.status)
         leaf = weights[weights.leaf & (weights.imputed_rent == "excluded") & (weights.spending == "purchases")
                        & weights.grouping.isin(PUBLISHED)]
         report.append({"year": year, "weights": results[0], "groups": results[1], "limits": results[2],
+                       "types": results[3], "types_agreement": round(float(types.agreement.iloc[0]), 4),
                        "limits_eur": [int(x) for x in limits["limit"]], "rows": len(weights),
                        "se_design": weights.se_design.iloc[0],
                        "uncovered": round(float(group_table.uncovered_purchases_share.iloc[0]), 4),

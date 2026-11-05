@@ -5,7 +5,7 @@ household, in euros or purchasing power standards). Expected values from the pub
 import pytest
 from selenium.webdriver.common.keys import Keys
 
-from helpers import cutoffs, equivalent_size, eur, js_round, num, pct, place_income, pps, t
+from helpers import cutoffs, data, equivalent_size, eur, household_type, js_round, num, pct, place_income, pps, t
 
 PAGE = "/{lang}/gr/inflation-by-group/groups/"
 
@@ -33,7 +33,9 @@ def test_finder_shows_once_scripts_run(site):
     site.visible("[data-find=form]")
     site.hidden("[data-find=noscript]")
     assert site.find("[data-find=empty]").is_displayed()
-    assert not site.find("[data-find=next]").is_displayed()
+    # Before anything is entered, the only group is the household type of the form as it starts.
+    site.text("[data-find=type-value]", t("en", "group.hhtype/A1"))
+    assert [a.get_attribute("href").split("from=")[1] for a in site.all("[data-find=starts] a")] == ["hhtype%2FA1"]
 
 
 @pytest.mark.parametrize("lang", ["en", "el"])
@@ -56,7 +58,9 @@ def test_finder_places_the_income(site, lang, older, children, typed, amount, pe
     site.text("[data-find=income-value]", t(lang, f"group.{fifth}"))
     assert site.find("[data-find=near]").is_displayed() == (neighbour is not None)
     starts = [a.get_attribute("href") for a in site.all("[data-find=starts] a")]
-    assert len(starts) == 1 and starts[0].endswith(f"/calculator/?from=B%2F{fifth}")
+    kind = household_type(older, children, 0)
+    assert len(starts) == 2 and starts[0].endswith(f"/calculator/?from=B%2F{fifth}")
+    assert starts[1].endswith(f"/calculator/?from=hhtype%2F{kind}")
 
 
 def test_finder_warns_near_a_limit(site):
@@ -78,19 +82,21 @@ def test_finder_home_and_pension_and_links(site):
     site.text("[data-find=pension-value]", t("en", "group.pensioners/pensioners"))
     fifth, _ = place_income(cutoffs()["top_cutoffs"], 1.0, 12000)
     starts = [a.get_attribute("href").split("?from=")[1] for a in site.all("[data-find=starts] a")]
-    assert starts == [f"B%2F{fifth}", "tenure%2Frenter", "pensioners%2Fpensioners"]
+    assert starts == [f"B%2F{fifth}", "hhtype%2FA1", "tenure%2Frenter", "pensioners%2Fpensioners"]
     compare = site.find("[data-find=compare]")
-    assert compare.get_attribute("href").endswith(f"/explore/?groups={fifth}%2Ctenure%2Frenter%2Cpensioners%2Fpensioners")
+    assert compare.get_attribute("href").endswith(
+        f"/explore/?groups={fifth}%2Chhtype%2FA1%2Ctenure%2Frenter%2Cpensioners%2Fpensioners")
     compare.click()
     site.wait(lambda _: site.path == "/en/gr/inflation-by-group/explore/")
-    assert site.query["groups"].split(",") == [fifth, "tenure/renter", "pensioners/pensioners"]
+    assert site.query["groups"].split(",") == [fifth, "hhtype/A1", "tenure/renter", "pensioners/pensioners"]
 
 
 def test_finder_start_link_opens_the_calculator_on_that_group(site):
     site.open(PAGE.format(lang="en"))
     site.visible("[data-find=form]")
     _choose(site, "home", "owner")
-    site.visible("[data-find=starts] a").click()
+    owner = [a for a in site.all("[data-find=starts] a") if a.get_attribute("href").endswith("from=tenure%2Fowner")]
+    owner[0].click()
     site.wait(lambda _: site.path.endswith("/calculator/"))
     site.wait(lambda _: site.js("return document.querySelector('[data-role=preset]').value") == "tenure/owner")
 
@@ -207,3 +213,28 @@ def test_income_panel_starts_from_our_limits_and_says_how_they_are_made(site):
         site.text("[data-income-role=compare]", t("en", "income.source.compare", income=ours["income_year"],
                   eurostat=eur(a), ours=eur(b), diff=diff))
 
+
+# --- household types ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("older,children,dependents", [(3, 0, 0), (3, 0, 1), (1, 1, 0), (2, 0, 2)])
+def test_finder_names_the_household_type(site, older, children, dependents):
+    site.open(PAGE.format(lang="en"))
+    site.visible("[data-find=form]")
+    _set_number(site, "[data-find=older]", older)
+    _set_number(site, "[data-find=children]", children)
+    _set_number(site, "[data-find=dependents]", dependents)
+    kind = household_type(older, children, dependents)
+    if kind is None:            # nobody counts as an adult: the survey has no such type
+        site.wait(lambda _: not site.find("[data-find=type-row]").is_displayed())
+    else:
+        site.text("[data-find=type-value]", t("en", f"group.hhtype/{kind}"))
+
+
+def test_household_section_shows_each_types_share(site):
+    types = data("household-types.json")
+    site.open(PAGE.format(lang="en"))
+    for k, v in types["groups"].items():
+        site.text(f'#household [data-household-share="{k}"]', pct("en", v["share"] * 100))
+        site.text(f'#household [data-household-n="{k}"]', v["households"])
+    href = site.find("#household [data-household-compare]").get_attribute("href")
+    assert href.split("groups=")[1].replace("%2F", "/").replace("%2C", ",").split(",") == list(types["groups"])

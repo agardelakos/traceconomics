@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { equivalentSize, eur, pps, HOUSEHOLD_TYPES, parseAmount, placeIncome, ranges } from "./income";
+import { equivalentSize, eur, householdType, pps, HOUSEHOLD_TYPES, parseAmount, placeIncome, ranges } from "./income";
 
 // Eurostat's published top cut-offs for Greece, EU-SILC 2025 (incomes of 2024), euros a year per
 // adult equivalent (ilc_di01, checked 2026-11-05): real figures as test inputs.
@@ -97,5 +97,26 @@ describe("parseAmount", () => {
 
   it("refuses what isn't an amount", () => {
     for (const s of ["", " ", "abc", "-5", "1.2.3", "12.345.6", "1,2345"]) expect(parseAmount(s)).toBeNull();
+  });
+});
+
+
+describe("householdType", () => {
+  it("counts adults and dependent children as Eurostat does", () => {
+    expect(householdType(1, 0, 0)).toBe("A1");
+    expect(householdType(1, 2, 0)).toBe("A1_DCH");
+    expect(householdType(2, 0, 0)).toBe("A2");
+    expect(householdType(2, 1, 0)).toBe("A2_DCH");
+    expect(householdType(4, 0, 0)).toBe("A_GE3");
+    // A couple and a 20-year-old student at home: two adults with a dependent child, not three adults.
+    expect(householdType(3, 0, 1)).toBe("A2_DCH");
+    expect(householdType(3, 1, 0)).toBe("A_GE3_DCH");
+  });
+
+  it("has no type without an adult, and never counts more dependents than people", () => {
+    expect(householdType(1, 0, 1)).toBeNull();
+    expect(householdType(2, 0, 5)).toBeNull();
+    expect(() => householdType(0, 1, 0)).toThrow();
+    expect(() => householdType(1, -1, 0)).toThrow();
   });
 });

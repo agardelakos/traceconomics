@@ -11,7 +11,8 @@ from helpers import data, default_slug, latest, month, months, num, t
 
 PAGE = "/{lang}/gr/inflation-by-group/calculator/"
 PRESETS = ["all/all", "B/Q1", "B/Q2", "B/Q3", "B/Q4", "B/Q5", "tenure/renter", "tenure/owner", "tenure/rent_free",
-           "pensioners/pensioners", "pensioners/other"]
+           "pensioners/pensioners", "pensioners/other",
+           "hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"]
 
 
 def _rate(preset):

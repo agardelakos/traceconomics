@@ -43,7 +43,8 @@ def sample(strata=10, areas=6, households=8, design="full", seed=1) -> Survey:
     if design == "no-clusters":
         h["cluster"] = None
     return Survey(year=2016, classification="ecoicop1", households=h,
-                  persons=pd.DataFrame(persons, columns=["hh", "age"]), spending=s, purchases=s.copy(),
+                  persons=pd.DataFrame(persons, columns=["hh", "age"]).assign(relation="1", activity="1"),
+                  spending=s, purchases=s.copy(),
                   design=design, source_sha256="0" * 64)
 
 
@@ -84,7 +85,7 @@ def test_errors_cover_every_share_and_flag_high_relative_errors():
     assert t[~t.grouping.isin(PUBLISHED)].se.isna().all()                  # validation-only groupings: none
     t = t[t.grouping.isin(PUBLISHED)]
     assert t.se.notna().all() and (t.se[t.share > 0] > 0).all() and (t.se[t.share == 0] == 0).all()
-    assert set(t.grouping) == {"all", "A", "B", "C", "tenure", "pensioners"}
+    assert set(t.grouping) == {"all", "A", "B", "C", "tenure", "pensioners", "hhtype"}
     defined = t.rse.notna()
     assert (t.high_rse[defined] == (t.rse[defined] >= 0.25)).all() and t.high_rse[~defined].isna().all()
     assert (t.se_design == "full").all()

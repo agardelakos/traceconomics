@@ -19,6 +19,7 @@
         income-limits.json           each income fifth's upper limit in euros, ours (from the household
                                      budget survey) and Eurostat's (EU-SILC), with years, standard
                                      errors and PPS (`income_limits_file`)
+        household-types.json         each household type's share of households, newest survey year
         SHA256SUMS                   a checksum for every file above
     <out>/v1/labels/coicop18.json    the spending categories' names in English and Greek (`labels`)
     <out>/v1/references.json         the bibliography, for the site's source lists (`bibliography`)
@@ -316,6 +317,26 @@ def income_limits_file(store_con) -> dict:
     }
 
 
+def household_types_file(store_con) -> dict:
+    """Each household type's share of households and its surveyed households, for the newest survey
+    year, for the Groups page (from the archived groups tables, `hbs_groups`)."""
+    rows = _latest(store_con, "oet-local:hbs_groups", "ref_period, grouping, \"group\", measure, value_text, value",
+                   "geo = 'GR' AND grouping IN ('hhtype', 'all') AND measure IN ('households_weighted', 'n_households')")
+    by_year: dict[int, dict] = {}
+    for year, grouping, group, measure, text, value in rows:
+        by_year.setdefault(int(year), {}).setdefault(f"{grouping}/{group}", {})[measure] = (value, text)
+    years = [y for y, g in by_year.items() if "all/all" in g and any(k.startswith("hhtype/") for k in g)]
+    require(years, "no household-type groups in the store (oet-local:hbs_groups): run `traceconomics weights run`")
+    year = max(years)
+    groups = by_year[year]
+    total = groups["all/all"]["households_weighted"][0]
+    return {
+        "format": FORMAT, "source": "oet-local:hbs_groups", "survey_year": year,
+        "groups": {k: {"share": round(v["households_weighted"][0] / total, 4), "households": v["n_households"][1]}
+                   for k, v in sorted(groups.items()) if k.startswith("hhtype/")},
+    }
+
+
 def checksums(root: Path) -> Path:
     lines = []
     for path in sorted(p for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS"):
@@ -408,6 +429,7 @@ def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool
     written.append(root / "metadata.json")
     written.append(_write_json(root / "official.json", official_file(store_con)))
     written.append(_write_json(root / "income-limits.json", income_limits_file(store_con)))
+    written.append(_write_json(root / "household-types.json", household_types_file(store_con)))
     written.append(_write_json(root / "settings.json", {"format": FORMAT, "options": combinations.OPTIONS,
                                                         "default": slug(combinations.DEFAULT), "settings": settings}))
     from traceconomics.export import bibliography

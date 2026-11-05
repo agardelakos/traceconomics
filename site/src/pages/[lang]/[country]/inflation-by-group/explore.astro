@@ -35,14 +35,18 @@ const fixedGreyed: Record<string, { value: string; reason: string }[]> = {};
 const FAMILIES = [
   { key: "income", groups: ["Q1", "Q2", "Q3", "Q4", "Q5"] },
   { key: "tenure", groups: ["tenure/renter", "tenure/owner", "tenure/rent_free"] },
+  { key: "household", groups: ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"] },
   { key: "other", groups: ["all/all", "pensioners/pensioners", "pensioners/other"] },
 ];
 const COLORS: Record<string, string> = {
   Q1: "var(--series-q1)", Q2: "var(--series-q2)", Q3: "var(--series-q3)", Q4: "var(--series-q4)", Q5: "var(--series-q5)",
   "all/all": "var(--series-all)", "tenure/renter": "var(--series-renter)", "tenure/owner": "var(--series-owner)",
   "tenure/rent_free": "var(--series-rent-free)", "pensioners/pensioners": "var(--series-pensioners)", "pensioners/other": "var(--series-other)",
+  "hhtype/A1": "var(--series-hh-one)", "hhtype/A1_DCH": "var(--series-hh-one-children)", "hhtype/A2": "var(--series-hh-two)",
+  "hhtype/A2_DCH": "var(--series-hh-two-children)", "hhtype/A_GE3": "var(--series-hh-three)", "hhtype/A_GE3_DCH": "var(--series-hh-three-children)",
 };
-const dashOf = (g: string) => (g.startsWith("tenure/") ? "6 4" : g.startsWith("pensioners/") ? "1.5 3.5" : "");
+// Families share colours and differ by dash: tenure dashed, pensioners dotted, household types dash-dot.
+const dashOf = (g: string) => (g.startsWith("tenure/") ? "6 4" : g.startsWith("pensioners/") ? "1.5 3.5" : g.startsWith("hhtype/") ? "8 3 1.5 3" : "");
 
 const config = {
   lang, locale: LOCALE[lang], base: `/data/v1/${m1Dir(country)}`, defaultSlug: set.default,
@@ -143,8 +147,9 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
         {FAMILIES.map((f) => (
           <div class="stack" style="gap: 6px">
             <div class="family-head">
-            <span class="small muted" style="font-weight: 600">{f.key === "income" ? <GlossaryTerm lang={lang} term="quintile" label={t(lang, "family.income")} /> : f.key === "tenure" ? <GlossaryTerm lang={lang} term="tenure" label={t(lang, "family.tenure")} /> : t(lang, `family.${f.key}`)}</span>
+            <span class="small muted" style="font-weight: 600">{f.key === "income" ? <GlossaryTerm lang={lang} term="quintile" label={t(lang, "family.income")} /> : f.key === "tenure" ? <GlossaryTerm lang={lang} term="tenure" label={t(lang, "family.tenure")} /> : f.key === "household" ? <GlossaryTerm lang={lang} term="dependent-child" label={t(lang, "family.household")} /> : t(lang, `family.${f.key}`)}</span>
             {f.key === "income" && <a class="small" href={`${topicHref(lang, "inflation-by-group", country, "groups")}#income`}>{t(lang, "income.title")}</a>}
+            {f.key === "household" && <a class="small" href={`${topicHref(lang, "inflation-by-group", country, "groups")}#household`}>{t(lang, "groups.household.link")}</a>}
             </div>
             <div class="chips">
               {f.groups.map((g) => (
@@ -156,7 +161,6 @@ const SOURCES = ["elstat-cpi-items", "elstat-hbs-puf", "eurostat-prc-hicp-minr",
             </div>
           </div>
         ))}
-        <p class="small muted" style="font-weight: 600">{t(lang, "family.household")} <span class="planned-tag">{t(lang, "soon")}</span></p>
         </div>
       </details>
 

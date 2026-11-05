@@ -26,11 +26,15 @@ LESS_CERTAIN_UNTIL = "2010-12"   # index months built on the original tables (an
 BASE_YEAR = 2025
 # The user options (besides grouping and spending) and their defaults; every series carries its own.
 DEFAULT_OPTIONS = {"imputed_rent": "excluded", "price_source": "cpi", "weights_timing": "N", "tutoring": PRICED}
+# Eurostat's household-budget-survey types (one, two, three or more adults; _DCH: with dependent
+# children), the household-type grouping's groups; assigned in `local.groups.household_type`.
+HOUSEHOLD_TYPES = ("A1", "A1_DCH", "A2", "A2_DCH", "A_GE3", "A_GE3_DCH")
 PUBLISHED_GROUPS = (
     [("all", "all")]
     + [("B", f"Q{k}") for k in range(1, 6)]
     + [("tenure", g) for g in ("renter", "owner", "rent_free")]
     + [("pensioners", g) for g in ("pensioners", "other")]
+    + [("hhtype", g) for g in HOUSEHOLD_TYPES]
 )
 # Only to compare with KEPE (its top tenth, and households ranked instead of people).
 VALIDATION_GROUPS = [("B10", "D10")] + [("BH", f"Q{k}") for k in (1, 5)] + [("BH10", "D10")]

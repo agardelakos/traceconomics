@@ -64,6 +64,14 @@ test("another starting group shows its own rate and goes in the address", async 
   await expect.poll(() => new URL(page.url()).searchParams.get("from")).toBe("tenure/renter");
 });
 
+test("a household type is a starting group too", async ({ page, request }) => {
+  const couple = await publishedRate(request, "hhtype/A2_DCH");
+  await page.goto(`${m1("en", "calculator/")}?from=${encodeURIComponent("hhtype/A2_DCH")}`);
+  await expect(role(page, "preset")).toHaveValue("hhtype/A2_DCH");
+  await expect(role(page, "yours")).toHaveText(pct("en", couple.value));
+  await expect(role(page, "preset").locator(`optgroup[label="${t("en", "family.household")}"] option`)).toHaveCount(6);
+});
+
 test("the group finder's link starts from its group; an unknown one from the default", async ({ page, request }) => {
   const pens = await publishedRate(request, "pensioners/pensioners");
   await page.goto(`${m1("en", "calculator/")}?from=pensioners/pensioners`);

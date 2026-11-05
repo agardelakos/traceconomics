@@ -221,10 +221,17 @@ def _limit_rows():
 
 
 def _group_count_rows():
+    types = ["A1", "A1_DCH", "A2", "A2_DCH", "A_GE3", "A_GE3_DCH"]
     for year in SURVEYS:
         for k in range(1, 6):
             d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "measure": "n_households"}
             yield "oet-local/hbs-groups-gr", d, str(year), 900 + 37 * k + (year % 7)
+        weights = [26, 2, 28, 24, 14, 6]                              # made-up shares of households, in %
+        for t, w in zip(types, weights):
+            for measure, v in (("n_households", 60 * w), ("households_weighted", 41000 * w)):
+                yield "oet-local/hbs-groups-gr", {"geo": "GR", "grouping": "hhtype", "group": t, "measure": measure}, str(year), v
+        for measure, v in (("n_households", 6000), ("households_weighted", 4100000)):
+            yield "oet-local/hbs-groups-gr", {"geo": "GR", "grouping": "all", "group": "all", "measure": measure}, str(year), v
 
 
 def _silc_rows():

@@ -6,7 +6,7 @@ sources: [cpi-manual-2020, hicp-manual-2024, reg-2016-792, reg-2020-1148, elstat
 ---
 ## In one paragraph
 
-The official consumer price index measures inflation for the average household's basket. This site builds the same kind of index for groups of households, each with its own basket: the poorest and richest fifth of people, renters and owners, pensioner households. Prices are the official item indices; only the weights change from group to group. Everything is computed from public files, and every number can be rebuilt from them.
+The official consumer price index measures inflation for the average household's basket. This site builds the same kind of index for groups of households, each with its own basket: the poorest and richest fifth of people, renters and owners, household types, pensioner households. Prices are the official item indices; only the weights change from group to group. Everything is computed from public files, and every number can be rebuilt from them.
 
 ## Prices
 
@@ -30,6 +30,7 @@ Each group's weights come from ELSTAT's household budget survey public use files
 
 - **Income fifths.** People ranked by equivalised income: the household's money income after taxes (without income in kind or imputed rent), divided by the modified OECD scale. Each fifth holds the same number of people.
 - **Tenure.** Renters, owners and rent-free households, from the survey's rent records.
+- **Household types.** Eurostat's six types for the survey: one adult, two adults, three or more adults, each with or without dependent children. A dependent child is anyone under 16, or aged 16 to 24, living with a parent and neither working nor looking for work; we apply this rule to each person in the survey ourselves, following Eurostat's written definition.
 - **Pensioner households.** Households whose main income source is a pension.
 - **All households,** computed the same way, as the benchmark.
 

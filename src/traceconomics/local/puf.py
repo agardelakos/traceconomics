@@ -23,6 +23,17 @@ The files differ by era, and this module hides that:
 - strata `HA06` and clusters `HA07` are absent in some years (see `design`).
 - 2008: six households (one cluster) have no person records; they are kept
   and listed in `households_without_persons`.
+- each person's relationship to the reference person (`MB05`: 3 is a child of the reference
+  person or spouse) and current activity (`ME01`: 1 working, 2 unemployed), which decide who is a
+  dependent child. The 2020 file has Eurostat's 2020 variable instead, `ME01A` (spelled with a
+  garbled letter), whose codes were re-ordered: Z1 employed, Z2 unemployed, Z3 retired, Z4 unable
+  to work, Z5 pupil or student, Z6 domestic tasks, Z7 military or civilian service, 10 other,
+  Z8 not applicable, Z9 not stated (Eurostat, HBS 2020 transmission document, version 5,
+  section 2.3.4). They are read as the older codes where those mean the same (`ME01A_AS_ME01`), and
+  kept as they are otherwise; a code in neither list is refused.
+- ELSTAT's own household type, `HB074` (1-3: one, two, three or more adults; 4-6: the same with
+  dependent children; 9 other), kept only to compare with ours: in the 2023 file it doesn't match
+  the households' own sizes.
 """
 
 from __future__ import annotations
@@ -60,7 +71,7 @@ class Survey:
     year: int
     classification: str            # see `classification`
     households: pd.DataFrame       # one row per household, see `read`
-    persons: pd.DataFrame          # hh, age
+    persons: pd.DataFrame          # hh, age, relation (MB05), activity (ME01), as text
     spending: pd.DataFrame         # all modes, annual euros; columns are codes, index aligned with households
     purchases: pd.DataFrame        # mode A only (what the published table 1.03 shows)
     design: str                    # "full", "no-strata" or "no-clusters"
@@ -68,6 +79,23 @@ class Survey:
     person_link: str = ""
     households_without_persons: tuple[str, ...] = ()
     derived_totals: tuple[str, ...] = ()   # codes whose all-modes total is purchases + non-monetary
+
+
+ME01_CODES = {"1", "2", "3", "4", "5", "6", "7", "8", ""}       # 1 working, 2 unemployed, ... 8 under 14
+ME01A_AS_ME01 = {"Z1": "1", "Z2": "2", "Z3": "3", "Z4": "6", "Z5": "4", "Z6": "5"}
+ME01A_OTHER = {"Z7", "10", "Z8", "Z9", ""}
+
+
+def _activity(values: pd.Series, column: str, year: int) -> pd.Series:
+    """Current activity as the older ME01 codes; 2020's ME01A translated where it means the same."""
+    v = values.str.strip()
+    if column == "ME01":
+        bad = sorted(set(v) - ME01_CODES)
+        require(not bad, f"{year}: ME01 codes not in the code list: {bad[:5]}")
+        return v
+    bad = sorted(set(v) - set(ME01A_AS_ME01) - ME01A_OTHER)
+    require(not bad, f"{year}: {column} codes not in the 2020 code list: {bad[:5]}")
+    return v.map(lambda c: ME01A_AS_ME01.get(c, c))
 
 
 def _members(path: Path) -> dict[str, bytes]:
@@ -164,6 +192,9 @@ def read(archive: Archive, year: int) -> Survey:
     for col in ("HA04", "HA08", "HA10", "HH095", "HH099", "HI11"):
         require(col in hh.columns, f"{year}: household file has no {col}")
     require("MB03" in pp.columns and "MA04" in pp.columns, f"{year}: person file has no MA04/MB03")
+    # ME01, or 2020's ME01 plus a garbled letter; never a numbered sibling such as ME0101.
+    activity = [c for c in pp.columns if c.startswith("ME01") and not any(ch.isdigit() for ch in c[4:])]
+    require("MB05" in pp.columns and len(activity) == 1, f"{year}: person file has no MB05 or no single ME01 column")
 
     # Household identity and the person link (see the module docstring).
     hh_id = hh["HA07"] + "-" + hh["HA04"].str.lstrip("0") if year == 2023 else hh["HA04"]
@@ -179,7 +210,8 @@ def read(archive: Archive, year: int) -> Survey:
             link_name, p_id = name, candidate
             break
     require(p_id is not None, f"{year}: no person-link rule links every person to a household")
-    people = pd.DataFrame({"hh": p_id, "age": _number(pp["MB03"], f"{year} MB03")})
+    people = pd.DataFrame({"hh": p_id, "age": _number(pp["MB03"], f"{year} MB03"),
+                           "relation": pp["MB05"].str.strip(), "activity": _activity(pp[activity[0]], activity[0], year)})
     without = tuple(sorted(ids - set(people.hh)))
     require(len(without) <= 10, f"{year}: {len(without)} households have no person records")
 
@@ -199,6 +231,7 @@ def read(archive: Archive, year: int) -> Survey:
         "money_income": _number(hh["HH095"], f"{year} HH095"),
         "total_income": _number(hh["HH099"], f"{year} HH099"),
         "main_income_source": hh["HI11"].str.strip(),
+        "elstat_type": hh["HB074"].str.strip() if "HB074" in hh.columns else "",
     })
     require((households.weight > 0).all(), f"{year}: households with no weight")
     spending, purchases, derived = _spending(hh, year)

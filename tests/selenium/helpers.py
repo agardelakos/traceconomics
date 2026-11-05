@@ -69,6 +69,17 @@ def _fixed0(value: float) -> int:
     return int(Decimal(value).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 
 
+def household_type(older: int, children: int, older_dependents: int) -> str | None:
+    """Eurostat's household type: one, two, three or more adults; _DCH with dependent children.
+    None when nobody is an adult."""
+    dependents = min(older_dependents, older)
+    adults = older - dependents
+    if adults < 1:
+        return None
+    base = "A1" if adults == 1 else "A2" if adults == 2 else "A_GE3"
+    return base + ("_DCH" if children + dependents > 0 else "")
+
+
 def pct(lang: str, value: float, digits: int = 1) -> str:
     """A percentage as the site writes it (format.ts `pct`): the number, then "%"."""
     return f"{num(lang, value, digits)}%"

@@ -142,8 +142,8 @@ def rent(folder: Path) -> dict:
         SELECT grouping || '/' || "group", sum(CAST(value AS DOUBLE)) FROM m1_weights_used
         WHERE {where(imputed_rent='included')} AND ref_period = '2025' AND coicop18 LIKE '042%'
         GROUP BY 1""").fetchall())
-    keep = {(f"{g}", y): v for (g, y), v in _avg(con, where(imputed_rent="included") + " AND grouping IN ('B', 'all', 'tenure', 'pensioners')").items()}
-    drop = {(f"{g}", y): v for (g, y), v in _avg(con, where() + " AND grouping IN ('B', 'all', 'tenure', 'pensioners')").items()}
+    keep = {(f"{g}", y): v for (g, y), v in _avg(con, where(imputed_rent="included") + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')").items()}
+    drop = {(f"{g}", y): v for (g, y), v in _avg(con, where() + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')").items()}
     groups = sorted({g for g, _ in keep})
     years = sorted({y for _, y in keep})
     names = {g: next(k for k in w if k.endswith("/" + g)) for g in groups if any(k.endswith("/" + g) for k in w)}
