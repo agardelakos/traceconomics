@@ -248,6 +248,10 @@ jobs:
         with:
           python-version: "3.14"
       - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
+      # The microdata code's tests skip their whole module without pandas, so pytest would never see
+      # them: the local lock too (same pins where the two overlap). Only this job installs it; the
+      # python job leaves it out on purpose, to prove the rest of the code doesn't need it.
+      - run: python -m pip install --require-hashes --no-deps -r requirements-local.txt
       - run: python -m pip install --no-deps --no-build-isolation -e .
       - run: python tests/sitedata.py site/public/data
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -259,12 +263,12 @@ jobs:
         working-directory: site
         env:
           npm_config_fetch_retries: "5"
+      # Some tests in both browser suites are made one per page of the built site (its sitemap), so
+      # listing them needs a build first. A plain one: nothing here is published.
+      - run: npm run build
+        working-directory: site
       # Listing loads the specs without starting a browser or the server.
       - run: npx playwright test --list --reporter=json > "$RUNNER_TEMP/playwright-list.json"
-        working-directory: site
-      # Some Selenium tests are parametrized from the built site (its sitemap), so collecting them
-      # needs a build. A plain one: nothing here is published.
-      - run: npm run build
         working-directory: site
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:

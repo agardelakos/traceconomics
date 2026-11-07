@@ -106,7 +106,7 @@ def page_overview(repo, catalog, obsolete, runs) -> str:
     if not any(runs.values()):
         out.append("| No run recorded yet | | | | | | | | |")
     out.append("\n## Cases per suite\n")
-    out.append("| Suite | Cases | Tests without a case yet (newest push) |\n|---|---|---|")
+    out.append("| Suite | Cases | Results without a case yet (newest push; an outline counts each example) |\n|---|---|---|")
     newest = runs.get("push", [])[-1:] or [{}]
     per = defaultdict(int)
     for c in catalog["cases"]:
