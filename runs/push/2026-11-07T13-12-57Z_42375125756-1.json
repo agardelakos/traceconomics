@@ -1,0 +1,309 @@
+{
+ "schema": 1,
+ "run_id": "42375125756-1",
+ "trigger": "push",
+ "commit": "76fbdf5ebde4de130e97502ac7f2dffdeae328b6",
+ "build": null,
+ "started": "2026-11-07T13:12:57Z",
+ "environment": {
+  "platform": "linux-x86_64",
+  "runner": "ubuntu-24.04",
+  "data": "made-up"
+ },
+ "suites": {
+  "pytest": {
+   "passed": 289,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 7,
+   "duration": 85.056
+  },
+  "pytest-local": {
+   "passed": 90,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 0,
+   "duration": 2.662
+  },
+  "selenium": {
+   "passed": 406,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 59,
+   "duration": 277.084
+  },
+  "playwright": {
+   "passed": 357,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 4,
+   "duration": 393.269
+  },
+  "vitest": {
+   "passed": 81,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 0,
+   "duration": 0.31
+  }
+ },
+ "no_case": {
+  "pytest": 277,
+  "pytest-local": 90,
+  "selenium": 437,
+  "playwright": 353,
+  "vitest": 81
+ },
+ "cases": {
+  "PW-CALC-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.486,
+   "retries": 0,
+   "examples": {
+    "el: untouched, it shows the published series' latest rate": "passed",
+    "en: untouched, it shows the published series' latest rate": "passed"
+   }
+  },
+  "PW-CALC-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.517,
+   "retries": 0
+  },
+  "PW-CALC-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.379,
+   "retries": 0
+  },
+  "PW-CALC-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.669,
+   "retries": 0
+  },
+  "PW-CALC-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.715,
+   "retries": 0
+  },
+  "PW-CALC-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.075,
+   "retries": 0
+  },
+  "PW-CALC-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.453,
+   "retries": 0
+  },
+  "PY-ENG-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-018": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-019": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "SEL-CALC-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.245,
+   "retries": 0,
+   "examples": {
+    "en": "passed",
+    "el": "passed"
+   }
+  },
+  "SEL-CALC-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 9.767,
+   "retries": 0,
+   "examples": {
+    "all/all": "passed",
+    "B/Q1": "passed",
+    "B/Q2": "passed",
+    "B/Q3": "passed",
+    "B/Q4": "passed",
+    "B/Q5": "passed",
+    "tenure/renter": "passed",
+    "tenure/owner": "passed",
+    "tenure/rent_free": "passed",
+    "pensioners/pensioners": "passed",
+    "pensioners/other": "passed",
+    "hhtype/A1": "passed",
+    "hhtype/A1_DCH": "passed",
+    "hhtype/A2": "passed",
+    "hhtype/A2_DCH": "passed",
+    "hhtype/A_GE3": "passed",
+    "hhtype/A_GE3_DCH": "passed"
+   }
+  },
+  "SEL-CALC-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.49,
+   "retries": 0
+  },
+  "SEL-CALC-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.442,
+   "retries": 0
+  },
+  "SEL-CALC-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 2.072,
+   "retries": 0
+  },
+  "SEL-CALC-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.164,
+   "retries": 0
+  },
+  "SEL-CALC-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.911,
+   "retries": 0
+  },
+  "SEL-CALC-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.146,
+   "retries": 0
+  },
+  "SEL-CALC-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.161,
+   "retries": 0
+  },
+  "SEL-CALC-010": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.727,
+   "retries": 0
+  },
+  "SEL-CALC-011": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.347,
+   "retries": 0
+  }
+ },
+ "report": "https://github.com/agardelakos/traceconomics/actions/runs/42375125756"
+}
