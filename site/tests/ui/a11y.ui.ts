@@ -39,8 +39,11 @@ for (const scheme of ["light", "dark"] as const) {
             when: ["it is opened", "everything it draws with a script is in place"],
             then: "an accessibility check against the WCAG 2.2 AA rules finds no serious or critical problem",
           }), async ({ page }) => {
-            await page.goto(path, { waitUntil: "networkidle" });
-            // Script-drawn parts (charts, the calculator's result) are in place once their busy state ends.
+            // Not "networkidle", which waits a fixed half second with no traffic after every load. The
+            // page scripts start before the load event and show a busy block while they fetch and draw,
+            // so once no busy block is visible the script-drawn parts (charts, the calculator's result)
+            // are in place.
+            await page.goto(path);
             await expect(page.locator('[aria-busy="true"]:visible')).toHaveCount(0);
             await check(page, path);
           });
@@ -54,7 +57,7 @@ for (const scheme of ["light", "dark"] as const) {
           then: ["each menu opens", "an accessibility check against the WCAG 2.2 AA rules finds no serious or critical problem while it is open",
             "Escape closes it again"],
         }), async ({ page }) => {
-          await page.goto(`/${lang}/`, { waitUntil: "networkidle" });
+          await page.goto(`/${lang}/`);   // the home page fetches nothing after it loads
           for (const id of MENUS[name]) {
             await page.locator(`button[popovertarget="${id}"]`).click();
             await expect(page.locator(`#${id}`)).toBeVisible();

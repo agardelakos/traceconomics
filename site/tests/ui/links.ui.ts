@@ -31,9 +31,13 @@ for (const path of [...offered, ...greek]) {
     when: "it is opened and has finished loading its data",
     then: ["it answers with success (200)", "its first main heading is not empty", "the browser logs no error"],
   }), async ({ page }) => {
-    const response = await page.goto(path, { waitUntil: "networkidle" });
+    const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 }).first()).not.toBeEmpty();
+    // Its data are loaded once no busy block is visible (the page scripts show one while they fetch,
+    // from before the load event), so an error from the fetch is logged before the test ends. Faster
+    // than "networkidle", which waits a fixed half second with no traffic after every load.
+    await expect(page.locator('[aria-busy="true"]:visible')).toHaveCount(0);
   });
 }
 
