@@ -19,6 +19,18 @@ export { month, num, type Lang } from "../../src/lib/format";
 // that module without an import attribute, so the lookup is repeated here, just as strict).
 const strings = (name: string) => JSON.parse(readFileSync(new URL(`../../src/i18n/${name}.json`, import.meta.url), "utf-8"));
 const STRINGS: Record<Lang, Record<string, string>> = { el: strings("el"), en: strings("en") };
+/**
+ * A test's case: its stable ID and its Given/When/Then, as Playwright annotations, so the case is
+ * written on the test it describes. The test catalog reads them from `playwright test --list`, and
+ * they show in the HTML report. Pass it as the test's details: `test(title, gwt({ … }), body)`, or
+ * spread it next to other details: `{ tag: "@smoke", ...gwt({ … }) }`. A loop that makes the same
+ * test per language passes the same case: one ID, the languages are its examples.
+ */
+export function gwt(c: { id: string; given: string | string[]; when: string | string[]; then: string | string[] }) {
+  const steps = (type: string, v: string | string[]) => [v].flat().map((description) => ({ type, description }));
+  return { annotation: [{ type: "id", description: c.id }, ...steps("given", c.given), ...steps("when", c.when), ...steps("then", c.then)] };
+}
+
 export const LANGS: Lang[] = ["el", "en"];
 /** The languages offered to readers; the others are built but not linked. */
 export const OFFERED: Lang[] = strings("languages").offered;

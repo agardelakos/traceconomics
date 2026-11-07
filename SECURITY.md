@@ -2,25 +2,33 @@
 
 ## Reporting a vulnerability
 
-Please report it privately: on GitHub, open the repository's **Security** tab and choose
-**Report a vulnerability**. Don't open a public issue for it.
+Please don't open a public issue for a security problem. Report it privately through GitHub: the
+repository's **Security** tab, then **Report a vulnerability**. Only the maintainer sees the report.
 
-Say what is affected, how to reproduce it and what an attacker could do. This is a one-person
-project: you'll get an answer as soon as possible, be told what is planned, and be credited in
-the release notes unless you'd rather not be.
+Useful to include: what you found, where (a page of the site, a file or a command), how to
+reproduce it, and what an attacker could do with it.
 
-## What counts
+This is a one-person project with no paid support, so there is no fixed response time: reports are
+read and answered as soon as possible, and you'll be told what is planned. You'll be credited in
+the release notes unless you'd rather not be. There is no bug bounty.
 
-- The website (traceconomics.com): its pages, scripts and response headers.
-- The pipeline code in this repository: fetching, parsing, the archive and the release steps.
-- The published data files, if they can be made to carry something other than our figures.
+## What is in scope
 
-A number that looks wrong is not a security issue: open an ordinary issue for it (see the
-README).
+- The website (traceconomics.com): its static pages, scripts and response headers (Content
+  Security Policy and the other security headers).
+- The code in this repository: fetching, parsing, the archive, the computations and the release
+  steps.
+- The published data files, if they could be made to show something other than what the pipeline
+  computed.
+
+A number that looks wrong is not a security issue: open an ordinary issue for it (see
+[CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Please don't
 
 - Test against the website with heavy or automated traffic.
 - Send requests to ELSTAT, Eurostat or any other publisher in the name of this project.
 
-Only the latest release and the `main` branch are supported.
+## Supported versions
+
+Only the latest version on the default branch, and the live site, are supported.

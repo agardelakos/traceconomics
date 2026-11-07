@@ -1,0 +1,14 @@
+# The validator's ratchet (validate.py). In the files listed here every test must carry a complete
+# case, or the check fails; elsewhere a missing or incomplete case is a warning. Files are added as
+# their tests are given cases; once every file is in, `all = true` replaces the list.
+#
+# `mapping_complete = true` makes a Playwright or Selenium case missing from cases.toml an error.
+
+all = false
+mapping_complete = false
+
+files = [
+    "tests/test_engine.py",
+    "site/tests/ui/calculator.ui.ts",
+    "tests/selenium/test_calculator.py",
+]

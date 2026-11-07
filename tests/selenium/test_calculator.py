@@ -33,6 +33,14 @@ def _ready(site):
 
 @pytest.mark.parametrize("lang", ["en", "el"])
 def test_default_result_is_the_published_rate(site, lang):
+    """SEL-CALC-001: untouched, the result is the published rate
+
+    Given the calculator, opened with nothing changed
+    When the result is drawn
+    Then your rate and the poorest fifth's rate are its published latest annual rate, for its month
+    And the all-households rate is shown
+    And it says your basket is the group's, with no Reset
+    """
     site.open(PAGE.format(lang=lang))
     _ready(site)
     assert not site.find("#calculator [data-role=noscript]").is_displayed()
@@ -48,6 +56,13 @@ def test_default_result_is_the_published_rate(site, lang):
 
 @pytest.mark.parametrize("preset", PRESETS)
 def test_every_starting_group_gives_its_published_rate(site, preset):
+    """SEL-CALC-002: every starting group gives its published rate
+
+    Given the calculator in English
+    When a starting group is picked
+    Then the result is that group's published latest rate, under its name
+    And the address carries the group
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     Select(site.find("#calculator select[data-role=preset]")).select_by_value(preset)
@@ -58,6 +73,12 @@ def test_every_starting_group_gives_its_published_rate(site, preset):
 
 
 def test_from_in_the_address_picks_the_starting_group(site):
+    """SEL-CALC-003: the address picks the starting group
+
+    Given an address with `?from=pensioners/pensioners`
+    When the calculator opens
+    Then pensioner households are the starting group, with their published rate
+    """
     site.open(PAGE.format(lang="en") + "?from=pensioners/pensioners")
     _ready(site)
     assert site.js("return document.querySelector('[data-role=preset]').value") == "pensioners/pensioners"
@@ -65,12 +86,27 @@ def test_from_in_the_address_picks_the_starting_group(site):
 
 
 def test_unknown_from_is_ignored(site):
+    """SEL-CALC-004: an unknown group in the address is ignored
+
+    Given an address with `?from=nobody`
+    When the calculator opens
+    Then the starting group is the default, the poorest fifth
+    """
     site.open(PAGE.format(lang="en") + "?from=nobody")
     _ready(site)
     assert site.js("return document.querySelector('[data-role=preset]').value") == "B/Q1"
 
 
 def test_slider_changes_the_result_and_reset_restores_it(site):
+    """SEL-CALC-005: a slider changes the result; Reset restores it
+
+    Given the calculator at the poorest fifth's basket
+    When the first category goes up 5 points
+    And Reset is pressed
+    Then the other categories are rescaled so the shares still add up to 100%, and a notice says so
+    And the difference from the group is stated
+    And Reset brings back the group's rate and every slider
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     site.wait(lambda _: len(site.all("#calculator [data-role=sliders] input[type=range]")) > 1, "no sliders were built")
@@ -99,6 +135,13 @@ def test_slider_changes_the_result_and_reset_restores_it(site):
 
 
 def test_slider_notes_say_what_moved(site):
+    """SEL-CALC-006: each slider says whether it moved
+
+    Given the calculator at a starting group's basket, every slider saying it is the group's
+    When one slider moves
+    Then that slider says you changed it
+    And at least one other says it was adjusted to keep 100%
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     rows = site.wait(lambda _: site.all("#calculator .slider-row") or False)
@@ -109,6 +152,13 @@ def test_slider_notes_say_what_moved(site):
 
 
 def test_a_new_starting_group_resets_the_sliders(site):
+    """SEL-CALC-007: a new starting group resets the sliders
+
+    Given a slider moved away from the group's basket
+    When renters are picked as the starting group
+    Then the result is the renters' published rate
+    And Reset is gone: nothing is changed any more
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     site.wait(lambda _: site.all("#div-01"))
@@ -120,6 +170,15 @@ def test_a_new_starting_group_resets_the_sliders(site):
 
 
 def test_spending_in_euros(site):
+    """SEL-CALC-008: spending entered in euros
+
+    Given the calculator switched to euros a month
+    When three categories get 100, 200 and 100 euros
+    And it switches back to shares
+    Then the total and each category's share follow from the amounts
+    And the result is marked as changed
+    And the sliders start from the euros' shares
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     site.find("#calculator [data-mode=euros]").click()
@@ -145,6 +204,15 @@ def test_spending_in_euros(site):
 
 
 def test_wrong_amount_is_marked_and_ignored(site):
+    """SEL-CALC-009: a wrong amount is marked and ignored
+
+    Given the calculator in euros
+    When an amount that isn't a number is typed, then a valid one
+    And the amounts are cleared
+    Then the wrong amount is marked invalid and counts as nothing
+    And the valid one is accepted and totalled
+    And clearing empties the amounts
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     site.find("#calculator [data-mode=euros]").click()
@@ -165,6 +233,13 @@ def test_wrong_amount_is_marked_and_ignored(site):
 
 
 def test_chart_shows_the_starting_group_then_yours(site):
+    """SEL-CALC-010: the chart shows the starting group, then yours
+
+    Given the calculator drawn
+    When a slider moves
+    Then the chart's label names the starting group alone at first
+    And then the group and your basket
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     site.scripts_ran("#calculator [data-role=chart]")
@@ -176,6 +251,12 @@ def test_chart_shows_the_starting_group_then_yours(site):
 
 @pytest.mark.console_errors
 def test_data_that_fails_to_load_says_so(site):
+    """SEL-CALC-011: data that fails to load says so
+
+    Given the calculator's data file blocked
+    When the calculator opens
+    Then it says the data couldn't be loaded, and shows no result
+    """
     site.driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*calculator.json*"]})
     site.open(PAGE.format(lang="en"))
     site.text("#calculator [data-role=loading]", t("en", "chart.failed"))

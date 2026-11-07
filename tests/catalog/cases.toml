@@ -1,0 +1,55 @@
+# The cross-suite mapping: one shared case, the Playwright and Selenium cases that implement it.
+#
+# The two browser suites are written independently and never name each other's cases, so this file
+# is the only place that knows both. Each entry: a TC-<AREA>-NNN key, a one-line title, and the IDs
+# per suite. A case in one suite only says why. IDs here are never reused.
+#
+# [TC-CALC-001]
+# title = "the calculator, left untouched, shows the published series' latest rate"
+# playwright = ["PW-CALC-001"]
+# selenium = ["SEL-CALC-001"]
+#
+# [TC-HOST-004]
+# title = "…"
+# playwright = ["PW-HOST-004"]
+# why = "needs a browser API Selenium doesn't expose"
+
+[TC-CALC-001]
+title = "untouched, the calculator shows the published series' latest rate"
+playwright = ["PW-CALC-001"]
+selenium = ["SEL-CALC-001"]
+
+[TC-CALC-002]
+title = "a starting group gives its own published rate and goes in the address"
+playwright = ["PW-CALC-002", "PW-CALC-003"]
+selenium = ["SEL-CALC-002"]
+
+[TC-CALC-003]
+title = "the address picks the starting group; an unknown one falls back to the default"
+playwright = ["PW-CALC-004"]
+selenium = ["SEL-CALC-003", "SEL-CALC-004"]
+
+[TC-CALC-004]
+title = "a moved slider gives the engine's rate, the others rescale to 100%, Reset undoes it"
+playwright = ["PW-CALC-005"]
+selenium = ["SEL-CALC-005", "SEL-CALC-006"]
+
+[TC-CALC-005]
+title = "a new starting group resets the sliders"
+selenium = ["SEL-CALC-007"]
+why = "a coverage gap in Playwright: it checks that euro amounts survive a group change (PW-CALC-006), not that the sliders reset"
+
+[TC-CALC-006]
+title = "spending in euros: shares, total and result follow; a wrong amount is flagged; back to shares"
+playwright = ["PW-CALC-006"]
+selenium = ["SEL-CALC-008", "SEL-CALC-009"]
+
+[TC-CALC-007]
+title = "the chart's label names the starting group, then your basket"
+selenium = ["SEL-CALC-010"]
+why = "Playwright checks the chart's label only after a change, inside PW-CALC-005"
+
+[TC-CALC-008]
+title = "data that fails to load says so, with no result"
+playwright = ["PW-CALC-007"]
+selenium = ["SEL-CALC-011"]

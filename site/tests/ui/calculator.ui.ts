@@ -6,7 +6,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 import { annualRate, chain, divisionShares, presetWeights, published, type CalculatorData, type Shares } from "../../src/lib/engine/calculator";
 import { roundHalfEven } from "../../src/lib/engine/round";
 import { eur } from "../../src/lib/income";
-import { expect, json, LANGS, m1, month, num, t, test, type Lang } from "./helpers";
+import { expect, gwt, json, LANGS, m1, month, num, t, test, type Lang } from "./helpers";
 
 const DATA = "/data/v1/gr/m1/latest";
 const root = (page: Page) => page.locator("#calculator");
@@ -36,7 +36,13 @@ const config = async (page: Page) => JSON.parse((await root(page).getAttribute("
 const pct = (lang: Lang, v: number) => `${num(lang, v)}%`;
 
 for (const lang of LANGS) {
-  test(`${lang}: untouched, it shows the published series' latest rate`, async ({ page, request }) => {
+  test(`${lang}: untouched, it shows the published series' latest rate`, gwt({
+    id: "PW-CALC-001",
+    given: "the calculator, opened with nothing changed",
+    when: "the result is drawn",
+    then: ["your rate and the starting group's rate are the published series' latest annual rate, for its month",
+      "the all-households rate is shown beside them", "it says your basket is the group's, with no difference and no Reset", "the chart is drawn"],
+  }), async ({ page, request }) => {
     const q1 = await publishedRate(request, "B/Q1");
     const all = await publishedRate(request, "all/all");
     await page.goto(m1(lang, "calculator/"));
@@ -55,7 +61,12 @@ for (const lang of LANGS) {
   });
 }
 
-test("another starting group shows its own rate and goes in the address", async ({ page, request }) => {
+test("another starting group shows its own rate and goes in the address", gwt({
+  id: "PW-CALC-002",
+  given: "the calculator in English",
+  when: "renters are picked as the starting group",
+  then: ["the result is the renters' published latest rate", "the address carries the group (`from=tenure/renter`)"],
+}), async ({ page, request }) => {
   const renter = await publishedRate(request, "tenure/renter");
   await page.goto(m1("en", "calculator/"));
   await role(page, "preset").selectOption("tenure/renter");
@@ -64,7 +75,12 @@ test("another starting group shows its own rate and goes in the address", async 
   await expect.poll(() => new URL(page.url()).searchParams.get("from")).toBe("tenure/renter");
 });
 
-test("a household type is a starting group too", async ({ page, request }) => {
+test("a household type is a starting group too", gwt({
+  id: "PW-CALC-003",
+  given: "an address that starts from a household type (`from=hhtype/A2_DCH`)",
+  when: "the calculator opens",
+  then: ["that household type is the starting group, with its published latest rate", "the list offers the six household types under their own heading"],
+}), async ({ page, request }) => {
   const couple = await publishedRate(request, "hhtype/A2_DCH");
   await page.goto(`${m1("en", "calculator/")}?from=${encodeURIComponent("hhtype/A2_DCH")}`);
   await expect(role(page, "preset")).toHaveValue("hhtype/A2_DCH");
@@ -72,7 +88,12 @@ test("a household type is a starting group too", async ({ page, request }) => {
   await expect(role(page, "preset").locator(`optgroup[label="${t("en", "family.household")}"] option`)).toHaveCount(6);
 });
 
-test("the group finder's link starts from its group; an unknown one from the default", async ({ page, request }) => {
+test("the group finder's link starts from its group; an unknown one from the default", gwt({
+  id: "PW-CALC-004",
+  given: "an address naming a starting group, as the group finder links",
+  when: ["the calculator opens", "it opens again with an unknown group"],
+  then: ["the named group is the starting group, with its published rate", "an unknown group falls back to the default, the poorest fifth"],
+}), async ({ page, request }) => {
   const pens = await publishedRate(request, "pensioners/pensioners");
   await page.goto(`${m1("en", "calculator/")}?from=pensioners/pensioners`);
   await expect(role(page, "preset")).toHaveValue("pensioners/pensioners");
@@ -81,7 +102,14 @@ test("the group finder's link starts from its group; an unknown one from the def
   await expect(role(page, "preset")).toHaveValue("B/Q1");
 });
 
-test("moving a slider gives the engine's rate, adjusts the others, and Reset undoes it", async ({ page, request }) => {
+test("moving a slider gives the engine's rate, adjusts the others, and Reset undoes it", gwt({
+  id: "PW-CALC-005",
+  given: "the calculator at the poorest fifth's basket",
+  when: ["one category's share is set to 40%", "Reset is pressed"],
+  then: ["your rate is what the engine computes for those shares, and the difference from the group is stated",
+    "the moved category says it was changed and the others say they were adjusted to keep 100%",
+    "Reset brings back the group's basket and rate"],
+}), async ({ page, request }) => {
   const data: CalculatorData = await json(request, `${DATA}/calculator.json`);
   const { period } = await publishedRate(request, "B/Q1");
   await page.goto(m1("en", "calculator/"));
@@ -120,7 +148,13 @@ test("moving a slider gives the engine's rate, adjusts the others, and Reset und
   await expect(role(page, "yours")).toHaveText(pct("en", theirs));
 });
 
-test("in euros a month: shares, a total, the engine's rate; a bad amount is flagged; then back to shares", async ({ page, request }) => {
+test("in euros a month: shares, a total, the engine's rate; a bad amount is flagged; then back to shares", gwt({
+  id: "PW-CALC-006",
+  given: "the calculator switched to euros a month",
+  when: ["two categories get 300 and 700 euros", "another gets an amount that isn't a number", "the starting group changes", "it switches back to shares, then clears the amounts"],
+  then: ["the total, each share and your rate follow from the amounts", "the bad amount is flagged as invalid",
+    "the amounts are kept for the new group", "the sliders start from the euros' shares", "clearing empties the amounts"],
+}), async ({ page, request }) => {
   const data: CalculatorData = await json(request, `${DATA}/calculator.json`);
   const { period } = await publishedRate(request, "B/Q1");
   await page.goto(m1("en", "calculator/"));
@@ -166,7 +200,12 @@ test.describe("when the calculator's file can't be loaded", () => {
   // The browser itself logs the refused request; that's the point of this test.
   test.use({ allowErrors: [/Failed to load resource/] });
 
-  test("it says so instead of showing a number", async ({ page }) => {
+  test("it says so instead of showing a number", gwt({
+    id: "PW-CALC-007",
+    given: "the calculator's data file answers with an error",
+    when: "the calculator opens",
+    then: "it says the data couldn't be loaded, and shows no result",
+  }), async ({ page }) => {
     await page.route("**/calculator.json", (route) => route.fulfill({ status: 503, body: "" }));
     await page.goto(m1("en", "calculator/"));
     await expect(role(page, "loading")).toHaveText(t("en", "chart.failed"));

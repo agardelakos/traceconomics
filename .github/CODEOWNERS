@@ -1,0 +1,8 @@
+# The maintainer reviews every change.
+* @agardelakos
+
+# These files steer contributors and coding agents, so a change to them always needs the
+# maintainer's review.
+/AGENTS.md @agardelakos
+/CONTRIBUTING.md @agardelakos
+/.github/ @agardelakos

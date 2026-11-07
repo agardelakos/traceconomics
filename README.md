@@ -183,18 +183,7 @@ The tests use small saved extracts of real pages (`tests/fixtures/`) and never t
 
 Ideas, questions, corrections and bug reports are welcome as [issues](https://github.com/agardelakos/traceconomics/issues). A number that looks wrong is worth an issue even if you're not sure: say which page, which series and month, and what you expected.
 
-**Before a pull request**, open an issue for anything beyond a small fix: a change to the method, a new data source or a new dependency is discussed first. Then:
-
-- **Run the tests.** `python -I -m pytest` for the Python package. The site needs data files, which the pipeline writes from the raw archive (not public yet): `python tests/sitedata.py site/public/data` writes made-up ones in the same format, through the real export code. Then, in `site/`: `npm run check` (type check, unit tests, build, site checks) and `npm run test:ui` (browser smoke test on the built site; once, `npx playwright install chromium`). CI runs all of these; `npm run check:code` is the quick check without data.
-- **Keep the outputs reproducible.** The same archive must give byte-identical files on every machine: sort every query whose rows feed an output (`ORDER BY`), write text with `\n` line endings, and write Parquet through `module1.output.parquet_connection()`.
-- **Refuse surprises.** A parser that meets a file it doesn't expect raises `FormatError`; it never guesses.
-- **Tests stay offline and synthetic.** Never call the network in a test. The saved extracts in `tests/fixtures/` are kept byte for byte and checked against their hashes: don't re-save or convert them. Survey microdata never go into tests or the repository; build a small synthetic survey instead.
-- **Standard library first.** Code outside `src/traceconomics/local/` must not import pandas or numpy (CI installs neither). A new runtime dependency needs a reason, a pin in `pyproject.toml` and both lock files regenerated (the command is in each file's header).
-- **Be gentle with the sources.** Code that fetches from ELSTAT or Eurostat makes one request at a time, with a pause.
-- **The site** has every text in English and Greek (`site/src/i18n/`, `site/src/content/`); the build fails on a missing translation. If you can't write the Greek, say so in the pull request.
-- **Write the reason in the code.** A comment says why a rule exists, not only what it does.
-
-Contributions are accepted under the project's licences (Apache-2.0 for code, CC BY 4.0 for data), with no separate agreement to sign.
+Before a pull request, read [CONTRIBUTING.md](CONTRIBUTING.md): what's welcome, the hard rules and why, how to run every test suite, and the policy on AI-assisted contributions. Coding agents also follow [AGENTS.md](AGENTS.md). The longer pages (architecture, design principles, test strategy) are in the [wiki](https://github.com/agardelakos/traceconomics/wiki).
 
 ## Data sources
 
