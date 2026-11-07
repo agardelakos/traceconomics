@@ -1,0 +1,32 @@
+name: Accessibility problem
+description: Something that makes the site harder to use with a keyboard, a screen reader, zoom or a small screen.
+labels: ["accessibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Reports from people who use assistive technology are the most useful kind:
+        our automated checks can't find everything.
+  - type: input
+    id: where
+    attributes:
+      label: Page
+      description: The page address, and the part of the page if it's specific.
+      placeholder: https://traceconomics.com/en/...
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you tried to do, what happened, and what you expected.
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Your setup
+      description: Browser, device, and any assistive technology (screen reader, magnifier, voice control) with versions if you know them.
+      placeholder: e.g. Firefox 140 on Windows 11 with NVDA 2025.1
+    validations:
+      required: true

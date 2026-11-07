@@ -10,6 +10,8 @@ pages (architecture, design principles, adding a source, test strategy) are in t
 [wiki](https://github.com/agardelakos/traceconomics/wiki). The wiki's pages are kept in
 [`wiki/`](wiki/) and copied to the wiki automatically: to change one, send a pull request.
 
+Everyone taking part in the project follows the [code of conduct](CODE_OF_CONDUCT.md).
+
 ## What is welcome
 
 - **Bug reports.** A number that looks wrong is worth an issue even if you're not sure. Say which
@@ -26,9 +28,10 @@ pages (architecture, design principles, adding a source, test strategy) are in t
 
 ## How to contribute
 
-1. **Open an issue first** for anything beyond a small fix (a typo, an obvious bug with a one-line
-   fix). A change to the method, a new data source, a new dependency or a new feature is discussed
-   before any code is written.
+1. **Open an issue first**, from one of the
+   [issue forms](https://github.com/agardelakos/traceconomics/issues/new/choose), for anything
+   beyond a small fix (a typo, an obvious bug with a one-line fix). A change to the method, a new
+   data source, a new dependency or a new feature is discussed before any code is written.
 2. **Layout, navigation and wording changes need a maintainer's agreement first, in an issue.** The
    pages are ordered for a first-time, non-expert reader, following design decisions that aren't
    all written down in public, so a well-meant rearrangement may be declined.
