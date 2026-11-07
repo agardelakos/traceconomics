@@ -8,7 +8,7 @@
 #
 # The optional microdata dependencies are never installed here: those tests skip themselves.
 # Actions are pinned to a full commit (the tag is in the comment), and the token is read-only,
-# except in the badge job (below).
+# except in the jobs badges and test-history (below), each writing to its own branch only.
 
 name: tests
 
@@ -40,7 +40,16 @@ jobs:
       # built with the locked setuptools (build isolation would fetch an unchecked one).
       - run: python -m pip install --require-hashes --no-deps -r requirements-dev.txt
       - run: python -m pip install --no-deps --no-build-isolation -e .
-      - run: python -I -m pytest -ra
+      # JUnit XML for the run history (tests/catalog/history.py): each result, given to its case.
+      - run: python -I -m pytest -ra --junitxml=${{ runner.temp }}/pytest.xml
+      - name: Upload the results file
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pytest-results
+          path: ${{ runner.temp }}/pytest.xml
+          retention-days: 7
+          if-no-files-found: ignore
 
   site:
     runs-on: ubuntu-24.04
@@ -110,6 +119,16 @@ jobs:
         with:
           name: ui-test-report
           path: site/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+      # Vitest's results file (vitest.config.ts writes it on every run): the catalog reads each test's
+      # case from it, the run history its result.
+      - name: Upload the unit tests' results file
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vitest-results
+          path: site/test-reports/vitest.json
           retention-days: 7
           if-no-files-found: ignore
       # Playwright's results file alone (small), for the comparison with Selenium below.
@@ -209,6 +228,108 @@ jobs:
           path: results/selenium
       - name: Comparison
         run: python -I tests/compare/report.py compare results/playwright/playwright.json results/selenium/junit.xml
+
+  # The test catalog (tests/catalog/): every case of the four suites, read from the tests, and the
+  # check that each is well formed. A ratchet: the files tests/catalog/strict.toml lists must be
+  # complete, the rest only warn until their turn; IDs that clash or were used before always fail.
+  # Collecting needs every suite's tooling (the Selenium lock is a superset of the dev one), the
+  # made-up data (Playwright's specs read it while they are listed) and Vitest's results file.
+  catalog:
+    needs: [site]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - run: python tests/sitedata.py site/public/data
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit
+        working-directory: site
+        env:
+          npm_config_fetch_retries: "5"
+      # Listing loads the specs without starting a browser or the server.
+      - run: npx playwright test --list --reporter=json > "$RUNNER_TEMP/playwright-list.json"
+        working-directory: site
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: vitest-results
+          path: ${{ runner.temp }}/vitest
+      - run: >
+          python -I tests/catalog/collect.py --out "$RUNNER_TEMP/catalog/catalog.json"
+          --playwright "$RUNNER_TEMP/playwright-list.json" --vitest "$RUNNER_TEMP/vitest/vitest.json"
+      - name: Upload the catalog
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: catalog
+          path: ${{ runner.temp }}/catalog/catalog.json
+          retention-days: 7
+          if-no-files-found: error
+      # Last, so the catalog is kept even when a case is wrong. The obsolete IDs come from the run
+      # history: a removed test's ID can never come back.
+      - name: Check the cases
+        run: |
+          git fetch -q --depth 1 origin test-history 2>/dev/null \
+            && git show FETCH_HEAD:obsolete.json > "$RUNNER_TEMP/obsolete.json" || echo '{}' > "$RUNNER_TEMP/obsolete.json"
+          python -I tests/catalog/validate.py "$RUNNER_TEMP/catalog/catalog.json" --require-all --quiet \
+            --obsolete "$RUNNER_TEMP/obsolete.json" | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # Every push to main's test run, recorded against its commit on the branch `test-history`
+  # (tests/catalog/history.py): each case's result, duration and retries; failures included, so it
+  # runs whatever the tests did. Pull requests are never recorded. The only other job that writes
+  # to the repository, and only to that branch, which it appends to and never force-pushes.
+  test-history:
+    needs: [python, site, selenium, catalog]
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    # No concurrency group: GitHub keeps one pending job per group and cancels the older one,
+    # which would drop a run's record. The push script retries on a lost race instead.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # A suite that never ran has no file: it is left out of the record, not a reason to stop.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          pattern: "{pytest-results,vitest-results,playwright-results,selenium-report,catalog}"
+          path: ${{ runner.temp }}/results
+      - name: The run's record
+        env:
+          R: ${{ runner.temp }}/results
+        run: |
+          args=()
+          [ -f "$R/pytest-results/pytest.xml" ] && args+=(--junit "pytest=$R/pytest-results/pytest.xml")
+          [ -f "$R/selenium-report/junit.xml" ] && args+=(--junit "selenium=$R/selenium-report/junit.xml")
+          [ -f "$R/playwright-results/playwright.json" ] && args+=(--playwright "$R/playwright-results/playwright.json")
+          [ -f "$R/vitest-results/vitest.json" ] && args+=(--vitest "$R/vitest-results/vitest.json")
+          python -I tests/catalog/history.py record --catalog "$R/catalog/catalog.json" --out "$R/record.json" \
+            --trigger push --commit "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --env platform=linux-x86_64 --env runner=ubuntu-24.04 --env data=made-up "${args[@]}"
+      - name: Push the record to the branch test-history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}"
+          "$RUNNER_TEMP/results/record.json" --catalog "$RUNNER_TEMP/results/catalog/catalog.json"
 
   # The README's coverage badge, after a push to main whose tests passed. The badge is the only
   # file on the branch `badges`, kept as a single commit (force-pushed), so its history never grows.

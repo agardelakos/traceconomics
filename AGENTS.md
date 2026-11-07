@@ -83,6 +83,17 @@ cd site && npm run build                                       # build only (bef
 .venv/bin/python -I -m pytest tests/selenium --selenium -n auto   # Selenium suite (Selenium lock)
 ```
 
+Test cases (every test carries an ID and Given/When/Then; see the wiki's "Test management as code"):
+
+```sh
+.venv/bin/python -I tests/catalog/collect.py --out /tmp/catalog.json --no-selenium   # add --playwright/--vitest files for all suites
+.venv/bin/python -I tests/catalog/validate.py /tmp/catalog.json                     # what CI's catalog job checks
+```
+
+A new or changed test gets its case in the same change. Python: the docstring (`PY-<AREA>-NNN: title`,
+then Given/When/Then lines). Playwright: `test(title, gwt({ id, given, when, then }), body)`. Take the
+next free number in the area; never reuse an ID, even one whose test was removed.
+
 Host tests (headers, CSP): `npx wrangler dev --port 8788` in `site/`, then
 `BASE_URL=http://127.0.0.1:8788 npm run test:ui -- --grep @smoke`, or the Selenium suite with
 `--base-url http://127.0.0.1:8788`.

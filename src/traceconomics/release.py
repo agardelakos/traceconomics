@@ -18,6 +18,10 @@ before it is published. Each promote names its target: `staging`, a private prev
 stays after launch as a place to look at a build in its final setting, or `production`, the
 public address. The two can serve different builds, so a rollback is per target too. After each
 promote, the target address is checked: it must serve the promoted build's own files.
+
+Each browser step's results, and each promote's check, are also sent to the test-results bucket
+(`testresults`), for the project's public run history. That is a report, not a gate: a failed
+upload is named in the email and changes nothing else.
 """
 
 from __future__ import annotations
@@ -36,7 +40,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from traceconomics import catalog
+from traceconomics import catalog, testresults
 from traceconomics.archive.store import Archive, iso, sha256_file, stamp, utc_now
 from traceconomics.config import CONFIG_ENV, Config
 from traceconomics.job import RunLock
@@ -216,11 +220,14 @@ def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual
     logs.mkdir(parents=True, exist_ok=False)
     previous = baseline(r.releases_dir)
     record = {"id": build_id, "started": iso(now), "reason": reason, "steps": [],
-              "baseline": previous["id"] if previous else None, "ui_fingerprint": ui_fingerprint(r.site_dir)}
+              "baseline": previous["id"] if previous else None, "ui_fingerprint": ui_fingerprint(r.site_dir),
+              # Kept with the build: a retest or a promote after a later deploy still reports this one.
+              "commit": testresults.source_commit(r.site_dir.parent)}
     env = _env(config_path)
     with RunLock(r.releases_dir):
         failed = _run_steps(steps(cfg, folder, build_id), env, logs, logs, runner, record["steps"],
-                            after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")})
+                            after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")},
+                            on_browser=_send_results(record))
         if failed:
             record.update(result="failed", failed_step=failed[0], log_tail=failed[1])
             _note_ui(record, folder / "ui", failed[0])
@@ -235,10 +242,11 @@ def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual
 
 
 def _run_steps(todo: list[Step], env: dict, logs: Path, step_logs: Path, runner: Runner, ran: list,
-               after: dict | None = None) -> tuple[str, list[str]] | None:
+               after: dict | None = None, on_browser: Callable | None = None) -> tuple[str, list[str]] | None:
     """Run the steps in order, each logged in `step_logs`; None, or (failed step, its log's last lines).
     `logs`: the build's log folder, where the preview address is looked up. `after`: step name ->
-    what to do once that step has passed."""
+    what to do once that step has passed. `on_browser(step, started, code, results)`: after each
+    browser step, passed or not."""
     for n, step in enumerate(todo, 1):
         log = step_logs / f"{n:02d}-{step.name}.log"
         started = utc_now()
@@ -249,11 +257,26 @@ def _run_steps(todo: list[Step], env: dict, logs: Path, step_logs: Path, runner:
         else:
             code = runner(step, step_env, log)
         ran.append({"name": step.name, "code": code, "seconds": int((utc_now() - started).total_seconds())})
+        if on_browser and step.name in BROWSER_STEPS and step_env is not None:
+            on_browser(step.name, started, code, Path(step_env["UI_JSON"]))
         if code != 0:
             return step.name, _tail(log)
         if after and step.name in after:
             after[step.name]()
     return None
+
+
+def _send_results(record: dict) -> Callable:
+    """After a browser step: send its results to the test-results bucket, noting the outcome in the
+    build record. A step that never wrote a results file (it couldn't start) sends nothing."""
+    def send(step: str, started: datetime, code: int, results: Path) -> None:
+        if not results.is_file():
+            return
+        out = testresults.send(build=record["id"], commit=record.get("commit"), step=step, started=started,
+                               result="passed" if code == 0 else "failed", results=results)
+        if out["result"] != "off":
+            record.setdefault("test_results", []).append({"step": step, **out})
+    return send
 
 
 def _step_env(step: Step, env: dict, logs: Path) -> dict | None:
@@ -318,7 +341,8 @@ def retest(cfg: Config, build_id: str, config_path: Path | None = None, *, runne
         todo = [s for s in steps(cfg, folder, build_id, ui=folder / "ui" / tag) if s.name in RETESTABLE]
         if _preview_url(logs):
             todo = [s for s in todo if s.name != "upload"]       # uploaded already: test that version
-        failed = _run_steps(todo, _env(config_path), logs, logs / tag, runner, attempt["steps"])
+        failed = _run_steps(todo, _env(config_path), logs, logs / tag, runner, attempt["steps"],
+                            on_browser=_send_results(record))
     attempt["result"] = "failed" if failed else "ok"
     attempt["finished"] = iso(utc_now())
     record.setdefault("retests", []).append(attempt)
@@ -392,6 +416,10 @@ def render(record: dict) -> str:
     for a in record.get("retests", []):
         lines += ["", f"Retest {a['started']}: {a['result'].upper()}"]
         lines += [f"  {'ok  ' if s['code'] == 0 else 'FAIL'} {s['name']} ({s['seconds']} s)" for s in a["steps"]]
+    unsent = [x for x in record.get("test_results", []) if x["result"] != "ok"]
+    if unsent:
+        lines += ["", "Test results not sent to the run history (the build is not affected):"]
+        lines += [f"  - {x['step']}: {x.get('error', 'failed')}" for x in unsent]
     if record["result"] == "ok":
         c = record.get("changes", {})
         lines += ["", f"Preview (private): {record.get('preview_url') or 'not found in the upload log'}", ""]
@@ -461,9 +489,14 @@ def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, f
         raise SystemExit(f"upload failed; see {log}")
     url = r.production_url if to == PRODUCTION else _url_in(log)
     done = {"id": build_id, "to": to, "promoted": iso(utc_now()), "url": url}
+    checked = utc_now()
     problem = confirm(url, (folder / "dist" / METADATA).read_bytes(), build_id,
                       fetch=fetch or (lambda u: _fetch(u, cfg.user_agent)), sleep=sleep)
     done["confirmed" if problem is None else "unconfirmed"] = iso(utc_now()) if problem is None else problem
+    sent = testresults.send(build=build_id, commit=record.get("commit"), step="promote", started=checked,
+                            result="passed" if problem is None else "failed")
+    if sent["result"] != "off":
+        done["test_results"] = sent
     _write_json(r.releases_dir / PROMOTED, {**promoted(r.releases_dir), to: done})
     if problem is not None:
         raise SystemExit(f"promoted {build_id} to {to}, but {url or 'its address'} doesn't serve it ({problem}). "

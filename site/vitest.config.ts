@@ -8,6 +8,11 @@ const coverage = process.env.TRACECONOMICS_COVERAGE === "on";
 
 export default defineConfig({
   test: {
+    // A JSON report beside the console's, on every run: the test catalog reads each test's case
+    // from it (`meta`, which Vitest's own listing leaves out), and the run history its results.
+    reporters: ["default", "json"],
+    outputFile: { json: "test-reports/vitest.json" },
+    includeTaskLocation: true,
     coverage: {
       enabled: coverage,
       include: ["src/**"],

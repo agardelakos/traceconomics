@@ -15,6 +15,7 @@ import cases as cases_mod  # noqa: E402
 import collect  # noqa: E402
 import history  # noqa: E402
 import validate  # noqa: E402
+import vm_pull  # noqa: E402
 import wiki  # noqa: E402
 
 GOOD = """PY-ENG-012: chain-linking carries December over
@@ -116,6 +117,9 @@ def test_playwright_listing_and_loops():
     assert len(merged) == 1
     c = merged[0]
     assert c.file == "site/tests/ui/calc.ui.ts" and c.examples == ["en: untouched", "el: untouched"]
+    assert c.title == "en: untouched"                                  # too little in common to name it
+    assert collect.shared_title(["en: untouched, it shows the rate", "el: untouched, it shows the rate"]) \
+        == "untouched, it shows the rate"
     assert c.tags == ["smoke"] and c.problems == []
 
 
@@ -265,3 +269,68 @@ def test_scripts_run_from_the_command_line(tmp_path):
     done = subprocess.run([sys.executable, "-I", str(Path(__file__).parent / "catalog/validate.py"), str(p)],
                           capture_output=True, text=True)
     assert done.returncode == 1 and "[bad-id]" in done.stdout
+
+
+# Release runs from the bucket ------------------------------------------------------------------
+
+def bucket(files: dict[str, bytes]):
+    """A fake read link: a listing (in pages of two) and downloads, as the bucket answers them."""
+    names = sorted(files)
+
+    def get(url, limit=10**9):
+        base, _, query = url.partition("?")
+        if query:
+            q = dict(x.split("=", 1) for x in query.split("&"))
+            start = q.get("start", "").replace("%2F", "/")
+            rest = [n for n in names if n.startswith("results/") and n >= start]
+            page = {"objects": [{"name": n, "size": len(files[n])} for n in rest[:2]]}
+            if len(rest) > 2:
+                page["nextStartWith"] = rest[2]
+            return json.dumps(page).encode()
+        return files[base.removeprefix("https://bucket/o/")]
+    return get
+
+
+def meta(**kw):
+    m = {"schema": 1, "build": "20261107T120000Z", "commit": "abc1234", "step": "ui-test",
+         "started": "2026-11-07T12:05:00Z", "environment": {"platform": "linux-aarch64", "data": "real"}, "result": "passed"}
+    m.update(kw)
+    return json.dumps(m).encode()
+
+
+def test_release_runs_are_pulled_checked_and_stored_once(tmp_path):
+    folder = "results/20261107T120000Z/ui-test-20261107T120500Z/"
+    files = {
+        folder + "meta.json": meta(),
+        folder + "playwright.json": json.dumps(PLAYWRIGHT).encode(),
+        "results/20261107T120000Z/promote-20261107T130000Z/meta.json": meta(step="promote", result="failed"),
+        "results/20261107T120000Z/smoke-20261107T121000Z/meta.json": meta(step="smoke", commit="not a commit"),
+        "results/20261107T120000Z/smoke-20261107T122000Z/playwright.json": b"{}",     # no meta yet: still uploading
+        "results/check/20261107T111853Z.json": b"{}",                                  # the link check's object
+    }
+    store, out = tmp_path / "store", tmp_path / "out"
+    written, problems = vm_pull.pull("https://bucket/o/", store, out, bucket(files))
+    assert sorted(p.name for p in written) == ["20261107T120000Z-promote-20261107T130000Z.json",
+                                               "20261107T120000Z-ui-test-20261107T120500Z.json"]
+    assert problems == ["results/20261107T120000Z/smoke-20261107T121000Z/: no commit"]
+    ui = json.loads((out / "20261107T120000Z-ui-test-20261107T120500Z.json").read_text(encoding="utf-8"))
+    assert ui["trigger"] == "ui-test" and ui["build"] == "20261107T120000Z" and ui["started"] == "2026-11-07T12:05:00Z"
+    assert ui["environment"] == {"data": "real", "platform": "linux-aarch64"}
+    assert ui["cases"]["PW-CALC-001"]["result"] == "flaky"
+    promote = json.loads((out / "20261107T120000Z-promote-20261107T130000Z.json").read_text(encoding="utf-8"))
+    assert promote["suites"]["promote-check"]["failed"] == 1
+    assert not list(out.glob("*.playwright.json"))                 # downloads are not left behind
+    for p in written:
+        history.append(store, json.loads(p.read_text(encoding="utf-8")), None, 200)
+    again, _ = vm_pull.pull("https://bucket/o/", store, tmp_path / "out2", bucket(files))
+    assert again == []                                              # stored already
+
+
+@pytest.mark.parametrize("change, problem", [
+    ({"build": "20261107T130000Z"}, "build or step differs from its folder"),
+    ({"result": "maybe"}, "no result"),
+    ({"environment": {"token": "x"}}, "bad environment"),
+], ids=["folder", "result", "environment"])
+def test_meta_is_checked(change, problem):
+    m = json.loads(meta(**change))
+    assert problem in vm_pull.check_meta(m, "20261107T120000Z", "ui-test")

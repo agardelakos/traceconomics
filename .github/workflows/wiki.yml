@@ -1,0 +1,105 @@
+# The wiki, kept up to date by itself: after every test run on main, once a day after the release
+# window, and by hand (for something extraordinary).
+#
+#  1. Release runs: the browser tests a release build ran on real data, uploaded to the
+#     test-results bucket (tests/catalog/vm_pull.py), checked and appended to the branch
+#     test-history. The read link is the secret TESTRESULTS_READ_URL; without it this step is skipped.
+#  2. The wiki: the hand-written pages copied from wiki/ (a page removed there is removed here),
+#     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py),
+#     pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
+#     version back.
+#
+# Runs only the default branch's code: nothing from a pull request, and no artifact from another run.
+# Actions are pinned to a full commit (the tag is in the comment).
+
+name: wiki
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+    branches: [main]
+  # 13:30 UTC: after the daily release window (13:00 Greek time is 10:00 or 11:00 UTC) and its
+  # browser steps, so a day's release runs reach the wiki the same day.
+  schedule:
+    - cron: "30 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write     # the branch test-history, and the wiki
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  wiki:
+    # After a test run, only one started by a push to main (never a pull request's).
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+
+      - name: The run history
+        run: |
+          git clone -q --depth 1 --branch test-history "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/store" \
+            || mkdir -p "$RUNNER_TEMP/store"
+
+      - name: Release runs from the bucket
+        env:
+          TESTRESULTS_READ_URL: ${{ secrets.TESTRESULTS_READ_URL }}
+        run: |
+          python -I tests/catalog/vm_pull.py --store "$RUNNER_TEMP/store" --out "$RUNNER_TEMP/release-runs" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Store the release runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          records=("$RUNNER_TEMP"/release-runs/20*.json)
+          if [ ${#records[@]} -gt 0 ]; then
+            .github/scripts/test_history_push.sh "Release runs: ${#records[@]}" "${records[@]}"
+            rm -rf "$RUNNER_TEMP/store"
+            git clone -q --depth 1 --branch test-history "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/store"
+          fi
+
+      # GITHUB_TOKEN by default; the secret WIKI_TOKEN (a fine-grained token for this repository,
+      # contents read and write) only if the default token is ever refused by the wiki.
+      - name: Update the wiki
+        env:
+          TOKEN: ${{ secrets.WIKI_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git_() { git -c http.extraheader="AUTHORIZATION: basic ${auth}" "$@"; }
+          if ! git_ clone -q --depth 1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.wiki.git" "$RUNNER_TEMP/wiki"; then
+            echo "::error::The wiki can't be cloned. It needs one page made in the browser before its repository exists; if it has one, the token was refused (add the secret WIKI_TOKEN)."
+            exit 1
+          fi
+          cd "$RUNNER_TEMP/wiki"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Mirror the hand-written pages: wiki/ is the source; the Tests pages are wiki.py's.
+          for f in *.md; do
+            case $f in
+              Tests.md|Tests-*.md) ;;
+              *) [ -f "$GITHUB_WORKSPACE/wiki/$f" ] || git rm -q "$f" ;;
+            esac
+          done
+          cp "$GITHUB_WORKSPACE"/wiki/*.md .
+          python -I "$GITHUB_WORKSPACE/tests/catalog/wiki.py" --store "$RUNNER_TEMP/store" --out . --repo "$GITHUB_REPOSITORY"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The wiki is up to date." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git diff --cached --stat | tail -1 | tee -a "$GITHUB_STEP_SUMMARY"
+          git commit -q -m "Update from ${GITHUB_SHA::7}"
+          git_ push -q origin HEAD

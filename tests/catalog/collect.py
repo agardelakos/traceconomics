@@ -140,7 +140,27 @@ def merge_outlines(cases: list[Case]) -> list[Case]:
             first.problems.append(f"examples of {c.id} carry different steps ({c.title!r})")
         first.defects = sorted(set(first.defects) | set(c.defects))
         first.tags = sorted(set(first.tags) | set(c.tags))
+    for c in out:
+        if c.id and len(c.examples) > 1 and c.suite in ("playwright", "vitest"):
+            c.title = shared_title(c.examples) or c.title
     return out
+
+
+def shared_title(titles: list[str]) -> str:
+    """What an outline's example titles have in common: `en: untouched, …` and `el: untouched, …`
+    give `untouched, …`. Empty when they share too little to name the case."""
+    def common(a: str, b: str) -> str:
+        n = 0
+        while n < min(len(a), len(b)) and a[n] == b[n]:
+            n += 1
+        return a[:n]
+    suffix = titles[0][::-1]
+    prefix = titles[0]
+    for x in titles[1:]:
+        suffix = common(suffix, x[::-1])
+        prefix = common(prefix, x)
+    best = max(suffix[::-1], prefix, key=len).strip(" :,;-–›")
+    return best if len(best) >= 12 else ""
 
 
 def catalog(cases: list[Case], missing: list[str], commit: str | None) -> dict:
