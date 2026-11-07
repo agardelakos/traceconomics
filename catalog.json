@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "8d419cfce97865523e19e9322bd0fb366a35d58e",
- "generated": "2026-11-07T19:35:16Z",
+ "commit": "0594287e3a01c0aa6865f51cbd56a532e9d301a8",
+ "generated": "2026-11-07T19:43:08Z",
  "missing": [],
  "cases": [
   {
@@ -3507,6 +3507,119 @@
    "named": false
   },
   {
+   "id": "PY-BACKFILL-005",
+   "suite": "pytest",
+   "title": "publishers' pages that aren't data files get datasets named after their paths",
+   "file": "tests/test_backfill.py",
+   "line": 110,
+   "node": "tests/test_backfill.py::test_other_pages_of_the_publishers_get_their_own_datasets",
+   "given": [
+    "an ELSTAT page without a document ID, a Eurostat dataflow definition and another Eurostat page"
+   ],
+   "when": [
+    "the dataset for each URL is worked out"
+   ],
+   "then": [
+    "the ELSTAT page is named by its path in slug form",
+    "the dataflow is \"<code>-dataflow\"",
+    "the other Eurostat page is named by its path in slug form, without \"/eurostat\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BACKFILL-006",
+   "suite": "pytest",
+   "title": "seeding takes ELSTAT files saved with their HTTP response headers",
+   "file": "tests/test_backfill.py",
+   "line": 136,
+   "node": "tests/test_backfill.py::test_seed_takes_elstat_files_saved_with_their_response_headers",
+   "given": [
+    "a research folder \"downloads_el\" holding \"585819__Table_GR.xls\" and its 585819.hdr: status 200, a Date, a matching length and a cookie",
+    "files whose .hdr says 404, has no Date, gives another length, or is not named by a document ID",
+    "a document ID with two saved files"
+   ],
+   "when": [
+    "the archive is seeded from it"
+   ],
+   "then": [
+    "only document 585819 is stored, as the Greek dataset elstat/doc-585819-el",
+    "its snapshot is retrieved at the Date header's time and its URL asks for the Greek page",
+    "its manifest keeps the content type and length, not the cookie",
+    "the files whose headers don't vouch for them are left out",
+    "the .hdr files themselves are never counted as unrecorded files"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BACKFILL-007",
+   "suite": "pytest",
+   "title": "seeding takes hand-downloaded microdata listed in their checksum file",
+   "file": "tests/test_backfill.py",
+   "line": 169,
+   "node": "tests/test_backfill.py::test_seed_takes_hand_downloaded_microdata_from_their_checksum_list",
+   "given": [
+    "a folder elstat-puf/hbs/archives with HBS_2019.zip, a SHA256SUMS line for it and one for a file that isn't there"
+   ],
+   "when": [
+    "the archive is seeded from it"
+   ],
+   "then": [
+    "HBS_2019.zip is stored as elstat/puf-hbs-2019, of kind \"manual\" and with no URL",
+    "the missing file is ignored"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BACKFILL-008",
+   "suite": "pytest",
+   "title": "seeding reports rows it can't vouch for, and copies a file listed twice only once",
+   "file": "tests/test_backfill.py",
+   "line": 187,
+   "node": "tests/test_backfill.py::test_seed_skips_rows_it_cant_vouch_for_and_files_listed_twice",
+   "given": [
+    "a research folder without a date in its name, whose MANIFEST.md and README.md both list one good file with its date and checksum",
+    "a manifest row for a file that isn't there, a row with no date, and a row without a URL",
+    "a notes file that is neither a manifest nor a README"
+   ],
+   "when": [
+    "the archive is seeded from it as a dry run"
+   ],
+   "then": [
+    "the good file is listed once",
+    "the missing file and the undated row are reported as skipped",
+    "the row without a URL and the notes file are ignored"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-CAT-001",
    "suite": "pytest",
    "title": "a docstring's case is read into its ID, title, steps and notes",
@@ -4374,6 +4487,1567 @@
    "named": false
   },
   {
+   "id": "PY-CLI-001",
+   "suite": "pytest",
+   "title": "--version prints the package version",
+   "file": "tests/test_cli.py",
+   "line": 33,
+   "node": "tests/test_cli.py::test_version_prints_the_package_version",
+   "given": [
+    "the command line"
+   ],
+   "when": [
+    "it is run with --version"
+   ],
+   "then": [
+    "it exits with code 0",
+    "it prints the package's version"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-002",
+   "suite": "pytest",
+   "title": "a missing config file stops the command with a usage error",
+   "file": "tests/test_cli.py",
+   "line": 47,
+   "node": "tests/test_cli.py::test_a_missing_config_file_stops_with_a_usage_error",
+   "given": [
+    "a config path where no file exists"
+   ],
+   "when": [
+    "the status command is run with it"
+   ],
+   "then": [
+    "it exits with code 2",
+    "the error names the missing file and how to make one"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-003",
+   "suite": "pytest",
+   "title": "the config file given on the command line is passed on to the steps a run starts",
+   "file": "tests/test_cli.py",
+   "line": 63,
+   "node": "tests/test_cli.py::test_the_config_given_is_passed_on_to_later_steps",
+   "given": [
+    "a config file passed with --config"
+   ],
+   "when": [
+    "a command is run with it"
+   ],
+   "then": [
+    "TRACECONOMICS_CONFIG holds the file's absolute path afterwards"
+   ],
+   "notes": "A release runs its steps as separate processes; they must read the same file.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-004",
+   "suite": "pytest",
+   "title": "a run that finds another run's lock is skipped, not failed",
+   "file": "tests/test_cli.py",
+   "line": 79,
+   "node": "tests/test_cli.py::test_a_run_that_finds_the_lock_taken_is_skipped",
+   "given": [
+    "another run holding the store's lock"
+   ],
+   "when": [
+    "the store update command is run"
+   ],
+   "then": [
+    "it exits with code 0",
+    "it prints that the run was skipped"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-005",
+   "suite": "pytest",
+   "title": "a crash is reported through the alert channel and fails the run",
+   "file": "tests/test_cli.py",
+   "line": 92,
+   "node": "tests/test_cli.py::test_a_crash_is_reported_and_fails_the_run",
+   "given": [
+    "a configuration without email settings",
+    "a status command whose work raises an unexpected error"
+   ],
+   "when": [
+    "it is run"
+   ],
+   "then": [
+    "it exits with code 1",
+    "it prints the traceback and where the crash report went",
+    "the report in the outbox is titled \"ALERT: traceconomics status crashed\" and holds the error"
+   ],
+   "notes": "A scheduled run has no console, so a crash must reach the owner some other way.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-006",
+   "suite": "pytest",
+   "title": "migrate-local runs before any config exists and fails on a problem",
+   "file": "tests/test_cli.py",
+   "line": 115,
+   "node": "tests/test_cli.py::test_migrate_local_runs_without_a_config_and_reports_problems",
+   "given": [
+    "no config file anywhere",
+    "a migration that has one step and one problem"
+   ],
+   "when": [
+    "migrate-local is run as a dry run",
+    "it is run for real with no problems left"
+   ],
+   "then": [
+    "the dry run prints the step as \"would ...\" and the problem as \"PROBLEM ...\", and exits with code 1",
+    "the real run prints the step as done and exits with code 0"
+   ],
+   "notes": "The config under the project's new name may not exist yet: that is what the command creates.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-007",
+   "suite": "pytest",
+   "title": "archive prints the job's result and fails unless the run went well",
+   "file": "tests/test_cli.py",
+   "line": 144,
+   "node": "tests/test_cli.py::test_archive_prints_the_run_and_fails_unless_it_went_well",
+   "given": [
+    "an archive job that ends with a given result"
+   ],
+   "when": [
+    "the archive command is run with --force"
+   ],
+   "then": [
+    "it prints the result as JSON",
+    "the job was asked to run even though nothing is due",
+    "it exits with code 0 for ok, not-due and dry-run, and 1 otherwise"
+   ],
+   "notes": "",
+   "examples": [
+    "ok-0",
+    "not-due-0",
+    "dry-run-0",
+    "partial-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-008",
+   "suite": "pytest",
+   "title": "fetch-history reads the years and the pause, and fails unless the fetch went well",
+   "file": "tests/test_cli.py",
+   "line": 163,
+   "node": "tests/test_cli.py::test_fetch_history_passes_the_years_and_pause",
+   "given": [
+    "a history fetch that ends with a given result"
+   ],
+   "when": [
+    "fetch-history cpi07 is run for \"2011-2013,2015\" with a 5 second pause as a dry run"
+   ],
+   "then": [
+    "the fetch is asked for 2011, 2012, 2013 and 2015, with the pause and the dry run",
+    "it prints the result as JSON",
+    "it exits with code 0 for ok and dry-run, and 1 otherwise"
+   ],
+   "notes": "",
+   "examples": [
+    "ok-0",
+    "dry-run-0",
+    "failed-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-009",
+   "suite": "pytest",
+   "title": "import stores a file downloaded by hand, once",
+   "file": "tests/test_cli.py",
+   "line": 184,
+   "node": "tests/test_cli.py::test_import_stores_a_file_downloaded_by_hand",
+   "given": [
+    "a file \"hbs-2025.zip\" downloaded by hand on 2026-01-02"
+   ],
+   "when": [
+    "it is imported with that date",
+    "it is imported again"
+   ],
+   "then": [
+    "the first import prints \"stored: elstat/puf-hbs-2025\" and the archived path, and exits with code 0",
+    "the archived snapshot is dated 2026-01-02",
+    "the second import prints \"unchanged\" without a path"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-010",
+   "suite": "pytest",
+   "title": "seed reports what it stored, and fails on a bad checksum",
+   "file": "tests/test_cli.py",
+   "line": 204,
+   "node": "tests/test_cli.py::test_seed_reports_each_file_and_fails_on_a_bad_checksum",
+   "given": [
+    "a research folder whose manifest lists one matching file and one changed file"
+   ],
+   "when": [
+    "seed is run"
+   ],
+   "then": [
+    "it prints \"stored: 1\" and lists the stored file with \"+\"",
+    "it lists the changed file as \"BAD CHECKSUM\"",
+    "it exits with code 1",
+    "the matching file is in the archive"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-037",
+   "suite": "pytest",
+   "title": "seed as a dry run lists what it would store and stores nothing",
+   "file": "tests/test_cli.py",
+   "line": 222,
+   "node": "tests/test_cli.py::test_seed_dry_run_lists_without_storing",
+   "given": [
+    "a research folder whose manifest lists one matching file"
+   ],
+   "when": [
+    "seed is run as a dry run"
+   ],
+   "then": [
+    "it prints \"would store: 1\" and lists the file with \"+\"",
+    "it exits with code 0",
+    "nothing is in the archive"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-011",
+   "suite": "pytest",
+   "title": "status shows the last runs, the next release days and the files waiting for backup",
+   "file": "tests/test_cli.py",
+   "line": 253,
+   "node": "tests/test_cli.py::test_status_shows_runs_release_days_and_files_waiting_for_backup",
+   "given": [
+    "an archive with one stored file, one recorded run, a last good run and a release day tomorrow"
+   ],
+   "when": [
+    "status is run",
+    "backup-done is run, then status again"
+   ],
+   "then": [
+    "the first status names the archive, the last good run, tomorrow as the next release day and the run",
+    "it counts 1 file waiting for backup since the start",
+    "backup-done prints the time it recorded",
+    "after backup-done status counts 0 files waiting, since that time"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-012",
+   "suite": "pytest",
+   "title": "status on a new archive says what isn't known yet",
+   "file": "tests/test_cli.py",
+   "line": 284,
+   "node": "tests/test_cli.py::test_status_says_when_nothing_is_known",
+   "given": [
+    "an empty archive with no saved state"
+   ],
+   "when": [
+    "status is run"
+   ],
+   "then": [
+    "it says the last good run was never",
+    "that no release day is known"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-013",
+   "suite": "pytest",
+   "title": "notify-test sends a test message through the configured channel",
+   "file": "tests/test_cli.py",
+   "line": 297,
+   "node": "tests/test_cli.py::test_notify_test_writes_a_test_message",
+   "given": [
+    "a configuration without email settings"
+   ],
+   "when": [
+    "notify-test is run"
+   ],
+   "then": [
+    "it exits with code 0",
+    "it prints where the message went",
+    "that file is a test message"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-014",
+   "suite": "pytest",
+   "title": "backup plan counts every file to send and lists the first fifty",
+   "file": "tests/test_cli.py",
+   "line": 314,
+   "node": "tests/test_cli.py::test_backup_plan_lists_at_most_fifty_files",
+   "given": [
+    "60 archive files not yet backed up"
+   ],
+   "when": [
+    "backup plan is run"
+   ],
+   "then": [
+    "it prints \"60 files to send\"",
+    "it lists the first 50 by name, not the rest"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-015",
+   "suite": "pytest",
+   "title": "backup sync prints its result and fails unless it sent the files or is switched off",
+   "file": "tests/test_cli.py",
+   "line": 329,
+   "node": "tests/test_cli.py::test_backup_sync_fails_unless_it_sent_or_is_off",
+   "given": [
+    "a backup upload that ends with a given result"
+   ],
+   "when": [
+    "backup sync is run"
+   ],
+   "then": [
+    "it prints the result as JSON",
+    "it exits with code 0 for ok and off, and 1 otherwise"
+   ],
+   "notes": "",
+   "examples": [
+    "ok-0",
+    "off-0",
+    "failed-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-016",
+   "suite": "pytest",
+   "title": "analytics export for one day runs each feed and reports a feed's failure",
+   "file": "tests/test_cli.py",
+   "line": 343,
+   "node": "tests/test_cli.py::test_analytics_for_one_day_runs_each_feed_and_reports_a_failure",
+   "given": [
+    "a visits feed that copies its day and a downloads feed whose request fails"
+   ],
+   "when": [
+    "analytics export is run for --day 2026-11-01"
+   ],
+   "then": [
+    "each feed is asked for 2026-11-01",
+    "it prints both results as JSON, the failed one with its error",
+    "it exits with code 1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-017",
+   "suite": "pytest",
+   "title": "analytics export without a day copies from the bookmark and saves the moved bookmark",
+   "file": "tests/test_cli.py",
+   "line": 366,
+   "node": "tests/test_cli.py::test_analytics_without_a_day_follows_the_bookmark_and_saves_it",
+   "given": [
+    "a visits feed whose export moves its bookmark"
+   ],
+   "when": [
+    "analytics export is run for the visits feed only"
+   ],
+   "then": [
+    "only the visits feed runs",
+    "the moved bookmark is saved in the job's state",
+    "it prints the result and exits with code 0"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-018",
+   "suite": "pytest",
+   "title": "release build prints the build's report and fails if the build failed",
+   "file": "tests/test_cli.py",
+   "line": 394,
+   "node": "tests/test_cli.py::test_release_build_prints_its_report",
+   "given": [
+    "a release build that ends with a given result"
+   ],
+   "when": [
+    "release build is run"
+   ],
+   "then": [
+    "the build is given the config file the command read",
+    "it prints the build's report",
+    "it exits with code 0 if the build passed, 1 otherwise"
+   ],
+   "notes": "",
+   "examples": [
+    "ok-0",
+    "failed-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-019",
+   "suite": "pytest",
+   "title": "release promote and retest refuse to guess the build or the target",
+   "file": "tests/test_cli.py",
+   "line": 411,
+   "node": "tests/test_cli.py::test_release_promote_and_retest_need_a_build_and_a_target",
+   "given": [
+    "no build is named, or a promote names no target"
+   ],
+   "when": [
+    "release promote or retest is run"
+   ],
+   "then": [
+    "it says what is missing",
+    "it exits with code 2",
+    "nothing is promoted or tested"
+   ],
+   "notes": "A promote changes what the public sees, so it never has a default.",
+   "examples": [
+    "args0-Which build?",
+    "args1-Which build?",
+    "args2-Where to? Pass --to staging or --to production."
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-020",
+   "suite": "pytest",
+   "title": "release promote, retest and status print what they did",
+   "file": "tests/test_cli.py",
+   "line": 434,
+   "node": "tests/test_cli.py::test_release_promote_retest_and_status",
+   "given": [
+    "a build that promotes and retests cleanly, and two builds on disk"
+   ],
+   "when": [
+    "release promote is run with --to staging",
+    "release retest is run",
+    "release status is run"
+   ],
+   "then": [
+    "the promote prints the build, the target, the address that serves it and when it was checked",
+    "the retest prints the build's report and exits with code 0",
+    "status lists each build with its result and where it is live"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-021",
+   "suite": "pytest",
+   "title": "schedule units needs a folder, then writes the units and the shell command there",
+   "file": "tests/test_cli.py",
+   "line": 464,
+   "node": "tests/test_cli.py::test_schedule_units_needs_a_folder_and_writes_the_units_there",
+   "given": [
+    "a Linux machine"
+   ],
+   "when": [
+    "schedule units is run without --out",
+    "it is run with --out and --bin folders"
+   ],
+   "then": [
+    "the first run says where to point it and exits with code 2",
+    "the second writes the archive timer and service into --out and the traceconomics command into --bin",
+    "it prints each file written"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-022",
+   "suite": "pytest",
+   "title": "schedule install, remove and show report on the Windows task",
+   "file": "tests/test_cli.py",
+   "line": 484,
+   "node": "tests/test_cli.py::test_schedule_install_remove_and_show_on_windows",
+   "given": [
+    "a Windows task scheduler that installs, removes and shows the task"
+   ],
+   "when": [
+    "schedule install, remove and show are run"
+   ],
+   "then": [
+    "install prints the task's name and its daily time, 13:00",
+    "remove prints \"Removed.\"",
+    "show prints what the task scheduler said"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-023",
+   "suite": "pytest",
+   "title": "schedule install on Linux stops and points to the systemd units",
+   "file": "tests/test_cli.py",
+   "line": 501,
+   "node": "tests/test_cli.py::test_schedule_install_on_linux_points_to_the_units",
+   "given": [
+    "a Linux machine"
+   ],
+   "when": [
+    "schedule install is run"
+   ],
+   "then": [
+    "the command stops with a message naming \"schedule units\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-024",
+   "suite": "pytest",
+   "title": "store refuses a dataset it doesn't know",
+   "file": "tests/test_cli.py",
+   "line": 515,
+   "node": "tests/test_cli.py::test_store_refuses_an_unknown_dataset",
+   "given": [
+    "a dataset name that isn't in the catalog"
+   ],
+   "when": [
+    "store update is run for it"
+   ],
+   "then": [
+    "it names the unknown dataset and lists the known ones",
+    "it exits with code 2"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-025",
+   "suite": "pytest",
+   "title": "store update reads the chosen dataset's archived snapshot into the store",
+   "file": "tests/test_cli.py",
+   "line": 528,
+   "node": "tests/test_cli.py::test_store_update_reads_an_archived_dataset",
+   "given": [
+    "an archive holding one snapshot of Eurostat's HICP monthly indices"
+   ],
+   "when": [
+    "store update is run for eurostat:prc_hicp_minr"
+   ],
+   "then": [
+    "it exits with code 0",
+    "its report line names the dataset with one snapshot read",
+    "it prints the store's folder"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-026",
+   "suite": "pytest",
+   "title": "check v1 says which file to archive first",
+   "file": "tests/test_cli.py",
+   "line": 546,
+   "node": "tests/test_cli.py::test_check_v1_needs_the_archived_files",
+   "given": [
+    "an empty archive"
+   ],
+   "when": [
+    "check v1 is run"
+   ],
+   "then": [
+    "it names eurostat/prc_hicp_minr as missing and says to run the archive job",
+    "it exits with code 1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-027",
+   "suite": "pytest",
+   "title": "check v1 rebuilds Greece's HICP from the archived Eurostat files",
+   "file": "tests/test_cli.py",
+   "line": 558,
+   "node": "tests/test_cli.py::test_check_v1_rebuilds_the_archived_hicp",
+   "given": [
+    "an archive holding the committed Greek extracts of the HICP indices and item weights"
+   ],
+   "when": [
+    "check v1 is run for GR",
+    "it is run for CY"
+   ],
+   "then": [
+    "it names both archived files",
+    "it prints the finest-detail result",
+    "it ends with \"V1 passed.\" and exit code 0",
+    "after the run for CY, a country the extract lacks, it says there is no all-items index for CY, with exit code 1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-028",
+   "suite": "pytest",
+   "title": "check v1-cpi reports missing years, the strict check and the earlier report-only years",
+   "file": "tests/test_cli.py",
+   "line": 581,
+   "node": "tests/test_cli.py::test_check_v1_cpi_reports_missing_years_and_the_earlier_period",
+   "given": [
+    "archived table 07 files for 2011, 2012 and 2014, and a strict check that passes or fails"
+   ],
+   "when": [
+    "check v1-cpi is run"
+   ],
+   "then": [
+    "it prints the years covered and 2013 as missing",
+    "the earlier years' failures are shown as \"outside the check\", not as failures",
+    "it ends with \"V1-CPI passed.\" and exit code 0, or \"V1-CPI FAILED.\" and 1"
+   ],
+   "notes": "",
+   "examples": [
+    "True",
+    "False"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-029",
+   "suite": "pytest",
+   "title": "check v3 prints each year and flags a large weights effect that has no explanation",
+   "file": "tests/test_cli.py",
+   "line": 602,
+   "node": "tests/test_cli.py::test_check_v3_flags_years_that_need_an_explanation",
+   "given": [
+    "V3 rows for a year with a small weights effect and a year with a large unexplained one"
+   ],
+   "when": [
+    "check v3 is run"
+   ],
+   "then": [
+    "both spending concepts are printed",
+    "only the year with the large effect is flagged \"TO EXPLAIN\"",
+    "it exits with code 0 (V3 is a report)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-030",
+   "suite": "pytest",
+   "title": "check v6 passes when the largest difference is within rounding",
+   "file": "tests/test_cli.py",
+   "line": 622,
+   "node": "tests/test_cli.py::test_check_v6_passes_within_rounding_only",
+   "given": [
+    "a V6 result whose worst contribution, rounded to two decimals, is 0.00 or 0.02 pp off Eurostat's"
+   ],
+   "when": [
+    "check v6 is run"
+   ],
+   "then": [
+    "it prints how many contributions are equal and the largest difference",
+    "it passes with exit code 0 within 0.01 pp, and fails with 1 beyond it"
+   ],
+   "notes": "",
+   "examples": [
+    "0.124-0.12-0",
+    "0.104-0.12-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-031",
+   "suite": "pytest",
+   "title": "check v4 fails on a Bruegel gap and reports KEPE without a verdict",
+   "file": "tests/test_cli.py",
+   "line": 640,
+   "node": "tests/test_cli.py::test_check_v4_fails_on_bruegel_and_reports_kepe",
+   "given": [
+    "a Bruegel rebuild that fails, with one provisional year, and a KEPE rebuild"
+   ],
+   "when": [
+    "check v4 is run"
+   ],
+   "then": [
+    "it prints Bruegel's result with its largest monthly gap and annual averages",
+    "it names the provisional year as not compared",
+    "it prints KEPE's annual averages against the published chart",
+    "it exits with code 1, Bruegel being the tier-B check"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-032",
+   "suite": "pytest",
+   "title": "check v5 prints each setting's gap for Bruegel and KEPE",
+   "file": "tests/test_cli.py",
+   "line": 667,
+   "node": "tests/test_cli.py::test_check_v5_prints_each_setting_gap",
+   "given": [
+    "attribution rows for Bruegel and KEPE over two years"
+   ],
+   "when": [
+    "check v5 is run"
+   ],
+   "then": [
+    "it prints a header with the years and one line per setting with signed gaps",
+    "it exits with code 0 (V5 is a report)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-033",
+   "suite": "pytest",
+   "title": "check combos prints the identities and each option's effect, and fails on a broken identity",
+   "file": "tests/test_cli.py",
+   "line": 686,
+   "node": "tests/test_cli.py::test_check_combos_prints_the_identities_and_the_option_effects",
+   "given": [
+    "module 1 outputs whose identities hold, or break once",
+    "an earlier build to compare the default with"
+   ],
+   "when": [
+    "check combos is run with both folders"
+   ],
+   "then": [
+    "the identity check is given both outputs' m1 folders",
+    "it prints each identity, the price source, timing, imputed rent and tutoring tables",
+    "it ends with \"Identities passed.\" and exit code 0, or \"Identities FAILED.\" and 1"
+   ],
+   "notes": "",
+   "examples": [
+    "True",
+    "False"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-034",
+   "suite": "pytest",
+   "title": "check seam and check prices print their reports",
+   "file": "tests/test_cli.py",
+   "line": 720,
+   "node": "tests/test_cli.py::test_check_seam_and_prices_are_reports",
+   "given": [
+    "a seam result for one group and a price comparison for one year"
+   ],
+   "when": [
+    "check seam and check prices are run"
+   ],
+   "then": [
+    "seam prints the group's original and re-issued 2010 movement and their difference",
+    "prices prints the year's pairs, median gap, share within 0.1 pp and largest gap",
+    "both exit with code 0"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-035",
+   "suite": "pytest",
+   "title": "export writes the skeleton or the site's data and lists what it wrote",
+   "file": "tests/test_cli.py",
+   "line": 741,
+   "node": "tests/test_cli.py::test_export_skeleton_and_site",
+   "given": [
+    "a skeleton export that writes one file and a site export that writes three"
+   ],
+   "when": [
+    "export skeleton is run",
+    "export site is run with --no-downloads"
+   ],
+   "then": [
+    "the skeleton export prints the file it wrote",
+    "the site export is told to skip the download files and to read the given outputs folder",
+    "it prints how many files it wrote and where"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-036",
+   "suite": "pytest",
+   "title": "module1 run computes the chosen settings and writes their files",
+   "file": "tests/test_cli.py",
+   "line": 769,
+   "node": "tests/test_cli.py::test_module1_run_writes_the_default_setting",
+   "given": [
+    "the made-up store and prices of the site's browser tests"
+   ],
+   "when": [
+    "module1 run is run for the default setting, purchases only"
+   ],
+   "then": [
+    "it prints one progress line for the one setting, naming its series and their months",
+    "it writes the index, rates, availability and metadata files under gr/m1",
+    "it ends with the writer's row counts as JSON",
+    "it exits with code 0"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-038",
+   "suite": "pytest",
+   "title": "weights run builds every archived survey year unless years are given",
+   "file": "tests/test_cli_local.py",
+   "line": 27,
+   "node": "tests/test_cli_local.py::test_weights_run_defaults_to_every_archived_survey",
+   "given": [
+    "an archive holding the surveys of 2019 and 2021"
+   ],
+   "when": [
+    "weights run is run without years, with 10 replicates",
+    "it is run for 2020 only"
+   ],
+   "then": [
+    "the first run builds 2019 and 2021 with 10 replicates and prints one JSON line per year",
+    "after the second run only 2020 was asked for"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-039",
+   "suite": "pytest",
+   "title": "bands run prints its summary and the standard error of the default setting's gap",
+   "file": "tests/test_cli_local.py",
+   "line": 52,
+   "node": "tests/test_cli_local.py::test_bands_run_prints_the_summary_and_the_default_gap_errors",
+   "given": [
+    "a bands run whose table holds the default setting's Q1-Q5 gap for two years and another setting's"
+   ],
+   "when": [
+    "bands run is run for the default combination"
+   ],
+   "then": [
+    "only the default setting is computed",
+    "it prints the run's summary as JSON, without the table",
+    "it prints the gap's standard error by year for the default setting only"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-040",
+   "suite": "pytest",
+   "title": "mapping build writes into the given folder and prints its report",
+   "file": "tests/test_cli_local.py",
+   "line": 82,
+   "node": "tests/test_cli_local.py::test_mapping_build_prints_its_report",
+   "given": [
+    "a mapping build that reports the tables it wrote"
+   ],
+   "when": [
+    "mapping build is run with --out"
+   ],
+   "then": [
+    "the build reads the configured store and writes into the given folder",
+    "it prints the build's report as JSON"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-041",
+   "suite": "pytest",
+   "title": "check v2 fails on a strict year's difference, never on a report-only year's",
+   "file": "tests/test_cli_local.py",
+   "line": 105,
+   "node": "tests/test_cli_local.py::test_check_v2_fails_only_on_a_strict_year",
+   "given": [
+    "archived surveys for 2017 and 2018, where 2018 is report-only",
+    "V2 results where 2018 differs and 2017 passes or differs",
+    "a band of 2017 whose label has a euro sign",
+    "standard errors that pass for 2017"
+   ],
+   "when": [
+    "check v2 is run"
+   ],
+   "then": [
+    "2018 is shown as \"report only\"",
+    "a strict year's difference is listed with the published and our figure",
+    "the euro sign is written as EUR",
+    "it ends with \"V2 passed.\" and exit code 0 when 2017 passes, or \"V2 FAILED.\" and 1"
+   ],
+   "notes": "",
+   "examples": [
+    "True-0",
+    "False-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-042",
+   "suite": "pytest",
+   "title": "check mapping prints both comparisons, each flag's verdict and the CPI report",
+   "file": "tests/test_cli_local.py",
+   "line": 140,
+   "node": "tests/test_cli_local.py::test_check_mapping_prints_each_comparison_and_the_cpi_report",
+   "given": [
+    "mapping comparisons that pass or fail, each flagging one code explained, one unexplained from the mapping",
+    "one not from the mapping",
+    "a CPI weights report"
+   ],
+   "when": [
+    "check mapping is run"
+   ],
+   "then": [
+    "it compares 2023 with 2024 and 2014 with 2015, using each pair's explanations",
+    "each flag is shown as explained, NOT EXPLAINED or not from the mapping",
+    "the largest division difference and the CPI report are printed",
+    "it ends with \"Mapping check passed.\" and exit code 0, or \"Mapping check FAILED.\" and 1"
+   ],
+   "notes": "",
+   "examples": [
+    "True-0",
+    "False-1"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-043",
+   "suite": "pytest",
+   "title": "check hospital prints each survey's hospital share and the change it makes",
+   "file": "tests/test_cli_local.py",
+   "line": 180,
+   "node": "tests/test_cli_local.py::test_check_hospital_prints_the_effect_of_putting_hospitals_back",
+   "given": [
+    "a hospital check with one survey, one group's change and the gap's change"
+   ],
+   "when": [
+    "check hospital is run"
+   ],
+   "then": [
+    "it prints the survey's hospital share of purchases and its bands",
+    "the group's change and the gap's change, each with three decimals and a sign",
+    "it exits with code 0 (a report)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-010",
+   "suite": "pytest",
+   "title": "every identity holds on outputs written by the real writer",
+   "file": "tests/test_combos_check.py",
+   "line": 62,
+   "node": "tests/test_combos_check.py::test_the_identities_hold_on_outputs_written_by_the_real_code",
+   "given": [
+    "module 1 outputs for the default and its one-change settings, each with both tutoring options"
+   ],
+   "when": [
+    "the identities are checked against the same outputs as the earlier build"
+   ],
+   "then": [
+    "the tutoring options agree before 2026",
+    "the contributions add up to the annual rates",
+    "every written series is in the availability table, and the other way round",
+    "the default equals the earlier build"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-011",
+   "suite": "pytest",
+   "title": "a difference between the tutoring options before 2026 breaks their identity",
+   "file": "tests/test_combos_check.py",
+   "line": 79,
+   "node": "tests/test_combos_check.py::test_a_tutoring_difference_before_2026_breaks_its_identity",
+   "given": [
+    "module 1 outputs where one 2020 annual-average rate differs between the tutoring options"
+   ],
+   "when": [
+    "the identities are checked"
+   ],
+   "then": [
+    "the tutoring identity fails and names the rates file",
+    "the contributions and availability identities still hold"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-012",
+   "suite": "pytest",
+   "title": "contributions that don't add up to the annual rate break their identity",
+   "file": "tests/test_combos_check.py",
+   "line": 96,
+   "node": "tests/test_combos_check.py::test_contributions_that_dont_add_up_break_their_identity",
+   "given": [
+    "module 1 outputs where one 2026 contribution of the default's all-households series is 1 pp too high"
+   ],
+   "when": [
+    "the identities are checked"
+   ],
+   "then": [
+    "the contributions identity fails, its largest difference about 1 pp",
+    "the tutoring identity still holds (the change is after 2025)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-013",
+   "suite": "pytest",
+   "title": "a written series missing from the availability table breaks its identity",
+   "file": "tests/test_combos_check.py",
+   "line": 113,
+   "node": "tests/test_combos_check.py::test_a_series_missing_from_the_availability_table_breaks_its_identity",
+   "given": [
+    "module 1 outputs whose availability table leaves out one series"
+   ],
+   "when": [
+    "the identities are checked"
+   ],
+   "then": [
+    "the availability identity fails and names the series written but not listed"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-014",
+   "suite": "pytest",
+   "title": "the default is compared with an earlier build, which may hold fewer groups",
+   "file": "tests/test_combos_check.py",
+   "line": 129,
+   "node": "tests/test_combos_check.py::test_the_default_against_an_earlier_build",
+   "given": [
+    "an earlier build holding only the default's all-households series",
+    "another earlier build where one of the default's index values differs",
+    "a third with no rows of the default"
+   ],
+   "when": [
+    "the current outputs are compared with each"
+   ],
+   "then": [
+    "they equal the first",
+    "differ from the second, naming the index file",
+    "differ from the third, an earlier build with nothing to compare being a failure"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-015",
+   "suite": "pytest",
+   "title": "the price-source and timing reports read each setting's own annual averages",
+   "file": "tests/test_combos_check.py",
+   "line": 167,
+   "node": "tests/test_combos_check.py::test_the_price_source_and_timing_reports",
+   "given": [
+    "module 1 outputs with CPI and HICP prices and the three timing rules"
+   ],
+   "when": [
+    "the price-source and timing reports are made"
+   ],
+   "then": [
+    "the price-source report gives, per year, the all-households average under each price source and the B gap under each",
+    "the timing report gives the B gap under rules N, F and U, with None where a rule has no figure that year"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-016",
+   "suite": "pytest",
+   "title": "the imputed-rent report gives each group's rent weight and what keeping it changes",
+   "file": "tests/test_combos_check.py",
+   "line": 189,
+   "node": "tests/test_combos_check.py::test_the_imputed_rent_report",
+   "given": [
+    "module 1 outputs with imputed rent excluded and included"
+   ],
+   "when": [
+    "the imputed-rent report is made"
+   ],
+   "then": [
+    "every group of the B, all-households and tenure groupings is in it",
+    "each has a positive 2025 imputed-rent weight, except renters, who have none",
+    "each year's change is the annual average with the rent kept minus the one without it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-017",
+   "suite": "pytest",
+   "title": "the tutoring report gives the newest month's rate and the education weight under both options",
+   "file": "tests/test_combos_check.py",
+   "line": 207,
+   "node": "tests/test_combos_check.py::test_the_tutoring_report",
+   "given": [
+    "module 1 outputs with tutoring priced and excluded"
+   ],
+   "when": [
+    "the tutoring report is made",
+    "it is made for 2026-03"
+   ],
+   "then": [
+    "it is for the newest month with an annual rate, in 2026",
+    "it covers all households and the B quintiles, with the rate under both options",
+    "excluding tutoring leaves a smaller education weight in 2026 for every group",
+    "after the second report, it is for 2026-03"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CONF-001",
+   "suite": "pytest",
+   "title": "every setting in the file is read, with paths relative to the file",
+   "file": "tests/test_config.py",
+   "line": 14,
+   "node": "tests/test_config.py::test_every_setting_is_read_from_the_file",
+   "given": [
+    "a settings file with the archive, fetch, schedule, store, email and release sections all filled in"
+   ],
+   "when": [
+    "it is loaded"
+   ],
+   "then": [
+    "relative paths are taken from the file's folder and \"~\" from the home folder",
+    "the run time, pause, extra release dates, image, store limits and thread count are read",
+    "the email settings default the sender to the user name",
+    "the release settings strip a trailing slash from the public address"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CONF-002",
+   "suite": "pytest",
+   "title": "a settings file that can't work is refused with the reason",
+   "file": "tests/test_config.py",
+   "line": 42,
+   "node": "tests/test_config.py::test_a_setting_that_cant_work_is_refused",
+   "given": [
+    "a settings file with unencrypted email, or releases on without a site folder, or email without a port"
+   ],
+   "when": [
+    "it is parsed"
+   ],
+   "then": [
+    "a ConfigError names the setting at fault"
+   ],
+   "notes": "",
+   "examples": [
+    "[email]\\nsmtp_host = \"h\"\\nsmtp_port = 25\\nusername = \"u\"\\nrecipients = []\\nsecurity = \"plain\"\\n-email.security must be 'starttls' or 'ssl'",
+    "[release]\\nenabled = true\\n-release.site_dir is required",
+    "[email]\\nsmtp_host = \"h\"\\n-Missing config field: 'smtp_port'"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CONF-003",
+   "suite": "pytest",
+   "title": "without a path, the settings file is the one TRACECONOMICS_CONFIG names",
+   "file": "tests/test_config.py",
+   "line": 62,
+   "node": "tests/test_config.py::test_the_file_is_found_through_the_environment",
+   "given": [
+    "a settings file whose path is in TRACECONOMICS_CONFIG"
+   ],
+   "when": [
+    "the settings are loaded without a path",
+    "TRACECONOMICS_CONFIG names a file that doesn't exist"
+   ],
+   "then": [
+    "the first load reads that file",
+    "the second raises a ConfigError naming the missing file and the variable"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CONF-004",
+   "suite": "pytest",
+   "title": "the default settings file is in the platform's own config folder",
+   "file": "tests/test_config.py",
+   "line": 79,
+   "node": "tests/test_config.py::test_the_default_settings_file_is_in_the_platforms_config_folder",
+   "given": [
+    "Linux with XDG_CONFIG_HOME set, or Windows with APPDATA set"
+   ],
+   "when": [
+    "the default settings path is asked for"
+   ],
+   "then": [
+    "it is traceconomics/config.toml in that folder"
+   ],
+   "notes": "",
+   "examples": [
+    "linux-XDG_CONFIG_HOME-xdg",
+    "win32-APPDATA-appdata"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CONF-005",
+   "suite": "pytest",
+   "title": "every store connection is capped in memory, and in threads when asked",
+   "file": "tests/test_config.py",
+   "line": 93,
+   "node": "tests/test_config.py::test_store_connections_are_capped",
+   "given": [
+    "a memory limit of 1 GB, with and without a thread count of 2"
+   ],
+   "when": [
+    "a store connection is opened"
+   ],
+   "then": [
+    "its memory limit is 1 GB, which DuckDB shows as 953.6 MiB",
+    "with a thread count it uses that many threads",
+    "the progress bar is off (a scheduled run has no console)"
+   ],
+   "notes": "",
+   "examples": [
+    "None",
+    "2"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-COV-001",
    "suite": "pytest",
    "title": "each badge's parts add up to its total, which is rounded down",
@@ -4631,6 +6305,117 @@
    "defects": [],
    "tags": [
     "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-007",
+   "suite": "pytest",
+   "title": "a published Greek table VII is read item by item",
+   "file": "tests/test_elstat_original07.py",
+   "line": 19,
+   "node": "tests/test_elstat_original07.py::test_a_published_table_vii_is_read_item_by_item",
+   "given": [
+    "ELSTAT's Greek CPI table VII for 2011 (the re-issued file, in the original layout, base 2020)"
+   ],
+   "when": [
+    "it is read as the 2011 table"
+   ],
+   "then": [
+    "the base is \"2020\" and there are more than 150 rows",
+    "the overall index is found by its label \"ΓΕΝΙΚΟΣ ΔΕΙΚΤΗΣ ΤΙΜΩΝ ΚΑΤΑΝΑΛΩΤΗ\", with twelve months and their average",
+    "each item keeps its weight, its twelve months and its Greek label"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-008",
+   "suite": "pytest",
+   "title": "a table whose title names another year is refused",
+   "file": "tests/test_elstat_original07.py",
+   "line": 36,
+   "node": "tests/test_elstat_original07.py::test_a_table_for_another_year_is_refused",
+   "given": [
+    "ELSTAT's Greek CPI table VII for 2011"
+   ],
+   "when": [
+    "it is read as the 2012 table"
+   ],
+   "then": [
+    "a FormatError says the title doesn't name 2012"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-009",
+   "suite": "pytest",
+   "title": "the reader follows the original files' layout",
+   "file": "tests/test_elstat_original07.py",
+   "line": 77,
+   "node": "tests/test_elstat_original07.py::test_the_layout_rules_of_the_original_files",
+   "given": [
+    "a made-up 2009 table on the 2005 base with 151 items whose codes are stored as numbers",
+    "the overall index on a row labelled \"Γ.Δ.Τ.Κ.\" with no code and no weight",
+    "a division heading without numbers and a summary block repeating an item with other values"
+   ],
+   "when": [
+    "it is read"
+   ],
+   "then": [
+    "the base is \"2005\"",
+    "codes stored as numbers become text without a decimal point",
+    "the \"Γ.Δ.Τ.Κ.\" row is the overall index, with no weight",
+    "the heading is skipped and the repeated item keeps its first values"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-010",
+   "suite": "pytest",
+   "title": "a file that isn't a whole table VII is refused, never guessed",
+   "file": "tests/test_elstat_original07.py",
+   "line": 100,
+   "node": "tests/test_elstat_original07.py::test_a_file_that_isnt_a_whole_table_is_refused",
+   "given": [
+    "a made-up 2009 table with no base in its title, or no overall index row, or only 11 rows"
+   ],
+   "when": [
+    "it is read"
+   ],
+   "then": [
+    "a FormatError names what is missing"
+   ],
+   "notes": "",
+   "examples": [
+    "\\u03a0\\u0399\\u039d\\u0391\\u039a\\u0391\\u03a3 VII. \\u0394\\u03a4\\u039a \\u03ad\\u03c4\\u03bf\\u03c5\\u03c2 2009-rows0-no base year in the title",
+    "\\u0394\\u03a4\\u039a \\u03ad\\u03c4\\u03bf\\u03c5\\u03c2 2009 (2009=100)-rows1-no overall index row",
+    "\\u0394\\u03a4\\u039a \\u03ad\\u03c4\\u03bf\\u03c5\\u03c2 2009 (2009=100)-rows2-only 11 rows"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
    ],
    "problems": [],
    "named": false
@@ -6046,7 +7831,7 @@
    "suite": "pytest",
    "title": "the years argument takes ranges and single years",
    "file": "tests/test_history.py",
-   "line": 39,
+   "line": 44,
    "node": "tests/test_history.py::test_years_argument",
    "given": [
     "the years argument \"2011-2013,2015\""
@@ -6071,7 +7856,7 @@
    "suite": "pytest",
    "title": "the year's table 07 is found on the archived month page",
    "file": "tests/test_history.py",
-   "line": 49,
+   "line": 54,
    "node": "tests/test_history.py::test_finds_the_years_table07",
    "given": [
     "ELSTAT's archived month page listing tables 06, 07 and 08"
@@ -6097,7 +7882,7 @@
    "suite": "pytest",
    "title": "the table 07 check accepts the right year and flags a wrong one",
    "file": "tests/test_history.py",
-   "line": 61,
+   "line": 66,
    "node": "tests/test_history.py::test_check_accepts_the_real_2025_file_and_rejects_a_wrong_year",
    "given": [
     "the real CPI table 07 for 2025"
@@ -6123,7 +7908,7 @@
    "suite": "pytest",
    "title": "a past year's page and table are fetched in both languages, once",
    "file": "tests/test_history.py",
-   "line": 78,
+   "line": 83,
    "node": "tests/test_history.py::test_fetches_page_and_both_languages_once",
    "given": [
     "a fake ELSTAT serving the 2015 month page and a table 07 file"
@@ -6152,7 +7937,7 @@
    "suite": "pytest",
    "title": "a year without table 07 is a failure",
    "file": "tests/test_history.py",
-   "line": 106,
+   "line": 111,
    "node": "tests/test_history.py::test_missing_table_is_a_failure",
    "given": [
     "a month page for 2016 that doesn't list a 2016 table 07"
@@ -6162,6 +7947,478 @@
    ],
    "then": [
     "a failure naming 2016 is recorded"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CPIHIST-006",
+   "suite": "pytest",
+   "title": "the right year's table 07 is stored and noted as checked",
+   "file": "tests/test_history.py",
+   "line": 127,
+   "node": "tests/test_history.py::test_the_right_years_table_is_stored_and_noted_as_checked",
+   "given": [
+    "a fake ELSTAT serving the 2025 month page and the real 2025 table 07"
+   ],
+   "when": [
+    "the history for 2025 is fetched"
+   ],
+   "then": [
+    "no alert is raised",
+    "the notes say each language's table was stored and checked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CPIHIST-007",
+   "suite": "pytest",
+   "title": "a month page or table that can't be fetched is a failure, not a crash",
+   "file": "tests/test_history.py",
+   "line": 144,
+   "node": "tests/test_history.py::test_a_page_or_table_that_cant_be_fetched_is_a_failure_not_a_crash",
+   "given": [
+    "a fake ELSTAT that serves the 2025 month page but not its table, and no page for 2024"
+   ],
+   "when": [
+    "the history for 2024 and 2025 is fetched"
+   ],
+   "then": [
+    "three failures are recorded: the 2024 page and both languages' 2025 table",
+    "nothing but the 2025 page is stored"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CPIHIST-008",
+   "suite": "pytest",
+   "title": "the table 07 check passes the Greek file and flags files that aren't a table 07",
+   "file": "tests/test_history.py",
+   "line": 159,
+   "node": "tests/test_history.py::test_the_table07_check_on_other_files",
+   "given": [
+    "ELSTAT's Greek table 07 for 2011, its 2026 table as .xlsx, and a household survey table"
+   ],
+   "when": [
+    "each is checked as its year's table 07"
+   ],
+   "then": [
+    "the Greek table passes (its title says \"έτους 2011\" and 2020=100)",
+    "the .xlsx file can't be read by the .xls reader",
+    "the survey table has no indices sheet"
+   ],
+   "notes": "",
+   "examples": [
+    "elstat_cpi07_2011_el.xls-None",
+    "elstat_cpi07_2026.xlsx-can't read the file",
+    "elstat_hbs_t103_2018.xls-no sheet named INDICES or \\u0394\\u0395\\u0399\\u039a\\u03a4\\u0395\\u03a3"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CPIHIST-009",
+   "suite": "pytest",
+   "title": "the table 07 check names an old base and a header without the COICOP 2018 column",
+   "file": "tests/test_history.py",
+   "line": 178,
+   "node": "tests/test_history.py::test_the_table07_check_names_a_wrong_base_and_a_missing_coicop_column",
+   "given": [
+    "a sheet named INDICES whose title is for 2015 on the 2009 base and whose header lacks COICOP18"
+   ],
+   "when": [
+    "it is checked as the 2015 table 07"
+   ],
+   "then": [
+    "it reports that the title doesn't say 2020=100",
+    "that the header has no COICOP18 column"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CPIHIST-010",
+   "suite": "pytest",
+   "title": "a history fetch is reported and logged like a run",
+   "file": "tests/test_history.py",
+   "line": 200,
+   "node": "tests/test_history.py::test_a_history_fetch_is_reported_and_logged_like_a_run",
+   "given": [
+    "a configuration without email and a fake ELSTAT serving the 2025 page and table, but no 2024 page"
+   ],
+   "when": [
+    "the history for 2024 and 2025 is fetched for real"
+   ],
+   "then": [
+    "the result is \"failures\", with the 2024 page named and three new files stored",
+    "a report flagged ALERT is in the outbox, listing the failure and the stored tables",
+    "the run is logged in the archive"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CPIHIST-011",
+   "suite": "pytest",
+   "title": "a lock left behind by a run that died is taken over once it is stale",
+   "file": "tests/test_history.py",
+   "line": 226,
+   "node": "tests/test_history.py::test_a_lock_left_by_a_dead_run_is_taken_over",
+   "given": [
+    "a lock file older than the stale-lock limit, as a crashed run would leave"
+   ],
+   "when": [
+    "a new run takes the lock"
+   ],
+   "then": [
+    "it succeeds and the lock file holds the new run's process ID",
+    "after the run the lock is gone"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-001",
+   "suite": "pytest",
+   "title": "a download is streamed to a file, keeping only the headers worth keeping",
+   "file": "tests/test_http_client.py",
+   "line": 58,
+   "node": "tests/test_http_client.py::test_a_download_is_streamed_to_a_file_with_the_headers_worth_keeping",
+   "given": [
+    "a server whose robots.txt allows everything",
+    "a file served with a content type, a content disposition naming \"../Table 07.XLSX\", a date and a cookie"
+   ],
+   "when": [
+    "the client downloads it, and downloads it again"
+   ],
+   "then": [
+    "the file holds the served bytes and the response has status 200",
+    "only the kept headers are recorded, not the cookie",
+    "the file name is \"Table 07.XLSX\", without the path",
+    "every request carries the project's User-Agent",
+    "robots.txt is read once for the host",
+    "the second request waits the full pause after the first"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-002",
+   "suite": "pytest",
+   "title": "a path robots.txt disallows is never requested",
+   "file": "tests/test_http_client.py",
+   "line": 86,
+   "node": "tests/test_http_client.py::test_robots_txt_is_respected",
+   "given": [
+    "a server whose robots.txt disallows /private/ for every agent"
+   ],
+   "when": [
+    "the client downloads /private/data"
+   ],
+   "then": [
+    "it raises a FetchError saying robots.txt disallows it",
+    "only robots.txt was requested"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-003",
+   "suite": "pytest",
+   "title": "no robots.txt means no restrictions, but a server error on it stops the fetch",
+   "file": "tests/test_http_client.py",
+   "line": 101,
+   "node": "tests/test_http_client.py::test_a_missing_robots_txt_allows_everything_but_a_broken_one_stops",
+   "given": [
+    "a server whose robots.txt answers 404 or 500"
+   ],
+   "when": [
+    "the client downloads a file"
+   ],
+   "then": [
+    "with 404 the file is fetched",
+    "with 500 a FetchError names robots.txt and the file is never requested"
+   ],
+   "notes": "",
+   "examples": [
+    "404-True",
+    "500-False"
+   ],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-004",
+   "suite": "pytest",
+   "title": "a host that can't be reached is a FetchError, not a crash",
+   "file": "tests/test_http_client.py",
+   "line": 123,
+   "node": "tests/test_http_client.py::test_an_unreachable_host_is_a_fetch_error",
+   "given": [
+    "a local port nothing listens on"
+   ],
+   "when": [
+    "the client downloads from it"
+   ],
+   "then": [
+    "it raises a FetchError naming robots.txt, the first thing it asks for"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-005",
+   "suite": "pytest",
+   "title": "a server error or a rate limit is retried, waiting longer each time",
+   "file": "tests/test_http_client.py",
+   "line": 139,
+   "node": "tests/test_http_client.py::test_a_server_error_or_rate_limit_is_retried_with_growing_waits",
+   "given": [
+    "a file that answers 503 (or 429) twice, then 200",
+    "a client with a 2-second pause and three tries"
+   ],
+   "when": [
+    "the client downloads it"
+   ],
+   "then": [
+    "it gets the file on the third try",
+    "it waited 10 seconds before the second try and 20 before the third"
+   ],
+   "notes": "",
+   "examples": [
+    "503",
+    "429"
+   ],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-006",
+   "suite": "pytest",
+   "title": "a client error is not retried, and no partial file is left",
+   "file": "tests/test_http_client.py",
+   "line": 157,
+   "node": "tests/test_http_client.py::test_a_client_error_is_not_retried_and_leaves_no_file",
+   "given": [
+    "a file that answers 404"
+   ],
+   "when": [
+    "the client downloads it"
+   ],
+   "then": [
+    "it raises a FetchError naming the URL and the error",
+    "it asked only once",
+    "no file is left at the destination"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-007",
+   "suite": "pytest",
+   "title": "a server error on every try gives up after the last one",
+   "file": "tests/test_http_client.py",
+   "line": 174,
+   "node": "tests/test_http_client.py::test_a_server_error_on_every_try_gives_up",
+   "given": [
+    "a file that always answers 500"
+   ],
+   "when": [
+    "a client with three tries downloads it"
+   ],
+   "then": [
+    "it asks three times and raises a FetchError with the last error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-008",
+   "suite": "pytest",
+   "title": "get_bytes returns the body and removes its temporary file",
+   "file": "tests/test_http_client.py",
+   "line": 188,
+   "node": "tests/test_http_client.py::test_get_bytes_returns_the_body_and_cleans_up",
+   "given": [
+    "a small file on the server"
+   ],
+   "when": [
+    "the client gets its bytes through a temporary file"
+   ],
+   "then": [
+    "the bytes are returned with the response",
+    "the temporary file is gone"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-009",
+   "suite": "pytest",
+   "title": "a download's extension comes from its file name, else from its content type",
+   "file": "tests/test_http_client.py",
+   "line": 207,
+   "node": "tests/test_http_client.py::test_the_extension_comes_from_the_file_name_else_the_content_type",
+   "given": [
+    "a response with or without a file name and a content type"
+   ],
+   "when": [
+    "its extension is guessed"
+   ],
+   "then": [
+    "a file name's extension wins, lower-cased",
+    "without one, a known content type gives its extension, parameters ignored",
+    "an unknown content type, or none, gives no extension"
+   ],
+   "notes": "",
+   "examples": [
+    "headers0-.xlsx",
+    "headers1-.html",
+    "headers2-.json",
+    "headers3-.gz",
+    "headers4-",
+    "headers5-"
+   ],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-010",
+   "suite": "pytest",
+   "title": "a response without a content disposition has no file name",
+   "file": "tests/test_http_client.py",
+   "line": 227,
+   "node": "tests/test_http_client.py::test_a_response_without_a_disposition_has_no_file_name",
+   "given": [
+    "a response with no Content-Disposition, and one whose disposition names no file"
+   ],
+   "when": [
+    "their file names are read"
+   ],
+   "then": [
+    "both are None",
+    "the manifest of the response holds its status and headers"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HTTP-011",
+   "suite": "pytest",
+   "title": "the run context stores each download once, judged by its content, and logs failures",
+   "file": "tests/test_http_client.py",
+   "line": 239,
+   "node": "tests/test_http_client.py::test_the_run_context_stores_what_it_fetches_and_logs_what_fails",
+   "given": [
+    "a page served with a file name, then served again with only an invisible change",
+    "a path that answers 404"
+   ],
+   "when": [
+    "the run context fetches the page with a content rule that ignores the invisible part, twice",
+    "fetches the missing path",
+    "plans a fetch as a dry run"
+   ],
+   "then": [
+    "the first fetch stores the page with the server's file name as its original name and its extension",
+    "the second fetch finds it unchanged",
+    "the failed fetch is in the context's failures and the archive's log, and stores nothing",
+    "the dry run only lists the fetch it would make"
    ],
    "notes": "",
    "examples": [],
@@ -7041,6 +9298,564 @@
    ],
    "then": [
     "there are none (None)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HOSP-001",
+   "suite": "pytest",
+   "title": "each household gets its income band's published hospital spending",
+   "file": "tests/test_local_checks.py",
+   "line": 84,
+   "node": "tests/test_local_checks.py::test_each_household_gets_its_bands_hospital_spending",
+   "given": [
+    "ten households with monthly money incomes from 500 to 5,000 euros",
+    "a 2010 table whose bands spend 10, 20, 30, 40 and 50 euros a month on hospitals"
+   ],
+   "when": [
+    "each household's hospital spending is worked out"
+   ],
+   "then": [
+    "each gets its band's monthly average times twelve, a band including its top",
+    "the bands are named as income bands, exact for 2010",
+    "for 2009, a year whose bands can't be rebuilt exactly, they are labelled approximate"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HOSP-002",
+   "suite": "pytest",
+   "title": "the hospital spending is put back into each requested group's basket",
+   "file": "tests/test_local_checks.py",
+   "line": 100,
+   "node": "tests/test_local_checks.py::test_hospital_spending_is_put_back_into_the_baskets",
+   "given": [
+    "the made-up 2010 survey and table"
+   ],
+   "when": [
+    "the baskets with hospital services are built for quintile 1 and all households"
+   ],
+   "then": [
+    "only those two groups' baskets are returned, keyed by survey year",
+    "in each the hospital code 06310 carries all of division 06",
+    "hospitals are 3,960 of 9,455 euros of purchases, worked out by hand: 0.4188"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HOSP-003",
+   "suite": "pytest",
+   "title": "the hospital check reports each survey's share and each group's change in rates",
+   "file": "tests/test_local_checks.py",
+   "line": 116,
+   "node": "tests/test_local_checks.py::test_the_hospital_check_reports_each_groups_change",
+   "given": [
+    "the made-up surveys and tables for 2008-2014 (2013 banded by household size)",
+    "a series builder whose rate in a year is ten times the basket's health share the year before"
+   ],
+   "when": [
+    "the hospital check is run for quintiles 1 and 5"
+   ],
+   "then": [
+    "every survey 2008-2014 is reported with its hospital share and how its bands were made",
+    "each group's change is ten times its health share with hospitals put back, through 2016 only",
+    "the gap's change is quintile 1's change minus quintile 5's"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HBS-006",
+   "suite": "pytest",
+   "title": "V2 finds the newest archived English table 1.03 of each survey year",
+   "file": "tests/test_local_checks.py",
+   "line": 145,
+   "node": "tests/test_local_checks.py::test_v2_finds_the_newest_english_table_of_each_year",
+   "given": [
+    "an archive with the 2018 English table twice (retrieved in January and March), the 2024 one, a Greek one and another document"
+   ],
+   "when": [
+    "the archived tables are listed"
+   ],
+   "then": [
+    "there is one per year, 2018 and 2024, the March copy for 2018",
+    "the Greek table and the other document are left out"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HBS-007",
+   "suite": "pytest",
+   "title": "V2 compares all households every year, and each band where the bands can be rebuilt",
+   "file": "tests/test_local_checks.py",
+   "line": 168,
+   "node": "tests/test_local_checks.py::test_v2_compares_every_year_and_the_bands_where_they_can_be_rebuilt",
+   "given": [
+    "the made-up survey and table for 2010 (banded by income) and 2016 (bands not rebuilt)",
+    "item 07242 listed as missing from the survey in both years"
+   ],
+   "when": [
+    "V2 is run for 2010 and 2016"
+   ],
+   "then": [
+    "each year's first result is for all households, with the share of purchases the survey lacks",
+    "2010 adds one result per income band, 2016 none",
+    "for all households, five of six codes match the table to the cent and the missing item is excused",
+    "V2 for a year without an archived table raises an error naming it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HBS-008",
+   "suite": "pytest",
+   "title": "households are banded by size in 2013, and bands that don't fit are refused",
+   "file": "tests/test_local_checks.py",
+   "line": 190,
+   "node": "tests/test_local_checks.py::test_bands_by_household_size_and_their_refusals",
+   "given": [
+    "the made-up survey of one-person households for 2013 and a table banded by size"
+   ],
+   "when": [
+    "the households are banded by size",
+    "banded by income against the size bands",
+    "banded by an unknown rule"
+   ],
+   "then": [
+    "every household is in \"1 member\"",
+    "banding by income against size bands raises a FormatError naming the bands",
+    "the unknown rule raises a ValueError"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HBS-009",
+   "suite": "pytest",
+   "title": "the published coefficients of variation and the PUF's missing items are on file",
+   "file": "tests/test_local_checks.py",
+   "line": 209,
+   "node": "tests/test_local_checks.py::test_the_published_coefficients_of_variation_and_missing_items_are_on_file",
+   "given": [
+    "the package's files of published CVs and of items the public files lack"
+   ],
+   "when": [
+    "they are read"
+   ],
+   "then": [
+    "every published CV entry names its source and gives a CV for the total (\"00\")",
+    "every missing item lists the survey years it is missing from",
+    "a CV check passes only when every division is within its tolerance"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-011",
+   "suite": "pytest",
+   "title": "each survey's own codes map to COICOP 2018 in one step",
+   "file": "tests/test_local_checks.py",
+   "line": 228,
+   "node": "tests/test_local_checks.py::test_the_effective_mapping_of_each_code_list",
+   "given": [
+    "the package's mapping tables"
+   ],
+   "when": [
+    "the effective table is asked for a 2016 survey (ECOICOP v1) and a 2010 survey (the 2008-2014 list)"
+   ],
+   "then": [
+    "2016's is the v1 table itself",
+    "2010's goes through the bridge and the v1 table in one step",
+    "in both, each source code's shares add up to 1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-012",
+   "suite": "pytest",
+   "title": "the reasons for known differences after the mapping are read by year pair and code",
+   "file": "tests/test_local_checks.py",
+   "line": 244,
+   "node": "tests/test_local_checks.py::test_the_reasons_for_known_differences_are_read_by_year_pair",
+   "given": [
+    "the package's file of explained differences",
+    "a made-up file in its place explaining code 0111 for 2023-2024"
+   ],
+   "when": [
+    "each is read"
+   ],
+   "then": [
+    "the package's file reads as a table of year pairs (it may hold none yet)",
+    "the made-up one gives {\"2023-2024\": {\"0111\": its reason}}"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-013",
+   "suite": "pytest",
+   "title": "all households' shares come with standard errors only when replicates are asked for",
+   "file": "tests/test_local_checks.py",
+   "line": 261,
+   "node": "tests/test_local_checks.py::test_all_households_shares_with_and_without_standard_errors",
+   "given": [
+    "the made-up survey of 50 households for 2023, moved to COICOP 2018"
+   ],
+   "when": [
+    "all households' shares are worked out without replicates",
+    "with 50 bootstrap replicates"
+   ],
+   "then": [
+    "both give the same shares, in percent, the divisions adding up to 100",
+    "without replicates there are no standard errors, with them every share has one"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-014",
+   "suite": "pytest",
+   "title": "the last year in the old codes, mapped, is compared with the next, and unexplained mapping effects fail it",
+   "file": "tests/test_local_checks.py",
+   "line": 277,
+   "node": "tests/test_local_checks.py::test_the_mapped_year_is_compared_with_the_next_and_unexplained_mapping_effects_fail",
+   "given": [
+    "made-up surveys of 2023 (ECOICOP v1) and 2024 (COICOP 2018), the second spending 60% more on food",
+    "audio-visual repairs, one code in 2023 that the mapping splits half and half between recreation and communication",
+    "food's rise explained, and no usual change for any code"
+   ],
+   "when": [
+    "the two years are compared with 50 replicates"
+   ],
+   "then": [
+    "food is flagged, with its explanation",
+    "rent and transport are flagged as not from the mapping (no split decided them)",
+    "recreation and communication are flagged as decided entirely by a split, with no explanation",
+    "the comparison fails on those two"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-015",
+   "suite": "pytest",
+   "title": "a code's usual yearly change is its median change over the 2016-2023 surveys",
+   "file": "tests/test_local_checks.py",
+   "line": 300,
+   "node": "tests/test_local_checks.py::test_the_usual_yearly_change_is_the_median_over_the_baseline_years",
+   "given": [
+    "made-up surveys for 2016-2023 that are all the same",
+    ", separately, surveys whose food spending rises 10% a year"
+   ],
+   "when": [
+    "the usual change is worked out from each"
+   ],
+   "then": [
+    "with identical surveys every code's usual change is 0",
+    "with rising food, food's usual change is positive"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-016",
+   "suite": "pytest",
+   "title": "ELSTAT's CPI weights are compared with our mapped shares of the survey one and two years before",
+   "file": "tests/test_local_checks.py",
+   "line": 315,
+   "node": "tests/test_local_checks.py::test_the_cpi_weights_are_compared_with_our_mapped_shares_a_year_or_two_before",
+   "given": [
+    "made-up surveys that are the same every year",
+    "ELSTAT's division weights (per mille) for 2018 equal to our shares, and for 2019 6 per mille higher for food"
+   ],
+   "when": [
+    "the CPI report is made"
+   ],
+   "then": [
+    "it has a row for each CPI year with the mean absolute difference per division for surveys t-1 and t-2",
+    "2018's differences are 0, and 2019's are 2 per mille (6 spread over three divisions)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OETLOCAL-008",
+   "suite": "pytest",
+   "title": "the weights run archives a year's weights, groups, limits and household types, once",
+   "file": "tests/test_local_checks.py",
+   "line": 357,
+   "node": "tests/test_local_checks.py::test_the_weights_run_archives_four_tables_once",
+   "given": [
+    "an archive with the 2023 survey (50 one-person households, incomes 6,000 to 64,800 euros a year) and its table 1.03"
+   ],
+   "when": [
+    "the weights run is made for 2023 with 20 replicates",
+    "made again with the same inputs"
+   ],
+   "then": [
+    "the first run stores the four oet-local tables for 2023",
+    "the income limits are the midpoints between the fifths: 17,400, 29,400, 41,400 and 53,400 euros",
+    "the standard errors come from the full design",
+    "the second run finds all four unchanged",
+    "each table's header names its provenance, and counts under 20 are written as \"<20\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OETLOCAL-009",
+   "suite": "pytest",
+   "title": "a year whose household types disagree with ELSTAT's stops the weights run",
+   "file": "tests/test_local_checks.py",
+   "line": 382,
+   "node": "tests/test_local_checks.py::test_household_types_that_disagree_with_elstats_stop_the_run",
+   "given": [
+    "the made-up survey for 2019, a year whose ELSTAT type column should be usable, but which carries none"
+   ],
+   "when": [
+    "its household types are tabled"
+   ],
+   "then": [
+    "a FormatError says our types agree with ELSTAT's on 0.0% of households, under 90%",
+    "for 2023, the known unusable year, the table is made and marked unusable with the reason"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OETLOCAL-010",
+   "suite": "pytest",
+   "title": "the income limits get standard errors from the bootstrap when replicates are asked for",
+   "file": "tests/test_local_checks.py",
+   "line": 401,
+   "node": "tests/test_local_checks.py::test_the_income_limits_get_standard_errors_from_the_bootstrap",
+   "given": [
+    "the made-up survey of 50 households for 2023"
+   ],
+   "when": [
+    "its income limits are tabled without replicates and with 20"
+   ],
+   "then": [
+    "both give the same limits",
+    "only the second has a positive standard error for each limit"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BANDS-004",
+   "suite": "pytest",
+   "title": "the bands run archives a standard error for every rate of every series and of the gap",
+   "file": "tests/test_local_checks.py",
+   "line": 446,
+   "node": "tests/test_local_checks.py::test_the_bands_run_archives_a_standard_error_for_every_rate",
+   "given": [
+    "made-up surveys of 50 households for 2016-2018, each with its full sampling design",
+    "the default setting's series for quintiles 1 and 5, 2017-2019"
+   ],
+   "when": [
+    "the bands run is made with 10 replicates",
+    "made again"
+   ],
+   "then": [
+    "the first run stores oet-local/hbs-bands-gr with 81 rows: 25 annual rates and 2 annual averages each for Q1, Q5 and the Q1-Q5 gap",
+    "every standard error is positive",
+    "no index year lacks a band, and every survey's design is full",
+    "the file's header records the replicates and the designs",
+    "the second run finds the file unchanged"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BANDS-005",
+   "suite": "pytest",
+   "title": "index years fed by a survey published without its sampling design get no band",
+   "file": "tests/test_local_checks.py",
+   "line": 477,
+   "node": "tests/test_local_checks.py::test_years_fed_by_a_survey_without_its_design_get_no_band",
+   "given": [
+    "made-up surveys for 2016-2018, the 2017 one read from a file without primary sampling units"
+   ],
+   "when": [
+    "the bands run is made for the default setting"
+   ],
+   "then": [
+    "the 2017 survey's design is unavailable",
+    "2018, the index year it feeds, is listed as without a band",
+    "no annual rate of 2018 or 2019 (which compares with 2018) has a standard error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-017",
+   "suite": "pytest",
+   "title": "the mapping tables are rebuilt from the correspondence, the HICP weights and the surveys",
+   "file": "tests/test_local_checks.py",
+   "line": 511,
+   "node": "tests/test_local_checks.py::test_the_mapping_tables_are_rebuilt_from_their_sources",
+   "given": [
+    "an archived correspondence holding every link of the package's ECOICOP v1 -> COICOP 2018 table, plus a class-level link",
+    "a store with a Greek 2025 HICP weight of 1 for every code in both classifications",
+    "made-up surveys for 2008-2023, and tables 1.03 whose labels match 2015's for food and diesel only"
+   ],
+   "when": [
+    "the mapping tables are built"
+   ],
+   "then": [
+    "both tables are written, with their headers",
+    "every v1 code with a single link maps exactly as in the package's table",
+    "every source code's shares add up to 1",
+    "in the older list, food and diesel map to themselves (same code and label)",
+    "the old rent codes are split over their class's v1 subclasses by 2015 spending",
+    "the report counts the rows written"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MAP-018",
+   "suite": "pytest",
+   "title": "a correspondence file without its columns or with too few subclass links is refused",
+   "file": "tests/test_local_checks.py",
+   "line": 570,
+   "node": "tests/test_local_checks.py::test_a_correspondence_file_that_isnt_one_is_refused",
+   "given": [
+    "a CSV without the srcNot column, and one with only two subclass links"
+   ],
+   "when": [
+    "each is read as the correspondence"
+   ],
+   "then": [
+    "the first is refused for the missing column",
+    "the second for having only 2 subclass links",
+    "building the tables without an archived correspondence is refused, naming the dataset"
    ],
    "notes": "",
    "examples": [],
@@ -8367,7 +11182,7 @@
    "suite": "pytest",
    "title": "a dry run changes nothing",
    "file": "tests/test_migrate.py",
-   "line": 42,
+   "line": 45,
    "node": "tests/test_migrate.py::test_dry_run_changes_nothing",
    "given": [
     "a made-up home with the earlier name's archive, store, config and keyring password"
@@ -8394,7 +11209,7 @@
    "suite": "pytest",
    "title": "the migration moves the folders, writes the config and copies the password",
    "file": "tests/test_migrate.py",
-   "line": 59,
+   "line": 62,
    "node": "tests/test_migrate.py::test_run_moves_folders_writes_config_and_copies_the_password",
    "given": [
     "a made-up home with the earlier name's archive, store, config and keyring password"
@@ -8424,7 +11239,7 @@
    "suite": "pytest",
    "title": "a target folder that already exists is a problem, not a merge",
    "file": "tests/test_migrate.py",
-   "line": 85,
+   "line": 88,
    "node": "tests/test_migrate.py::test_a_taken_target_is_a_problem_not_a_merge",
    "given": [
     "a made-up home where the new archive folder already exists"
@@ -8446,11 +11261,147 @@
    "named": false
   },
   {
+   "id": "PY-MIGRATE-004",
+   "suite": "pytest",
+   "title": "what is already in place under the new name is left as it is",
+   "file": "tests/test_migrate.py",
+   "line": 102,
+   "node": "tests/test_migrate.py::test_what_is_already_in_place_is_left_as_it_is",
+   "given": [
+    "a made-up home whose new config exists already and whose new keyring entry holds a password"
+   ],
+   "when": [
+    "the migration is run for real"
+   ],
+   "then": [
+    "the new config keeps its own text",
+    "the new keyring password is not overwritten",
+    "the plan says both were left as they are"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MIGRATE-005",
+   "suite": "pytest",
+   "title": "without an old keyring password the plan says how to set the new one",
+   "file": "tests/test_migrate.py",
+   "line": 122,
+   "node": "tests/test_migrate.py::test_without_an_old_password_it_says_how_to_set_one",
+   "given": [
+    "a made-up home whose old config names a mailbox user but no keyring holds its password",
+    "the system's keyring module, as installed"
+   ],
+   "when": [
+    "the migration is run"
+   ],
+   "then": [
+    "the plan says there is no password under the old name and how to set one under the new name"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MIGRATE-006",
+   "suite": "pytest",
+   "title": "without an old config or folders there is nothing to move",
+   "file": "tests/test_migrate.py",
+   "line": 136,
+   "node": "tests/test_migrate.py::test_without_an_old_config_there_is_nothing_to_move",
+   "given": [
+    "an empty home and config folder"
+   ],
+   "when": [
+    "the migration is run"
+   ],
+   "then": [
+    "the plan says there is no old config and no old folders, with no problems",
+    "no keyring is consulted"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MIGRATE-007",
+   "suite": "pytest",
+   "title": "the config folder is the platform's own",
+   "file": "tests/test_migrate.py",
+   "line": 150,
+   "node": "tests/test_migrate.py::test_the_config_folder_follows_the_platform",
+   "given": [
+    "Linux with XDG_CONFIG_HOME set, or Windows with APPDATA set"
+   ],
+   "when": [
+    "the migration looks for the old config without being told where"
+   ],
+   "then": [
+    "it looks in that folder"
+   ],
+   "notes": "",
+   "examples": [
+    "linux-XDG_CONFIG_HOME-xdg",
+    "win32-APPDATA-appdata"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MIGRATE-008",
+   "suite": "pytest",
+   "title": "the old Windows scheduled task is removed if there is one",
+   "file": "tests/test_migrate.py",
+   "line": 165,
+   "node": "tests/test_migrate.py::test_the_old_windows_task_is_removed",
+   "given": [
+    "Windows, with or without the old scheduled task \"oet-archive\""
+   ],
+   "when": [
+    "the migration is run as a dry run, then for real"
+   ],
+   "then": [
+    "with the task, both plans say it will be removed and only the real run deletes it",
+    "without it, both plans say there is no such task and nothing is deleted"
+   ],
+   "notes": "",
+   "examples": [
+    "True",
+    "False"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-BENCH-001",
    "suite": "pytest",
    "title": "KEPE's timing uses the same year's survey, then the one two years before",
    "file": "tests/test_module1_benchmarks.py",
-   "line": 11,
+   "line": 21,
    "node": "tests/test_module1_benchmarks.py::test_kepe_timing_uses_the_same_year_then_two_years_before",
    "given": [
     "index years 2016 to 2025 and surveys 2008 to 2024"
@@ -8476,7 +11427,7 @@
    "suite": "pytest",
    "title": "baskets are cut to one level of the tree",
    "file": "tests/test_module1_benchmarks.py",
-   "line": 24,
+   "line": 34,
    "node": "tests/test_module1_benchmarks.py::test_cutting_baskets_to_one_level",
    "given": [
     "a basket with shares at the division, group and subclass levels"
@@ -8502,7 +11453,7 @@
    "suite": "pytest",
    "title": "KEPE's published figures are on file",
    "file": "tests/test_module1_benchmarks.py",
-   "line": 37,
+   "line": 47,
    "node": "tests/test_module1_benchmarks.py::test_kepe_figures_are_on_file",
    "given": [
     "the package's file of KEPE's published figures"
@@ -8513,6 +11464,374 @@
    "then": [
     "chart 1's P20 rate for 2022 is 10.4",
     "the text's P20 minus R10 gap for 2022 is 1.9"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-004",
+   "suite": "pytest",
+   "title": "Bruegel's weights are the Greek three-digit per-mille shares of one survey wave",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 109,
+   "node": "tests/test_module1_benchmarks.py::test_bruegels_weights_are_the_greek_three_digit_shares_of_one_wave",
+   "given": [
+    "an archived hbs_str_t223 with Greek and Cypriot rows, two-, three- and four-digit codes, per mille and percent, waves 2015 and 2020"
+   ],
+   "when": [
+    "the 2020 structure is read for Greece"
+   ],
+   "then": [
+    "each quintile has its three-digit per-mille shares of wave 2020, keyed by code without \"CP\"",
+    "other levels, other countries, other units and cells without a figure are left out",
+    "without an archived hbs_str_t223, reading it raises a FormatError"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-005",
+   "suite": "pytest",
+   "title": "Bruegel's published figure 1 is read month by month",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 127,
+   "node": "tests/test_module1_benchmarks.py::test_bruegels_published_figure_is_read_by_month",
+   "given": [
+    "an archived Bruegel dataset whose Greek sheet has two months and a blank row"
+   ],
+   "when": [
+    "the published figure is read"
+   ],
+   "then": [
+    "each series (QU1, QU5, TOTAL, HICP) has both months, keyed \"YYYY-MM\"",
+    "the blank row is skipped",
+    "without an archived dataset, reading it raises a FormatError"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-006",
+   "suite": "pytest",
+   "title": "Bruegel's method weights each category's year-on-year rate by its share",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 145,
+   "node": "tests/test_module1_benchmarks.py::test_bruegels_method_rebuilt_from_its_inputs",
+   "given": [
+    "food (011) rising 10% a year and transport, which has only a two-digit index (07), rising 5%",
+    "quintile 1 spending 600 per mille on food and 400 on transport (071), plus imputed rent, a category with no index and a zero share",
+    "quintile 5 spending 200 on food and 800 on transport"
+   ],
+   "when": [
+    "Bruegel's series are rebuilt"
+   ],
+   "then": [
+    "only QU1 and QU5 are built",
+    "transport is priced with its two-digit index",
+    "imputed rent, the category without an index and the zero share are left out",
+    "QU1's rate is 8.0% and QU5's 6.0% in every month of 2023 and 2024, with no rate in 2022 (no year before it)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-007",
+   "suite": "pytest",
+   "title": "V4 compares Bruegel's published series with ours, leaving out months built on provisional data",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 166,
+   "node": "tests/test_module1_benchmarks.py::test_v4_compares_bruegel_month_by_month_leaving_out_provisional_months",
+   "given": [
+    "our rebuilt rates of 8.0% (QU1) and 6.0% (QU5) for every month of 2023 and 2024, and an official all-items rate of 3.0%",
+    "Bruegel's published figures equal to ours, but QU1 0.3 pp higher in 2024-05",
+    "Bruegel's own HICP column 3.4% in 2023-12, off the final official rate"
+   ],
+   "when": [
+    "V4 is run for Bruegel"
+   ],
+   "then": [
+    "2023-12 is listed as provisional and not compared, for both quintiles",
+    "each quintile compares 23 months",
+    "QU1 fails: its worst month is 2024-05, 0.3 pp off, beyond the 0.2 pp limit",
+    "QU5 passes with no gap",
+    "annual averages are given for 2024 only, the one year with all twelve months compared"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-008",
+   "suite": "pytest",
+   "title": "a V4 result with nothing compared has no gap",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 196,
+   "node": "tests/test_module1_benchmarks.py::test_an_empty_v4_result_has_no_gap_and_passes",
+   "given": [
+    "a V4 result with no months and no annual averages"
+   ],
+   "when": [
+    "its gaps are read"
+   ],
+   "then": [
+    "both are 0 and it passes"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-009",
+   "suite": "pytest",
+   "title": "V4 rebuilds KEPE's three groups under both readings of each setting KEPE doesn't state",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 207,
+   "node": "tests/test_module1_benchmarks.py::test_v4_rebuilds_kepe_with_its_settings_and_both_unstated_choices",
+   "given": [
+    "our series equal to KEPE's published chart for P20 and R20, and 0.1 pp above it for R10"
+   ],
+   "when": [
+    "KEPE's rebuild is run"
+   ],
+   "then": [
+    "there are four variants: purchases or all spending, ranked by people or by households",
+    "every series is built with KEPE's timing from 2016, on baskets cut to the twelve divisions",
+    "each variant's largest gap is 0.1 pp and its mean gap one third of that",
+    "only 2021 to 2024 are kept"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-010",
+   "suite": "pytest",
+   "title": "V5 walks from Bruegel's published gap to our default, one setting at a time",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 248,
+   "node": "tests/test_module1_benchmarks.py::test_v5_walks_from_bruegel_to_our_default_one_setting_at_a_time",
+   "given": [
+    "Bruegel's published QU1 rates 1.5 pp above QU5 in every month of 2020-2023",
+    "Bruegel's weights, where QU1 is 60% food (up 10% a year) and 40% transport (up 5%), and QU5 20% and 80%",
+    "our series builder giving a different Q1-Q5 gap for each rung"
+   ],
+   "when": [
+    "V5 is run against Bruegel"
+   ],
+   "then": [
+    "B0 is the published gap, 1.5 pp each year",
+    "B1, Bruegel's weights chained at December, is 2.0 pp each year (8% against 6%)",
+    "O3 uses our survey-2020 weights fixed, at three digits, with HICP prices from 2019",
+    "O2 our yearly weights at three digits, O1 at the finest detail, both with HICP prices and Rule N",
+    "O0 our default with CPI prices",
+    "every rung covers 2020 to 2023"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BENCH-011",
+   "suite": "pytest",
+   "title": "V5 walks from KEPE's published gap to our default",
+   "file": "tests/test_module1_benchmarks.py",
+   "line": 300,
+   "node": "tests/test_module1_benchmarks.py::test_v5_walks_from_kepe_to_our_default",
+   "given": [
+    "our series builder giving a different P20-R20 gap for each rung"
+   ],
+   "when": [
+    "V5 is run against KEPE"
+   ],
+   "then": [
+    "K0 is KEPE's published P20 minus R20 for 2021-2024 (1.5 pp in 2022)",
+    "K1 uses KEPE's timing from 2016 on the twelve divisions",
+    "K2 our Rule N on the divisions, and K3 our default at the finest detail",
+    "each rung covers 2021 to 2024"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MCHK-001",
+   "suite": "pytest",
+   "title": "V6 rebuilds Eurostat's euro-area contributions and names the largest difference",
+   "file": "tests/test_module1_checks.py",
+   "line": 50,
+   "node": "tests/test_module1_checks.py::test_v6_rebuilds_eurostats_contributions_and_names_the_worst",
+   "given": [
+    "euro-area division indices where food rises 10% in January 2016 and drink stays flat, with equal weights",
+    "Eurostat's published contributions of 5.00 pp for food and 0.00 for drink in every month of 2016",
+    "5.03 for food in May and no figure for drink in December"
+   ],
+   "when": [
+    "V6 is run for 2016"
+   ],
+   "then": [
+    "23 contributions are compared (one has no published figure)",
+    "22 are equal at two decimals",
+    "the worst is food in 2016-05: ours 5.0, Eurostat 5.03",
+    "another country's and another unit's rows are ignored"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MCHK-002",
+   "suite": "pytest",
+   "title": "V6 refuses to run without Eurostat's archived contributions",
+   "file": "tests/test_module1_checks.py",
+   "line": 72,
+   "node": "tests/test_module1_checks.py::test_v6_needs_the_archived_contributions",
+   "given": [
+    "euro-area indices and weights in the store but no archived prc_hicp_ctrb"
+   ],
+   "when": [
+    "V6 is run"
+   ],
+   "then": [
+    "a FormatError says to import prc_hicp_ctrb first"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MCHK-003",
+   "suite": "pytest",
+   "title": "V-prices measures, per year, how far the CPI's and the HICP's item rates are apart",
+   "file": "tests/test_module1_checks.py",
+   "line": 85,
+   "node": "tests/test_module1_checks.py::test_v_prices_measures_the_gap_between_cpi_and_hicp_item_rates",
+   "given": [
+    "CPI and HICP item indices for 2019 and 2020: item 01111 rises 2% in the CPI and 2.05% in the HICP, item 0112 2% and 2.5%",
+    "a three-digit code and an item only the HICP has"
+   ],
+   "when": [
+    "V-prices is run"
+   ],
+   "then": [
+    "only 2020 is reported (2019 has no year before it)",
+    "it counts 24 pairs: two items over twelve months",
+    "half the pairs are within 0.1 pp, the median gap is 0.275 pp and the largest 0.5 pp",
+    "the three-digit code and the HICP-only item are left out"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MCHK-004",
+   "suite": "pytest",
+   "title": "V3 compares the official CPI with our two rungs year by year",
+   "file": "tests/test_module1_checks.py",
+   "line": 115,
+   "node": "tests/test_module1_checks.py::test_v3_compares_the_official_cpi_with_both_rungs_year_by_year",
+   "given": [
+    "an official CPI flat in 2012 and 1% higher every month of 2013 and 2014",
+    "our rung L1 (ELSTAT's timing) 1.5% higher in 2013 and missing 2014",
+    "our rung L2 (our timing) 2% higher in 2013 and 2014"
+   ],
+   "when": [
+    "V3 is run for purchases"
+   ],
+   "then": [
+    "L1 is built from 2012 with ELSTAT's rule, and L2 with ours",
+    "only 2013 is reported, since 2014 lacks L1",
+    "its weights effect is L1 minus the official rate (+0.5 pp) and its timing effect L2 minus L1 (+0.5 pp)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-MCHK-005",
+   "suite": "pytest",
+   "title": "the seam prices each group's 2010 basket with the original and the re-issued prices",
+   "file": "tests/test_module1_checks.py",
+   "line": 150,
+   "node": "tests/test_module1_checks.py::test_seam_prices_2010_both_ways_with_the_same_weights",
+   "given": [
+    "one group whose 2010 weights are half food, half drink",
+    "ELSTAT's original 2010 prices, where food rises 10% from January to December and drink is flat",
+    "the re-issued prices, where food rises 4%"
+   ],
+   "when": [
+    "the seam is measured"
+   ],
+   "then": [
+    "the group, named \"grouping/group\", moves 5% with the original prices and 2% with the re-issued ones"
    ],
    "notes": "",
    "examples": [],
@@ -8901,7 +12220,7 @@
    "suite": "pytest",
    "title": "the 2005-based file is put on the 2009 base",
    "file": "tests/test_module1_originals.py",
-   "line": 24,
+   "line": 28,
    "node": "tests/test_module1_originals.py::test_the_2005_based_file_is_put_on_the_2009_base",
    "given": [
     "a made-up 2009 original table on the 2005 base"
@@ -8926,7 +12245,7 @@
    "suite": "pytest",
    "title": "a subclass takes its class's row, else its group's, else its division's",
    "file": "tests/test_module1_originals.py",
-   "line": 36,
+   "line": 40,
    "node": "tests/test_module1_originals.py::test_a_subclass_takes_its_class_row_else_group_else_division",
    "given": [
     "a made-up 2010 original table with a class, a group and a division row"
@@ -8951,7 +12270,7 @@
    "suite": "pytest",
    "title": "needing December 2009, a subclass takes only a row that has it",
    "file": "tests/test_module1_originals.py",
-   "line": 49,
+   "line": 53,
    "node": "tests/test_module1_originals.py::test_needing_december_2009_a_subclass_takes_a_row_that_has_it",
    "given": [
     "a made-up 2010 original table with a class, a group and a division row",
@@ -8978,7 +12297,7 @@
    "suite": "pytest",
    "title": "old item numbers are never matched to subclasses",
    "file": "tests/test_module1_originals.py",
-   "line": 64,
+   "line": 68,
    "node": "tests/test_module1_originals.py::test_old_item_numbers_are_never_matched_to_subclasses",
    "given": [
     "a made-up 2010 table where old item 07222 (lubricants) is flat while its class (car fuels) rises 30%"
@@ -8992,6 +12311,60 @@
     "07222 is among the five-digit codes"
    ],
    "notes": "In the old list 07222 is \"lubricants\" (flat) while the class (car fuels) rose 30%: every v1\nsubclass of 07.2.2, petrol included, must take the class's movement, not the item's.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-005",
+   "suite": "pytest",
+   "title": "the archived 2008-2010 original tables become three linked blocks in COICOP 2018",
+   "file": "tests/test_module1_originals.py",
+   "line": 100,
+   "node": "tests/test_module1_originals.py::test_the_three_original_years_become_linked_blocks",
+   "given": [
+    "archived original tables for 2008 (2009 base), 2009 (2005 base) and 2010 (2009 base)",
+    "car fuels (class 07.2.2) flat in 2008 and 2009 and 20% higher through 2010"
+   ],
+   "when": [
+    "the original blocks are built"
+   ],
+   "then": [
+    "each file is read for its own year",
+    "2009's block is flat at 100 on December 2008",
+    "2010's petrol (07222) is 120 on December 2009, which is 100",
+    "no subclass under car fuels is left unpriced"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-006",
+   "suite": "pytest",
+   "title": "a missing original table is named",
+   "file": "tests/test_module1_originals.py",
+   "line": 124,
+   "node": "tests/test_module1_originals.py::test_a_missing_original_year_is_named",
+   "given": [
+    "archived original tables for 2008 and 2010 only"
+   ],
+   "when": [
+    "the original tables are read"
+   ],
+   "then": [
+    "a FormatError names the missing 2009 table and its dataset"
+   ],
+   "notes": "",
    "examples": [],
    "defects": [],
    "tags": [
@@ -9600,7 +12973,7 @@
    "suite": "pytest",
    "title": "without email settings a report goes to the outbox",
    "file": "tests/test_notify_schedule.py",
-   "line": 16,
+   "line": 20,
    "node": "tests/test_notify_schedule.py::test_notify_without_email_writes_outbox",
    "given": [
     "a configuration with no email settings"
@@ -9626,7 +12999,7 @@
    "suite": "pytest",
    "title": "the Windows scheduled task runs the archive job daily at 13:00, and catches up",
    "file": "tests/test_notify_schedule.py",
-   "line": 29,
+   "line": 33,
    "node": "tests/test_notify_schedule.py::test_the_windows_task_runs_the_archive_job_daily_at_13_and_catches_up",
    "given": [
     "a default configuration and a Windows Python interpreter"
@@ -9655,7 +13028,7 @@
    "suite": "pytest",
    "title": "the example configuration parses",
    "file": "tests/test_notify_schedule.py",
-   "line": 49,
+   "line": 53,
    "node": "tests/test_notify_schedule.py::test_config_example_parses",
    "given": [
     "the repository's config.example.toml"
@@ -9667,6 +13040,176 @@
     "the run time is at hour 13",
     "email is off",
     "the archive folder is an absolute path"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-NOTIFY-004",
+   "suite": "pytest",
+   "title": "a report is emailed over STARTTLS or SSL, as configured",
+   "file": "tests/test_notify_schedule.py",
+   "line": 114,
+   "node": "tests/test_notify_schedule.py::test_a_report_is_emailed_with_the_configured_security",
+   "given": [
+    "email settings with STARTTLS on port 587, or SSL on port 465",
+    "the SMTP password in TRACECONOMICS_SMTP_PASSWORD"
+   ],
+   "when": [
+    "a report titled \"run ok\" is sent"
+   ],
+   "then": [
+    "it goes by email",
+    "the connection uses the configured class and port, upgrading with STARTTLS only when configured",
+    "it logs in as the configured user with the password from the environment",
+    "the message has the project's subject prefix, the sender, both recipients and the body",
+    "nothing is written to the outbox"
+   ],
+   "notes": "",
+   "examples": [
+    "starttls-FakeSMTP-True",
+    "ssl-FakeSMTP_SSL-False"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-NOTIFY-005",
+   "suite": "pytest",
+   "title": "a report whose email fails is saved in the outbox with the reason",
+   "file": "tests/test_notify_schedule.py",
+   "line": 137,
+   "node": "tests/test_notify_schedule.py::test_a_failed_email_falls_back_to_the_outbox_with_the_reason",
+   "given": [
+    "email settings and no SMTP password anywhere",
+    ", separately, a password the server refuses"
+   ],
+   "when": [
+    "a report is sent with each"
+   ],
+   "then": [
+    "each goes to an outbox file instead of email",
+    "the first file says no SMTP password was found and how to store one",
+    "the second file names the server's refusal",
+    "both keep the report's subject and body"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-NOTIFY-006",
+   "suite": "pytest",
+   "title": "the SMTP password comes from the environment first, then the credential store",
+   "file": "tests/test_notify_schedule.py",
+   "line": 159,
+   "node": "tests/test_notify_schedule.py::test_the_smtp_password_comes_from_the_environment_then_the_keyring",
+   "given": [
+    "a credential store holding a password for the user \"bot\""
+   ],
+   "when": [
+    "the password is looked up with TRACECONOMICS_SMTP_PASSWORD set",
+    "it is looked up without the variable",
+    "it is looked up with a credential store that fails"
+   ],
+   "then": [
+    "the first lookup gives the variable's value",
+    "the second the credential store's",
+    "the third gives no password rather than an error"
+   ],
+   "notes": "A server may have no credential store backend at all; that is no password, not a crash.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-NOTIFY-007",
+   "suite": "pytest",
+   "title": "two reports with the same subject in the same second get separate outbox files",
+   "file": "tests/test_notify_schedule.py",
+   "line": 188,
+   "node": "tests/test_notify_schedule.py::test_two_reports_in_the_same_second_get_two_outbox_files",
+   "given": [
+    "a configuration without email settings and a clock stopped at one second"
+   ],
+   "when": [
+    "three reports with the same subject are sent"
+   ],
+   "then": [
+    "they go to three different files, the second and third numbered -2 and -3",
+    "each keeps its own body"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SCHED-008",
+   "suite": "pytest",
+   "title": "the Windows task is installed, removed and shown with schtasks",
+   "file": "tests/test_notify_schedule.py",
+   "line": 221,
+   "node": "tests/test_notify_schedule.py::test_the_windows_task_is_installed_removed_and_shown_with_schtasks",
+   "given": [
+    "a Windows machine whose Python has a windowless pythonw.exe beside it"
+   ],
+   "when": [
+    "the task is installed, then shown, then removed"
+   ],
+   "then": [
+    "install creates the task \"traceconomics-archive\" from an XML file, replacing any old one, and returns its name",
+    "the task runs the windowless interpreter",
+    "show prints schtasks' verbose listing of the task",
+    "remove deletes the task without asking"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SCHED-009",
+   "suite": "pytest",
+   "title": "without pythonw.exe the task runs the current interpreter",
+   "file": "tests/test_notify_schedule.py",
+   "line": 246,
+   "node": "tests/test_notify_schedule.py::test_without_pythonw_the_task_runs_the_current_interpreter",
+   "given": [
+    "a Python with no pythonw.exe beside it"
+   ],
+   "when": [
+    "the interpreter for the task is chosen"
+   ],
+   "then": [
+    "it is the current interpreter"
    ],
    "notes": "",
    "examples": [],
@@ -12137,6 +15680,63 @@
    ],
    "then": [
     "the comparison fails"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ELSTAT-007",
+   "suite": "pytest",
+   "title": "V1-CPI reads the newest archived English table 07 of each year",
+   "file": "tests/test_v1_cpi.py",
+   "line": 20,
+   "node": "tests/test_v1_cpi.py::test_v1_cpi_reads_the_newest_english_table_of_each_year",
+   "given": [
+    "an archive holding the 2025 English table 07 twice, retrieved in January and in March under two documents",
+    "the 2026 English table 07",
+    "a Greek table 07 and another ELSTAT document"
+   ],
+   "when": [
+    "V1-CPI is run on the archive"
+   ],
+   "then": [
+    "it uses one file per year, 2025 and 2026, the March copy for 2025",
+    "the Greek table and the other document are not used",
+    "its check links 2026's nine months to December 2025, with no failures"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ELSTAT-008",
+   "suite": "pytest",
+   "title": "the fixed-basket years before 2014 are reported apart from the strict check",
+   "file": "tests/test_v1_cpi.py",
+   "line": 53,
+   "node": "tests/test_v1_cpi.py::test_years_before_2014_are_reported_apart_from_the_strict_check",
+   "given": [
+    "made-up tables 07 for 2011 to 2014, one item rising 1% a month, the overall index equal to it",
+    "the 2014 table restating December 2013 0.1% higher than the 2013 table, for the item and the overall index"
+   ],
+   "when": [
+    "V1-CPI is run on them"
+   ],
+   "then": [
+    "the strict check covers 2014 on and passes",
+    "a separate report covers 2012-2013, named as report only",
+    "the two restated December values are counted as disagreements"
    ],
    "notes": "",
    "examples": [],
