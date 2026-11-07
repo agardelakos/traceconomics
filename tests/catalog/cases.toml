@@ -106,17 +106,17 @@ selenium = ["SEL-EXPL-014"]
 [TC-EXPL-011]
 title = "the gap note shows when the poorest or richest fifth isn't drawn"
 playwright = ["PW-EXPL-009"]
-why = "a coverage gap in Selenium: it has no case with only one of the two end fifths picked"
+selenium = ["SEL-EXPL-020"]
 
 [TC-EXPL-012]
 title = "the breakdown view: per-category lines, the measure locked, the categories past five folded, the view in the address"
 playwright = ["PW-EXPL-010", "PW-EXPL-011"]
-selenium = ["SEL-EXPL-012", "SEL-EXPL-018"]
+selenium = ["SEL-EXPL-012", "SEL-EXPL-018", "SEL-EXPL-022"]
 
 [TC-EXPL-013]
 title = "data that fails to load says so, and Retry tries again"
 playwright = ["PW-EXPL-013"]
-why = "a coverage gap in Selenium: it never makes Explore's data files fail"
+selenium = ["SEL-EXPL-021"]
 
 [TC-EXPL-014]
 title = "the full-screen button enters and leaves full screen, and says which it will do"
@@ -156,7 +156,7 @@ selenium = ["SEL-GRP-004"]
 [TC-GRP-006]
 title = "without an income, the finder shows no income group and offers three start links"
 playwright = ["PW-GRP-007"]
-why = "a coverage gap in Selenium: SEL-GRP-005 picks a home with no income but only follows a link; it never checks the result without an income"
+selenium = ["SEL-GRP-014"]
 
 [TC-GRP-007]
 title = "an entry that isn't a positive income is ignored"
@@ -196,7 +196,7 @@ selenium = ["SEL-GRP-012"]
 [TC-LINK-001]
 title = "the sitemap lists more than 20 pages"
 playwright = ["PW-LINK-001"]
-why = "a coverage gap in Selenium: SEL-LINK-002 reads the sitemap but checks only that it lists at least one page, in English"
+selenium = ["SEL-LINK-005"]
 
 [TC-LINK-002]
 title = "the sitemap lists only pages in offered languages"
@@ -231,7 +231,7 @@ selenium = ["SEL-NOJS-006"]
 [TC-NOJS-003]
 title = "without scripts, a term's explanation still opens, with its link"
 playwright = ["PW-NOJS-003"]
-why = "a coverage gap in Selenium: it has no no-script case for the explained terms"
+selenium = ["SEL-NOJS-008"]
 
 [TC-NOJS-004]
 title = "without scripts, the Groups page says the finder needs one and still shows the income table"
@@ -301,7 +301,7 @@ why = "a coverage gap in Playwright: PW-NAV-002 checks the entries' link targets
 [TC-NAV-004]
 title = "opening one quick list closes the other"
 playwright = ["PW-NAV-003"]
-why = "a coverage gap in Selenium: it never opens both quick lists in turn"
+selenium = ["SEL-NAV-013"]
 
 [TC-NAV-005]
 title = "the navigation marks the current section or page"
@@ -321,7 +321,7 @@ selenium = ["SEL-NAV-008", "SEL-NAV-009"]
 [TC-NAV-008]
 title = "the root address sends the visitor to the browser's language if offered, else English"
 playwright = ["PW-NAV-007"]
-why = "a coverage gap in Selenium: it never sets the browser's language; SEL-SMOKE-002 checks only that the root lands on English"
+selenium = ["SEL-NAV-014"]
 
 [TC-NAV-009]
 title = "on a phone, the menu button opens the navigation, its links work, and it closes"
@@ -406,7 +406,7 @@ selenium = ["SEL-PRIV-004"]
 [TC-PRIV-004]
 title = "the main pages ask nothing of other sites"
 playwright = ["PW-PRIV-004"]
-why = "a partial gap in Selenium: it checks for requests to other sites only inside SEL-PRIV-001, 002 and 004 (home, About, Explore, calculator, Groups), never on the topic page, the data page or the glossary"
+selenium = ["SEL-PRIV-005"]
 
 [TC-THEME-001]
 title = "on a first visit the theme control starts on the device setting, with nothing stored"
@@ -421,7 +421,7 @@ selenium = ["SEL-THEME-002"]
 [TC-THEME-003]
 title = "the settings menu says the choice is kept in this browser"
 playwright = ["PW-THEME-002"]
-why = "a coverage gap in Selenium: it never reads the menu's note"
+selenium = ["SEL-THEME-010"]
 
 [TC-THEME-004]
 title = "the choice holds on the next page, ticked in the control"
@@ -451,7 +451,7 @@ selenium = ["SEL-THEME-007"]
 [TC-THEME-009]
 title = "with storage blocked, a choice still applies to the page, without errors"
 playwright = ["PW-THEME-007"]
-why = "a coverage gap in Selenium: it never blocks the site's storage"
+selenium = ["SEL-THEME-011"]
 
 [TC-THEME-010]
 title = "on a phone, the menu's copy of the theme setting works and stays in step with the header's"

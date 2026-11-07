@@ -5,7 +5,7 @@ files link and the citation follow the setting; the breakdown view; full screen.
 
 import pytest
 
-from helpers import data, default_slug, latest, month, months, num, t
+from helpers import BLOCKED, data, default_slug, latest, month, months, num, t
 
 PAGE = "/{lang}/gr/inflation-by-group/explore/"
 SETTING_KEYS = ["spending", "imputed_rent", "price_source", "weights_timing", "tutoring"]
@@ -457,3 +457,55 @@ def test_household_types_are_offered_and_drawn_from_the_file(site):
     assert set(types) <= chips
     series = data(f"series/{default_slug()}.json")
     site.text("#explore [data-role=summary]", _summary("en", series, ["hhtype/A1", "hhtype/A2_DCH"]))
+
+
+def test_gap_note_when_an_end_fifth_isnt_drawn(site):
+    """SEL-EXPL-020: the gap note shows when the poorest or richest fifth isn't drawn
+
+    Given an address picking the poorest fifth and all households, but not the richest fifth
+    When Explore opens from it
+    Then the note about the gap is shown
+    """
+    site.open(PAGE.format(lang="en") + "?groups=Q1,all/all")
+    _ready(site)
+    site.visible("#explore [data-role=gap-note]")
+
+
+def test_one_group_breakdown_title_is_the_sum_of_its_parts(site):
+    """SEL-EXPL-022: one group's breakdown title gives its latest rate, the sum of its parts
+
+    Given an address opening the breakdown view for the poorest fifth alone
+    When Explore opens from it
+    Then the title gives the poorest fifth's latest annual rate: the sum of its categories' parts in the published contributions file
+    """
+    by_month = data(f"contributions/{default_slug()}.json")["groups"]["B/Q1"]
+    total = sum(by_month[max(by_month)].values())        # in the file's order, as the page adds them
+    site.open(PAGE.format(lang="en") + "?groups=Q1&view=parts")
+    site.visible("#explore [data-role=view-parts]")
+    site.text("#explore [data-role=contrib-title]",
+              t("en", "explore.contrib_title", group=t("en", "group.in.Q1"), value=f"{num('en', total)}%"))
+
+
+@pytest.mark.console_errors
+def test_data_that_fails_to_load_says_so_and_retry_tries_again(site):
+    """SEL-EXPL-021: data that fails to load says so, and Retry tries again
+
+    Given the chart's series files blocked
+    When Explore opens
+    And the files are unblocked and Retry is pressed
+    Then the chart shows an alert saying the data couldn't be loaded, with a Retry button
+    And after Retry, the alert goes and the summary is drawn
+
+    The browser logs the refused requests, so this test allows console errors.
+    """
+    site.driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": BLOCKED + ["*/series/*.json"]})
+    try:
+        site.open(PAGE.format(lang="en"))
+        alert = site.visible("#explore [role=alert]")
+        site.wait(lambda _: t("en", "chart.failed") in alert.text, "the alert doesn't say the data failed")
+    finally:
+        site.driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": BLOCKED})
+    retry = next(b for b in site.all("#explore [role=alert] button") if b.text.strip() == t("en", "chart.retry"))
+    retry.click()
+    site.hidden("#explore [role=alert]")
+    site.wait(lambda _: site.find("#explore [data-role=summary]").text != "", "the summary was never drawn after Retry")

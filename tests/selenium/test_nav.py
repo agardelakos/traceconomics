@@ -1,13 +1,17 @@
 """The header: the quick lists of topics and countries, the phone menu, the language switch, the
 skip link and the breadcrumbs."""
 
+import json
 import urllib.error
 import urllib.request
 
 import pytest
 from selenium.webdriver.common.keys import Keys
 
-from helpers import t
+from helpers import ROOT, t
+
+# The languages offered to readers, as the site's own list has them.
+OFFERED = json.loads((ROOT / "site/src/i18n/languages.json").read_text(encoding="utf-8"))["offered"]
 
 TOPIC_PAGE = "/{lang}/gr/inflation-by-group/explore/"
 
@@ -224,3 +228,40 @@ def test_missing_page_is_404(base_url):
     with pytest.raises(urllib.error.HTTPError) as e:
         urllib.request.urlopen(base_url + "/en/no-such-page/", timeout=30)
     assert e.value.code == 404
+
+
+def test_opening_one_quick_list_closes_the_other(site):
+    """SEL-NAV-013: opening one quick list closes the other
+
+    Given the home page, with the Topics quick list open
+    When the Countries quick list is opened
+    Then the Countries list is shown
+    And the Topics list is closed
+    """
+    site.open("/en/")
+    topics, countries = site.find("#topic-menu"), site.find("#country-menu")
+    _arrow(site, "en", "topics").click()
+    site.wait(lambda _: site.popover_open(topics), "the Topics list did not open")
+    _arrow(site, "en", "countries").click()
+    site.wait(lambda _: site.popover_open(countries), "the Countries list did not open")
+    assert not site.popover_open(topics), "the Topics list stayed open"
+
+
+@pytest.mark.parametrize("locale", ["el-GR", "en-US", "de-DE"])
+def test_root_sends_the_browser_to_its_language(site, locale):
+    """SEL-NAV-014: the root address sends the visitor to the browser's language if offered, else English
+
+    Given a browser set to Greek, US English or German
+    When the site's root address is opened
+    Then the visitor is sent to the home page in the browser's language if the site offers it, else in English
+    """
+    agent = site.driver.execute_script("return navigator.userAgent")
+    site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": locale})
+    try:
+        site.open("/")
+        assert site.js("return navigator.languages[0]") == locale, "the browser's language was not set"
+        wanted = locale.split("-")[0]
+        expected = wanted if wanted in OFFERED else "en"
+        site.wait(lambda _: site.path == f"/{expected}/", f"the root did not send a {locale} browser to /{expected}/")
+    finally:
+        site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"})

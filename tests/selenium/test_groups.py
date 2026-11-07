@@ -348,3 +348,19 @@ def test_household_section_shows_each_types_share(site):
         site.text(f'#household [data-household-n="{k}"]', v["households"])
     href = site.find("#household [data-household-compare]").get_attribute("href")
     assert href.split("groups=")[1].replace("%2F", "/").replace("%2C", ",").split(",") == list(types["groups"])
+
+
+def test_finder_without_an_income(site):
+    """SEL-GRP-014: without an income, the finder shows no income group and offers three start links
+
+    Given the group finder, with no income entered
+    When owning the home is picked, and a pension is not the main income
+    Then no income group is shown
+    And it offers three links to start from
+    """
+    site.open(PAGE.format(lang="en"))
+    site.visible("[data-find=form]")
+    _choose(site, "home", "owner")
+    _choose(site, "pension", "no")
+    site.wait(lambda _: len(site.all("[data-find=starts] a")) == 3, "the finder doesn't offer three start links")
+    assert not site.find("[data-find=income-row]").is_displayed()

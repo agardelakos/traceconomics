@@ -5,6 +5,8 @@ everything the page sent."""
 
 from urllib.parse import unquote, urlsplit
 
+import pytest
+
 from selenium.webdriver.common.keys import Keys
 
 GR = "/en/gr/inflation-by-group/"
@@ -136,3 +138,20 @@ def test_theme_is_the_only_thing_stored(site):
         assert not foreign, f"/en/{page} talked to another site: {foreign}"
         assert site.storage() == {"theme": "dark"}, f"/en/{page} stored {site.storage()}"
         assert not site.driver.get_cookies(), f"/en/{page} set a cookie"
+
+
+@pytest.mark.parametrize("path, ready", [
+    (GR, "main h1"), ("/en/data/gr/", "main h1"), ("/en/glossary/", "#glossary-list"),
+], ids=["topic page", "data page", "glossary"])
+def test_the_topic_data_and_glossary_pages_ask_nothing_of_other_sites(site, path, ready):
+    """SEL-PRIV-005: the topic page, the data page and the glossary ask nothing of other sites
+
+    Given the inflation-by-group page for Greece, the data page for Greece, or the glossary
+    When it opens and finishes loading
+    Then no request it sent goes to another site
+    """
+    site.open(path)
+    site.visible(ready)
+    # The log must have seen the page itself, or an empty log would pass.
+    assert any(urlsplit(r["url"]).path == path for r in site.requests()), "the page's own request was not recorded"
+    assert not _foreign(site), f"{path} talked to another site: {_foreign(site)}"

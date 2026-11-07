@@ -176,3 +176,39 @@ def test_phone_menu_copy_stays_in_step(phone):
     phone.wait(lambda _: _state(phone) == ["dark", "dark"])
     assert _checked(phone, "theme-menu") == "dark"
     assert _checked(phone, "theme") == "dark", "the header's copy did not follow the menu's"
+
+
+def test_the_menu_says_the_choice_stays_in_this_browser(site):
+    """SEL-THEME-010: the settings menu says the choice is kept in this browser
+
+    Given the home page
+    When the header's settings menu is opened
+    Then it says the choice is kept in this browser
+    """
+    site.open("/en/")
+    site.find(".settings[data-role=theme] button").click()
+    menu = site.find("#settings-menu")
+    site.wait(lambda _: site.popover_open(menu), "the settings menu did not open")
+    assert t("en", "theme.stored") in menu.text
+
+
+def test_with_storage_blocked_a_choice_still_applies(site):
+    """SEL-THEME-011: with storage blocked, a choice still applies to the page, without errors
+
+    Given a browser that refuses the site any storage
+    When the dark theme is picked on the home page
+    Then the page turns dark
+    And the browser logs no error
+
+    The site must not break when the browser refuses it storage (private modes, strict settings).
+    """
+    script = site.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": (
+        "Object.defineProperty(window, 'localStorage', {get() { throw new DOMException('blocked', 'SecurityError'); }});")})
+    try:
+        site.open("/en/")
+        assert site.js("try { localStorage; return false; } catch (e) { return true; }"), "storage was not blocked"
+        _pick(site, "dark")
+        site.wait(lambda _: site.js("return document.documentElement.getAttribute('data-theme')") == "dark",
+                  "the dark theme was not applied")
+    finally:
+        site.driver.execute_cdp_cmd("Page.removeScriptToEvaluateOnNewDocument", {"identifier": script["identifier"]})
