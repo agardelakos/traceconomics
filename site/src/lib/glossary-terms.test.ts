@@ -64,11 +64,15 @@ describe("marking glossary terms", () => {
     then: [
       "inflation is reported once",
       "the heading's text stays plain text",
+      "the link keeps its one plain text child, unchanged",
+      "the one marked term is the mention in plain text",
     ],
   } }, () => {
     const tree = root(h2(text("Πληθωρισμός")), p(a(text("πληθωρισμός")), text(" και ο πληθωρισμός")));
     expect(mark(tree)).toEqual(["inflation"]);
     expect((tree.children![0].children![0] as Node).type).toBe("text");
+    expect(tree.children![1].children![0]).toEqual(a(text("πληθωρισμός")));
+    expect(labels(tree)).toEqual(["πληθωρισμός"]);
   });
 
   it("doesn't mark a term on its own page", { meta: {

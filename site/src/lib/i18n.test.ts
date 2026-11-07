@@ -21,17 +21,31 @@ describe("t", () => {
 
   it("refuses a missing key, never falling back to the other language", { meta: {
     id: "VT-I18N-002",
-    given: "a key that has no text",
-    when: "it is looked up",
+    given: [
+      "a key that has no text in either language",
+      "a key added, for this test only, to the English texts alone",
+    ],
+    when: "each is looked up, the second in Greek",
     then: [
       "the lookup throws a \"missing text\" error",
       "the key check is true for a key that exists in English",
       "the key check is false for the missing key in Greek",
+      "the English-only key, asked for in Greek, throws a \"missing text\" error instead of giving the English text",
     ],
   } }, () => {
     expect(() => t("en", "no.such.key")).toThrow(/missing text/);
     expect(has("en", "site.name")).toBe(true);
     expect(has("el", "no.such.key")).toBe(false);
+    // The language files hold the same keys (the parity test), so a one-language key is made here,
+    // on the very object `t` reads, and removed afterwards.
+    const english = en as Record<string, string>;
+    english["test.english.only"] = "English only";
+    try {
+      expect(t("en", "test.english.only")).toBe("English only");
+      expect(() => t("el", "test.english.only")).toThrow(/missing text/);
+    } finally {
+      delete english["test.english.only"];
+    }
   });
 
   it("refuses a missing slot value", { meta: {

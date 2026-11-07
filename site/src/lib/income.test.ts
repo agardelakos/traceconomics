@@ -21,7 +21,7 @@ describe("equivalentSize", () => {
     expect(equivalentSize(3, 1)).toBe(2.3);
   });
 
-  it("refuses a household with nobody aged 14 or over", { meta: {
+  it("refuses nobody aged 14 or over, a negative number of children, or a fractional person", { meta: {
     id: "VT-INCOME-002",
     given: "a household with nobody aged 14 or over, a negative number of children, or a fractional number of people",
     when: "its equivalent size is computed",
@@ -192,9 +192,15 @@ describe("parseAmount", () => {
 
 
 describe("householdType", () => {
+  // The three arguments, named: people aged 14 or over, children under 14, and how many of those
+  // aged 14 or over are dependent children (under 16, or 16 to 24 at home, neither working nor
+  // looking for work).
+  const type = (h: { older: number; children: number; olderDependents: number }) =>
+    householdType(h.older, h.children, h.olderDependents);
+
   it("counts adults and dependent children as Eurostat does", { meta: {
     id: "VT-INCOME-014",
-    given: "households given as numbers of adults, children and dependent young adults",
+    given: "households given as people aged 14 or over, children under 14, and dependents among those aged 14 or over",
     when: "their household type is found",
     then: [
       "one adult is A1, with children A1_DCH",
@@ -203,14 +209,14 @@ describe("householdType", () => {
       "three adults, one of them a dependent young adult, are A2_DCH",
     ],
   } }, () => {
-    expect(householdType(1, 0, 0)).toBe("A1");
-    expect(householdType(1, 2, 0)).toBe("A1_DCH");
-    expect(householdType(2, 0, 0)).toBe("A2");
-    expect(householdType(2, 1, 0)).toBe("A2_DCH");
-    expect(householdType(4, 0, 0)).toBe("A_GE3");
+    expect(type({ older: 1, children: 0, olderDependents: 0 })).toBe("A1");
+    expect(type({ older: 1, children: 2, olderDependents: 0 })).toBe("A1_DCH");
+    expect(type({ older: 2, children: 0, olderDependents: 0 })).toBe("A2");
+    expect(type({ older: 2, children: 1, olderDependents: 0 })).toBe("A2_DCH");
+    expect(type({ older: 4, children: 0, olderDependents: 0 })).toBe("A_GE3");
     // A couple and a 20-year-old student at home: two adults with a dependent child, not three adults.
-    expect(householdType(3, 0, 1)).toBe("A2_DCH");
-    expect(householdType(3, 1, 0)).toBe("A_GE3_DCH");
+    expect(type({ older: 3, children: 0, olderDependents: 1 })).toBe("A2_DCH");
+    expect(type({ older: 3, children: 1, olderDependents: 0 })).toBe("A_GE3_DCH");
   });
 
   it("has no type without an adult, and never counts more dependents than people", { meta: {
@@ -224,9 +230,9 @@ describe("householdType", () => {
       "one with a negative number of children throws an error",
     ],
   } }, () => {
-    expect(householdType(1, 0, 1)).toBeNull();
-    expect(householdType(2, 0, 5)).toBeNull();
-    expect(() => householdType(0, 1, 0)).toThrow();
-    expect(() => householdType(1, -1, 0)).toThrow();
+    expect(type({ older: 1, children: 0, olderDependents: 1 })).toBeNull();
+    expect(type({ older: 2, children: 0, olderDependents: 5 })).toBeNull();
+    expect(() => type({ older: 0, children: 1, olderDependents: 0 })).toThrow();
+    expect(() => type({ older: 1, children: -1, olderDependents: 0 })).toThrow();
   });
 });
