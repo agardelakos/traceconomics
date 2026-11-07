@@ -175,38 +175,3 @@ def tutoring(folder: Path, period: str | None = None) -> dict:
         out[g]["education_weight_excluded"] = edu_b.get(g)
     return {"period": period, "groups": out}
 
-
-def detail_effect(con, archive, years=range(2015, 2020)) -> dict:
-    """What pricing at class level (4 digits) instead of the finest level does to the gap, measured
-    on the CPI path in years when both exist: the size of what the HICP path loses before 2015."""
-    from traceconomics.module1 import index
-    from traceconomics.module1.attribution import at_level
-    from traceconomics.module1.weights_used import load_baskets
-
-    blocks = index.price_blocks(con, archive)
-    baskets = load_baskets(con, spending="purchases")
-    out = {}
-    for name, b in (("finest", baskets), ("classes", at_level(baskets, 4))):
-        q1, q5 = (index.build(None, "B", q, blocks=blocks, baskets=b) for q in ("Q1", "Q5"))
-        a, c = q1.annual_average_rates(), q5.annual_average_rates()
-        out[name] = {y: a[y] - c[y] for y in years}
-    return out
-
-
-def not_by_level(con) -> dict:
-    """Education not defined by level (10.5): its share of all households' purchases by survey, and
-    the HICP's own 10.5 index against 10.2 where both exist (to 2014)."""
-    from traceconomics.module1.prices import hicp_blocks
-
-    shares = dict(con.execute("""
-        SELECT ref_period, value FROM observations
-        WHERE dataset = 'oet-local:hbs_weights' AND grouping = 'all' AND spending = 'purchases'
-          AND imputed_rent = 'excluded' AND coicop18 = '105' AND measure = 'share'
-        QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
-    """).fetchall())
-    blocks = hicp_blocks(con)
-    moves = {}
-    for y in range(2010, 2015):
-        b = blocks[y]
-        moves[y] = {c: (b[c][f"{y}-12"] / b[c][f"{y - 1}-12"] - 1) * 100 for c in ("105", "1020") if c in b}
-    return {"shares": {int(k): v for k, v in shares.items()}, "hicp_december_change": moves}

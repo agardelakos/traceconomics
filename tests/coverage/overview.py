@@ -35,7 +35,8 @@ GOOD = 95
 # coverage was first measured (2026-11-07), so failing below 90 would fail every run. RATCHET starts
 # at that baseline, rounded down to a whole percent, and only ever goes up: raise it as tests are
 # added, never lower it to pass a run. When it reaches FLOOR, it is the floor, as on the site.
-RATCHET = 73.0
+# Reached on 2026-11-07, when the measured total rose to 97.4%: the run now fails below 90%.
+RATCHET = 90.0
 NAMES = {"unit": "unit", "integration": "integration", "e2e": "e2e"}
 LONG = {"unit": "unit tests", "integration": "integration tests", "e2e": "end-to-end tests in a browser"}
 
