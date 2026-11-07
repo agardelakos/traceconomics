@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "457d40ce0d426b25fcdfcd5d6f176cb28b905560",
- "generated": "2026-11-07T17:27:29Z",
+ "commit": "1a026f1c019bfe0dd583ec6d21fa4495a8c79a0c",
+ "generated": "2026-11-07T17:45:47Z",
  "missing": [],
  "cases": [
   {
@@ -287,20 +287,41 @@
   {
    "id": "PW-CALC-004",
    "suite": "playwright",
-   "title": "the group finder's link starts from its group; an unknown one from the default",
+   "title": "the group finder's link starts from its group",
    "file": "site/tests/ui/calculator.ui.ts",
    "line": 91,
-   "node": "site/tests/ui/calculator.ui.ts › the group finder's link starts from its group; an unknown one from the default",
+   "node": "site/tests/ui/calculator.ui.ts › the group finder's link starts from its group",
    "given": [
     "an address naming a starting group, as the group finder links"
    ],
    "when": [
-    "the calculator opens",
-    "it opens again with an unknown group"
+    "the calculator opens"
    ],
    "then": [
-    "the named group is the starting group, with its published rate",
-    "an unknown group falls back to the default, the poorest fifth"
+    "the named group is the starting group, with its published rate"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-CALC-008",
+   "suite": "playwright",
+   "title": "an unknown starting group falls back to the default",
+   "file": "site/tests/ui/calculator.ui.ts",
+   "line": 103,
+   "node": "site/tests/ui/calculator.ui.ts › an unknown starting group falls back to the default",
+   "given": [
+    "an address naming a starting group that doesn't exist"
+   ],
+   "when": [
+    "the calculator opens"
+   ],
+   "then": [
+    "the starting group is the default, the poorest fifth, with its published rate"
    ],
    "notes": "",
    "examples": [],
@@ -314,7 +335,7 @@
    "suite": "playwright",
    "title": "moving a slider gives the engine's rate, adjusts the others, and Reset undoes it",
    "file": "site/tests/ui/calculator.ui.ts",
-   "line": 105,
+   "line": 115,
    "node": "site/tests/ui/calculator.ui.ts › moving a slider gives the engine's rate, adjusts the others, and Reset undoes it",
    "given": [
     "the calculator at the poorest fifth's basket"
@@ -340,7 +361,7 @@
    "suite": "playwright",
    "title": "in euros a month: shares, a total, the engine's rate; a bad amount is flagged; then back to shares",
    "file": "site/tests/ui/calculator.ui.ts",
-   "line": 151,
+   "line": 161,
    "node": "site/tests/ui/calculator.ui.ts › in euros a month: shares, a total, the engine's rate; a bad amount is flagged; then back to shares",
    "given": [
     "the calculator switched to euros a month"
@@ -370,7 +391,7 @@
    "suite": "playwright",
    "title": "it says so instead of showing a number",
    "file": "site/tests/ui/calculator.ui.ts",
-   "line": 203,
+   "line": 213,
    "node": "site/tests/ui/calculator.ui.ts › it says so instead of showing a number",
    "given": [
     "the calculator's data file answers with an error"
@@ -380,6 +401,54 @@
    ],
    "then": [
     "it says the data couldn't be loaded, and shows no result"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-CALC-009",
+   "suite": "playwright",
+   "title": "a new starting group resets the sliders",
+   "file": "site/tests/ui/calculator.ui.ts",
+   "line": 226,
+   "node": "site/tests/ui/calculator.ui.ts › a new starting group resets the sliders",
+   "given": [
+    "the calculator at the poorest fifth's basket, with one category's share moved to 40%"
+   ],
+   "when": [
+    "renters are picked as the starting group"
+   ],
+   "then": [
+    "your rate is the renters' published rate",
+    "Reset is gone: nothing is changed any more"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-CALC-010",
+   "suite": "playwright",
+   "title": "the chart's label names the starting group, then your basket",
+   "file": "site/tests/ui/calculator.ui.ts",
+   "line": 244,
+   "node": "site/tests/ui/calculator.ui.ts › the chart's label names the starting group, then your basket",
+   "given": [
+    "the calculator drawn at the poorest fifth's basket"
+   ],
+   "when": [
+    "one category's share is moved"
+   ],
+   "then": [
+    "before the move, the chart's label names the starting group alone",
+    "after it, the label names the group and your basket"
    ],
    "notes": "",
    "examples": [],
@@ -454,14 +523,35 @@
    ],
    "when": [
     "the middle fifth is picked, then the richest fifth is unpicked",
-    "three more groups are picked, making six",
-    "Explore opens with one group only, and that group is pressed"
+    "three more groups are picked, making six"
    ],
    "then": [
     "the middle fifth shows as pressed and is added at the end of the address's list of groups",
     "the richest fifth leaves that list",
-    "with six groups the count says 6 of 6 and the other groups can't be picked",
-    "the last group stays picked"
+    "with six groups the count says 6 of 6 and the other groups can't be picked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-021",
+   "suite": "playwright",
+   "title": "the last group can't be unpicked",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 127,
+   "node": "site/tests/ui/explore.ui.ts › the last group can't be unpicked",
+   "given": [
+    "Explore opened with one group only, the second fifth"
+   ],
+   "when": [
+    "that group is pressed"
+   ],
+   "then": [
+    "it stays picked"
    ],
    "notes": "",
    "examples": [],
@@ -475,7 +565,7 @@
    "suite": "playwright",
    "title": "changing an option loads that setting, counts the change, and puts only that in the address",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 133,
+   "line": 139,
    "node": "site/tests/ui/explore.ui.ts › changing an option loads that setting, counts the change, and puts only that in the address",
    "given": [
     "Explore at its default view, with its options open"
@@ -500,23 +590,49 @@
   {
    "id": "PW-EXPL-005",
    "suite": "playwright",
-   "title": "a shared address opens the same view; unknown values fall back to the defaults",
+   "title": "a shared address opens the same view",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 159,
-   "node": "site/tests/ui/explore.ui.ts › a shared address opens the same view; unknown values fall back to the defaults",
+   "line": 165,
+   "node": "site/tests/ui/explore.ui.ts › a shared address opens the same view",
    "given": [
-    "an address naming a price source, a weights timing, two groups and the index as the measure"
+    "an address naming a price source, a weights timing, two groups, the index as the measure and the gap off"
    ],
    "when": [
-    "Explore opens from it",
-    "Explore opens from an address whose price source, groups and measure are unknown"
+    "Explore opens from it"
    ],
    "then": [
     "the named options are chosen, the named groups are picked and no others from the defaults",
     "the measure is the index",
+    "the gap is off, and the address still says so (`gap=0`)",
     "the summary gives that setting's latest index values for those groups",
-    "a notice says months are left out (the timing rule's effect)",
-    "with unknown values, the default price source is chosen and the summary is the default view's"
+    "a notice says months are left out (the timing rule's effect)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-015",
+   "suite": "playwright",
+   "title": "unknown values in a shared address fall back to the defaults",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 189,
+   "node": "site/tests/ui/explore.ui.ts › unknown values in a shared address fall back to the defaults",
+   "given": [
+    "an address whose price source, groups and measure are unknown"
+   ],
+   "when": [
+    "Explore opens from it"
+   ],
+   "then": [
+    "the default price source is chosen",
+    "the three default groups are picked",
+    "the measure is the annual rate",
+    "the summary is the default view's",
+    "the address drops the unknown price source and measure"
    ],
    "notes": "",
    "examples": [],
@@ -528,20 +644,43 @@
   {
    "id": "PW-EXPL-006",
    "suite": "playwright",
-   "title": "an option Greece can't have is not offered; an old link asking for it falls back",
+   "title": "an option Greece can't have is not offered",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 185,
-   "node": "site/tests/ui/explore.ui.ts › an option Greece can't have is not offered; an old link asking for it falls back",
+   "line": 205,
+   "node": "site/tests/ui/explore.ui.ts › an option Greece can't have is not offered",
    "given": [
     "Explore, with its options open"
    ],
    "when": [
-    "the imputed-rent options are read",
-    "Explore opens from an address asking for imputed rent by user cost"
+    "the imputed-rent options are read"
    ],
    "then": [
-    "user cost is not offered",
-    "from the old address, imputed rent is excluded (the default), the summary is drawn, and the option leaves the address"
+    "user cost is not offered"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-016",
+   "suite": "playwright",
+   "title": "an old link asking for an option Greece can't have falls back to the default",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 217,
+   "node": "site/tests/ui/explore.ui.ts › an old link asking for an option Greece can't have falls back to the default",
+   "given": [
+    "an address asking for imputed rent by user cost"
+   ],
+   "when": [
+    "Explore opens from it"
+   ],
+   "then": [
+    "imputed rent is excluded (the default)",
+    "the summary is drawn",
+    "the option leaves the address"
    ],
    "notes": "",
    "examples": [],
@@ -553,22 +692,94 @@
   {
    "id": "PW-EXPL-007",
    "suite": "playwright",
-   "title": "the measure changes the summary; the gap panel is for the annual rate only",
+   "title": "another measure changes the summary; the gap is for the annual rate only",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 202,
-   "node": "site/tests/ui/explore.ui.ts › the measure changes the summary; the gap panel is for the annual rate only",
+   "line": 230,
+   "node": "site/tests/ui/explore.ui.ts › the rch_m measure changes the summary, and the gap is for the annual rate only",
    "given": [
     "Explore at its default view, with the gap panel shown"
    ],
    "when": [
-    "the measure is set to the monthly rate, then to the index",
-    "it is set back to the annual rate",
+    "the measure is set to the monthly rate or the index"
+   ],
+   "then": [
+    "the summary gives that measure's latest values",
+    "the address carries the measure",
+    "the gap switch is disabled, with a reason saying it is for the annual rate only"
+   ],
+   "notes": "",
+   "examples": [
+    "the rch_m measure changes the summary, and the gap is for the annual rate only",
+    "the index measure changes the summary, and the gap is for the annual rate only"
+   ],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": true
+  },
+  {
+   "id": "PW-EXPL-017",
+   "suite": "playwright",
+   "title": "back at the annual rate, the measure leaves the address",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 250,
+   "node": "site/tests/ui/explore.ui.ts › back at the annual rate, the measure leaves the address",
+   "given": [
+    "Explore opened with the index as the measure"
+   ],
+   "when": [
+    "the measure is set back to the annual rate"
+   ],
+   "then": [
+    "the measure leaves the address",
+    "the gap switch can be used again"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-018",
+   "suite": "playwright",
+   "title": "with the gap off, the address says so and the gap panel is hidden",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 263,
+   "node": "site/tests/ui/explore.ui.ts › with the gap off, the address says so and the gap panel is hidden",
+   "given": [
+    "Explore at its default view, with the gap panel shown"
+   ],
+   "when": [
     "the gap is turned off"
    ],
    "then": [
-    "for each of the other measures, the summary gives that measure's latest values, the address carries the measure, and the gap switch is disabled with a reason saying it is for the annual rate only",
-    "back at the annual rate, the measure leaves the address",
-    "with the gap off, the address says so (`gap=0`) and the gap panel is hidden"
+    "the address says so (`gap=0`)",
+    "the gap panel is hidden"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-022",
+   "suite": "playwright",
+   "title": "each of the six household types is offered as a group",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 276,
+   "node": "site/tests/ui/explore.ui.ts › each of the six household types is offered as a group",
+   "given": [
+    "Explore at its default view"
+   ],
+   "when": [
+    "its groups are read"
+   ],
+   "then": [
+    "a button is shown for each of the six household types"
    ],
    "notes": "",
    "examples": [],
@@ -582,17 +793,15 @@
    "suite": "playwright",
    "title": "household types are a family of their own: each draws its line from the file",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 229,
+   "line": 288,
    "node": "site/tests/ui/explore.ui.ts › household types are a family of their own: each draws its line from the file",
    "given": [
-    "Explore"
+    "an address picking two household types"
    ],
    "when": [
-    "its groups are read",
-    "it opens from an address picking two household types"
+    "Explore opens from it"
    ],
    "then": [
-    "a button is shown for each of the six household types",
     "the summary gives those two household types' latest annual rates from the published file",
     "the second one is shown as picked"
    ],
@@ -608,7 +817,7 @@
    "suite": "playwright",
    "title": "the gap note shows when the poorest or richest fifth isn't drawn",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 247,
+   "line": 302,
    "node": "site/tests/ui/explore.ui.ts › the gap note shows when the poorest or richest fifth isn't drawn",
    "given": [
     "an address picking the poorest fifth and all households, but not the richest fifth"
@@ -631,7 +840,7 @@
    "suite": "playwright",
    "title": "one group: its latest rate, split by category, with the rest folded",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 258,
+   "line": 313,
    "node": "site/tests/ui/explore.ui.ts › one group: its latest rate, split by category, with the rest folded",
    "given": [
     "Explore with the poorest fifth alone"
@@ -659,7 +868,7 @@
    "suite": "playwright",
    "title": "two groups: a difference line per category, and the gap between them",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 294,
+   "line": 349,
    "node": "site/tests/ui/explore.ui.ts › two groups: a difference line per category, and the gap between them",
    "given": [
     "an address opening Explore's breakdown view for the poorest and richest fifths"
@@ -686,7 +895,7 @@
    "suite": "playwright",
    "title": "the files link and the citation follow the setting",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 313,
+   "line": 368,
    "node": "site/tests/ui/explore.ui.ts › the files link and the citation follow the setting",
    "given": [
     "Explore at its default view"
@@ -710,7 +919,7 @@
    "suite": "playwright",
    "title": "the chart says so, and Retry tries again",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 336,
+   "line": 391,
    "node": "site/tests/ui/explore.ui.ts › the chart says so, and Retry tries again",
    "given": [
     "the chart's data files answer with an error"
@@ -735,7 +944,7 @@
    "suite": "playwright",
    "title": "full screen shows the chart alone, and the button says how to leave",
    "file": "site/tests/ui/explore.ui.ts",
-   "line": 354,
+   "line": 409,
    "node": "site/tests/ui/explore.ui.ts › full screen shows the chart alone, and the button says how to leave",
    "given": [
     "Explore, in a browser that offers full screen"
@@ -745,8 +954,57 @@
     "it is pressed again"
    ],
    "then": [
+    "the chart's figure fills the screen, without the groups or the options",
     "the button's name changes to say how to leave full screen",
-    "pressed again, it goes back to its first name"
+    "pressed again, full screen ends and the button goes back to its first name"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-019",
+   "suite": "playwright",
+   "title": "following the files link opens the data page with the setting's box open",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 431,
+   "node": "site/tests/ui/explore.ui.ts › following the files link opens the data page with the setting's box open",
+   "given": [
+    "Explore at its default view"
+   ],
+   "when": [
+    "the link to this view's files is unfolded and followed"
+   ],
+   "then": [
+    "the browser goes to the data page for Greece, at the default setting's box",
+    "that box is open, with files to download"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-020",
+   "suite": "playwright",
+   "title": "months an option leaves out are noted, with the reason",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 448,
+   "node": "site/tests/ui/explore.ui.ts › months an option leaves out are noted, with the reason",
+   "given": [
+    "Explore at its default view, and weights timing rule F, which leaves out months before its first survey"
+   ],
+   "when": [
+    "rule F is chosen"
+   ],
+   "then": [
+    "a notice above the chart gives the reason, as the availability file names it",
+    "the option's own note gives the same reason"
    ],
    "notes": "",
    "examples": [],
@@ -785,36 +1043,36 @@
    "suite": "playwright",
    "title": "the household type follows Eurostat's dependent-child rule",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 50,
-   "node": "site/tests/ui/groups.ui.ts › the household type follows Eurostat's dependent-child rule",
+   "line": 57,
+   "node": "site/tests/ui/groups.ui.ts › 3 aged 14 or over (0 dependent), 0 children: A_GE3",
    "given": [
     "the group finder"
    ],
    "when": [
-    "three people aged 14 or over and no children are entered",
-    "one of the three is a dependent child (a student living at home)",
-    "the household is changed to one person aged 14 or over and one child, with no dependent child",
-    "that one person is made a dependent child"
+    "a household is entered: people aged 14 or over, children, and how many of the older ones are dependent children"
    ],
    "then": [
-    "the household type is three or more adults",
-    "with the dependent child, it is two adults with dependent children",
-    "then it is one adult with dependent children",
-    "with nobody counting as an adult, no household type is named"
+    "three adults are three or more adults; with one a dependent child, two adults with dependent children",
+    "one adult and a child is one adult with dependent children; with nobody counting as an adult, no household type is named"
    ],
    "notes": "",
-   "examples": [],
+   "examples": [
+    "3 aged 14 or over (0 dependent), 0 children: A_GE3",
+    "3 aged 14 or over (1 dependent), 0 children: A2_DCH",
+    "1 aged 14 or over (0 dependent), 1 children: A1_DCH",
+    "1 aged 14 or over (1 dependent), 1 children: no type"
+   ],
    "defects": [],
    "tags": [],
    "problems": [],
-   "named": false
+   "named": true
   },
   {
    "id": "PW-GRP-003",
    "suite": "playwright",
    "title": "places a yearly income in its fifth, and says how big the household counts",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 76,
+   "line": 74,
    "node": "site/tests/ui/groups.ui.ts › places a yearly income in its fifth, and says how big the household counts",
    "given": [
     "the group finder, for two people aged 14 or over and one child"
@@ -839,7 +1097,7 @@
    "suite": "playwright",
    "title": "a monthly amount counts as a twelfth of the year",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 98,
+   "line": 96,
    "node": "site/tests/ui/groups.ui.ts › a monthly amount counts as a twelfth of the year",
    "given": [
     "the group finder, for one adult"
@@ -862,7 +1120,7 @@
    "suite": "playwright",
    "title": "an income just past a limit says it could be either group",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 112,
+   "line": 110,
    "node": "site/tests/ui/groups.ui.ts › an income just past a limit says it could be either group",
    "given": [
     "the group finder, for one adult"
@@ -885,7 +1143,7 @@
    "suite": "playwright",
    "title": "home and main income add their groups; the links carry the groups, never the income",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 127,
+   "line": 125,
    "node": "site/tests/ui/groups.ui.ts › home and main income add their groups; the links carry the groups, never the income",
    "given": [
     "the group finder, for one adult"
@@ -912,7 +1170,7 @@
    "suite": "playwright",
    "title": "without an income, the household type, home and main-income groups",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 158,
+   "line": 156,
    "node": "site/tests/ui/groups.ui.ts › without an income, the household type, home and main-income groups",
    "given": [
     "the group finder, with no income entered"
@@ -932,11 +1190,40 @@
    "named": false
   },
   {
+   "id": "PW-GRP-019",
+   "suite": "playwright",
+   "title": "an entry that isn't a positive income is ignored",
+   "file": "site/tests/ui/groups.ui.ts",
+   "line": 171,
+   "node": "site/tests/ui/groups.ui.ts › \"abc\" is not an income, and is ignored",
+   "given": [
+    "the group finder"
+   ],
+   "when": [
+    "something that isn't a positive income is typed as the income: text, a malformed number, a negative amount or zero"
+   ],
+   "then": [
+    "it still asks for an income",
+    "no income group is shown"
+   ],
+   "notes": "",
+   "examples": [
+    "\"abc\" is not an income, and is ignored",
+    "\"1,50,0\" is not an income, and is ignored",
+    "\"-5\" is not an income, and is ignored",
+    "\"0\" is not an income, and is ignored"
+   ],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": true
+  },
+  {
    "id": "PW-GRP-008",
    "suite": "playwright",
    "title": "out-of-range household numbers are kept within bounds for the sums",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 172,
+   "line": 186,
    "node": "site/tests/ui/groups.ui.ts › out-of-range household numbers are kept within bounds for the sums",
    "given": [
     "the group finder"
@@ -959,7 +1246,7 @@
    "suite": "playwright",
    "title": "the start buttons open the calculator from that group",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 184,
+   "line": 198,
    "node": "site/tests/ui/groups.ui.ts › the start buttons open the calculator from that group",
    "given": [
     "the group finder, with renting picked"
@@ -982,7 +1269,7 @@
    "suite": "playwright",
    "title": "each household type shows its ranges and its size",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 220,
+   "line": 234,
    "node": "site/tests/ui/groups.ui.ts › each household type shows its ranges and its size",
    "given": [
     "the income panel"
@@ -1006,7 +1293,7 @@
    "suite": "playwright",
    "title": "Other opens the boxes for any household",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 236,
+   "line": 250,
    "node": "site/tests/ui/groups.ui.ts › Other opens the boxes for any household",
    "given": [
     "the income panel, with the boxes for any other household hidden"
@@ -1029,19 +1316,42 @@
   {
    "id": "PW-GRP-012",
    "suite": "playwright",
-   "title": "purchasing power standards replace euros, or are greyed with the reason",
+   "title": "purchasing power standards replace euros",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 252,
-   "node": "site/tests/ui/groups.ui.ts › purchasing power standards replace euros, or are greyed with the reason",
+   "line": 269,
+   "node": "site/tests/ui/groups.ui.ts › purchasing power standards replace euros",
    "given": [
-    "the income panel, for one adult"
+    "the income panel, for one adult, built from our limits with a conversion to purchasing power standards"
    ],
    "when": [
-    "purchasing power standards are chosen as the unit, where they can be"
+    "purchasing power standards are chosen as the unit"
    ],
    "then": [
-    "where our limits have a conversion, each fifth's yearly and monthly range is given in purchasing power standards",
-    "where they have none yet, the choice is disabled and the reason is shown"
+    "each fifth's yearly and monthly range is given in purchasing power standards"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-GRP-016",
+   "suite": "playwright",
+   "title": "without a conversion, purchasing power standards are greyed with the reason",
+   "file": "site/tests/ui/groups.ui.ts",
+   "line": 281,
+   "node": "site/tests/ui/groups.ui.ts › without a conversion, purchasing power standards are greyed with the reason",
+   "given": [
+    "the income panel, built from our limits with no conversion to purchasing power standards yet"
+   ],
+   "when": [
+    "it is drawn"
+   ],
+   "then": [
+    "the purchasing power standards choice is disabled",
+    "the reason is shown"
    ],
    "notes": "",
    "examples": [],
@@ -1055,7 +1365,7 @@
    "suite": "playwright",
    "title": "Eurostat's limits are one click away, in both units",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 271,
+   "line": 293,
    "node": "site/tests/ui/groups.ui.ts › Eurostat's limits are one click away, in both units",
    "given": [
     "the income panel, for one adult, showing our limits"
@@ -1079,20 +1389,65 @@
   {
    "id": "PW-GRP-014",
    "suite": "playwright",
-   "title": "our limits say how they are made, and how far Eurostat's are from them",
+   "title": "our limits say how they are made",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 287,
-   "node": "site/tests/ui/groups.ui.ts › our limits say how they are made, and how far Eurostat's are from them",
+   "line": 309,
+   "node": "site/tests/ui/groups.ui.ts › our limits say how they are made",
    "given": [
     "the Groups page"
+   ],
+   "when": [
+    "the income panel's note on our limits and the group finder are read"
+   ],
+   "then": [
+    "the note on our limits gives their survey year, income year and the range of their standard errors",
+    "the group finder says which survey year its limits come from"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-GRP-017",
+   "suite": "playwright",
+   "title": "for the same income year, a note says how far Eurostat's limits are from ours",
+   "file": "site/tests/ui/groups.ui.ts",
+   "line": 325,
+   "node": "site/tests/ui/groups.ui.ts › for the same income year, a note says how far Eurostat's limits are from ours",
+   "given": [
+    "the Groups page, built from our limits and Eurostat's for the same income year"
    ],
    "when": [
     "the income panel's notes are read"
    ],
    "then": [
-    "the note on our limits gives their survey year, income year and the range of their standard errors",
-    "where Eurostat's limits are for the same income year, it compares both poorest-fifth limits and says how much lower or higher Eurostat's is, in percent",
-    "the group finder says which survey year its limits come from"
+    "a note compares both poorest-fifth limits and says how much lower or higher Eurostat's is, in percent"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-GRP-018",
+   "suite": "playwright",
+   "title": "for different income years, the limits are not compared",
+   "file": "site/tests/ui/groups.ui.ts",
+   "line": 341,
+   "node": "site/tests/ui/groups.ui.ts › for different income years, the limits are not compared",
+   "given": [
+    "the Groups page, built from our limits and Eurostat's for different income years"
+   ],
+   "when": [
+    "the income panel's notes are read"
+   ],
+   "then": [
+    "there is no note comparing the two"
    ],
    "notes": "",
    "examples": [],
@@ -1106,7 +1461,7 @@
    "suite": "playwright",
    "title": "each type's share of households and its surveyed households, from the file",
    "file": "site/tests/ui/groups.ui.ts",
-   "line": 315,
+   "line": 357,
    "node": "site/tests/ui/groups.ui.ts › each type's share of households and its surveyed households, from the file",
    "given": [
     "the Groups page"
@@ -1210,28 +1565,30 @@
    "suite": "playwright",
    "title": "Explore redraws for other options within the policy",
    "file": "site/tests/ui/host.ui.ts",
-   "line": 71,
-   "node": "site/tests/ui/host.ui.ts › Explore redraws for other options within the policy",
+   "line": 78,
+   "node": "site/tests/ui/host.ui.ts › Explore with its default view draws within the policy",
    "given": [
     "a deployed copy of the site"
    ],
    "when": [
-    "Explore opens",
-    "it is opened with other options (another price source, weights timing, groups and measure)",
-    "it is opened with the parts view"
+    "Explore is opened at its default view, with other options (another price source, weights timing, groups and measure), or with the parts view"
    ],
    "then": [
-    "the parts view's title is drawn",
+    "it is drawn: its summary, or for the parts view the parts title",
     "the browser reports no Content Security Policy violation"
    ],
    "notes": "",
-   "examples": [],
+   "examples": [
+    "Explore with its default view draws within the policy",
+    "Explore with other options draws within the policy",
+    "Explore with the parts view draws within the policy"
+   ],
    "defects": [],
    "tags": [
     "smoke"
    ],
    "problems": [],
-   "named": false
+   "named": true
   },
   {
    "id": "PW-LINK-001",
@@ -1416,6 +1773,52 @@
    "named": false
   },
   {
+   "id": "PW-LINK-004",
+   "suite": "playwright",
+   "title": "the sitemap lists only pages in offered languages",
+   "file": "site/tests/ui/links.ui.ts",
+   "line": 93,
+   "node": "site/tests/ui/links.ui.ts › the sitemap lists only pages in offered languages",
+   "given": [
+    "a built site"
+   ],
+   "when": [
+    "its sitemap's pages are read"
+   ],
+   "then": [
+    "every page it lists is in a language the site offers"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-LINK-005",
+   "suite": "playwright",
+   "title": "each page has exactly one canonical link, to its own address",
+   "file": "site/tests/ui/links.ui.ts",
+   "line": 104,
+   "node": "site/tests/ui/links.ui.ts › each page has exactly one canonical link, to its own address",
+   "given": [
+    "every page in the sitemap, and the Greek twin of every English one"
+   ],
+   "when": [
+    "its canonical links are read"
+   ],
+   "then": [
+    "each page has exactly one, and it points at the page itself"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PW-NAV-001",
    "suite": "playwright",
    "title": "the Topics quick list opens, ticks the current topic, and closes with Escape",
@@ -1466,11 +1869,83 @@
    "named": false
   },
   {
+   "id": "PW-NAV-011",
+   "suite": "playwright",
+   "title": "picking a quick-list entry goes to its page",
+   "file": "site/tests/ui/nav.ui.ts",
+   "line": 44,
+   "node": "site/tests/ui/nav.ui.ts › picking a quick-list entry goes to its page",
+   "given": [
+    "the About page"
+   ],
+   "when": [
+    "the Countries quick list is opened and Greece is picked"
+   ],
+   "then": [
+    "the browser goes to the Greece page"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-NAV-012",
+   "suite": "playwright",
+   "title": "on a desktop the navigation shows as a row, with no menu button",
+   "file": "site/tests/ui/nav.ui.ts",
+   "line": 57,
+   "node": "site/tests/ui/nav.ui.ts › on a desktop the navigation shows as a row, with no menu button",
+   "given": [
+    "a desktop-sized window"
+   ],
+   "when": [
+    "the home page opens"
+   ],
+   "then": [
+    "the navigation and the theme setting's button are shown",
+    "the phone's menu button is not"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-NAV-013",
+   "suite": "playwright",
+   "title": "the skip link takes the keyboard to the main content",
+   "file": "site/tests/ui/nav.ui.ts",
+   "line": 69,
+   "node": "site/tests/ui/nav.ui.ts › the skip link takes the keyboard to the main content",
+   "given": [
+    "the About page"
+   ],
+   "when": [
+    "Tab is pressed once",
+    "Enter is pressed"
+   ],
+   "then": [
+    "the skip link has the focus and shows",
+    "the address moves to the main content (#content)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PW-NAV-003",
    "suite": "playwright",
    "title": "opening one quick list closes the other",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 44,
+   "line": 84,
    "node": "site/tests/ui/nav.ui.ts › opening one quick list closes the other",
    "given": [
     "the home page, with the Topics quick list open"
@@ -1492,24 +1967,23 @@
   {
    "id": "PW-NAV-004",
    "suite": "playwright",
-   "title": "the header marks the section the reader is in",
+   "title": "on a section's own page, the header marks its link as the current page",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 62,
-   "node": "site/tests/ui/nav.ui.ts › Glossary is marked current on /en/glossary/",
+   "line": 101,
+   "node": "site/tests/ui/nav.ui.ts › Glossary is marked as the current page on /en/glossary/",
    "given": [
-    "a page that is a section of the navigation (Glossary, Topics), or a page inside one (a country's page, inside Countries)"
+    "a page that is a section of the navigation (Glossary, Topics)"
    ],
    "when": [
     "it opens"
    ],
    "then": [
-    "that section's link in the navigation is marked current: as the current page on the section's own page, as the current section on a page inside it"
+    "that section's link in the navigation is marked as the current page (aria-current=\"page\")"
    ],
    "notes": "",
    "examples": [
-    "Glossary is marked current on /en/glossary/",
-    "Topics is marked current on /en/topics/",
-    "Countries is marked current on /en/gr/inflation-by-group/"
+    "Glossary is marked as the current page on /en/glossary/",
+    "Topics is marked as the current page on /en/topics/"
    ],
    "defects": [],
    "tags": [],
@@ -1517,11 +1991,34 @@
    "named": true
   },
   {
+   "id": "PW-NAV-010",
+   "suite": "playwright",
+   "title": "on a page inside a section, the header marks the section as current",
+   "file": "site/tests/ui/nav.ui.ts",
+   "line": 114,
+   "node": "site/tests/ui/nav.ui.ts › on a page inside a section, the header marks the section as current",
+   "given": [
+    "a country's page, which is inside Countries"
+   ],
+   "when": [
+    "it opens"
+   ],
+   "then": [
+    "the Countries link in the navigation is marked as the current section (aria-current=\"true\"), not as the current page"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PW-NAV-005",
    "suite": "playwright",
    "title": "the breadcrumb leads back home",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 75,
+   "line": 125,
    "node": "site/tests/ui/nav.ui.ts › the breadcrumb leads back home",
    "given": [
     "a glossary term's page"
@@ -1545,7 +2042,7 @@
    "suite": "playwright",
    "title": "the language switch links offered languages to the same page and greys the others",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 89,
+   "line": 139,
    "node": "site/tests/ui/nav.ui.ts › the language switch links offered languages to the same page and greys the others",
    "given": [
     "the About page in English"
@@ -1570,7 +2067,7 @@
    "suite": "playwright",
    "title": "the root address sends each browser to its language",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 114,
+   "line": 164,
    "node": "site/tests/ui/nav.ui.ts › is sent from the root to the right language",
    "given": [
     "a browser set to a language"
@@ -1597,7 +2094,7 @@
    "suite": "playwright",
    "title": "offers a link to each offered language",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 131,
+   "line": 181,
    "node": "site/tests/ui/nav.ui.ts › offers a link to each offered language",
    "given": [
     "a browser with scripts turned off"
@@ -1620,7 +2117,7 @@
    "suite": "playwright",
    "title": "the menu button opens the navigation, and its links work",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 145,
+   "line": 195,
    "node": "site/tests/ui/nav.ui.ts › the menu button opens the navigation, and its links work",
    "given": [
     "the home page on a phone, with the navigation hidden"
@@ -1765,6 +2262,29 @@
    "tags": [],
    "problems": [],
    "named": true
+  },
+  {
+   "id": "PW-NOJS-006",
+   "suite": "playwright",
+   "title": "the topic page still shows its figures",
+   "file": "site/tests/ui/noscript.ui.ts",
+   "line": 85,
+   "node": "site/tests/ui/noscript.ui.ts › the topic page still shows its figures",
+   "given": [
+    "a browser with scripts turned off"
+   ],
+   "when": [
+    "the inflation-by-group page for Greece opens"
+   ],
+   "then": [
+    "its content shows figures in percent"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
   },
   {
    "id": "PW-PRIV-001",
@@ -2089,6 +2609,99 @@
    "named": false
   },
   {
+   "id": "PW-TERM-006",
+   "suite": "playwright",
+   "title": "filters the terms",
+   "file": "site/tests/ui/terms.ui.ts",
+   "line": 100,
+   "node": "site/tests/ui/terms.ui.ts › filters the terms",
+   "given": [
+    "the English glossary, every term shown"
+   ],
+   "when": [
+    "\"quintile\" is typed in the search"
+   ],
+   "then": [
+    "fewer terms show, each one containing \"quintile\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-TERM-007",
+   "suite": "playwright",
+   "title": "with no match, hides every term and category",
+   "file": "site/tests/ui/terms.ui.ts",
+   "line": 113,
+   "node": "site/tests/ui/terms.ui.ts › with no match, hides every term and category",
+   "given": [
+    "the English glossary"
+   ],
+   "when": [
+    "letters that match no term are typed in the search"
+   ],
+   "then": [
+    "no term shows",
+    "no empty category stays"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-TERM-008",
+   "suite": "playwright",
+   "title": "cleared, brings every term back",
+   "file": "site/tests/ui/terms.ui.ts",
+   "line": 125,
+   "node": "site/tests/ui/terms.ui.ts › cleared, brings every term back",
+   "given": [
+    "the English glossary, filtered by \"quintile\""
+   ],
+   "when": [
+    "the search is cleared"
+   ],
+   "then": [
+    "every term is back"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-TERM-009",
+   "suite": "playwright",
+   "title": "ignores Greek accents",
+   "file": "site/tests/ui/terms.ui.ts",
+   "line": 140,
+   "node": "site/tests/ui/terms.ui.ts › ignores Greek accents",
+   "given": [
+    "the Greek glossary"
+   ],
+   "when": [
+    "the Greek word for inflation is typed without its accent"
+   ],
+   "then": [
+    "the accented term still shows, among fewer terms than before"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PW-THEME-001",
    "suite": "playwright",
    "title": "choosing a theme applies it and keeps it in this browser",
@@ -2286,6 +2899,79 @@
    "named": false
   },
   {
+   "id": "PW-THEME-009",
+   "suite": "playwright",
+   "title": "on a first visit the control starts on the device setting, with nothing stored",
+   "file": "site/tests/ui/theme.ui.ts",
+   "line": 134,
+   "node": "site/tests/ui/theme.ui.ts › on a first visit the control starts on the device setting, with nothing stored",
+   "given": [
+    "a first visit, with nothing stored"
+   ],
+   "when": [
+    "the home page opens",
+    "the settings menu is opened"
+   ],
+   "then": [
+    "the page sets no theme of its own and nothing is stored",
+    "the device setting is the option ticked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-THEME-010",
+   "suite": "playwright",
+   "title": "the device setting follows the system",
+   "file": "site/tests/ui/theme.ui.ts",
+   "line": 149,
+   "node": "site/tests/ui/theme.ui.ts › the device setting follows the system",
+   "given": [
+    "the home page on the device setting, with the device set to light"
+   ],
+   "when": [
+    "the device switches to dark"
+   ],
+   "then": [
+    "the background changes with the device"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-THEME-011",
+   "suite": "playwright",
+   "title": "a choice overrides the device setting",
+   "file": "site/tests/ui/theme.ui.ts",
+   "line": 162,
+   "node": "site/tests/ui/theme.ui.ts › a choice overrides the device setting",
+   "given": [
+    "the home page, its light background noted, then the device switched to dark"
+   ],
+   "when": [
+    "light is chosen",
+    "then dark is chosen"
+   ],
+   "then": [
+    "light brings back the light background, though the device is dark",
+    "dark brings back the device's dark background"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-ANALYT-001",
    "suite": "pytest",
    "title": "the analytics export is off without a token",
@@ -2369,24 +3055,47 @@
   {
    "id": "PY-ANALYT-004",
    "suite": "pytest",
-   "title": "an empty day is stored once, and two empty days are stored apart",
+   "title": "an empty day is stored once",
    "file": "tests/test_analytics.py",
    "line": 189,
-   "node": "tests/test_analytics.py::test_empty_days_stored_and_different_days_not_unchanged",
+   "node": "tests/test_analytics.py::test_an_empty_day_is_stored_once",
    "given": [
     "an API that returns no rows"
    ],
    "when": [
     "the visits export runs today with no bookmark",
-    "it runs again with no bookmark and the same empty answer",
-    "it runs into a new archive with a bookmark three days ago and two empty answers"
+    "it runs again into the same archive with no bookmark and the same empty answer"
    ],
    "then": [
     "the first run stores one file, for yesterday",
-    "the second run stores nothing new",
-    "the third run stores two files, one per day"
+    "the second run stores nothing new"
    ],
-   "notes": "Two empty days each produce a stored file because the payload includes the date.",
+   "notes": "The second run is the same day with the same (empty) content, so the archive's dedup by\ncontent hash keeps the first file.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ANALYT-016",
+   "suite": "pytest",
+   "title": "two empty days are stored apart",
+   "file": "tests/test_analytics.py",
+   "line": 216,
+   "node": "tests/test_analytics.py::test_two_empty_days_are_stored_apart",
+   "given": [
+    "an API that returns no rows, and a bookmark three days before today"
+   ],
+   "when": [
+    "the visits export runs today"
+   ],
+   "then": [
+    "two days are fetched, and each is stored as its own file"
+   ],
+   "notes": "Two empty days each produce a stored file because the payload includes the date: if it\ndidn't, dedup would keep only the first and the second day would look already stored.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -2400,7 +3109,7 @@
    "suite": "pytest",
    "title": "a GraphQL error fails the export without moving the bookmark",
    "file": "tests/test_analytics.py",
-   "line": 235,
+   "line": 240,
    "node": "tests/test_analytics.py::test_graphql_errors_returns_failed",
    "given": [
     "an API whose answer carries a GraphQL error"
@@ -2425,21 +3134,23 @@
   {
    "id": "PY-ANALYT-006",
    "suite": "pytest",
-   "title": "a network error fails the export after one request",
+   "title": "a network error fails the export after one request, keeping the bookmark",
    "file": "tests/test_analytics.py",
-   "line": 266,
+   "line": 271,
    "node": "tests/test_analytics.py::test_url_error_returns_failed",
    "given": [
-    "an API that cannot be reached"
+    "a bookmark three days before today, and an API that cannot be reached"
    ],
    "when": [
     "the visits export runs today"
    ],
    "then": [
     "the result is \"failed\"",
-    "exactly one request was tried"
+    "exactly one request was tried",
+    "the bookmark is where it was",
+    "the archive holds no dataset"
    ],
-   "notes": "A urllib error stops and returns 'failed'; state unchanged.",
+   "notes": "A urllib error stops the run at the first day; the next run resumes from the same bookmark.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -2453,7 +3164,7 @@
    "suite": "pytest",
    "title": "a full page of rows fails the export as possibly truncated",
    "file": "tests/test_analytics.py",
-   "line": 295,
+   "line": 305,
    "node": "tests/test_analytics.py::test_page_rows_returns_failed",
    "given": [
     "an API that returns exactly a page's limit of rows"
@@ -2479,7 +3190,7 @@
    "suite": "pytest",
    "title": "the same rows in another order are not stored again",
    "file": "tests/test_analytics.py",
-   "line": 322,
+   "line": 332,
    "node": "tests/test_analytics.py::test_different_group_order_produces_same_stored_bytes",
    "given": [
     "a day's rows already stored"
@@ -2504,7 +3215,7 @@
    "suite": "pytest",
    "title": "a sampled row marks the stored day as sampled",
    "file": "tests/test_analytics.py",
-   "line": 354,
+   "line": 364,
    "node": "tests/test_analytics.py::test_sampled_flag_in_manifest",
    "given": [
     "an API that returns one unsampled row and one with a sample interval of 10"
@@ -2530,20 +3241,20 @@
    "suite": "pytest",
    "title": "exporting one chosen day stores it",
    "file": "tests/test_analytics.py",
-   "line": 384,
-   "node": "tests/test_analytics.py::test_export_day_stores_without_state",
+   "line": 394,
+   "node": "tests/test_analytics.py::test_export_day_stores_the_chosen_day",
    "given": [
-    "a job state with an old bookmark, and an API that returns one row"
+    "an API that returns one row"
    ],
    "when": [
     "yesterday alone is exported"
    ],
    "then": [
     "the result is ok, with one row and status \"stored\"",
-    "the job state is as it was",
-    "the request asked for yesterday"
+    "the request asked for yesterday",
+    "the archive holds the visits dataset"
    ],
-   "notes": "export_day fetches one day and stores it; any state dict passed is ignored.",
+   "notes": "export_day takes no job state, so it can't move a bookmark: there is nothing to check there.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -2557,7 +3268,7 @@
    "suite": "pytest",
    "title": "the downloads export is off without a zone id",
    "file": "tests/test_analytics.py",
-   "line": 445,
+   "line": 452,
    "node": "tests/test_analytics.py::test_downloads_off_without_zone",
    "given": [
     "a token and an account id but no zone id in the environment or passed"
@@ -2582,7 +3293,7 @@
    "suite": "pytest",
    "title": "downloads are stored in their own dataset with their own bookmark",
    "file": "tests/test_analytics.py",
-   "line": 459,
+   "line": 466,
    "node": "tests/test_analytics.py::test_downloads_stored_in_their_own_dataset_with_their_own_bookmark",
    "given": [
     "a visits bookmark a week ago, no downloads bookmark, and a zone answer with two data-file rows (one from a bot, one not)"
@@ -2613,7 +3324,7 @@
    "suite": "pytest",
    "title": "a downloads row has request and byte counts, not page views",
    "file": "tests/test_analytics.py",
-   "line": 493,
+   "line": 500,
    "node": "tests/test_analytics.py::test_downloads_rows_have_request_and_byte_counts",
    "given": [
     "a zone answer with one row of 5 requests, 100 bytes and a sample interval of 2"
@@ -2639,7 +3350,7 @@
    "suite": "pytest",
    "title": "a downloads answer without the zone fails",
    "file": "tests/test_analytics.py",
-   "line": 509,
+   "line": 516,
    "node": "tests/test_analytics.py::test_downloads_missing_zone_in_response_fails",
    "given": [
     "an API answer with no zone in it"
@@ -2664,7 +3375,7 @@
    "suite": "pytest",
    "title": "exporting one day of downloads needs the zone id",
    "file": "tests/test_analytics.py",
-   "line": 522,
+   "line": 529,
    "node": "tests/test_analytics.py::test_export_day_downloads_needs_zone",
    "given": [
     "no zone id in the environment or passed"
@@ -3104,24 +3815,94 @@
   {
    "id": "PY-CAT-011",
    "suite": "pytest",
-   "title": "the cross-suite mapping of browser cases is checked",
+   "title": "browser cases mapped to one shared case pass",
    "file": "tests/test_catalog.py",
-   "line": 271,
+   "line": 277,
    "node": "tests/test_catalog.py::test_mapping",
    "given": [
     "a Playwright case and a Selenium case"
    ],
    "when": [
-    "they are mapped to one shared case",
-    "they are not mapped, first as the backfill allows, then with the mapping required to be complete",
-    "the mapping lists a case under the wrong suite or names an unknown case",
-    "each is mapped to a shared case of its own, one with a reason and one without"
+    "they are mapped to one shared case and the catalog is validated"
    ],
    "then": [
-    "mapped together, there is no finding",
-    "unmapped, they are a warning, and an error once the mapping must be complete",
-    "a wrong suite or an unknown case is a mapping error",
-    "of the two single-suite entries only the one without a reason is reported, asking why it is in one suite only"
+    "there is no finding"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAT-027",
+   "suite": "pytest",
+   "title": "unmapped browser cases are a warning, then an error once the mapping must be complete",
+   "file": "tests/test_catalog.py",
+   "line": 289,
+   "node": "tests/test_catalog.py::test_unmapped_browser_cases_warn_until_the_mapping_must_be_complete",
+   "given": [
+    "a Playwright case and a Selenium case that no shared case lists"
+   ],
+   "when": [
+    "the catalog is validated as the backfill allows, and again with the mapping required to be complete"
+   ],
+   "then": [
+    "as the backfill allows, they are an \"unmapped\" warning",
+    "with the mapping required to be complete, they are an \"unmapped\" error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAT-028",
+   "suite": "pytest",
+   "title": "a mapping under the wrong suite, or naming an unknown case, is an error",
+   "file": "tests/test_catalog.py",
+   "line": 302,
+   "node": "tests/test_catalog.py::test_a_mapping_under_the_wrong_suite_or_to_an_unknown_case_is_an_error",
+   "given": [
+    "a Playwright case and a Selenium case"
+   ],
+   "when": [
+    "the shared case lists the Selenium case under Playwright, and an unknown case under Selenium"
+   ],
+   "then": [
+    "the catalog has a mapping error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAT-029",
+   "suite": "pytest",
+   "title": "a shared case in one suite only needs a reason",
+   "file": "tests/test_catalog.py",
+   "line": 314,
+   "node": "tests/test_catalog.py::test_a_shared_case_in_one_suite_only_needs_a_reason",
+   "given": [
+    "a Playwright case and a Selenium case"
+   ],
+   "when": [
+    "each is mapped to a shared case of its own, one with a reason (`why`) and one without"
+   ],
+   "then": [
+    "only the one without a reason is reported, asking why it is in one suite only"
    ],
    "notes": "",
    "examples": [],
@@ -3137,7 +3918,7 @@
    "suite": "pytest",
    "title": "a run record gives each test result to its case",
    "file": "tests/test_catalog.py",
-   "line": 329,
+   "line": 359,
    "node": "tests/test_catalog.py::test_record_gives_each_result_to_its_case",
    "given": [
     "a catalog of two pytest cases, and JUnit, Playwright and Vitest result files"
@@ -3168,7 +3949,7 @@
    "suite": "pytest",
    "title": "the microdata job counts as its own suite but feeds pytest cases",
    "file": "tests/test_catalog.py",
-   "line": 353,
+   "line": 383,
    "node": "tests/test_catalog.py::test_the_microdata_job_counts_as_its_own_suite_but_feeds_pytest_cases",
    "given": [
     "JUnit results from the CI job that runs the tests with the microdata extra"
@@ -3194,7 +3975,7 @@
    "suite": "pytest",
    "title": "the history keeps the newest runs and never forgets an obsolete ID",
    "file": "tests/test_catalog.py",
-   "line": 368,
+   "line": 398,
    "node": "tests/test_catalog.py::test_append_keeps_the_newest_and_never_forgets_an_obsolete_id",
    "given": [
     "a run history that keeps three runs per trigger"
@@ -3221,7 +4002,7 @@
    "suite": "pytest",
    "title": "the worse result of an example stands",
    "file": "tests/test_catalog.py",
-   "line": 390,
+   "line": 420,
    "node": "tests/test_catalog.py::test_the_worse_result_of_an_example_stands",
    "given": [
     "the same example run in both pytest jobs, failed in one and passed in the other"
@@ -3246,7 +4027,7 @@
    "suite": "pytest",
    "title": "Playwright describe titles keep examples apart",
    "file": "tests/test_catalog.py",
-   "line": 404,
+   "line": 434,
    "node": "tests/test_catalog.py::test_describe_titles_keep_examples_apart",
    "given": [
     "one case with the same test title in two describe blocks, failing in one and passing in the other"
@@ -3269,20 +4050,44 @@
   {
    "id": "PY-CAT-017",
    "suite": "pytest",
-   "title": "the catalog never loses IDs to an incomplete run, and a revert is welcome",
+   "title": "the catalog never loses IDs to an incomplete run",
    "file": "tests/test_catalog.py",
-   "line": 421,
-   "node": "tests/test_catalog.py::test_the_catalog_never_loses_ids_to_an_incomplete_run_and_a_revert_is_welcome",
+   "line": 455,
+   "node": "tests/test_catalog.py::test_the_catalog_never_loses_ids_to_an_incomplete_run",
    "given": [
     "a stored catalog with a pytest and a Playwright case"
    ],
    "when": [
-    "a catalog where Playwright was not collected is stored",
-    "then one where the Playwright case's test is really removed",
+    "a catalog where Playwright was not collected is stored"
+   ],
+   "then": [
+    "no ID is obsolete",
+    "both cases are kept"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAT-030",
+   "suite": "pytest",
+   "title": "a removed test's ID becomes obsolete, and a revert takes it off the list",
+   "file": "tests/test_catalog.py",
+   "line": 472,
+   "node": "tests/test_catalog.py::test_a_removed_tests_id_becomes_obsolete_and_a_revert_takes_it_off",
+   "given": [
+    "a stored catalog with a pytest and a Playwright case"
+   ],
+   "when": [
+    "a complete catalog without the Playwright case is stored",
     "then one where the test comes back"
    ],
    "then": [
-    "after the incomplete catalog no ID is obsolete and both cases are kept",
     "after the removal its ID is obsolete",
     "after it comes back no ID is obsolete"
    ],
@@ -3300,7 +4105,7 @@
    "suite": "pytest",
    "title": "a run record with an unknown trigger is refused",
    "file": "tests/test_catalog.py",
-   "line": 446,
+   "line": 491,
    "node": "tests/test_catalog.py::test_a_bad_record_is_refused",
    "given": [
     "a run record whose trigger is not a known one"
@@ -3326,7 +4131,7 @@
    "suite": "pytest",
    "title": "a case's flakiness is its share of result changes",
    "file": "tests/test_catalog.py",
-   "line": 463,
+   "line": 508,
    "node": "tests/test_catalog.py::test_flakiness",
    "given": [
     "a case's recent results"
@@ -3355,7 +4160,7 @@
    "suite": "pytest",
    "title": "the generated wiki pages replace the old ones and leave hand-written pages alone",
    "file": "tests/test_catalog.py",
-   "line": 481,
+   "line": 526,
    "node": "tests/test_catalog.py::test_pages",
    "given": [
     "a run history with one run, and a wiki with a stale generated page, a sidebar with a generated block and a hand-written home page"
@@ -3385,7 +4190,7 @@
    "suite": "pytest",
    "title": "the validator runs from the command line and fails on an error",
    "file": "tests/test_catalog.py",
-   "line": 511,
+   "line": 556,
    "node": "tests/test_catalog.py::test_scripts_run_from_the_command_line",
    "given": [
     "a catalog with a malformed ID"
@@ -3411,7 +4216,7 @@
    "suite": "pytest",
    "title": "release test runs are pulled from the bucket, checked and stored once",
    "file": "tests/test_catalog.py",
-   "line": 555,
+   "line": 600,
    "node": "tests/test_catalog.py::test_release_runs_are_pulled_checked_and_stored_once",
    "given": [
     "a bucket listed in pages of two, holding a ui-test run, a failed promote check, a smoke run with a bad commit, a smoke run still uploading and the link check's object"
@@ -3442,7 +4247,7 @@
    "suite": "pytest",
    "title": "a release run's meta file is checked",
    "file": "tests/test_catalog.py",
-   "line": 595,
+   "line": 640,
    "node": "tests/test_catalog.py::test_meta_is_checked",
    "given": [
     "a meta file whose build differs from its folder, whose result is unknown, or whose environment has an unexpected key"
@@ -3469,22 +4274,70 @@
   {
    "id": "PY-CAT-024",
    "suite": "pytest",
-   "title": "bad objects and outages never stop the pull",
+   "title": "bad objects never stop the pull",
    "file": "tests/test_catalog.py",
-   "line": 611,
-   "node": "tests/test_catalog.py::test_bad_objects_and_outages_never_stop_the_pull",
+   "line": 656,
+   "node": "tests/test_catalog.py::test_bad_objects_never_stop_the_pull",
    "given": [
     "a bucket with a malformed results file, a meta file that is not an object and one nested too deep"
    ],
    "when": [
-    "the release runs are pulled",
-    "they are pulled from a bucket that can't be reached",
-    "a listing's next-page token repeats"
+    "the release runs are pulled"
    ],
    "then": [
-    "from the bad objects nothing is written and three problems are reported",
-    "from the unreachable bucket nothing is written and the listing's OSError is the one problem",
-    "the repeating listing ends, with no objects"
+    "nothing is written",
+    "each bad object is reported as a problem, three in all"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAT-031",
+   "suite": "pytest",
+   "title": "an unreachable bucket is one problem, not a crash",
+   "file": "tests/test_catalog.py",
+   "line": 672,
+   "node": "tests/test_catalog.py::test_an_unreachable_bucket_is_one_problem",
+   "given": [
+    "a bucket that can't be reached"
+   ],
+   "when": [
+    "the release runs are pulled"
+   ],
+   "then": [
+    "nothing is written",
+    "the listing's OSError is the one problem"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAT-032",
+   "suite": "pytest",
+   "title": "a repeated next-page token ends the listing",
+   "file": "tests/test_catalog.py",
+   "line": 685,
+   "node": "tests/test_catalog.py::test_a_repeated_page_token_ends_the_listing",
+   "given": [
+    "a bucket listing whose next-page token repeats on every page"
+   ],
+   "when": [
+    "the bucket is listed"
+   ],
+   "then": [
+    "the listing ends, with no objects"
    ],
    "notes": "",
    "examples": [],
@@ -3500,7 +4353,7 @@
    "suite": "pytest",
    "title": "runs pruned from the history are not fetched again",
    "file": "tests/test_catalog.py",
-   "line": 637,
+   "line": 696,
    "node": "tests/test_catalog.py::test_runs_pruned_from_the_history_are_not_fetched_again",
    "given": [
     "a history that keeps one ui-test run and holds one newer than the bucket's"
@@ -4419,18 +5272,20 @@
    "line": 64,
    "node": "tests/test_export_labels.py::test_a_name_only_in_capitals_or_missing_stops_the_export",
    "given": [
-    "a code whose ELSTAT name is all capitals and whose single child has different words"
+    "a code whose ELSTAT name is all capitals and whose single child has different words (014)",
+    "a code with no name anywhere (099)"
    ],
    "when": [
-    "its labels are built",
-    "labels are built for a code with no name anywhere"
+    "labels are built for one of them"
    ],
    "then": [
-    "a FormatError naming the first code is raised",
-    "the code with no name raises a FormatError naming it too"
+    "a FormatError naming that code is raised"
    ],
    "notes": "",
-   "examples": [],
+   "examples": [
+    "only in capitals",
+    "no name"
+   ],
    "defects": [],
    "tags": [
     "unit"
@@ -4525,19 +5380,42 @@
    "line": 106,
    "node": "tests/test_export_site.py::test_series_file_holds_published_values_on_one_month_axis",
    "given": [
-    "module 1 outputs written for three groups under the default setting and with weights timing \"U\"",
+    "module 1 outputs written for three groups under the default setting",
     "a standard error for the B Q1-Q5 annual gap in 2015-06"
    ],
    "when": [
-    "the series file is made for the default setting",
-    "for weights timing \"U\""
+    "the series file is made for the default setting"
    ],
    "then": [
     "group B/Q1's annual rate at 2022-12 on the shared month axis is the series' rate rounded to 1 decimal",
     "the gap's standard error sits at 2015-06 on that axis",
     "the first flag is \"less certain\", with annual rates flagged up to 2011-12",
-    "the \"U\" file ends in 2024-12 with unit \"I24\"",
     "the file serialises to plain JSON"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SITEEXP-013",
+   "suite": "pytest",
+   "title": "a weights timing \"U\" series file ends with its surveys",
+   "file": "tests/test_export_site.py",
+   "line": 130,
+   "node": "tests/test_export_site.py::test_a_rule_u_series_file_ends_with_its_surveys",
+   "given": [
+    "module 1 outputs written with weights timing \"U\""
+   ],
+   "when": [
+    "the series file is made for that setting"
+   ],
+   "then": [
+    "it ends in 2024-12, with unit \"I24\""
    ],
    "notes": "",
    "examples": [],
@@ -4553,8 +5431,8 @@
    "suite": "pytest",
    "title": "downloads add a CSV of every table only for the default setting",
    "file": "tests/test_export_site.py",
-   "line": 134,
-   "node": "tests/test_export_site.py::test_downloads_csv_only_for_core_tables_except_the_default",
+   "line": 142,
+   "node": "tests/test_export_site.py::test_downloads_add_a_csv_of_every_table_only_for_the_default_setting",
    "given": [
     "module 1 outputs written for the default setting and for weights timing \"U\""
    ],
@@ -4581,7 +5459,7 @@
    "suite": "pytest",
    "title": "the official annual rate is computed from the levels in two years' files",
    "file": "tests/test_export_site.py",
-   "line": 154,
+   "line": 162,
    "node": "tests/test_export_site.py::test_official_rate_from_the_published_levels_of_two_files",
    "given": [
     "two years' CPI files, each holding its own months and the previous December",
@@ -4610,7 +5488,7 @@
    "suite": "pytest",
    "title": "a disagreement with the official rate is reported, not hidden",
    "file": "tests/test_export_site.py",
-   "line": 180,
+   "line": 188,
    "node": "tests/test_export_site.py::test_official_rate_reports_a_disagreement_instead_of_hiding_it",
    "given": [
     "levels that give 5.0% and a published rate of 5.1% for the same month"
@@ -4636,7 +5514,7 @@
    "suite": "pytest",
    "title": "our rate and the published one keep their own months",
    "file": "tests/test_export_site.py",
-   "line": 195,
+   "line": 203,
    "node": "tests/test_export_site.py::test_official_rate_keeps_each_figure_in_its_own_month",
    "given": [
     "levels up to 2026-09 and published rates up to 2026-10"
@@ -4662,7 +5540,7 @@
    "suite": "pytest",
    "title": "the official rate refuses a year without the one before",
    "file": "tests/test_export_site.py",
-   "line": 212,
+   "line": 220,
    "node": "tests/test_export_site.py::test_official_rate_refuses_a_year_without_the_one_before",
    "given": [
     "CPI levels for 2026 only"
@@ -4687,7 +5565,7 @@
    "suite": "pytest",
    "title": "one EUR/PPS factor for the year, least bent by rounding",
    "file": "tests/test_export_site.py",
-   "line": 223,
+   "line": 231,
    "node": "tests/test_export_site.py::test_pps_factor_is_one_for_the_whole_year_and_least_bent_by_rounding",
    "given": [
     "Eurostat's 2025 EU-SILC income limits for Greece in euros and in PPS, each rounded to a whole unit"
@@ -4713,7 +5591,7 @@
    "suite": "pytest",
    "title": "the income limits file names the missing Eurostat dataset",
    "file": "tests/test_export_site.py",
-   "line": 239,
+   "line": 247,
    "node": "tests/test_export_site.py::test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_eurostat_limits",
    "given": [
     "a store whose observations hold our own HBS limits but no eurostat:ilc_di01 rows"
@@ -4738,21 +5616,22 @@
    "suite": "pytest",
    "title": "the PPS factor refuses limits that don't share one",
    "file": "tests/test_export_site.py",
-   "line": 262,
+   "line": 270,
    "node": "tests/test_export_site.py::test_pps_factor_refuses_limits_that_dont_share_one",
    "given": [
-    "euro and PPS limits whose ratios differ by more than rounding allows"
+    "euro and PPS limits whose ratios differ by more than rounding allows, or limits of different quintiles"
    ],
    "when": [
-    "the PPS factor is worked out",
-    "it is worked out for euro and PPS limits of different quintiles"
+    "the PPS factor is worked out"
    ],
    "then": [
-    "the first raises a FormatError saying there is no \"one factor\"",
-    "the second raises a FormatError saying they \"don't match\""
+    "a FormatError says why: there is no \"one factor\", or the quintiles \"don't match\""
    ],
    "notes": "",
-   "examples": [],
+   "examples": [
+    "ratios differ",
+    "different quintiles"
+   ],
    "defects": [],
    "tags": [
     "integration"
@@ -4870,21 +5749,44 @@
   {
    "id": "PY-HBS-004",
    "suite": "pytest",
-   "title": "the V2 comparison excuses only what a known missing item explains",
+   "title": "the V2 comparison excuses what a known missing item explains",
    "file": "tests/test_hbs_tables.py",
-   "line": 61,
+   "line": 76,
    "node": "tests/test_hbs_tables.py::test_v2_logic_on_a_tiny_survey",
    "given": [
     "a made-up two-household survey with annual purchases, and a published table with monthly means per household",
     "item 07242 published but absent from the survey, so 07, 072 and the total come out short"
    ],
    "when": [
-    "the survey is compared with the table, with 07242 listed as missing for that year",
-    "compared again with 07242 listed as missing only for another year"
+    "the survey is compared with the table, with 07242 listed as missing for that year"
    ],
    "then": [
-    "the first comparison has one code matched, the total, 07, 072 and 07242 excused, and passes",
-    "the second fails, with those four codes as mismatches"
+    "one code is matched, the total, 07, 072 and 07242 are excused, and the comparison passes"
+   ],
+   "notes": "Needs pandas (skipped without the local extra).",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HBS-005",
+   "suite": "pytest",
+   "title": "the V2 comparison excuses a missing item only in the years it is listed for",
+   "file": "tests/test_hbs_tables.py",
+   "line": 95,
+   "node": "tests/test_hbs_tables.py::test_v2_excuses_a_missing_item_only_in_its_listed_years",
+   "given": [
+    "the same made-up survey and table, item 07242 absent from the survey"
+   ],
+   "when": [
+    "the survey is compared with the table, with 07242 listed as missing only for another year"
+   ],
+   "then": [
+    "the comparison fails, with the total, 07, 072 and 07242 as mismatches"
    ],
    "notes": "Needs pandas (skipped without the local extra).",
    "examples": [],
@@ -4924,7 +5826,7 @@
   {
    "id": "PY-HBEAT-002",
    "suite": "pytest",
-   "title": "the heartbeat is off without an address and reports a failed upload",
+   "title": "the heartbeat is off without an address",
    "file": "tests/test_heartbeat_backup.py",
    "line": 54,
    "node": "tests/test_heartbeat_backup.py::test_heartbeat_is_off_without_an_address_and_reports_failures",
@@ -4932,12 +5834,35 @@
     "a heartbeat to send"
    ],
    "when": [
-    "it is sent with no heartbeat address in the environment",
+    "it is sent with no heartbeat address in the environment"
+   ],
+   "then": [
+    "the result is \"off\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-HBEAT-009",
+   "suite": "pytest",
+   "title": "a heartbeat that can't be sent is reported as failed",
+   "file": "tests/test_heartbeat_backup.py",
+   "line": 65,
+   "node": "tests/test_heartbeat_backup.py::test_a_heartbeat_that_cant_be_sent_is_reported_as_failed",
+   "given": [
+    "a heartbeat to send"
+   ],
+   "when": [
     "it is sent to an address that refuses connections"
    ],
    "then": [
-    "without an address the result is \"off\"",
-    "to the refusing address the result starts with \"failed:\""
+    "the result starts with \"failed:\", and nothing is raised"
    ],
    "notes": "",
    "examples": [],
@@ -4953,7 +5878,7 @@
    "suite": "pytest",
    "title": "the backup sends the archive, never microdata, and only what changed",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 80,
+   "line": 87,
    "node": "tests/test_heartbeat_backup.py::test_backup_sends_the_archive_but_never_microdata",
    "given": [
     "a local storage stand-in and an archive holding prices, HBS microdata, the microdata catalogue page and an outbox report"
@@ -4983,7 +5908,7 @@
    "suite": "pytest",
    "title": "the backup's guard refuses microdata even if the filter misses it",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 106,
+   "line": 113,
    "node": "tests/test_heartbeat_backup.py::test_backup_guard_refuses_microdata_even_if_the_filter_misses_it",
    "given": [
     "an archive holding HBS microdata",
@@ -5009,7 +5934,7 @@
    "suite": "pytest",
    "title": "the Linux timer runs the job daily at 13:00 Athens time inside the pinned image",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 120,
+   "line": 127,
    "node": "tests/test_heartbeat_backup.py::test_systemd_units_run_daily_in_athens_time_inside_the_pinned_image",
    "given": [
     "a configuration with the run at 13:00 and the VM's user, folders and env file"
@@ -5039,7 +5964,7 @@
    "suite": "pytest",
    "title": "the watchdog's verdict on a heartbeat",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 156,
+   "line": 163,
    "node": "tests/test_heartbeat_backup.py::test_watchdog_rule",
    "given": [
     "the watchdog at 13:00 UTC"
@@ -5068,7 +5993,7 @@
    "suite": "pytest",
    "title": "the VM's shell command runs the same container as the timer",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 179,
+   "line": 186,
    "node": "tests/test_heartbeat_backup.py::test_the_shell_command_runs_the_same_container_as_the_timer",
    "given": [
     "the VM's user, folders and env file"
@@ -5095,7 +6020,7 @@
    "suite": "pytest",
    "title": "the units and the shell command run the configured image, else the pinned one",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 201,
+   "line": 208,
    "node": "tests/test_heartbeat_backup.py::test_units_and_shell_command_run_the_configured_image_else_the_pinned_one",
    "given": [
     "a configuration with a browser image, and one with no image"
@@ -5252,7 +6177,7 @@
    "suite": "pytest",
    "title": "the first run is always due",
    "file": "tests/test_job.py",
-   "line": 32,
+   "line": 33,
    "node": "tests/test_job.py::test_first_run_is_due",
    "given": [
     "no job state (no good run yet)"
@@ -5277,21 +6202,23 @@
    "suite": "pytest",
    "title": "on a release day the run is due only from the run time",
    "file": "tests/test_job.py",
-   "line": 42,
+   "line": 43,
    "node": "tests/test_job.py::test_release_day_due_only_after_run_time",
    "given": [
     "a known release day after the last good run"
    ],
    "when": [
-    "the scheduled job checks at 12:59 Greek time that day",
-    "it checks again at 13:00"
+    "the scheduled job checks that day, at 12:59 or at 13:00 Greek time"
    ],
    "then": [
     "at 12:59 no run is due",
     "at 13:00 a run is due for that release day, with no missed days"
    ],
    "notes": "",
-   "examples": [],
+   "examples": [
+    "12:59",
+    "13:00"
+   ],
    "defects": [],
    "tags": [
     "integration"
@@ -5302,19 +6229,21 @@
   {
    "id": "PY-JOB-003",
    "suite": "pytest",
-   "title": "a missed release day is caught up and listed as missed",
+   "title": "a missed release day is caught up and reported as missed",
    "file": "tests/test_job.py",
-   "line": 58,
+   "line": 59,
    "node": "tests/test_job.py::test_missed_release_day_is_caught_up_and_reported",
    "given": [
     "a release day that passed with no run since the last good run"
    ],
    "when": [
-    "the scheduled job checks two days later, before the run time"
+    "the scheduled job checks two days later, before the run time",
+    "the run's report is written"
    ],
    "then": [
     "a run is due",
-    "that release day is listed as missed"
+    "that release day is listed as missed",
+    "the report has a MISSED line naming that day"
    ],
    "notes": "",
    "examples": [],
@@ -5330,7 +6259,7 @@
    "suite": "pytest",
    "title": "no run is due without a release since the last good run",
    "file": "tests/test_job.py",
-   "line": 71,
+   "line": 79,
    "node": "tests/test_job.py::test_not_due_without_release",
    "given": [
     "a last good run on the latest known release day"
@@ -5355,7 +6284,7 @@
    "suite": "pytest",
    "title": "extra release dates in the configuration make a run due",
    "file": "tests/test_job.py",
-   "line": 82,
+   "line": 90,
    "node": "tests/test_job.py::test_extra_dates_count",
    "given": [
     "no known release dates but an extra release date in the configuration"
@@ -5380,7 +6309,7 @@
    "suite": "pytest",
    "title": "a full run stores the sources, and a second run stores nothing new",
    "file": "tests/test_job.py",
-   "line": 148,
+   "line": 156,
    "node": "tests/test_job.py::test_full_run_then_second_run_stores_nothing",
    "given": [
     "fake publishers serving trimmed real pages and files"
@@ -5409,7 +6338,7 @@
    "suite": "pytest",
    "title": "changed reuse terms raise an alert",
    "file": "tests/test_job.py",
-   "line": 172,
+   "line": 180,
    "node": "tests/test_job.py::test_changed_terms_raise_an_alert",
    "given": [
     "a first run that stored a publisher's reuse terms page"
@@ -5435,7 +6364,7 @@
    "suite": "pytest",
    "title": "a new year in ELSTAT's microdata catalogue is reported",
    "file": "tests/test_job.py",
-   "line": 189,
+   "line": 197,
    "node": "tests/test_job.py::test_new_puf_year_raises_an_alert",
    "given": [
     "a first run that stored ELSTAT's microdata catalogue listing HBS 2008 - 2024"
@@ -5460,7 +6389,7 @@
    "suite": "pytest",
    "title": "a run with failures doesn't count as a good run",
    "file": "tests/test_job.py",
-   "line": 204,
+   "line": 212,
    "node": "tests/test_job.py::test_failures_keep_the_run_due",
    "given": [
     "fake publishers where the microdata catalogue page is missing"
@@ -5486,7 +6415,7 @@
    "suite": "pytest",
    "title": "a dry run plans but fetches and stores nothing",
    "file": "tests/test_job.py",
-   "line": 219,
+   "line": 227,
    "node": "tests/test_job.py::test_dry_run_stores_nothing",
    "given": [
     "fake publishers"
@@ -5513,7 +6442,7 @@
    "suite": "pytest",
    "title": "a morning run doesn't cover that day's release",
    "file": "tests/test_job.py",
-   "line": 235,
+   "line": 243,
    "node": "tests/test_job.py::test_morning_run_doesnt_cover_that_days_release",
    "given": [
     "fake publishers"
@@ -5538,7 +6467,7 @@
    "suite": "pytest",
    "title": "marking the backup done leaves nothing stored since the mark",
    "file": "tests/test_job.py",
-   "line": 247,
+   "line": 255,
    "node": "tests/test_job.py::test_backup_mark",
    "given": [
     "an archive filled by a run"
@@ -5563,24 +6492,73 @@
    "suite": "pytest",
    "title": "the heartbeat, backup and release build follow a run with new data",
    "file": "tests/test_job.py",
-   "line": 261,
+   "line": 282,
    "node": "tests/test_job.py::test_heartbeat_backup_and_release_follow_a_run_with_new_data",
    "given": [
     "release builds turned on, and stand-ins for the heartbeat, the backup and the release build"
    ],
    "when": [
-    "the scheduled job runs and stores new files",
-    "a forced run the same day stores nothing new",
-    "the next day's run is not due"
+    "the scheduled job runs and stores new files"
    ],
    "then": [
-    "after the first run the heartbeat is sent, the backup is ok and the release build's id is recorded",
-    "that release build's reason names the Eurostat HICP dataset",
-    "the forced run has no release and no backup",
-    "the next day's result is \"not-due\" and its heartbeat is still sent",
-    "there was one release build, and three heartbeats: ok, ok, not-due"
+    "the heartbeat is sent, the backup is ok and the release build's id is recorded",
+    "there was one release build, and its reason names the Eurostat HICP dataset",
+    "one heartbeat, for an ok run"
    ],
    "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-019",
+   "suite": "pytest",
+   "title": "a run with nothing new has no release and no backup",
+   "file": "tests/test_job.py",
+   "line": 298,
+   "node": "tests/test_job.py::test_a_run_with_nothing_new_has_no_release_and_no_backup",
+   "given": [
+    "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
+   ],
+   "when": [
+    "a forced run the same day stores nothing new"
+   ],
+   "then": [
+    "its record has no release and no backup",
+    "no release build started after the first run's",
+    "its heartbeat is sent, for an ok run"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-020",
+   "suite": "pytest",
+   "title": "a day with no run due still sends its heartbeat",
+   "file": "tests/test_job.py",
+   "line": 316,
+   "node": "tests/test_job.py::test_a_day_with_no_run_due_still_sends_its_heartbeat",
+   "given": [
+    "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
+   ],
+   "when": [
+    "the next day's job finds no run due"
+   ],
+   "then": [
+    "its result is \"not-due\" and its heartbeat is sent, for a not-due day",
+    "no release build started after the first run's"
+   ],
+   "notes": "The heartbeat goes out every day, due or not, so the watchdog can tell a quiet day from a dead\nmachine.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -5594,7 +6572,7 @@
    "suite": "pytest",
    "title": "release builds are off by default",
    "file": "tests/test_job.py",
-   "line": 294,
+   "line": 335,
    "node": "tests/test_job.py::test_release_is_off_by_default",
    "given": [
     "a configuration with no release section"
@@ -5620,7 +6598,7 @@
    "suite": "pytest",
    "title": "a day with no run due still exports visit counts and backs them up",
    "file": "tests/test_job.py",
-   "line": 316,
+   "line": 357,
    "node": "tests/test_job.py::test_a_quiet_day_still_exports_visit_counts_and_backs_them_up",
    "given": [
     "a job state with no release due, an analytics stand-in that stores one day of visits and has downloads off, and stand-ins for the backup and heartbeat"
@@ -5648,7 +6626,7 @@
    "suite": "pytest",
    "title": "a lost analytics bookmark is rebuilt from the archive",
    "file": "tests/test_job.py",
-   "line": 349,
+   "line": 390,
    "node": "tests/test_job.py::test_the_bookmark_is_rebuilt_from_the_archive",
    "given": [
     "no bookmark in the job state, and stored visit days of which one was a later manual fill of an older day and one is today's"
@@ -5673,7 +6651,7 @@
    "suite": "pytest",
    "title": "a failing analytics export alerts only when days are running out",
    "file": "tests/test_job.py",
-   "line": 368,
+   "line": 409,
    "node": "tests/test_job.py::test_a_failing_export_alerts_only_when_days_are_running_out",
    "given": [
     "a visits bookmark that is recent, several days old, or missing",
@@ -5704,7 +6682,7 @@
    "suite": "pytest",
    "title": "each analytics feed has its own bookmark and alert",
    "file": "tests/test_job.py",
-   "line": 386,
+   "line": 427,
    "node": "tests/test_job.py::test_each_feed_has_its_own_bookmark_and_alert",
    "given": [
     "a visits bookmark, no downloads bookmark and a stored downloads day five days back",
@@ -5894,21 +6872,44 @@
   {
    "id": "PY-BOOT-004",
    "suite": "pytest",
-   "title": "without areas there are no errors; without strata the region stands in",
+   "title": "without areas there are no errors",
    "file": "tests/test_local_bootstrap.py",
    "line": 126,
-   "node": "tests/test_local_bootstrap.py::test_without_areas_there_are_no_errors_and_without_strata_the_region_stands_in",
+   "node": "tests/test_local_bootstrap.py::test_without_areas_there_are_no_errors",
    "given": [
     "a made-up survey without areas"
    ],
    "when": [
-    "standard errors are computed",
-    "the design of a made-up survey without strata is read"
+    "standard errors are computed"
    ],
    "then": [
-    "the survey without areas has design \"unavailable\" and no errors",
-    "its shares joined with them have no errors and design \"unavailable\"",
-    "the survey without strata gets an \"approximate\" design whose strata are the regions"
+    "the design is \"unavailable\" and there are no errors",
+    "its shares joined with them have no errors and design \"unavailable\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BOOT-008",
+   "suite": "pytest",
+   "title": "without strata the region stands in",
+   "file": "tests/test_local_bootstrap.py",
+   "line": 141,
+   "node": "tests/test_local_bootstrap.py::test_without_strata_the_region_stands_in",
+   "given": [
+    "a made-up survey without strata"
+   ],
+   "when": [
+    "its design is read"
+   ],
+   "then": [
+    "the design is \"approximate\" and its strata are the regions"
    ],
    "notes": "",
    "examples": [],
@@ -5924,18 +6925,44 @@
    "suite": "pytest",
    "title": "the design refuses a single-area stratum and an area in two strata",
    "file": "tests/test_local_bootstrap.py",
-   "line": 145,
+   "line": 160,
    "node": "tests/test_local_bootstrap.py::test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata",
    "given": [
-    "a made-up survey where one stratum has a single area"
+    "a made-up survey where one stratum has a single area, or where one area sits in two strata"
    ],
    "when": [
-    "the design is read",
-    "the design of a survey where one area sits in two strata is read"
+    "the design is read"
    ],
    "then": [
-    "the first raises a FormatError about a \"single area\"",
-    "the second raises a FormatError about \"more than one stratum\""
+    "a FormatError says which: a \"single area\", or \"more than one stratum\""
+   ],
+   "notes": "",
+   "examples": [
+    "single-area stratum",
+    "area in two strata"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BOOT-006",
+   "suite": "pytest",
+   "title": "the CV check passes on our own values",
+   "file": "tests/test_local_bootstrap.py",
+   "line": 183,
+   "node": "tests/test_local_bootstrap.py::test_cv_check_passes_on_our_own_values",
+   "given": [
+    "a made-up survey and the coefficients of variation it gives"
+   ],
+   "when": [
+    "they are checked as if published"
+   ],
+   "then": [
+    "the check passes"
    ],
    "notes": "",
    "examples": [],
@@ -5947,22 +6974,20 @@
    "named": false
   },
   {
-   "id": "PY-BOOT-006",
+   "id": "PY-BOOT-009",
    "suite": "pytest",
-   "title": "the CV check passes on our own values and fails far from them",
+   "title": "the CV check fails far from our values",
    "file": "tests/test_local_bootstrap.py",
-   "line": 164,
-   "node": "tests/test_local_bootstrap.py::test_cv_check_passes_on_our_own_values_and_fails_far_from_them",
+   "line": 194,
+   "node": "tests/test_local_bootstrap.py::test_cv_check_fails_far_from_our_values",
    "given": [
     "a made-up survey and the coefficients of variation it gives"
    ],
    "when": [
-    "they are checked as if published",
     "a published CV twice ours for division 01 is checked"
    ],
    "then": [
-    "the first check passes",
-    "the second fails"
+    "the check fails"
    ],
    "notes": "",
    "examples": [],
@@ -5978,21 +7003,44 @@
    "suite": "pytest",
    "title": "income-limit errors are reproducible and shrink with more areas",
    "file": "tests/test_local_bootstrap.py",
-   "line": 179,
+   "line": 205,
    "node": "tests/test_local_bootstrap.py::test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas",
    "given": [
     "a small and a large made-up stratified survey"
    ],
    "when": [
     "the standard errors of the income limits are computed with 200 replicates",
-    "the small survey's are computed again",
-    "a survey without areas is given"
+    "the small survey's are computed again"
    ],
    "then": [
     "the small survey's design is \"full\", with 4 positive errors",
     "the large survey's errors are smaller on average",
-    "the second computation gives the same errors",
-    "the survey without areas gives no errors (None)"
+    "the second computation gives the same errors"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BOOT-010",
+   "suite": "pytest",
+   "title": "without areas, the income limits have no standard errors",
+   "file": "tests/test_local_bootstrap.py",
+   "line": 224,
+   "node": "tests/test_local_bootstrap.py::test_without_areas_the_income_limits_have_no_errors",
+   "given": [
+    "a made-up survey without areas"
+   ],
+   "when": [
+    "the standard errors of the income limits are computed"
+   ],
+   "then": [
+    "there are none (None)"
    ],
    "notes": "",
    "examples": [],
@@ -6303,20 +7351,42 @@
   {
    "id": "PY-GROUPS-012",
    "suite": "pytest",
-   "title": "size bands, and a wrong band figure fails",
+   "title": "households are placed in size bands",
    "file": "tests/test_local_groups.py",
-   "line": 247,
-   "node": "tests/test_local_groups.py::test_size_bands_and_a_wrong_band_figure_fails",
+   "line": 257,
+   "node": "tests/test_local_groups.py::test_households_are_placed_in_size_bands",
    "given": [
-    "made-up households of 1, 2 and 4 members and a table whose figure for \"3 members and over\" is wrong"
+    "made-up households of 1, 2 and 4 members, and a table with size bands"
    ],
    "when": [
-    "the households are placed in size bands",
-    "the last band is compared with the table",
-    "all households are compared with it"
+    "the households are placed in size bands"
    ],
    "then": [
-    "each household is in its own band",
+    "each household is in its own band: \"1 member\", \"2 members\", \"3 members and over\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-GROUPS-026",
+   "suite": "pytest",
+   "title": "a wrong band figure fails that band only",
+   "file": "tests/test_local_groups.py",
+   "line": 268,
+   "node": "tests/test_local_groups.py::test_a_wrong_band_figure_fails_that_band_only",
+   "given": [
+    "made-up households of 1, 2 and 4 members, and a table whose figure for \"3 members and over\" is wrong"
+   ],
+   "when": [
+    "the last band is compared with the table, and all households are compared with it"
+   ],
+   "then": [
     "the last band fails with one mismatch: published 99.0 against our 30.0 for 0111",
     "the comparison of all households passes"
    ],
@@ -6334,7 +7404,7 @@
    "suite": "pytest",
    "title": "a band whose household count differs fails",
    "file": "tests/test_local_groups.py",
-   "line": 270,
+   "line": 283,
    "node": "tests/test_local_groups.py::test_band_count_that_differs_fails",
    "given": [
     "a table whose household count for the top income band differs from the survey's"
@@ -6359,7 +7429,7 @@
    "suite": "pytest",
    "title": "the uncovered share counts absent items whole and cut items in part",
    "file": "tests/test_local_groups.py",
-   "line": 285,
+   "line": 298,
    "node": "tests/test_local_groups.py::test_uncovered_share_counts_absent_items_whole_and_cut_items_in_part",
    "given": [
     "a published table with an item absent from the survey and an item cut short in it",
@@ -6387,7 +7457,7 @@
    "suite": "pytest",
    "title": "shares leave a household that can't be placed out of that grouping only",
    "file": "tests/test_local_groups.py",
-   "line": 304,
+   "line": 317,
    "node": "tests/test_local_groups.py::test_shares_leave_unplaceable_households_out_of_that_grouping_only",
    "given": [
     "five complete households and one with no persons and no income source"
@@ -6413,7 +7483,7 @@
    "suite": "pytest",
    "title": "the quintile matrix matches quintiles taken one column at a time",
    "file": "tests/test_local_groups.py",
-   "line": 322,
+   "line": 335,
    "node": "tests/test_local_groups.py::test_quintile_matrix_matches_one_column_at_a_time",
    "given": [
     "values, one of them missing, and two columns of replicate weights"
@@ -6439,7 +7509,7 @@
    "suite": "pytest",
    "title": "purchases leave out own production; imputed rent comes from all modes",
    "file": "tests/test_local_groups.py",
-   "line": 343,
+   "line": 356,
    "node": "tests/test_local_groups.py::test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_modes",
    "given": [
     "the three made-up households, one of which grew part of its food, and purchases with no imputed rent"
@@ -6463,20 +7533,42 @@
   {
    "id": "PY-GROUPS-018",
    "suite": "pytest",
-   "title": "deciles, and ranking households instead of persons",
+   "title": "deciles hold equal parts, in order",
    "file": "tests/test_local_groups.py",
-   "line": 367,
-   "node": "tests/test_local_groups.py::test_deciles_and_household_rankings",
+   "line": 380,
+   "node": "tests/test_local_groups.py::test_deciles_hold_equal_parts_in_order",
    "given": [
-    "twenty values of equal weight",
+    "twenty values of equal weight"
+   ],
+   "when": [
+    "the values are ranked into ten parts"
+   ],
+   "then": [
+    "the deciles hold two values each, in order"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-GROUPS-027",
+   "suite": "pytest",
+   "title": "ranking households instead of persons",
+   "file": "tests/test_local_groups.py",
+   "line": 393,
+   "node": "tests/test_local_groups.py::test_ranking_households_instead_of_persons",
+   "given": [
     "ten made-up households, the three poorest with three children each"
    ],
    "when": [
-    "the values are ranked into ten parts",
     "the households' groups are assigned"
    ],
    "then": [
-    "the deciles hold two values each, in order",
     "ranking households puts 2 in Q1 (BH) while ranking persons puts 1 (B)",
     "B10 uses only labels D1 to D10, and exactly one household is in BH10's D10"
    ],
@@ -6494,7 +7586,7 @@
    "suite": "pytest",
    "title": "income limits are midpoints between neighbouring households",
    "file": "tests/test_local_groups.py",
-   "line": 392,
+   "line": 411,
    "node": "tests/test_local_groups.py::test_cut_points_are_midpoints_between_neighbouring_households",
    "given": [
     "ten households of equal weight with values 10 to 100"
@@ -6520,7 +7612,7 @@
    "suite": "pytest",
    "title": "cut points skip households without weight and follow each column",
    "file": "tests/test_local_groups.py",
-   "line": 410,
+   "line": 429,
    "node": "tests/test_local_groups.py::test_cut_points_skip_households_without_weight_and_follow_each_column",
    "given": [
     "the ten households and two weight columns, the second with one household at zero weight"
@@ -6546,7 +7638,7 @@
    "suite": "pytest",
    "title": "cut points ignore missing values and mark an empty part",
    "file": "tests/test_local_groups.py",
-   "line": 429,
+   "line": 448,
    "node": "tests/test_local_groups.py::test_cut_points_ignore_missing_values_and_mark_an_empty_part",
    "given": [
     "three households, one without a value"
@@ -6571,7 +7663,7 @@
    "suite": "pytest",
    "title": "the limits table rounds the midpoints to the euro",
    "file": "tests/test_local_groups.py",
-   "line": 443,
+   "line": 462,
    "node": "tests/test_local_groups.py::test_limits_table_rounds_midpoints_to_the_euro",
    "given": [
     "twenty made-up single-adult households with incomes 1000.25 to 20000.25"
@@ -6598,7 +7690,7 @@
    "suite": "pytest",
    "title": "household types follow Eurostat's dependent-child rule",
    "file": "tests/test_local_groups.py",
-   "line": 464,
+   "line": 483,
    "node": "tests/test_local_groups.py::test_household_types_follow_eurostats_dependent_child_rule",
    "given": [
     "made-up households: one adult; a parent and a child under 16; a couple with a 20-year-old student child; the same with the child working; a couple with a student nephew; a couple with a parent and a 25-year-old student child; and a child alone"
@@ -6624,7 +7716,7 @@
    "suite": "pytest",
    "title": "household types are a grouping, and households without persons are left out",
    "file": "tests/test_local_groups.py",
-   "line": 488,
+   "line": 507,
    "node": "tests/test_local_groups.py::test_household_types_are_a_grouping_and_unplaced_households_are_left_out",
    "given": [
     "three made-up households, the last with no person records"
@@ -6648,25 +7740,71 @@
   {
    "id": "PY-GROUPS-025",
    "suite": "pytest",
-   "title": "the types table compares with ELSTAT's type and stops when far apart",
+   "title": "the types table compares with ELSTAT's type",
    "file": "tests/test_local_groups.py",
-   "line": 501,
-   "node": "tests/test_local_groups.py::test_types_table_compares_with_elstats_type_and_stops_when_far_apart",
+   "line": 529,
+   "node": "tests/test_local_groups.py::test_types_table_compares_with_elstats_type",
    "given": [
     "ten made-up single adults, with ELSTAT's type agreeing for nine of them"
    ],
    "when": [
-    "the household types table is made for 2015",
-    "made again with ELSTAT's type agreeing for none",
-    "made for 2023"
+    "the household types table is made for 2015"
    ],
    "then": [
-    "the first table's A1 shows \"<20\" households, a household share of 1.0 and ELSTAT's share of 0.9",
-    "agreement is 0.9 and every row is \"compared\"",
-    "the second raises a FormatError saying they \"agree with ELSTAT's on 0.0%\"",
-    "in the 2023 table the ELSTAT status starts with \"unusable\""
+    "its A1 row shows \"<20\" households, a household share of 1.0 and ELSTAT's share of 0.9",
+    "agreement is 0.9 and every row is \"compared\""
    ],
    "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-GROUPS-028",
+   "suite": "pytest",
+   "title": "the types table stops when far from ELSTAT's type",
+   "file": "tests/test_local_groups.py",
+   "line": 545,
+   "node": "tests/test_local_groups.py::test_types_table_stops_when_far_from_elstats_type",
+   "given": [
+    "ten made-up single adults, with ELSTAT's type agreeing for none of them"
+   ],
+   "when": [
+    "the household types table is made for 2015"
+   ],
+   "then": [
+    "a FormatError says they \"agree with ELSTAT's on 0.0%\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-GROUPS-029",
+   "suite": "pytest",
+   "title": "in 2023, ELSTAT's type is marked unusable, not compared",
+   "file": "tests/test_local_groups.py",
+   "line": 559,
+   "node": "tests/test_local_groups.py::test_types_table_marks_elstats_2023_type_unusable",
+   "given": [
+    "ten made-up single adults, with ELSTAT's type agreeing for none of them"
+   ],
+   "when": [
+    "the household types table is made for 2023"
+   ],
+   "then": [
+    "no error is raised, and the ELSTAT status starts with \"unusable\""
+   ],
+   "notes": "ELSTAT's own household-type variable is broken in the 2023 survey, so it isn't held against ours.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -6897,7 +8035,7 @@
   {
    "id": "PY-MAP-009",
    "suite": "pytest",
-   "title": "the package's mapping tables chain",
+   "title": "the package's mapping tables add up and chain",
    "file": "tests/test_local_mapping.py",
    "line": 191,
    "node": "tests/test_local_mapping.py::test_package_tables_add_up_and_chain",
@@ -6908,10 +8046,11 @@
     "they are loaded"
    ],
    "then": [
+    "in each table every source code's shares add up to 1",
     "every target of the older-codes table is a source in the COICOP 2018 table",
     "every code in the COICOP 2018 table has five digits"
    ],
-   "notes": "",
+   "notes": "The reader refuses a table whose shares don't add up; this checks the shipped data directly,\nso the data stays covered even if that guard changes.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -6925,7 +8064,7 @@
    "suite": "pytest",
    "title": "exposure counts only what a split decided",
    "file": "tests/test_local_mapping.py",
-   "line": 204,
+   "line": 210,
    "node": "tests/test_local_mapping.py::test_exposure_counts_only_what_a_split_decided",
    "given": [
     "a made-up survey and a table sending 90% of one code to division 01 and 10% to division 02"
@@ -7581,7 +8720,7 @@
    "title": "the published metadata has LF line endings",
    "file": "tests/test_module1_combinations.py",
    "line": 179,
-   "node": "tests/test_module1_combinations.py::test_published_json_has_lf_line_endings",
+   "node": "tests/test_module1_combinations.py::test_the_published_metadata_has_lf_line_endings",
    "given": [
     "an output folder"
    ],
@@ -7605,7 +8744,7 @@
    "suite": "pytest",
    "title": "Parquet is written with one thread",
    "file": "tests/test_module1_combinations.py",
-   "line": 198,
+   "line": 196,
    "node": "tests/test_module1_combinations.py::test_parquet_is_written_with_one_thread",
    "given": [
     "the connection used to write Parquet"
@@ -7790,16 +8929,39 @@
    "line": 36,
    "node": "tests/test_module1_originals.py::test_a_subclass_takes_its_class_row_else_group_else_division",
    "given": [
+    "a made-up 2010 original table with a class, a group and a division row"
+   ],
+   "when": [
+    "the row for each COICOP 2018 subclass is chosen"
+   ],
+   "then": [
+    "subclasses take their class's, group's or division's row in that order"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-ORIG-004",
+   "suite": "pytest",
+   "title": "needing December 2009, a subclass takes only a row that has it",
+   "file": "tests/test_module1_originals.py",
+   "line": 49,
+   "node": "tests/test_module1_originals.py::test_needing_december_2009_a_subclass_takes_a_row_that_has_it",
+   "given": [
     "a made-up 2010 original table with a class, a group and a division row",
     "earlier levels with a December 2009 for the group only"
    ],
    "when": [
-    "the row for each COICOP 2018 subclass is chosen",
-    "chosen again where a December 2009 level is needed"
+    "the row for each subclass is chosen where a December 2009 level is needed"
    ],
    "then": [
-    "subclasses take their class's, group's or division's row in that order",
-    "needing December 2009, the subclass under the group still gets the group's row",
+    "the subclass under the group still gets the group's row",
     "the subclass whose class, group and division have no December 2009 gets none"
    ],
    "notes": "",
@@ -7816,7 +8978,7 @@
    "suite": "pytest",
    "title": "old item numbers are never matched to subclasses",
    "file": "tests/test_module1_originals.py",
-   "line": 56,
+   "line": 64,
    "node": "tests/test_module1_originals.py::test_old_item_numbers_are_never_matched_to_subclasses",
    "given": [
     "a made-up 2010 table where old item 07222 (lubricants) is flat while its class (car fuels) rises 30%"
@@ -7901,13 +9063,60 @@
     "blocks where 2021 averages 110 and ends at 220, and 2022 and 2023 each rise 10% December to December"
    ],
    "when": [
-    "a subclass priced through division 01 is updated from survey 2021 to index year 2024",
-    "the year ratio for 2022 and the update from 2021 to 2022 are taken"
+    "a subclass priced through division 01 is updated from survey 2021 to index year 2024"
    ],
    "then": [
-    "the factor is 220/110 × 1.1 × 1.1, priced through 01 at each step",
-    "the 2022 year ratio is 1.1",
-    "the update to 2022 (final weights: one year only) is 2.0"
+    "the factor is 220/110 × 1.1 × 1.1, priced through 01 at each step"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-PRICES-013",
+   "suite": "pytest",
+   "title": "a year's ratio is its December-to-December rise",
+   "file": "tests/test_module1_prices.py",
+   "line": 84,
+   "node": "tests/test_module1_prices.py::test_a_years_ratio_is_its_december_rise",
+   "given": [
+    "blocks where 2022 rises 10% December to December"
+   ],
+   "when": [
+    "the year ratio for 2022 is taken for division 01"
+   ],
+   "then": [
+    "it is 1.1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-PRICES-014",
+   "suite": "pytest",
+   "title": "final weights are updated over one year only",
+   "file": "tests/test_module1_prices.py",
+   "line": 94,
+   "node": "tests/test_module1_prices.py::test_final_weights_are_updated_one_year_only",
+   "given": [
+    "blocks where 2021 averages 110 and ends at 220"
+   ],
+   "when": [
+    "division 01 is updated from survey 2021 to index year 2022"
+   ],
+   "then": [
+    "the factor is 2.0: December 2021 over 2021's average, with no year after it"
    ],
    "notes": "",
    "examples": [],
@@ -7923,7 +9132,7 @@
    "suite": "pytest",
    "title": "which index prices each leaf",
    "file": "tests/test_module1_prices.py",
-   "line": 90,
+   "line": 104,
    "node": "tests/test_module1_prices.py::test_pricing_map_rules",
    "given": [
     "a basket with games of chance, education not by level, and suppressed food cells",
@@ -7950,7 +9159,7 @@
    "suite": "pytest",
    "title": "weights drop and rescale after price-updating",
    "file": "tests/test_module1_prices.py",
-   "line": 108,
+   "line": 122,
    "node": "tests/test_module1_prices.py::test_weights_used_drop_and_rescale_after_updating",
    "given": [
     "a basket with food, games of chance and a flat item, and a source with no index for games of chance"
@@ -7977,7 +9186,7 @@
    "suite": "pytest",
    "title": "an item that can't be price-updated is refused",
    "file": "tests/test_module1_prices.py",
-   "line": 127,
+   "line": 141,
    "node": "tests/test_module1_prices.py::test_weights_used_refuses_an_item_it_cannot_update",
    "given": [
     "a basket with an item that has no price index"
@@ -8002,7 +9211,7 @@
    "suite": "pytest",
    "title": "imputed rent is priced with actual rents even when its cell is small",
    "file": "tests/test_module1_prices.py",
-   "line": 139,
+   "line": 153,
    "node": "tests/test_module1_prices.py::test_imputed_rent_is_priced_with_actual_rents_even_when_its_cell_is_small",
    "given": [
     "a basket whose imputed rent subclasses include a suppressed cell"
@@ -8027,7 +9236,7 @@
    "suite": "pytest",
    "title": "tutoring's fraction and exclusion with a COICOP 2018 survey",
    "file": "tests/test_module1_prices.py",
-   "line": 153,
+   "line": 167,
    "node": "tests/test_module1_prices.py::test_tutoring_fraction_and_exclusion_with_a_2018_coded_survey",
    "given": [
     "a basket coded in COICOP 2018 with education by level and not by level",
@@ -8054,20 +9263,43 @@
    "suite": "pytest",
    "title": "tutoring exclusion with an older survey uses the group's split",
    "file": "tests/test_module1_prices.py",
-   "line": 169,
+   "line": 183,
    "node": "tests/test_module1_prices.py::test_tutoring_exclusion_with_an_older_survey_uses_the_groups_split",
    "given": [
     "education leaves totalling 0.10, with a tutoring split of 0.5"
    ],
    "when": [
-    "tutoring is excluded",
-    "it is excluded again with a split of 0.1"
+    "tutoring is excluded"
    ],
    "then": [
     "all of 10501 goes and 0.03 more comes from 10.1 and 10.2, 0.05 in all",
     "10.1's and 10.2's leaves shrink in proportion",
-    "food is untouched",
-    "with a split of 0.1, 10.5 alone covers it and 10200 keeps 0.04"
+    "food is untouched"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-PRICES-015",
+   "suite": "pytest",
+   "title": "a small tutoring split is covered by tutoring's own leaf alone",
+   "file": "tests/test_module1_prices.py",
+   "line": 203,
+   "node": "tests/test_module1_prices.py::test_a_small_tutoring_split_is_covered_by_tutoring_alone",
+   "given": [
+    "education leaves totalling 0.10, with a tutoring split of 0.1"
+   ],
+   "when": [
+    "tutoring is excluded"
+   ],
+   "then": [
+    "10.5 alone covers it, and 10200 keeps its 0.04"
    ],
    "notes": "",
    "examples": [],
@@ -8083,7 +9315,7 @@
    "suite": "pytest",
    "title": "a tutoring split of 1 leaves zero, not negative, weights",
    "file": "tests/test_module1_prices.py",
-   "line": 192,
+   "line": 215,
    "node": "tests/test_module1_prices.py::test_tutoring_exclusion_with_a_split_of_one_leaves_zero_not_negative_weights",
    "given": [
     "education leaves whose shares round badly, with a tutoring split of 1.0"
@@ -8110,19 +9342,42 @@
    "suite": "pytest",
    "title": "tutoring is left out only from 2026",
    "file": "tests/test_module1_prices.py",
-   "line": 218,
+   "line": 241,
    "node": "tests/test_module1_prices.py::test_weights_used_leaves_tutoring_out_only_from_2026",
    "given": [
     "a basket with tutoring and the option tutoring \"excluded\""
    ],
    "when": [
-    "the weights are worked out for 2025 and for 2026 from same-year surveys",
-    "for 2026 from survey 2023"
+    "the weights are worked out for 2025 and for 2026 from same-year surveys"
    ],
    "then": [
     "2025 keeps tutoring",
-    "2026 drops it (0.1), leaving food at 1.0",
-    "2026 from survey 2023 raises a FormatError about the \"tutoring split\""
+    "2026 drops it (0.1), leaving food at 1.0"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-PRICES-016",
+   "suite": "pytest",
+   "title": "leaving tutoring out of an older survey needs its split",
+   "file": "tests/test_module1_prices.py",
+   "line": 260,
+   "node": "tests/test_module1_prices.py::test_leaving_tutoring_out_of_an_older_survey_needs_its_split",
+   "given": [
+    "a basket with tutoring and the option tutoring \"excluded\""
+   ],
+   "when": [
+    "the weights for 2026 are worked out from survey 2023, with no tutoring split given"
+   ],
+   "then": [
+    "a FormatError says the \"tutoring split\" is needed"
    ],
    "notes": "",
    "examples": [],
@@ -8138,7 +9393,7 @@
    "suite": "pytest",
    "title": "HICP blocks keep an item only for years it fully prices",
    "file": "tests/test_module1_prices.py",
-   "line": 253,
+   "line": 287,
    "node": "tests/test_module1_prices.py::test_hicp_blocks_keep_an_item_only_for_years_it_fully_prices",
    "given": [
     "HICP rows for food over 2014-2015, an item that stops in 2014-12 and one that starts in 2015-12"
@@ -8369,10 +9624,10 @@
   {
    "id": "PY-NOTIFY-002",
    "suite": "pytest",
-   "title": "the Windows scheduled task runs the archive job daily at 13:00",
+   "title": "the Windows scheduled task runs the archive job daily at 13:00, and catches up",
    "file": "tests/test_notify_schedule.py",
    "line": 29,
-   "node": "tests/test_notify_schedule.py::test_task_xml_is_valid",
+   "node": "tests/test_notify_schedule.py::test_the_windows_task_runs_the_archive_job_daily_at_13_and_catches_up",
    "given": [
     "a default configuration and a Windows Python interpreter"
    ],
@@ -8381,6 +9636,7 @@
    ],
    "then": [
     "it parses as XML",
+    "its trigger repeats every day",
     "the task starts when available if a run was missed",
     "its start boundary is at 13:00",
     "it runs the archive command with Python's isolated mode (\"-I -m traceconomics archive\")"
@@ -8399,7 +9655,7 @@
    "suite": "pytest",
    "title": "the example configuration parses",
    "file": "tests/test_notify_schedule.py",
-   "line": 47,
+   "line": 49,
    "node": "tests/test_notify_schedule.py::test_config_example_parses",
    "given": [
     "the repository's config.example.toml"
@@ -9787,22 +11043,46 @@
   {
    "id": "PY-REL-005",
    "suite": "pytest",
-   "title": "only a good build can be promoted, and it becomes the baseline",
+   "title": "a failed build can't be promoted",
    "file": "tests/test_release.py",
    "line": 149,
    "node": "tests/test_release.py::test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline",
    "given": [
-    "a build that failed at the series step, and a good build"
+    "a build that failed at the series step"
    ],
    "when": [
-    "the failed build is promoted to staging",
+    "it is promoted to staging"
+   ],
+   "then": [
+    "the promote is refused",
+    "no promote record is written"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-023",
+   "suite": "pytest",
+   "title": "a promoted good build uploads its own files and becomes the baseline",
+   "file": "tests/test_release.py",
+   "line": 165,
+   "node": "tests/test_release.py::test_a_promoted_good_build_becomes_the_baseline",
+   "given": [
+    "a build that failed at the series step, then a good build"
+   ],
+   "when": [
     "the good build is promoted to staging"
    ],
    "then": [
-    "the failed build's promote is refused",
-    "the good build's promote records staging and its preview alias address",
+    "the promote records staging and its preview alias address",
     "the last command uploads that build's own files as a version",
-    "that build is the baseline for the next build"
+    "that build, not the failed one, is the baseline for the next build"
    ],
    "notes": "",
    "examples": [],
@@ -9818,7 +11098,7 @@
    "suite": "pytest",
    "title": "pruning keeps the newest builds and the promoted one",
    "file": "tests/test_release.py",
-   "line": 173,
+   "line": 184,
    "node": "tests/test_release.py::test_pruning_keeps_the_newest_and_the_promoted_build",
    "given": [
     "a configuration that keeps two builds",
@@ -9844,7 +11124,7 @@
    "suite": "pytest",
    "title": "the changes since the last release are counted",
    "file": "tests/test_release.py",
-   "line": 191,
+   "line": 202,
    "node": "tests/test_release.py::test_changes_since_the_last_release",
    "given": [
     "an old and a new set of rate outputs, where the new one revises one month by 0.1 points and adds a month"
@@ -9870,7 +11150,7 @@
    "suite": "pytest",
    "title": "only newly stored files that feed the store trigger a release",
    "file": "tests/test_release.py",
-   "line": 213,
+   "line": 224,
    "node": "tests/test_release.py::test_only_files_that_feed_the_store_trigger_a_release",
    "given": [
     "a run that stored a HICP file and a calendar page, and found another HICP file unchanged"
@@ -9893,18 +11173,19 @@
   {
    "id": "PY-REL-009",
    "suite": "pytest",
-   "title": "a promote to production deploys the build",
+   "title": "a promote to production deploys the build and checks it on the public address",
    "file": "tests/test_release.py",
-   "line": 230,
+   "line": 241,
    "node": "tests/test_release.py::test_promoting_to_production_publishes_on_the_public_address",
    "given": [
-    "a good build"
+    "a good build, and a configuration whose public address is https://example.org"
    ],
    "when": [
     "it is promoted to production"
    ],
    "then": [
-    "the last command is wrangler's deploy through npx without installing"
+    "the last command is wrangler's deploy through npx without installing, not a preview upload",
+    "the promote is checked on the public address, and recorded with it"
    ],
    "notes": "",
    "examples": [],
@@ -9920,8 +11201,8 @@
    "suite": "pytest",
    "title": "a promote to an unknown target is refused",
    "file": "tests/test_release.py",
-   "line": 244,
-   "node": "tests/test_release.py::test_the_target_is_chosen_on_each_promote",
+   "line": 260,
+   "node": "tests/test_release.py::test_a_promote_to_an_unknown_target_is_refused",
    "given": [
     "a good build"
    ],
@@ -9946,7 +11227,7 @@
    "suite": "pytest",
    "title": "staging and production serve their own builds",
    "file": "tests/test_release.py",
-   "line": 259,
+   "line": 275,
    "node": "tests/test_release.py::test_staging_and_production_serve_their_own_builds",
    "given": [
     "two good builds, the first promoted to production and the second to staging"
@@ -9974,7 +11255,7 @@
    "suite": "pytest",
    "title": "a promote record from before targets reads as staging",
    "file": "tests/test_release.py",
-   "line": 285,
+   "line": 301,
    "node": "tests/test_release.py::test_a_promote_record_from_before_targets_reads_as_staging",
    "given": [
     "an old single promote record"
@@ -10000,7 +11281,7 @@
    "suite": "pytest",
    "title": "the browser tests run before the upload and again on the preview",
    "file": "tests/test_release.py",
-   "line": 300,
+   "line": 316,
    "node": "tests/test_release.py::test_the_browser_tests_run_before_upload_and_again_on_the_preview",
    "given": [
     "steps that all succeed"
@@ -10029,7 +11310,7 @@
    "suite": "pytest",
    "title": "a build held back by its browser tests publishes nothing and keeps its files",
    "file": "tests/test_release.py",
-   "line": 323,
+   "line": 339,
    "node": "tests/test_release.py::test_a_build_held_back_by_its_browser_tests_publishes_nothing_and_keeps_its_files",
    "given": [
     "steps where ui-test fails"
@@ -10057,7 +11338,7 @@
    "suite": "pytest",
    "title": "a retest runs the remaining steps on the build's own files",
    "file": "tests/test_release.py",
-   "line": 344,
+   "line": 360,
    "node": "tests/test_release.py::test_a_retest_runs_the_rest_on_the_files_the_build_made",
    "given": [
     "a build held back at ui-test",
@@ -10087,7 +11368,7 @@
    "suite": "pytest",
    "title": "a retest after the upload tests the version already uploaded",
    "file": "tests/test_release.py",
-   "line": 371,
+   "line": 387,
    "node": "tests/test_release.py::test_a_retest_after_the_upload_tests_the_version_already_uploaded",
    "given": [
     "a build that failed at smoke, after its upload"
@@ -10112,7 +11393,7 @@
    "suite": "pytest",
    "title": "a retest refuses what a retest can't fix",
    "file": "tests/test_release.py",
-   "line": 385,
+   "line": 401,
    "node": "tests/test_release.py::test_a_retest_refuses_what_a_retest_cant_fix",
    "given": [
     "a good build, a build that failed at check-v1, an unknown build id",
@@ -10139,21 +11420,44 @@
   {
    "id": "PY-REL-018",
    "suite": "pytest",
-   "title": "a promote is confirmed only when the target serves the build",
+   "title": "a promote is confirmed when the target serves the build",
    "file": "tests/test_release.py",
-   "line": 411,
+   "line": 427,
    "node": "tests/test_release.py::test_a_promote_is_confirmed_only_when_the_target_serves_the_build",
    "given": [
     "a good build and a host that serves each promoted build's files"
    ],
    "when": [
-    "it is promoted to production",
+    "it is promoted to production"
+   ],
+   "then": [
+    "the promote's address is the public address and it is confirmed",
+    "the only address checked was the public address's build metadata for that build"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-024",
+   "suite": "pytest",
+   "title": "a promote is refused while the target serves another build",
+   "file": "tests/test_release.py",
+   "line": 442,
+   "node": "tests/test_release.py::test_a_promote_is_refused_while_the_target_serves_another_build",
+   "given": [
+    "a good build, already promoted to production and confirmed there"
+   ],
+   "when": [
     "it is promoted to staging while the host serves another build"
    ],
    "then": [
-    "the production promote's address is the public address and it is confirmed",
-    "the only address checked was the public address's build metadata for that build",
-    "the staging promote is refused, saying the target doesn't serve it",
+    "the promote is refused, saying the target doesn't serve it",
     "it waited the confirm interval for the whole confirm time between checks",
     "the staging record is unconfirmed while production stays confirmed"
    ],
@@ -10171,7 +11475,7 @@
    "suite": "pytest",
    "title": "a promote to production needs the public address",
    "file": "tests/test_release.py",
-   "line": 438,
+   "line": 463,
    "node": "tests/test_release.py::test_a_promote_to_production_needs_the_public_address",
    "given": [
     "a good build and a release configuration with no production address"
@@ -10197,7 +11501,7 @@
    "suite": "pytest",
    "title": "the public address is read from the configuration without a trailing slash",
    "file": "tests/test_release.py",
-   "line": 456,
+   "line": 481,
    "node": "tests/test_release.py::test_the_public_address_is_read_from_the_config_without_a_trailing_slash",
    "given": [
     "a configuration whose production address ends in a slash"
@@ -10223,7 +11527,7 @@
    "suite": "pytest",
    "title": "the failing browser tests are named from their results file",
    "file": "tests/test_release.py",
-   "line": 483,
+   "line": 508,
    "node": "tests/test_release.py::test_the_failing_browser_tests_are_named_from_their_results_file",
    "given": [
     "a Playwright results file with a passing test, a failing nested test and an error outside the tests"
@@ -10250,7 +11554,7 @@
    "suite": "pytest",
    "title": "a browser-test failure email names the tests and the report",
    "file": "tests/test_release.py",
-   "line": 501,
+   "line": 526,
    "node": "tests/test_release.py::test_a_browser_test_failure_email_names_the_tests_and_the_report",
    "given": [
     "steps where ui-test fails and writes a results file"
@@ -10302,20 +11606,22 @@
   {
    "id": "PY-SITEDATA-002",
    "suite": "pytest",
-   "title": "the country card's two rates agree",
+   "title": "the country card's two rates are for the same month and agree",
    "file": "tests/test_sitedata.py",
    "line": 40,
-   "node": "tests/test_sitedata.py::test_the_country_card_rates_come_from_one_index_so_they_agree",
+   "node": "tests/test_sitedata.py::test_the_country_card_rates_are_for_the_same_month_and_agree",
    "given": [
-    "the made-up site data"
+    "the made-up site data, whose published rates are made from its own overall index"
    ],
    "when": [
     "its official rate file is read"
    ],
    "then": [
-    "the comparison says our rate and the published one agree"
+    "our rate and the published one are for the same month",
+    "they differ by no more than the agreement tolerance, and the comparison says they agree",
+    "the two rates the card shows, to one decimal, are equal"
    ],
-   "notes": "",
+   "notes": "The made-up published rates are computed from the made-up index, as ELSTAT's come from the\nindex it publishes, so a gap here means the export changed how one side is read.",
    "examples": [],
    "defects": [],
    "tags": [
@@ -10329,7 +11635,7 @@
    "suite": "pytest",
    "title": "the made-up baskets take the special paths",
    "file": "tests/test_sitedata.py",
-   "line": 51,
+   "line": 60,
    "node": "tests/test_sitedata.py::test_made_up_baskets_take_the_special_paths",
    "given": [
     "the made-up site data's weights-used downloads"
@@ -10538,24 +11844,49 @@
    "suite": "pytest",
    "title": "the build's commit is read from git's own files",
    "file": "tests/test_testresults.py",
-   "line": 22,
+   "line": 43,
    "node": "tests/test_testresults.py::test_the_commit_is_read_from_git_itself",
    "given": [
-    "a repository whose HEAD points to a branch"
+    "a repository whose HEAD points to a branch, laid out one of four ways"
    ],
    "when": [
-    "the commit is read with no ref for the branch yet",
-    "then with the branch in packed-refs",
-    "then with a loose ref for it too",
-    "then with HEAD detached",
-    "from a folder with no repository"
+    "the commit is read"
    ],
    "then": [
-    "without a ref there is no commit",
-    "with packed-refs alone, the packed commit is read",
+    "without a ref for the branch there is no commit",
+    "with the branch in packed-refs alone, the packed commit is read",
     "with a loose ref too, the loose ref wins",
-    "with HEAD detached, its commit is read",
-    "the folder with no repository has no commit"
+    "with HEAD detached, its commit is read"
+   ],
+   "notes": "",
+   "examples": [
+    "no ref",
+    "packed only",
+    "loose wins",
+    "detached"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TRES-008",
+   "suite": "pytest",
+   "title": "a folder with no repository has no commit",
+   "file": "tests/test_testresults.py",
+   "line": 63,
+   "node": "tests/test_testresults.py::test_a_folder_with_no_repository_has_no_commit",
+   "given": [
+    "a folder with no git repository in it"
+   ],
+   "when": [
+    "the commit is read"
+   ],
+   "then": [
+    "there is no commit"
    ],
    "notes": "",
    "examples": [],
@@ -10571,7 +11902,7 @@
    "suite": "pytest",
    "title": "a worktree checkout is followed to its repository",
    "file": "tests/test_testresults.py",
-   "line": 51,
+   "line": 73,
    "node": "tests/test_testresults.py::test_a_worktree_checkout_is_followed_to_its_repository",
    "given": [
     "a worktree whose .git file points into the main repository, on a branch whose ref is kept there"
@@ -10596,7 +11927,7 @@
    "suite": "pytest",
    "title": "a browser step sends its results first and its meta file last",
    "file": "tests/test_testresults.py",
-   "line": 69,
+   "line": 91,
    "node": "tests/test_testresults.py::test_results_then_meta_last",
    "given": [
     "a ui-test step run with a results file and a bucket link"
@@ -10624,7 +11955,7 @@
    "suite": "pytest",
    "title": "a promote check sends its meta file alone",
    "file": "tests/test_testresults.py",
-   "line": 93,
+   "line": 115,
    "node": "tests/test_testresults.py::test_a_promote_check_sends_its_meta_alone",
    "given": [
     "a promote check with no results file"
@@ -10648,31 +11979,55 @@
   {
    "id": "PY-TRES-005",
    "suite": "pytest",
-   "title": "sending is off without a link, and failures are returned, not raised",
+   "title": "sending is off without a link",
    "file": "tests/test_testresults.py",
-   "line": 107,
-   "node": "tests/test_testresults.py::test_off_without_a_link_and_failures_returned_not_raised",
+   "line": 129,
+   "node": "tests/test_testresults.py::test_off_without_a_link",
    "given": [
     "a step's test results to send"
    ],
    "when": [
-    "they are sent with no bucket link in the environment",
-    "with a link the bucket refuses",
-    "for a build whose commit is unknown",
-    "with a link that doesn't end in /o/, or doesn't start with https://",
-    "with an upload that breaks off with an error that is not an OSError",
-    "with an upload whose error quotes the address"
+    "they are sent with no bucket link in the environment"
    ],
    "then": [
-    "without a link the result is \"off\"",
-    "a refused upload is \"failed\", and the error doesn't repeat the link's secret",
-    "an unknown commit is \"failed\", with an error that says so",
-    "a wrong link is \"failed\", with an error saying what it should be",
-    "an upload that breaks off is \"failed\", and the error names the kind of error",
-    "an error that quotes the address doesn't repeat the link's secret"
+    "the result is \"off\""
    ],
    "notes": "",
    "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TRES-009",
+   "suite": "pytest",
+   "title": "a failed send is returned, not raised, and never repeats the link's secret",
+   "file": "tests/test_testresults.py",
+   "line": 156,
+   "node": "tests/test_testresults.py::test_a_failed_send_is_returned_not_raised_and_never_repeats_the_secret",
+   "given": [
+    "a step's test results to send, with a bucket link whose path holds a secret",
+    "one failure: the bucket refuses, the commit is unknown, the link doesn't end in /o/ or start with https://, the upload breaks off with an error that is not an OSError, or the upload's error quotes the address"
+   ],
+   "when": [
+    "they are sent"
+   ],
+   "then": [
+    "the result is \"failed\", with an error that says what went wrong",
+    "the error never repeats the link's secret"
+   ],
+   "notes": "The link is a pre-authenticated request: anyone holding it can write to the bucket, and errors\nend up in emails and logs.",
+   "examples": [
+    "refused",
+    "unknown commit",
+    "not ending in /o/",
+    "not https",
+    "broken off",
+    "error quotes the address"
+   ],
    "defects": [],
    "tags": [
     "unit"
@@ -10685,7 +12040,7 @@
    "suite": "pytest",
    "title": "a release build and its promote send every browser step",
    "file": "tests/test_testresults.py",
-   "line": 172,
+   "line": 205,
    "node": "tests/test_testresults.py::test_a_build_and_its_promote_send_every_browser_step",
    "given": [
     "a release build whose browser steps write results files, and uploads that succeed"
@@ -10716,7 +12071,7 @@
    "suite": "pytest",
    "title": "a failed browser step is sent too, and a failed upload is only reported",
    "file": "tests/test_testresults.py",
-   "line": 198,
+   "line": 231,
    "node": "tests/test_testresults.py::test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported",
    "given": [
     "uploads that always fail",
@@ -11555,22 +12910,89 @@
   {
    "id": "SEL-EXPL-006",
    "suite": "selenium",
-   "title": "groups, measure, gap and view go into the address",
+   "title": "the groups go into the address",
    "file": "tests/selenium/test_explore.py",
    "line": 197,
-   "node": "tests/selenium/test_explore.py::test_groups_measure_gap_and_view_in_the_address",
+   "node": "tests/selenium/test_explore.py::test_the_groups_go_into_the_address",
    "given": [
     "Explore with nothing changed"
    ],
    "when": [
-    "the richest fifth is removed and renters are added",
-    "the gap is turned off",
-    "the monthly rate is picked as the measure",
+    "the richest fifth is removed and renters are added"
+   ],
+   "then": [
+    "after the removal the address carries the two groups left",
+    "after the addition it carries renters last"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-016",
+   "suite": "selenium",
+   "title": "the gap turned off goes into the address",
+   "file": "tests/selenium/test_explore.py",
+   "line": 213,
+   "node": "tests/selenium/test_explore.py::test_the_gap_off_goes_into_the_address",
+   "given": [
+    "Explore with nothing changed"
+   ],
+   "when": [
+    "the gap is turned off"
+   ],
+   "then": [
+    "the address carries gap=0"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-017",
+   "suite": "selenium",
+   "title": "the measure goes into the address and the summary",
+   "file": "tests/selenium/test_explore.py",
+   "line": 226,
+   "node": "tests/selenium/test_explore.py::test_the_measure_goes_into_the_address_and_the_summary",
+   "given": [
+    "Explore with nothing changed"
+   ],
+   "when": [
+    "the monthly rate is picked as the measure"
+   ],
+   "then": [
+    "the address carries m=rch_m",
+    "the summary gives the three default groups' monthly rates from the published series"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-018",
+   "suite": "selenium",
+   "title": "the view goes into the address",
+   "file": "tests/selenium/test_explore.py",
+   "line": 241,
+   "node": "tests/selenium/test_explore.py::test_the_view_goes_into_the_address",
+   "given": [
+    "Explore with nothing changed"
+   ],
+   "when": [
     "the breakdown view is picked"
    ],
    "then": [
-    "the address follows each step: the groups, the gap off, the measure, then the view",
-    "the summary gives the three groups' monthly rates from the published series"
+    "the address carries view=parts"
    ],
    "notes": "",
    "examples": [],
@@ -11584,7 +13006,7 @@
    "suite": "selenium",
    "title": "a reload restores the state",
    "file": "tests/selenium/test_explore.py",
-   "line": 224,
+   "line": 254,
    "node": "tests/selenium/test_explore.py::test_reload_restores_the_state",
    "given": [
     "an address asking for all spending, tutoring excluded, three groups, the index as measure and no gap"
@@ -11610,7 +13032,7 @@
    "suite": "selenium",
    "title": "unknown values in the address fall back to defaults",
    "file": "tests/selenium/test_explore.py",
-   "line": 250,
+   "line": 280,
    "node": "tests/selenium/test_explore.py::test_unknown_values_fall_back_to_defaults",
    "given": [
     "an address with an unknown spending option, an unknown group beside all households, and an unknown measure and view"
@@ -11621,6 +13043,8 @@
    "then": [
     "all households is the only group picked",
     "the default spending option is picked",
+    "the measure is the annual rate, and the chart over time shows, not the breakdown",
+    "the summary gives all households' latest annual rate from the default setting's series",
     "the address keeps only the known group, and drops the spending, measure and view"
    ],
    "notes": "",
@@ -11633,21 +13057,42 @@
   {
    "id": "SEL-EXPL-009",
    "suite": "selenium",
-   "title": "at most six groups, and at least one",
+   "title": "at most six groups",
    "file": "tests/selenium/test_explore.py",
-   "line": 268,
-   "node": "tests/selenium/test_explore.py::test_at_most_six_groups_and_at_least_one",
+   "line": 304,
+   "node": "tests/selenium/test_explore.py::test_at_most_six_groups",
    "given": [
     "Explore with its three default groups"
    ],
    "when": [
-    "three more fifths are added",
-    "every group but the poorest fifth is removed",
-    "the poorest fifth is pressed too"
+    "three more fifths are added"
    ],
    "then": [
-    "the count says 6 of at most 6, and no other group can be picked",
-    "the poorest fifth stays picked: the last group can't be removed"
+    "the count says 6 of at most 6",
+    "no other group can be picked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-019",
+   "suite": "selenium",
+   "title": "the last group can't be removed",
+   "file": "tests/selenium/test_explore.py",
+   "line": 321,
+   "node": "tests/selenium/test_explore.py::test_the_last_group_cant_be_removed",
+   "given": [
+    "Explore opened with the poorest fifth as its only group"
+   ],
+   "when": [
+    "the poorest fifth is pressed"
+   ],
+   "then": [
+    "it stays picked"
    ],
    "notes": "",
    "examples": [],
@@ -11661,7 +13106,7 @@
    "suite": "selenium",
    "title": "an option Greece can't have is not offered",
    "file": "tests/selenium/test_explore.py",
-   "line": 292,
+   "line": 335,
    "node": "tests/selenium/test_explore.py::test_option_greece_cant_have_is_not_offered",
    "given": [
     "Explore with its options unfolded"
@@ -11685,7 +13130,7 @@
    "suite": "selenium",
    "title": "the gap is only for the annual rate",
    "file": "tests/selenium/test_explore.py",
-   "line": 311,
+   "line": 354,
    "node": "tests/selenium/test_explore.py::test_gap_only_for_the_annual_rate",
    "given": [
     "Explore with nothing changed"
@@ -11706,11 +13151,35 @@
    "named": false
   },
   {
+   "id": "SEL-EXPL-015",
+   "suite": "selenium",
+   "title": "months an option leaves out are noted, with the reason",
+   "file": "tests/selenium/test_explore.py",
+   "line": 372,
+   "node": "tests/selenium/test_explore.py::test_months_an_option_leaves_out_are_noted_with_the_reason",
+   "given": [
+    "Explore with nothing changed, and weights timing rule F, which leaves out months before its first survey"
+   ],
+   "when": [
+    "rule F is picked"
+   ],
+   "then": [
+    "a notice above the chart gives the reason, as the availability file names it",
+    "the option's own note gives the same reason"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "SEL-EXPL-012",
    "suite": "selenium",
    "title": "the breakdown view",
    "file": "tests/selenium/test_explore.py",
-   "line": 331,
+   "line": 395,
    "node": "tests/selenium/test_explore.py::test_breakdown_view",
    "given": [
     "Explore with the poorest and richest fifths"
@@ -11737,7 +13206,7 @@
    "suite": "selenium",
    "title": "full screen",
    "file": "tests/selenium/test_explore.py",
-   "line": 361,
+   "line": 425,
    "node": "tests/selenium/test_explore.py::test_full_screen",
    "given": [
     "Explore with nothing changed"
@@ -11762,7 +13231,7 @@
    "suite": "selenium",
    "title": "household types are offered and drawn from the series",
    "file": "tests/selenium/test_explore.py",
-   "line": 381,
+   "line": 445,
    "node": "tests/selenium/test_explore.py::test_household_types_are_offered_and_drawn_from_the_file",
    "given": [
     "an address asking for single adults and two adults with dependent children"
@@ -11778,6 +13247,79 @@
    "examples": [],
    "defects": [],
    "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-020",
+   "suite": "selenium",
+   "title": "the gap note shows when the poorest or richest fifth isn't drawn",
+   "file": "tests/selenium/test_explore.py",
+   "line": 462,
+   "node": "tests/selenium/test_explore.py::test_gap_note_when_an_end_fifth_isnt_drawn",
+   "given": [
+    "an address picking the poorest fifth and all households, but not the richest fifth"
+   ],
+   "when": [
+    "Explore opens from it"
+   ],
+   "then": [
+    "the note about the gap is shown"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-022",
+   "suite": "selenium",
+   "title": "one group's breakdown title gives its latest rate, the sum of its parts",
+   "file": "tests/selenium/test_explore.py",
+   "line": 474,
+   "node": "tests/selenium/test_explore.py::test_one_group_breakdown_title_is_the_sum_of_its_parts",
+   "given": [
+    "an address opening the breakdown view for the poorest fifth alone"
+   ],
+   "when": [
+    "Explore opens from it"
+   ],
+   "then": [
+    "the title gives the poorest fifth's latest annual rate: the sum of its categories' parts in the published contributions file"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-021",
+   "suite": "selenium",
+   "title": "data that fails to load says so, and Retry tries again",
+   "file": "tests/selenium/test_explore.py",
+   "line": 489,
+   "node": "tests/selenium/test_explore.py::test_data_that_fails_to_load_says_so_and_retry_tries_again",
+   "given": [
+    "the chart's series files blocked"
+   ],
+   "when": [
+    "Explore opens",
+    "the files are unblocked and Retry is pressed"
+   ],
+   "then": [
+    "the chart shows an alert saying the data couldn't be loaded, with a Retry button",
+    "after Retry, the alert goes and the summary is drawn"
+   ],
+   "notes": "The browser logs the refused requests, so this test allows console errors.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "console_errors"
+   ],
    "problems": [],
    "named": false
   },
@@ -12064,25 +13606,46 @@
    "suite": "selenium",
    "title": "the finder names the household type",
    "file": "tests/selenium/test_groups.py",
-   "line": 300,
+   "line": 308,
    "node": "tests/selenium/test_groups.py::test_finder_names_the_household_type",
    "given": [
     "the group finder"
    ],
    "when": [
-    "people aged 14 or over, children and dependants among the older ones are entered"
+    "people aged 14 or over, children and dependants among the older ones are entered, with at least one adult"
    ],
    "then": [
-    "the household's type is named",
-    "if nobody counts as an adult, no household type is shown"
+    "the household's type is named"
    ],
    "notes": "",
    "examples": [
     "3-0-0",
     "3-0-1",
-    "1-1-0",
-    "2-0-2"
+    "1-1-0"
    ],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-GRP-013",
+   "suite": "selenium",
+   "title": "the finder shows no household type when nobody counts as an adult",
+   "file": "tests/selenium/test_groups.py",
+   "line": 322,
+   "node": "tests/selenium/test_groups.py::test_finder_shows_no_type_when_nobody_is_an_adult",
+   "given": [
+    "the group finder"
+   ],
+   "when": [
+    "two people aged 14 or over are entered, both dependants, and no children"
+   ],
+   "then": [
+    "no household type is shown"
+   ],
+   "notes": "The survey has no type for a household without an adult, so the finder names none.",
+   "examples": [],
    "defects": [],
    "tags": [],
    "problems": [],
@@ -12093,7 +13656,7 @@
    "suite": "selenium",
    "title": "the household section shows each type's share",
    "file": "tests/selenium/test_groups.py",
-   "line": 321,
+   "line": 336,
    "node": "tests/selenium/test_groups.py::test_household_section_shows_each_types_share",
    "given": [
     "the published household-type file"
@@ -12104,6 +13667,30 @@
    "then": [
     "each type's share of households and its count are shown",
     "the comparison link carries every type, in the file's order"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-GRP-014",
+   "suite": "selenium",
+   "title": "without an income, the finder shows no income group and offers three start links",
+   "file": "tests/selenium/test_groups.py",
+   "line": 353,
+   "node": "tests/selenium/test_groups.py::test_finder_without_an_income",
+   "given": [
+    "the group finder, with no income entered"
+   ],
+   "when": [
+    "owning the home is picked, and a pension is not the main income"
+   ],
+   "then": [
+    "no income group is shown",
+    "it offers three links to start from"
    ],
    "notes": "",
    "examples": [],
@@ -12485,11 +14072,34 @@
    "named": false
   },
   {
+   "id": "SEL-LINK-005",
+   "suite": "selenium",
+   "title": "the sitemap lists more than 20 pages",
+   "file": "tests/selenium/test_links.py",
+   "line": 145,
+   "node": "tests/selenium/test_links.py::test_sitemap_lists_the_pages",
+   "given": [
+    "a built site"
+   ],
+   "when": [
+    "its sitemap is read"
+   ],
+   "then": [
+    "it lists more than 20 pages"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "SEL-NAV-001",
    "suite": "selenium",
    "title": "a quick list opens, ticks the current entry and closes with Escape",
    "file": "tests/selenium/test_nav.py",
-   "line": 20,
+   "line": 24,
    "node": "tests/selenium/test_nav.py::test_quick_list_opens_ticks_current_and_closes_with_escape",
    "given": [
     "Explore, in English or Greek"
@@ -12520,7 +14130,7 @@
    "suite": "selenium",
    "title": "a quick list entry goes to its page",
    "file": "tests/selenium/test_nav.py",
-   "line": 46,
+   "line": 50,
    "node": "tests/selenium/test_nav.py::test_quick_list_entry_goes_to_its_page",
    "given": [
     "the About page"
@@ -12543,16 +14153,17 @@
    "suite": "selenium",
    "title": "the country list keeps the page the reader is on",
    "file": "tests/selenium/test_nav.py",
-   "line": 60,
+   "line": 64,
    "node": "tests/selenium/test_nav.py::test_country_list_keeps_the_page_the_reader_is_on",
    "given": [
     "the calculator for Greece"
    ],
    "when": [
-    "the countries' quick list is read"
+    "the countries' quick list is opened"
    ],
    "then": [
-    "the current country's entry links to this same calculator page"
+    "the current country's entry shows",
+    "it links to this same calculator page"
    ],
    "notes": "",
    "examples": [],
@@ -12564,20 +14175,41 @@
   {
    "id": "SEL-NAV-004",
    "suite": "selenium",
-   "title": "the current section is marked in the header",
+   "title": "on a section's own page, its link alone is marked as the current page",
    "file": "tests/selenium/test_nav.py",
-   "line": 72,
+   "line": 80,
    "node": "tests/selenium/test_nav.py::test_section_is_marked_current",
    "given": [
     "the glossary"
    ],
    "when": [
-    "its header's navigation is read",
-    "the topic page for Greece is opened"
+    "its header's navigation is read"
    ],
    "then": [
-    "on the glossary the Glossary link alone is marked as the current page",
-    "on the topic page the Countries link is marked current"
+    "the Glossary link alone is marked as the current page"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-NAV-015",
+   "suite": "selenium",
+   "title": "on a page inside a section, the section is marked current",
+   "file": "tests/selenium/test_nav.py",
+   "line": 92,
+   "node": "tests/selenium/test_nav.py::test_a_page_inside_a_section_marks_the_section",
+   "given": [
+    "the topic page for Greece, which is inside Countries"
+   ],
+   "when": [
+    "its header's navigation is read"
+   ],
+   "then": [
+    "the Countries link is marked as the current section (\"true\")"
    ],
    "notes": "",
    "examples": [],
@@ -12591,7 +14223,7 @@
    "suite": "selenium",
    "title": "a desktop shows the navigation as a row",
    "file": "tests/selenium/test_nav.py",
-   "line": 89,
+   "line": 104,
    "node": "tests/selenium/test_nav.py::test_desktop_shows_the_navigation_as_a_row",
    "given": [
     "a desktop"
@@ -12615,7 +14247,7 @@
    "suite": "selenium",
    "title": "the phone menu opens and closes",
    "file": "tests/selenium/test_nav.py",
-   "line": 103,
+   "line": 118,
    "node": "tests/selenium/test_nav.py::test_phone_menu_opens_and_closes",
    "given": [
     "the About page on a phone"
@@ -12643,7 +14275,7 @@
    "suite": "selenium",
    "title": "a link in the phone menu goes to its page",
    "file": "tests/selenium/test_nav.py",
-   "line": 127,
+   "line": 142,
    "node": "tests/selenium/test_nav.py::test_phone_menu_link_navigates",
    "given": [
     "the home page on a phone, with the menu open"
@@ -12668,10 +14300,10 @@
    "suite": "selenium",
    "title": "the language switch on an English page",
    "file": "tests/selenium/test_nav.py",
-   "line": 141,
+   "line": 156,
    "node": "tests/selenium/test_nav.py::test_language_switch_on_english_pages",
    "given": [
-    "the English About page"
+    "an English page: the home page, About or Explore"
    ],
    "when": [
     "the language switch is read"
@@ -12681,7 +14313,11 @@
     "Greek is shown but not linked, as it isn't offered"
    ],
    "notes": "",
-   "examples": [],
+   "examples": [
+    "home",
+    "about",
+    "explore"
+   ],
    "defects": [],
    "tags": [],
    "problems": [],
@@ -12692,7 +14328,7 @@
    "suite": "selenium",
    "title": "the language switch on a Greek page",
    "file": "tests/selenium/test_nav.py",
-   "line": 157,
+   "line": 173,
    "node": "tests/selenium/test_nav.py::test_language_switch_from_greek_page",
    "given": [
     "the Greek About page"
@@ -12716,7 +14352,7 @@
    "suite": "selenium",
    "title": "the skip link moves to the content",
    "file": "tests/selenium/test_nav.py",
-   "line": 172,
+   "line": 188,
    "node": "tests/selenium/test_nav.py::test_skip_link_moves_to_the_content",
    "given": [
     "the About page"
@@ -12741,7 +14377,7 @@
    "suite": "selenium",
    "title": "the breadcrumbs show the trail and lead home",
    "file": "tests/selenium/test_nav.py",
-   "line": 190,
+   "line": 206,
    "node": "tests/selenium/test_nav.py::test_breadcrumbs",
    "given": [
     "a page below the home page"
@@ -12769,7 +14405,7 @@
    "suite": "selenium",
    "title": "a missing page answers 404",
    "file": "tests/selenium/test_nav.py",
-   "line": 212,
+   "line": 228,
    "node": "tests/selenium/test_nav.py::test_missing_page_is_404",
    "given": [
     "an address the site doesn't have"
@@ -12782,6 +14418,57 @@
    ],
    "notes": "",
    "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-NAV-013",
+   "suite": "selenium",
+   "title": "opening one quick list closes the other",
+   "file": "tests/selenium/test_nav.py",
+   "line": 240,
+   "node": "tests/selenium/test_nav.py::test_opening_one_quick_list_closes_the_other",
+   "given": [
+    "the home page, with the Topics quick list open"
+   ],
+   "when": [
+    "the Countries quick list is opened"
+   ],
+   "then": [
+    "the Countries list is shown",
+    "the Topics list is closed"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-NAV-014",
+   "suite": "selenium",
+   "title": "the root address sends the visitor to the browser's language if offered, else English",
+   "file": "tests/selenium/test_nav.py",
+   "line": 257,
+   "node": "tests/selenium/test_nav.py::test_root_sends_the_browser_to_its_language",
+   "given": [
+    "a browser set to Greek, US English or German"
+   ],
+   "when": [
+    "the site's root address is opened"
+   ],
+   "then": [
+    "the visitor is sent to the home page in the browser's language if the site offers it, else in English"
+   ],
+   "notes": "",
+   "examples": [
+    "el-GR",
+    "en-US",
+    "de-DE"
+   ],
    "defects": [],
    "tags": [],
    "problems": [],
@@ -12955,11 +14642,35 @@
    "named": false
   },
   {
+   "id": "SEL-NOJS-008",
+   "suite": "selenium",
+   "title": "without scripts, a term's explanation still opens, with its link",
+   "file": "tests/selenium/test_noscript.py",
+   "line": 113,
+   "node": "tests/selenium/test_noscript.py::test_a_terms_explanation_opens_without_scripts",
+   "given": [
+    "a browser with scripts turned off, on the method page"
+   ],
+   "when": [
+    "the first explained term is pressed"
+   ],
+   "then": [
+    "its explanation opens",
+    "the explanation shows its link"
+   ],
+   "notes": "The explanation is a popover the browser opens itself, so it needs no script.",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "SEL-PRIV-001",
    "suite": "selenium",
    "title": "the finder keeps the income in the page",
    "file": "tests/selenium/test_privacy.py",
-   "line": 38,
+   "line": 40,
    "node": "tests/selenium/test_privacy.py::test_finder_keeps_the_income_in_the_page",
    "given": [
     "the group finder"
@@ -12986,7 +14697,7 @@
    "suite": "selenium",
    "title": "the calculator keeps the euros in the page",
    "file": "tests/selenium/test_privacy.py",
-   "line": 66,
+   "line": 68,
    "node": "tests/selenium/test_privacy.py::test_calculator_keeps_the_euros_in_the_page",
    "given": [
     "the calculator, switched to euros a month"
@@ -13012,7 +14723,7 @@
    "suite": "selenium",
    "title": "the calculator's sliders stay in the page",
    "file": "tests/selenium/test_privacy.py",
-   "line": 91,
+   "line": 93,
    "node": "tests/selenium/test_privacy.py::test_calculator_sliders_stay_in_the_page",
    "given": [
     "the calculator"
@@ -13037,22 +14748,48 @@
    "suite": "selenium",
    "title": "the theme is the only thing stored",
    "file": "tests/selenium/test_privacy.py",
-   "line": 112,
+   "line": 114,
    "node": "tests/selenium/test_privacy.py::test_theme_is_the_only_thing_stored",
    "given": [
     "the English home page"
    ],
    "when": [
     "the dark theme is picked",
-    "the About page, Explore and the calculator are opened in turn"
+    "the About page, Explore and the calculator are opened in turn, each left to load its data"
    ],
    "then": [
-    "the only thing stored is the theme, dark",
-    "no cookie is set",
-    "none of the pages talked to another site"
+    "on each page the only thing stored is the theme, dark, and no cookie is set",
+    "no page talked to another site, each page's own requests checked apart so a failure names the page"
    ],
    "notes": "",
    "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-PRIV-005",
+   "suite": "selenium",
+   "title": "the topic page, the data page and the glossary ask nothing of other sites",
+   "file": "tests/selenium/test_privacy.py",
+   "line": 143,
+   "node": "tests/selenium/test_privacy.py::test_the_topic_data_and_glossary_pages_ask_nothing_of_other_sites",
+   "given": [
+    "the inflation-by-group page for Greece, the data page for Greece, or the glossary"
+   ],
+   "when": [
+    "it opens and finishes loading"
+   ],
+   "then": [
+    "no request it sent goes to another site"
+   ],
+   "notes": "",
+   "examples": [
+    "topic page",
+    "data page",
+    "glossary"
+   ],
    "defects": [],
    "tags": [],
    "problems": [],
@@ -13277,14 +15014,57 @@
     "the English glossary, every term shown"
    ],
    "when": [
-    "\"quintile\" is typed in the search",
-    "letters that match nothing are added",
+    "\"quintile\" is typed in the search"
+   ],
+   "then": [
+    "fewer terms show, each one containing \"quintile\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-TERM-008",
+   "suite": "selenium",
+   "title": "a search that matches nothing hides every term and category",
+   "file": "tests/selenium/test_terms.py",
+   "line": 127,
+   "node": "tests/selenium/test_terms.py::test_glossary_search_with_no_match_hides_every_category",
+   "given": [
+    "the English glossary"
+   ],
+   "when": [
+    "letters that match no term are typed in the search"
+   ],
+   "then": [
+    "no term shows",
+    "no empty category stays"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-TERM-009",
+   "suite": "selenium",
+   "title": "clearing the glossary's search brings every term back",
+   "file": "tests/selenium/test_terms.py",
+   "line": 141,
+   "node": "tests/selenium/test_terms.py::test_clearing_the_glossary_search_brings_every_term_back",
+   "given": [
+    "the English glossary, filtered by \"quintile\""
+   ],
+   "when": [
     "the search is cleared"
    ],
    "then": [
-    "fewer terms show, each one containing \"quintile\"",
-    "then no term shows, and no empty category stays",
-    "then every term is back"
+    "every term is back"
    ],
    "notes": "",
    "examples": [],
@@ -13298,7 +15078,7 @@
    "suite": "selenium",
    "title": "the glossary's search ignores accents",
    "file": "tests/selenium/test_terms.py",
-   "line": 139,
+   "line": 159,
    "node": "tests/selenium/test_terms.py::test_glossary_search_ignores_accents",
    "given": [
     "the Greek glossary"
@@ -13443,22 +15223,43 @@
   {
    "id": "SEL-THEME-006",
    "suite": "selenium",
-   "title": "the device setting follows the system; a choice overrides it",
+   "title": "the device setting follows the system",
    "file": "tests/selenium/test_theme.py",
-   "line": 111,
-   "node": "tests/selenium/test_theme.py::test_device_setting_follows_the_system_and_choice_overrides_it",
+   "line": 115,
+   "node": "tests/selenium/test_theme.py::test_device_setting_follows_the_system",
    "given": [
     "the home page on the device setting, with a light background"
    ],
    "when": [
-    "the device switches to dark",
+    "the device switches to dark"
+   ],
+   "then": [
+    "the background changes with the device"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-THEME-009",
+   "suite": "selenium",
+   "title": "a choice overrides the device setting",
+   "file": "tests/selenium/test_theme.py",
+   "line": 128,
+   "node": "tests/selenium/test_theme.py::test_a_choice_overrides_the_device_setting",
+   "given": [
+    "the home page on the device setting, its light background noted, then the device switched to dark"
+   ],
+   "when": [
     "light is picked",
     "then dark is picked"
    ],
    "then": [
-    "the background changes with the device",
-    "light brings back the light background",
-    "dark brings back the dark one"
+    "light brings back the light background, though the device is dark",
+    "dark brings back the device's dark background"
    ],
    "notes": "",
    "examples": [],
@@ -13472,7 +15273,7 @@
    "suite": "selenium",
    "title": "an unknown stored value means the device setting",
    "file": "tests/selenium/test_theme.py",
-   "line": 133,
+   "line": 148,
    "node": "tests/selenium/test_theme.py::test_unknown_stored_value_means_device_setting",
    "given": [
     "a theme stored that doesn't exist"
@@ -13496,7 +15297,7 @@
    "suite": "selenium",
    "title": "the phone menu's copy stays in step",
    "file": "tests/selenium/test_theme.py",
-   "line": 148,
+   "line": 163,
    "node": "tests/selenium/test_theme.py::test_phone_menu_copy_stays_in_step",
    "given": [
     "the home page on a phone, with the menu open"
@@ -13514,6 +15315,53 @@
    "tags": [
     "phone"
    ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-THEME-010",
+   "suite": "selenium",
+   "title": "the settings menu says the choice is kept in this browser",
+   "file": "tests/selenium/test_theme.py",
+   "line": 181,
+   "node": "tests/selenium/test_theme.py::test_the_menu_says_the_choice_stays_in_this_browser",
+   "given": [
+    "the home page"
+   ],
+   "when": [
+    "the header's settings menu is opened"
+   ],
+   "then": [
+    "it says the choice is kept in this browser"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-THEME-011",
+   "suite": "selenium",
+   "title": "with storage blocked, a choice still applies to the page, without errors",
+   "file": "tests/selenium/test_theme.py",
+   "line": 195,
+   "node": "tests/selenium/test_theme.py::test_with_storage_blocked_a_choice_still_applies",
+   "given": [
+    "a browser that refuses the site any storage"
+   ],
+   "when": [
+    "the dark theme is picked on the home page"
+   ],
+   "then": [
+    "the page turns dark",
+    "the browser logs no error"
+   ],
+   "notes": "The site must not break when the browser refuses it storage (private modes, strict settings).",
+   "examples": [],
+   "defects": [],
+   "tags": [],
    "problems": [],
    "named": false
   },
@@ -13589,21 +15437,42 @@
    "named": false
   },
   {
+   "id": "VT-DATA-014",
+   "suite": "vitest",
+   "title": "list every month across a year boundary",
+   "file": "site/src/lib/data-files.test.ts",
+   "line": 51,
+   "node": "site/src/lib/data-files.test.ts › the data files › list every month across a year boundary",
+   "given": [
+    "a start and an end month across a year boundary"
+   ],
+   "when": [
+    "the month axis is built"
+   ],
+   "then": [
+    "the axis lists every month from start to end"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "VT-DATA-004",
    "suite": "vitest",
    "title": "find the last month with a value",
    "file": "site/src/lib/data-files.test.ts",
-   "line": 51,
+   "line": 60,
    "node": "site/src/lib/data-files.test.ts › the data files › find the last month with a value",
    "given": [
-    "a start and an end month across a year boundary",
     "lists of values, some missing, with their months"
    ],
    "when": [
-    "the month axis is built and the last value is looked up"
+    "the last value is looked up"
    ],
    "then": [
-    "the axis lists every month from start to end",
     "the last value that isn't missing is returned with its month",
     "a list with no values gives null"
    ],
@@ -13619,7 +15488,7 @@
    "suite": "vitest",
    "title": "carry both the published rate and ours, each with its month",
    "file": "site/src/lib/data-files.test.ts",
-   "line": 71,
+   "line": 75,
    "node": "site/src/lib/data-files.test.ts › the home page's figures › carry both the published rate and ours, each with its month",
    "given": [
     "Greece's facts for the home page"
@@ -13643,7 +15512,7 @@
    "suite": "vitest",
    "title": "price the base month's shopping for the poorest and richest fifth, as the index says",
    "file": "site/src/lib/data-files.test.ts",
-   "line": 87,
+   "line": 91,
    "node": "site/src/lib/data-files.test.ts › the home page's figures › price the base month's shopping for the poorest and richest fifth, as the index says",
    "given": [
     "Greece's headline and the series of its default setting"
@@ -13653,11 +15522,99 @@
    ],
    "then": [
     "its baskets are the poorest fifth's (Q1) and the richest fifth's (Q5), in that order",
-    "each basket costs the base amount times its index in the latest month over its index in the base month (to 9 decimals)",
-    "the peak year is the year of the peak month",
-    "the poorest fifth's average rate is above the richest fifth's",
-    "both fifths' food shares are above zero",
-    "the calculator's presets include B/Q1"
+    "each basket costs the base amount times its index in the latest month over its index in the base month (to 9 decimals)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-DATA-010",
+   "suite": "vitest",
+   "title": "name the peak's year from the peak month",
+   "file": "site/src/lib/data-files.test.ts",
+   "line": 110,
+   "node": "site/src/lib/data-files.test.ts › the home page's figures › name the peak's year from the peak month",
+   "given": [
+    "Greece's headline"
+   ],
+   "when": [
+    "its peak is read"
+   ],
+   "then": [
+    "the peak year is the year of the peak month"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-DATA-011",
+   "suite": "vitest",
+   "title": "show the poorest fifth's average rate above the richest fifth's",
+   "file": "site/src/lib/data-files.test.ts",
+   "line": 120,
+   "node": "site/src/lib/data-files.test.ts › the home page's figures › show the poorest fifth's average rate above the richest fifth's",
+   "given": [
+    "Greece's headline"
+   ],
+   "when": [
+    "the two fifths' average rates are read"
+   ],
+   "then": [
+    "the poorest fifth's average rate is above the richest fifth's"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-DATA-012",
+   "suite": "vitest",
+   "title": "give both fifths a food share above zero",
+   "file": "site/src/lib/data-files.test.ts",
+   "line": 130,
+   "node": "site/src/lib/data-files.test.ts › the home page's figures › give both fifths a food share above zero",
+   "given": [
+    "Greece's headline"
+   ],
+   "when": [
+    "the two fifths' food shares are read"
+   ],
+   "then": [
+    "both fifths' food shares are above zero"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-DATA-013",
+   "suite": "vitest",
+   "title": "offer the poorest fifth as a calculator preset",
+   "file": "site/src/lib/data-files.test.ts",
+   "line": 140,
+   "node": "site/src/lib/data-files.test.ts › the home page's figures › offer the poorest fifth as a calculator preset",
+   "given": [
+    "Greece's calculator file"
+   ],
+   "when": [
+    "its presets are read"
+   ],
+   "then": [
+    "the presets include B/Q1"
    ],
    "notes": "",
    "examples": [],
@@ -13671,7 +15628,7 @@
    "suite": "vitest",
    "title": "draw the faint line inside its 330×112 box",
    "file": "site/src/lib/data-files.test.ts",
-   "line": 114,
+   "line": 149,
    "node": "site/src/lib/data-files.test.ts › the home page's figures › draw the faint line inside its 330×112 box",
    "given": [
     "Greece's band line for the home page"
@@ -13696,7 +15653,7 @@
    "suite": "vitest",
    "title": "formats every entry, with a link where it has a DOI or address",
    "file": "site/src/lib/data-files.test.ts",
-   "line": 136,
+   "line": 171,
    "node": "site/src/lib/data-files.test.ts › the bibliography › formats every entry, with a link where it has a DOI or address",
    "given": [
     "every entry in the bibliography"
@@ -13723,7 +15680,7 @@
    "suite": "vitest",
    "title": "refuses an unknown key",
    "file": "site/src/lib/data-files.test.ts",
-   "line": 163,
+   "line": 198,
    "node": "site/src/lib/data-files.test.ts › the bibliography › refuses an unknown key",
    "given": [
     "a key that isn't in the bibliography"
@@ -14042,7 +15999,9 @@
    ],
    "then": [
     "inflation is reported once",
-    "the heading's text stays plain text"
+    "the heading's text stays plain text",
+    "the link keeps its one plain text child, unchanged",
+    "the one marked term is the mention in plain text"
    ],
    "notes": "",
    "examples": [],
@@ -14056,7 +16015,7 @@
    "suite": "vitest",
    "title": "doesn't mark a term on its own page",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 74,
+   "line": 78,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › doesn't mark a term on its own page",
    "given": [
     "a paragraph mentioning inflation, on inflation's own glossary page"
@@ -14079,7 +16038,7 @@
    "suite": "vitest",
    "title": "keeps the text around a term",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 83,
+   "line": 87,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › keeps the text around a term",
    "given": [
     "a paragraph with text before and after a term"
@@ -14102,7 +16061,7 @@
    "suite": "vitest",
    "title": "refuses a form claimed by two terms",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 96,
+   "line": 100,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › refuses a form claimed by two terms",
    "given": [
     "two terms with the same form, written in different case"
@@ -14125,7 +16084,7 @@
    "suite": "vitest",
    "title": "loads the real glossary in both languages without clashes",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 108,
+   "line": 112,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › loads the real glossary in both languages without clashes",
    "given": [
     "the site's glossary pages"
@@ -14178,15 +16137,17 @@
    "line": 22,
    "node": "site/src/lib/i18n.test.ts › t › refuses a missing key, never falling back to the other language",
    "given": [
-    "a key that has no text"
+    "a key that has no text in either language",
+    "a key added, for this test only, to the English texts alone"
    ],
    "when": [
-    "it is looked up"
+    "each is looked up, the second in Greek"
    ],
    "then": [
     "the lookup throws a \"missing text\" error",
     "the key check is true for a key that exists in English",
-    "the key check is false for the missing key in Greek"
+    "the key check is false for the missing key in Greek",
+    "the English-only key, asked for in Greek, throws a \"missing text\" error instead of giving the English text"
    ],
    "notes": "",
    "examples": [],
@@ -14200,7 +16161,7 @@
    "suite": "vitest",
    "title": "refuses a missing slot value",
    "file": "site/src/lib/i18n.test.ts",
-   "line": 37,
+   "line": 51,
    "node": "site/src/lib/i18n.test.ts › t › refuses a missing slot value",
    "given": [
     "a text with a {name} slot"
@@ -14223,7 +16184,7 @@
    "suite": "vitest",
    "title": "have the same keys",
    "file": "site/src/lib/i18n.test.ts",
-   "line": 48,
+   "line": 62,
    "node": "site/src/lib/i18n.test.ts › the language files › have the same keys",
    "given": [
     "the Greek and English language files"
@@ -14246,7 +16207,7 @@
    "suite": "vitest",
    "title": "offer only built languages, at least one",
    "file": "site/src/lib/i18n.test.ts",
-   "line": 59,
+   "line": 73,
    "node": "site/src/lib/i18n.test.ts › languages › offer only built languages, at least one",
    "given": [
     "the built and the offered languages"
@@ -14271,7 +16232,7 @@
    "suite": "vitest",
    "title": "switch to the other language",
    "file": "site/src/lib/i18n.test.ts",
-   "line": 74,
+   "line": 88,
    "node": "site/src/lib/i18n.test.ts › languages › switch to the other language",
    "given": [
     "each of the two languages"
@@ -14295,7 +16256,7 @@
    "suite": "vitest",
    "title": "puts a path under its language, with one slash at each end",
    "file": "site/src/lib/i18n.test.ts",
-   "line": 89,
+   "line": 103,
    "node": "site/src/lib/i18n.test.ts › href › puts a path under its language, with one slash at each end",
    "given": [
     "paths with no slash, one slash or two slashes at their ends, and no path"
@@ -14340,10 +16301,10 @@
   {
    "id": "VT-INCOME-002",
    "suite": "vitest",
-   "title": "refuses a household with nobody aged 14 or over",
+   "title": "refuses nobody aged 14 or over, a negative number of children, or a fractional person",
    "file": "site/src/lib/income.test.ts",
    "line": 24,
-   "node": "site/src/lib/income.test.ts › equivalentSize › refuses a household with nobody aged 14 or over",
+   "node": "site/src/lib/income.test.ts › equivalentSize › refuses nobody aged 14 or over, a negative number of children, or a fractional person",
    "given": [
     "a household with nobody aged 14 or over, a negative number of children, or a fractional number of people"
    ],
@@ -14631,10 +16592,10 @@
    "suite": "vitest",
    "title": "counts adults and dependent children as Eurostat does",
    "file": "site/src/lib/income.test.ts",
-   "line": 195,
+   "line": 201,
    "node": "site/src/lib/income.test.ts › householdType › counts adults and dependent children as Eurostat does",
    "given": [
-    "households given as numbers of adults, children and dependent young adults"
+    "households given as people aged 14 or over, children under 14, and dependents among those aged 14 or over"
    ],
    "when": [
     "their household type is found"
@@ -14657,7 +16618,7 @@
    "suite": "vitest",
    "title": "has no type without an adult, and never counts more dependents than people",
    "file": "site/src/lib/income.test.ts",
-   "line": 216,
+   "line": 222,
    "node": "site/src/lib/income.test.ts › householdType › has no type without an adult, and never counts more dependents than people",
    "given": [
     "households whose only adult is a dependent, with more dependents than adults, with no adults, or with a negative number of children"
@@ -14757,10 +16718,10 @@
   {
    "id": "VT-STRUCT-004",
    "suite": "vitest",
-   "title": "lists each page in an offered language once, in order, with full addresses",
+   "title": "lists each page in an offered language once, sorted, with full addresses",
    "file": "site/src/lib/structured.test.ts",
    "line": 71,
-   "node": "site/src/lib/structured.test.ts › sitemapXml › lists each page in an offered language once, in order, with full addresses",
+   "node": "site/src/lib/structured.test.ts › sitemapXml › lists each page in an offered language once, sorted, with full addresses",
    "given": [
     "page paths in English and Greek, with and without slashes, one listed twice",
     "English the only offered language"
@@ -14968,7 +16929,9 @@
    ],
    "then": [
     "the last source is Eurostat",
-    "there is one source per country with data, plus Eurostat"
+    "there is one source per country with data, plus Eurostat",
+    "each country's source is its own office, in the countries' order, and no two are the same",
+    "Greece's office is ELSTAT"
    ],
    "notes": "",
    "examples": [],
@@ -14982,7 +16945,7 @@
    "suite": "vitest",
    "title": "each have a flag, drawn as a hidden SVG; a country without one stops the build",
    "file": "site/src/lib/topics.test.ts",
-   "line": 134,
+   "line": 141,
    "node": "site/src/lib/topics.test.ts › countries › each have a flag, drawn as a hidden SVG; a country without one stops the build",
    "given": [
     "every listed country and an unknown one"
@@ -15006,7 +16969,7 @@
    "suite": "vitest",
    "title": "have their own written texts, never Greece's borrowed",
    "file": "site/src/lib/topics.test.ts",
-   "line": 151,
+   "line": 158,
    "node": "site/src/lib/topics.test.ts › countries › have their own written texts, never Greece's borrowed",
    "given": [
     "Greece and an unknown country"
@@ -15028,10 +16991,10 @@
   {
    "id": "VT-TOPICS-011",
    "suite": "vitest",
-   "title": "are fixed and distinct",
+   "title": "are distinct",
    "file": "site/src/lib/topics.test.ts",
-   "line": 166,
-   "node": "site/src/lib/topics.test.ts › the glossary's categories › are fixed and distinct",
+   "line": 173,
+   "node": "site/src/lib/topics.test.ts › the glossary's categories › are distinct",
    "given": [
     "the glossary's categories"
    ],
@@ -15053,7 +17016,7 @@
    "suite": "vitest",
    "title": "is on only in release builds",
    "file": "site/src/lib/topics.test.ts",
-   "line": 183,
+   "line": 190,
    "node": "site/src/lib/topics.test.ts › the visit counter › is on only in release builds",
    "given": [
     "the TRACECONOMICS_ANALYTICS environment variable"
@@ -15078,7 +17041,7 @@
    "suite": "vitest",
    "title": "loads from Cloudflare over https",
    "file": "site/src/lib/topics.test.ts",
-   "line": 201,
+   "line": 208,
    "node": "site/src/lib/topics.test.ts › the visit counter › loads from Cloudflare over https",
    "given": [
     "the visit counter's beacon address"
