@@ -118,6 +118,20 @@ def test_tutoring_exclusion_with_an_older_survey_uses_the_groups_split():
     assert exclude_tutoring(leaves, 0.1)[0]["10200"] == 0.04                    # 10.5 alone covers it
 
 
+def test_tutoring_exclusion_with_a_split_of_one_leaves_zero_not_negative_weights():
+    # A group whose 2018-coded survey has all its education in 10.5 (split 1.0) loses all of
+    # 10.1-10.2. Computed as 1 - rest / level, the kept share came out about -1e-18 for these
+    # shares (rounding), and the engine refuses negative weights.
+    from traceconomics.engine.tree import leaves as tree_leaves
+    from traceconomics.module1.weights_used import exclude_tutoring
+    leaves = {"10101": 0.01524560164915884, "10102": 4.2121067022213854e-05,
+              "10200": 0.008907743881096029, "10501": 0.014430800646815652, "01": 0.9}
+    out, removed = exclude_tutoring(leaves, 1.0)
+    assert {c: out[c] for c in ("10101", "10102", "10200")} == {"10101": 0.0, "10102": 0.0, "10200": 0.0}
+    assert removed == {c: v for c, v in leaves.items() if c != "01"}
+    assert tree_leaves(out) == {"01": 0.9}
+
+
 def test_weights_used_leaves_tutoring_out_only_from_2026():
     b = blocks_for_updating()
     for y in (2021, 2022, 2023, 2024, 2025, 2026):

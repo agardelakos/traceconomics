@@ -111,10 +111,13 @@ def exclude_tutoring(leaves: dict[str, float], fraction: float | None) -> tuple[
     removed = dict(not_by_level)
     rest = 0.0
     if fraction is not None:
-        rest = max(fraction * (sum(level.values()) + sum(not_by_level.values())) - sum(not_by_level.values()), 0.0)
+        total_level, total_not = sum(level.values()), sum(not_by_level.values())
+        rest = max(fraction * (total_level + total_not) - total_not, 0.0)
     out = {c: v for c, v in leaves.items() if c not in not_by_level}
     if rest > 0:
-        keep = 1 - rest / sum(level.values())
+        # 1 - rest / level, rearranged so it can't come out below zero: with a split of 1 (all
+        # education was 10.5) the subtraction leaves about -1e-18, a negative weight.
+        keep = (1 - fraction) * (total_level + total_not) / total_level
         for c, v in level.items():
             out[c] = v * keep
             removed[c] = v - out[c]
