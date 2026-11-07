@@ -11,6 +11,8 @@ from traceconomics.sources import oet_local
 from traceconomics.store.build import Store, update
 from traceconomics.store.query import as_of, open_views
 
+pytestmark = pytest.mark.unit
+
 WEIGHTS = """# Greek household budget survey 2016: made up
 # provenance: {}
 geo,ref_year,grouping,group,imputed_rent,hh_weighting,tutoring,coicop18,digits,leaf,share,se,rse,high_rse,n_households_unweighted,reliability,se_design,classification_native,source_version
@@ -84,6 +86,7 @@ def test_duplicate_or_missing_columns_are_refused(tmp_path):
         list(oet_local.rows(p, "oet-groups"))
 
 
+@pytest.mark.integration
 def test_archived_tables_reach_the_store(tmp_path):
     """PY-OETLOCAL-004: archived weights and groups tables reach the store
 

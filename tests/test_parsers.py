@@ -1,7 +1,11 @@
 from datetime import date
 
+import pytest
+
 from traceconomics import htmltext
 from traceconomics.sources import elstat, eurostat
+
+pytestmark = pytest.mark.unit
 
 
 def test_elstat_document_links(fixture_bytes):

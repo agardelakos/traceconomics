@@ -1,6 +1,10 @@
 """Moving a local setup from the earlier project name, on a made-up home folder."""
 
+import pytest
+
 from traceconomics import migrate
+
+pytestmark = pytest.mark.unit
 
 
 class FakeKeyring:

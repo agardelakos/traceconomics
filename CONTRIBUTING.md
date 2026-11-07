@@ -107,6 +107,11 @@ optional microdata code (pandas); `requirements-selenium.txt` adds the Selenium 
 
 Tests that need the optional `local` extra skip themselves without it (`pytest.importorskip`).
 
+Every test file names its layer, `unit`, `integration` or `repository`, once
+(`pytestmark = pytest.mark.unit`); `tests/conftest.py` says what each means, and a file without one
+stops the run. For coverage, `.venv/bin/python -I -m coverage run -m pytest`, then
+`.venv/bin/python -I -m coverage html` (split by layer: the wiki's Test strategy, "Coverage").
+
 **The site** needs data files, which the pipeline writes from the raw archive. Made-up data in the
 same format, written through the real export code, will do:
 

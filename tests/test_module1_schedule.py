@@ -2,7 +2,11 @@
 
 from datetime import date
 
+import pytest
+
 from traceconomics.module1.schedule import FINAL, FIRST, releases, rule_n
+
+pytestmark = pytest.mark.unit
 
 
 def cal(**dates):

@@ -10,6 +10,8 @@ from traceconomics.local.bands import bands  # noqa: E402
 from traceconomics.module1 import index  # noqa: E402
 from traceconomics.module1.weights_used import Basket  # noqa: E402
 
+pytestmark = pytest.mark.unit
+
 
 def blocks():
     b = {}

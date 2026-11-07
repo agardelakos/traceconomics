@@ -3,10 +3,13 @@
 from pathlib import Path
 
 import duckdb
+import pytest
 
 from traceconomics.engine import chain
 from traceconomics.validate import v1
 from traceconomics.validate.compare import compare
+
+pytestmark = pytest.mark.integration
 
 FIX = Path(__file__).parent / "fixtures"
 

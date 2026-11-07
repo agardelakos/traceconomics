@@ -4,6 +4,8 @@ import pytest
 
 from traceconomics.archive.local_only import LocalOnlyError, check, is_local_only
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.parametrize("dataset", ["puf-hbs-2024", "puf-lfs-puf-2025a-gr", "puf-statistics-on-income-and-living-conditions-silc-2025"])
 def test_puf_files_are_local_only(dataset):

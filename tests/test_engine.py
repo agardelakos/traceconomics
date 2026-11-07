@@ -6,6 +6,8 @@ from traceconomics.engine import annual_average_rate, annual_rate, chain, monthl
 from traceconomics.engine.chain import link
 from traceconomics.engine.tree import ancestors, at_level, leaves
 
+pytestmark = pytest.mark.unit
+
 
 def flat(value, *periods):
     return {p: value for p in periods}

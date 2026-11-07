@@ -8,6 +8,8 @@ import pytest
 from traceconomics.checks import FormatError
 from traceconomics.export import labels
 
+pytestmark = pytest.mark.unit
+
 
 def test_clean_takes_off_the_notation_and_keeps_the_kind():
     """PY-LABELS-001: a label loses its notation and keeps its kind

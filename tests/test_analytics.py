@@ -18,6 +18,8 @@ from traceconomics.analytics import (
     payload,
 )
 
+pytestmark = pytest.mark.integration
+
 
 def _group(host="traceconomics.com", path="/home", views=120, visits=80, interval=1, **dims):
     """Build one Cloudflare adaptive-group row for test fixtures."""
@@ -488,6 +490,7 @@ def test_downloads_stored_in_their_own_dataset_with_their_own_bookmark():
     assert {r["verifiedBotCategory"] for r in rows} == {"", "AI Crawler"}
 
 
+@pytest.mark.unit
 def test_downloads_rows_have_request_and_byte_counts():
     """PY-ANALYT-013: a downloads row has request and byte counts, not page views
 
@@ -503,6 +506,7 @@ def test_downloads_rows_have_request_and_byte_counts():
     assert "page_views" not in rows[0]
 
 
+@pytest.mark.unit
 def test_downloads_missing_zone_in_response_fails():
     """PY-ANALYT-014: a downloads answer without the zone fails
 

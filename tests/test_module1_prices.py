@@ -11,6 +11,8 @@ from traceconomics.module1.prices import cpi_blocks, update_factor, year_ratio
 from traceconomics.module1.schedule import FINAL, FIRST, Entry
 from traceconomics.module1.weights_used import Basket, pricing_map, weights_used
 
+pytestmark = pytest.mark.unit
+
 
 def store(rows):
     """An in-memory `observations` table with CPI rows: (archive_dataset, code, period, value)."""

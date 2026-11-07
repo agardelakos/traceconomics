@@ -1,7 +1,11 @@
 """Helpers for rebuilding other studies' settings."""
 
+import pytest
+
 from traceconomics.module1 import attribution, benchmarks
 from traceconomics.module1.weights_used import Basket
+
+pytestmark = pytest.mark.unit
 
 
 def test_kepe_timing_uses_the_same_year_then_two_years_before():

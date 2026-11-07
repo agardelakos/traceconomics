@@ -7,6 +7,10 @@ import hashlib
 import re
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.repository
+
 FIXTURES = Path(__file__).parent / "fixtures"
 ROW = re.compile(r"^\| `([^`]+)` \| `([0-9a-f]{64})` \|$")
 

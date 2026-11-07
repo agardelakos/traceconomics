@@ -18,6 +18,8 @@ import validate  # noqa: E402
 import vm_pull  # noqa: E402
 import wiki  # noqa: E402
 
+pytestmark = pytest.mark.repository
+
 GOOD = """PY-ENG-012: chain-linking carries December over
 
 Given an index with a December link month

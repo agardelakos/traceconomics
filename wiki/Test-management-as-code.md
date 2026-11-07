@@ -1,8 +1,5 @@
 # Test management as code
 
-> **Status: being introduced.** The tooling is in place; existing tests receive their cases area by area, and the `Tests` pages appear with the first recorded runs.
-> This page describes the design. Where a part isn't in the repository yet, it says so.
-
 The project keeps its test cases, its traceability and its run history in the repository, next to
 the tests, instead of in a separate test-management tool. This page explains how, and compares
 the approach honestly with a dedicated tool.
@@ -24,14 +21,14 @@ Rules:
 - **An ID is never reused.** When a test is removed, its case is listed as obsolete, with the last
   commit it existed at, so a past run can always be read against the case it ran.
 - **Defect links** go on the test: `xfail`, `test.fail` and skip reasons carry `#<issue>`.
-- **A check in CI** refuses a case without an ID or without Given/When/Then: area by area while the
-  existing tests are backfilled, then everywhere.
+- **A check in CI** refuses a case without an ID or without Given/When/Then, in every suite.
 
 A catalog of all cases is generated from the tests by the tooling in `tests/catalog/`: `collect.py`
 reads the four suites (pytest and Selenium through a collection plugin, Playwright from its test
 listing, Vitest from a run's report), `validate.py` is the CI check, `history.py` keeps the run
-records and `wiki.py` writes the `Tests` pages. The check is a ratchet: files listed in
-`tests/catalog/strict.toml` must be complete, the rest give warnings until their turn comes.
+records and `wiki.py` writes the `Tests` pages. `tests/catalog/strict.toml` sets how strict the
+check is: since every test has its case, it applies to all files (`all = true`), and a Playwright or
+Selenium case missing from the cross-suite mapping is an error too.
 
 ## Two browser suites, one mapping
 

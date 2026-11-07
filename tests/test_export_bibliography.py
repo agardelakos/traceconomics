@@ -1,7 +1,11 @@
 """The bibliography as plain data for the website."""
 
+import pytest
+
 from traceconomics import references
 from traceconomics.export import bibliography
+
+pytestmark = pytest.mark.unit
 
 SAMPLE = r"""
 @report{some-report,

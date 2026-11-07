@@ -9,6 +9,8 @@ from traceconomics.archive.store import Archive
 from traceconomics.config import Config
 from traceconomics.sources import base, eurostat
 
+pytestmark = pytest.mark.integration
+
 ATH = ZoneInfo("Europe/Athens")
 FIX = Path(__file__).parent / "fixtures"
 

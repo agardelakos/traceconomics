@@ -1,7 +1,8 @@
 # TracEconomics
 
-[![tests](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml)
-[![site coverage](https://raw.githubusercontent.com/agardelakos/traceconomics/badges/coverage-site.svg)](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml)
+[![pipeline](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml)
+[![back-end coverage](https://raw.githubusercontent.com/agardelakos/traceconomics/badges/coverage-back-end.svg)](https://github.com/agardelakos/traceconomics/wiki/Test-strategy#coverage)
+[![front-end coverage](https://raw.githubusercontent.com/agardelakos/traceconomics/badges/coverage-front-end.svg)](https://github.com/agardelakos/traceconomics/wiki/Test-strategy#coverage)
 
 An open, transparent tracker of the economy, built only on public data. Greece first, designed for many countries.
 
@@ -54,7 +55,7 @@ npm run preview                                         # look at it on http://l
 npm run test:ui                                         # browser tests on the built site, accessibility included (once: npx playwright install chromium)
 ```
 
-The coverage badge counts the site's own code (`site/src/scripts`, `site/src/lib` and the pages' scripts): the share of lines with code that ran in at least one test, from the unit tests and the browser tests together. To see it locally, run `npm run check` and `npm run test:ui` with `TRACECONOMICS_COVERAGE=on`, then `node scripts/coverage.mjs` (report in `site/coverage/report/`). A file that no test loads would drop out of the count, so CI fails instead; it also fails below 90%. The badge is green from 95%, yellow from 90%.
+The front-end coverage badge counts the site's own code (`site/src/scripts`, `site/src/lib` and the pages' scripts): the share of lines with code that ran in at least one test, from the unit tests and the browser tests together, split by the kind of test that reaches each line (unit, integration, end-to-end; [how](https://github.com/agardelakos/traceconomics/wiki/Test-strategy#coverage)). To see it locally, run `npm run check` and `npm run test:ui` with `TRACECONOMICS_COVERAGE=on` (for the split, also the unit tests alone with `TRACECONOMICS_COVERAGE_DIR=coverage/vitest-unit`, as CI does), then `node scripts/coverage.mjs` (report in `site/coverage/report/`). A file that no test loads would drop out of the count, so CI fails instead; it also fails below 90%. The total is green from 95%, yellow from 90%.
 
 Without the microdata, `python tests/sitedata.py site/public/data` writes made-up data in the same format, through the same export code (see "Contributing").
 

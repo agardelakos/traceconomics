@@ -12,6 +12,8 @@ from traceconomics import backup, heartbeat, schedule
 from traceconomics.archive.local_only import LocalOnlyError
 from traceconomics.config import Config
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def server():

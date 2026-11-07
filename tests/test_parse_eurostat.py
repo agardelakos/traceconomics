@@ -8,6 +8,8 @@ from traceconomics import catalog
 from traceconomics.checks import FormatError
 from traceconomics.sources.eurostat import parse
 
+pytestmark = pytest.mark.unit
+
 FIX = Path(__file__).parent / "fixtures"
 SPECS = {k: v for k, v in catalog.datasets().items() if v.format == "eurostat-tsv"}
 

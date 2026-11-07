@@ -12,6 +12,8 @@ import pytest
 from traceconomics import release, testresults
 from test_release import FakeSteps, config, host, no_email  # noqa: F401 (fixtures: a fake host, no email)
 
+pytestmark = pytest.mark.unit
+
 URL = "https://objectstorage.example/p/SECRET/n/ns/b/traceconomics-test-results/o/"
 SHA = "0123456789abcdef0123456789abcdef01234567"
 STARTED = datetime(2026, 11, 10, 11, 5, 0, tzinfo=UTC)

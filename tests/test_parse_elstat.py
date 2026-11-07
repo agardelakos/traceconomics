@@ -8,6 +8,8 @@ from traceconomics.checks import FormatError
 from traceconomics.sources.elstat.parse import TOTAL, parse
 from traceconomics.validate import v1_cpi
 
+pytestmark = pytest.mark.unit
+
 FIX = Path(__file__).parent / "fixtures"
 
 
@@ -94,6 +96,7 @@ def test_not_excel_is_refused(tmp_path):
         parse(f)
 
 
+@pytest.mark.integration
 def test_v1_cpi_on_2025_and_2026():
     """PY-ELSTAT-006: V1-CPI on the 2025 and 2026 tables
 
