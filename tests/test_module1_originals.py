@@ -5,6 +5,8 @@ import pytest
 from traceconomics.module1 import originals
 from traceconomics.sources.elstat.original07 import TOTAL, Original07
 
+pytestmark = pytest.mark.unit
+
 
 def table(year, base, rows):
     """rows: {code: (weight, 12 monthly values)}."""

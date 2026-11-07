@@ -4,7 +4,7 @@
 
 DIR is the branch `test-history` (see history.py); WIKI_DIR a checkout of the wiki. Writes:
 
-    Tests.md                 the overview: the newest run of each kind, cases per suite, backfill progress
+    Tests.md                 the overview: the newest run of each kind, cases per suite, results without a case
     Tests-<Suite>.md         every case of one suite by area: its steps, examples, defects, source link,
                              its last results and its flakiness
     Tests-Runs.md            the recent runs of each kind
@@ -188,9 +188,12 @@ def page_obsolete(repo, obsolete) -> str:
 
 
 def sidebar(text: str) -> str:
-    block = "\n".join([START, "**Tests** (generated)", "", "- [Overview](Tests)",
-                       *[f"- [{SUITE_NAME[s]}]({p})" for s, p in SUITE_PAGE.items()],
-                       "- [Runs](Tests-Runs)", "- [Obsolete](Tests-Obsolete)", END])
+    # One more item of the hand-written "Testing" list, with the generated pages nested under it: the
+    # block sits right after that list's last item (wiki/_Sidebar.md). Both markers are indented, so
+    # the Markdown keeps them inside the list instead of ending it there and starting a second one.
+    block = "\n".join([START, "- [Test cases and runs](Tests)",
+                       *[f"  - [{SUITE_NAME[s]}]({p})" for s, p in SUITE_PAGE.items()],
+                       "  - [Runs](Tests-Runs)", "  - [Obsolete](Tests-Obsolete)", "  " + END])
     if START in text and END in text:
         return re.sub(re.escape(START) + r".*?" + re.escape(END), lambda _: block, text, flags=re.S)
     return (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"

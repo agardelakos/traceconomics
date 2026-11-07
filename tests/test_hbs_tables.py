@@ -7,6 +7,8 @@ import pytest
 from traceconomics.checks import FormatError
 from traceconomics.sources.elstat.hbs_tables import ALL, parse
 
+pytestmark = pytest.mark.unit
+
 FIX = Path(__file__).parent / "fixtures"
 
 

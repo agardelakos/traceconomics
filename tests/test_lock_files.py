@@ -8,6 +8,10 @@ import re
 import tomllib
 from pathlib import Path
 
+import pytest
+
+pytestmark = pytest.mark.repository
+
 ROOT = Path(__file__).parent.parent
 PIN = re.compile(r"^([A-Za-z0-9._-]+)==(\S+)")
 HASH = re.compile(r"--hash=sha256:[0-9a-f]{64}")

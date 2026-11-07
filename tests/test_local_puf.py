@@ -13,6 +13,8 @@ from traceconomics.archive.store import Archive  # noqa: E402
 from traceconomics.checks import FormatError  # noqa: E402
 from traceconomics.local import puf  # noqa: E402
 
+pytestmark = pytest.mark.integration
+
 N = 120  # households; the reader refuses implausibly small files
 
 

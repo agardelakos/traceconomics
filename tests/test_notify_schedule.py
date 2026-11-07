@@ -2,9 +2,13 @@ import tomllib
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import pytest
+
 from traceconomics import schedule
 from traceconomics.config import Config, parse
 from traceconomics.notify import notify
+
+pytestmark = pytest.mark.unit
 
 TASK_NS = {"t": "http://schemas.microsoft.com/windows/2004/02/mit/task"}
 

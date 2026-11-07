@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.repository
+
 ROOT = Path(__file__).resolve().parent.parent
 WIKI = ROOT / "wiki"
 PAGES = sorted(WIKI.glob("*.md"))

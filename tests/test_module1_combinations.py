@@ -9,6 +9,8 @@ from traceconomics.module1 import availability, combinations, index, output
 from traceconomics.module1.schedule import FINAL, Entry
 from traceconomics.module1.weights_used import Basket, Used
 
+pytestmark = pytest.mark.unit
+
 
 def blocks():
     b = {}

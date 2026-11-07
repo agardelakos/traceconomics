@@ -28,6 +28,17 @@ def _reasons(item) -> list[str]:
     return out
 
 
+# The test layers (tests/conftest.py). A test that overrides its file's layer carries both marks; only
+# the closest one applies, so only it becomes a tag.
+LAYERS = ("unit", "integration", "repository")
+
+
+def _markers(item) -> list[str]:
+    names = [m.name for m in item.iter_markers()]          # closest first
+    applied = next((n for n in names if n in LAYERS), None)
+    return sorted({n for n in names if n not in LAYERS} | ({applied} if applied else set()))
+
+
 def pytest_collection_finish(session):
     out = session.config.getoption("--catalog-out")
     if not out:
@@ -46,7 +57,7 @@ def pytest_collection_finish(session):
             "doc": inspect.getdoc(fn) if fn is not None else None,
             "param": callspec.id if callspec is not None else None,
             "reasons": _reasons(item),
-            "markers": sorted({m.name for m in item.iter_markers()}),
+            "markers": _markers(item),
         })
     Path(out).write_text(json.dumps({"root": root.as_posix(), "items": items}, indent=1),
                          encoding="utf-8", newline="\n")

@@ -11,6 +11,8 @@ from traceconomics.local.groups import assign  # noqa: E402
 from traceconomics.local.puf import Survey  # noqa: E402
 from traceconomics.local.shares import PUBLISHED, shares  # noqa: E402
 
+pytestmark = pytest.mark.unit
+
 LEAVES = ("0111", "0411", "0421", "04221", "0451")
 
 

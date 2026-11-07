@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==9.1.1"]
+dev = ["pytest==9.1.1", "coverage==7.17.0"]
 # Only for the microdata code that runs on the owner's machine (src/traceconomics/local); never needed to
 # use the published data.
 local = ["pandas==3.0.6", "py7zr==1.1.4"]
@@ -44,4 +44,23 @@ addopts = "-q"
 markers = [
     "smoke: Selenium browser tests that also run against a deployed copy",
     "host: Selenium browser tests that need a server applying the site's headers (--base-url)",
+    # The layers: every test has exactly one (tests/conftest.py says what each means and checks it).
+    "unit: one component on its own (layer)",
+    "integration: two or more components through a real resource (layer)",
+    "repository: checks on the repository's own files; no package code runs (layer)",
 ]
+
+# Coverage of the package (src/traceconomics) by the pytest suite, in CI's python and python-local
+# jobs, combined in the badges job; tests/coverage/overview.py splits it by layer.
+[tool.coverage.run]
+branch = true
+source_pkgs = ["traceconomics"]
+# Paths relative to the checkout, so the two jobs' data files combine.
+relative_files = true
+# The layer each line ran under is recorded as a dynamic context (tests/conftest.py switches it):
+# the C tracer records contexts, the sys.monitoring core does not.
+core = "ctrace"
+
+[tool.coverage.html]
+# Each line's layers, shown in the HTML report.
+show_contexts = true

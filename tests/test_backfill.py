@@ -1,8 +1,12 @@
 import hashlib
 from datetime import date
 
+import pytest
+
 from traceconomics.archive.store import Archive
 from traceconomics.backfill import dataset_for_url, import_file, seed
+
+pytestmark = pytest.mark.integration
 
 ELSTAT_DOC = "https://www.statistics.gr/en/statistics?_documentID={}&_locale=en"
 EUROSTAT_DATA = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/"

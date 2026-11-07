@@ -9,6 +9,8 @@ np = pytest.importorskip("numpy")
 from traceconomics.local import mapping, mapping_check  # noqa: E402
 from traceconomics.local.puf import Survey  # noqa: E402
 
+pytestmark = pytest.mark.unit
+
 
 def links(pairs):
     return pd.DataFrame(pairs, columns=["v1", "v2"])

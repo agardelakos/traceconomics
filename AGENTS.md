@@ -93,6 +93,8 @@ Test cases (every test carries an ID and Given/When/Then; see the wiki's "Test m
 A new or changed test gets its case in the same change. Python: the docstring (`PY-<AREA>-NNN: title`,
 then Given/When/Then lines). Playwright: `test(title, gwt({ id, given, when, then }), body)`. Take the
 next free number in the area; never reuse an ID, even one whose test was removed.
+A new Python test file declares its layer (`pytestmark = pytest.mark.unit`, `integration` or
+`repository`; definitions in `tests/conftest.py`); a test that differs overrides it with its own mark.
 
 Host tests (headers, CSP): `npx wrangler dev --port 8788` in `site/`, then
 `BASE_URL=http://127.0.0.1:8788 npm run test:ui -- --grep @smoke`, or the Selenium suite with

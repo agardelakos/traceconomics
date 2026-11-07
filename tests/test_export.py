@@ -6,12 +6,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
+import pytest
 
 from traceconomics import references
 from traceconomics.archive.store import Archive
 from traceconomics.export import skeleton
 from traceconomics.store.build import Store, update
 from traceconomics.store.query import open_views
+
+pytestmark = pytest.mark.integration
 
 FIX = Path(__file__).parent / "fixtures"
 

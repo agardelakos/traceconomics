@@ -1,10 +1,14 @@
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from traceconomics.archive.store import Archive
 from traceconomics.cli import _years
 from traceconomics.sources import base
 from traceconomics.sources.elstat import history
+
+pytestmark = pytest.mark.unit
 
 FIX = Path(__file__).parent / "fixtures"
 
@@ -71,6 +75,7 @@ def ctx_with(tmp_path, files):
     return base.RunContext(archive=Archive(tmp_path), http=http, today=date(2026, 10, 18)), http
 
 
+@pytest.mark.integration
 def test_fetches_page_and_both_languages_once(tmp_path):
     """PY-CPIHIST-004: a past year's page and table are fetched in both languages, once
 
@@ -98,6 +103,7 @@ def test_fetches_page_and_both_languages_once(tmp_path):
     assert not any("documentID" in u for u in http2.requested)  # already archived: not fetched again
 
 
+@pytest.mark.integration
 def test_missing_table_is_a_failure(tmp_path):
     """PY-CPIHIST-005: a year without table 07 is a failure
 

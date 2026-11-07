@@ -1,7 +1,11 @@
 import json
 from datetime import UTC, datetime
 
+import pytest
+
 from traceconomics.archive.store import Archive, sha256_text
+
+pytestmark = pytest.mark.unit
 
 T1 = datetime(2026, 10, 18, 11, 0, 0, tzinfo=UTC)
 T2 = datetime(2026, 10, 19, 11, 0, 0, tzinfo=UTC)

@@ -7,6 +7,8 @@ from traceconomics.module1 import index
 from traceconomics.module1.contributions import ribe
 from traceconomics.module1.weights_used import Basket
 
+pytestmark = pytest.mark.unit
+
 
 def blocks():
     b = {}

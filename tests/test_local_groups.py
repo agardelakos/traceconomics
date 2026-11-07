@@ -10,6 +10,8 @@ from traceconomics.local.puf import Survey  # noqa: E402
 from traceconomics.local.shares import leaves, shares  # noqa: E402
 from traceconomics.sources.elstat.hbs_tables import ALL, Table103  # noqa: E402
 
+pytestmark = pytest.mark.unit
+
 # Spending codes of the older classification: food, actual rent, imputed rent (owners and
 # housed free), energy. Divisions and groups are the sums of the leaves, as in the real files.
 LEAVES = ("0111", "0411", "0421", "04221", "0451")

@@ -12,6 +12,8 @@ from traceconomics.store import build
 from traceconomics.store.build import Store, update
 from traceconomics.store.query import as_of, open_views
 
+pytestmark = pytest.mark.integration
+
 FIX = Path(__file__).parent / "fixtures"
 MINR = "eurostat:prc_hicp_minr"
 T1 = datetime(2026, 9, 17, 10, 0, tzinfo=UTC)

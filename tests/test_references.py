@@ -2,7 +2,11 @@
 
 import re
 
+import pytest
+
 from traceconomics import references
+
+pytestmark = pytest.mark.unit
 
 KEY = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 

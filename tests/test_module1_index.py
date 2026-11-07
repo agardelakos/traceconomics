@@ -6,6 +6,8 @@ from traceconomics.checks import FormatError
 from traceconomics.module1 import index, output
 from traceconomics.module1.weights_used import Basket
 
+pytestmark = pytest.mark.unit
+
 
 def flat_year(y, start, end):
     """A block for year y: December y-1 at `start`, every month of y at `end`."""

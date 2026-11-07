@@ -10,6 +10,8 @@ from traceconomics import release
 from traceconomics.archive.store import StoreResult
 from traceconomics.config import Config, ReleaseConfig
 
+pytestmark = pytest.mark.unit
+
 
 def config(tmp_path: Path) -> Config:
     site = tmp_path / "site"

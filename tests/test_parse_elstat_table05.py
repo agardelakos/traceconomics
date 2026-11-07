@@ -9,6 +9,8 @@ import pytest
 from traceconomics.checks import FormatError
 from traceconomics.sources.elstat.table05 import parse
 
+pytestmark = pytest.mark.unit
+
 FIX = Path(__file__).parent / "fixtures"
 REAL = FIX / "elstat_cpi05_2026_09.xlsx"
 

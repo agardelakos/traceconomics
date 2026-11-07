@@ -35,6 +35,19 @@ trimmed copies of real publisher files in `tests/fixtures/`, each with its sourc
 date and what was trimmed recorded in `tests/fixtures/README.md`. Failure paths are tested as well
 as happy paths: a changed layout must raise `FormatError`.
 
+Every test names its layer with a mark, once per file (`pytestmark = pytest.mark.unit`), and a test
+that differs from its file overrides it with its own mark (`tests/conftest.py`):
+
+- **unit**: one of our components on its own; it may use its own files in a temporary folder, its
+  collaborators are faked or absent;
+- **integration**: two or more of our components meeting through a real resource: an archive on
+  disk, the observation store, the run job, the series read by the site export;
+- **repository**: checks on the repository's own files (fixtures, lock files, wiki pages, the test
+  tooling); no package code runs.
+
+A test file without a layer stops the run before any test: the choice is the author's, never a
+default. The layer is a tag on each test case in the [test pages](Tests).
+
 Untouched fixtures are stored byte for byte (`.gitattributes` disables line-ending conversion) and
 checked against their published SHA-256, so they stay evidence of what the publisher served, not a
 local approximation of it.
@@ -108,12 +121,50 @@ code**: fixed made-up prices and baskets go through the real series code, output
 export, so the files have exactly the production format. The numbers mean nothing, and are
 deterministic. Release builds run the same suites on the real data.
 
+## Coverage
+
+Two figures, one per codebase, each split by the layer of test that reaches the code:
+
+| Badge | Code | Layers | Measured by |
+|---|---|---|---|
+| back-end coverage | the Python package (`src/traceconomics`) | unit, integration | coverage.py, in both pytest jobs, combined |
+| front-end coverage | the site's own code (`site/src/scripts`, `site/src/lib`, the pages' scripts) | unit, integration, e2e | V8 coverage from Vitest and Playwright, merged |
+
+Both count **lines**: of the lines that hold code, the share run by at least one test. A line run by
+tests of several layers counts once, for the **lowest** of them: unit, then integration, then
+end-to-end. So the parts read as "what the unit tests reach", "what the integration tests add" and
+"what only the browser reaches", and they always add up to the total. The total is rounded down to a
+tenth; the parts share it by largest remainder.
+
+- **Back-end**: `tests/conftest.py` labels every line coverage.py records with the layer of the test
+  running it (a dynamic context), including the lines run when a test file is imported. A covered
+  line without a layer, or one run by a `repository` test, fails the split rather than being
+  guessed. Branch coverage is recorded too, and shown in the HTML report, not on the badge.
+- **Front-end**: Vitest runs twice in CI, the unit tests alone, then all of them; a line the second
+  run covers but not the first is one only the integration tests reach (the tests that need the
+  generated data files: the calculator parity test and the data-file checks). A line only the
+  browser tests ran is end-to-end.
+- **Not measured**: the Selenium suite (it tests the same pages as Playwright, through another
+  tool) and the release checks on real data.
+
+Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
+fails its build below 90%. The Python figure aims at the same 90% but was first measured at 73.9%,
+so its run fails below a **ratchet** instead (`RATCHET` in `tests/coverage/overview.py`): set from
+that baseline, raised as tests are added, never lowered to pass a run, until it reaches 90%.
+
+CI's `coverage` job writes the split on the run's page and keeps the Python HTML report (artifact
+`python-coverage`, each line showing the layers that ran it; the site's is `site-coverage`); on
+`main`, the `badges` job publishes both badges. Locally: `python -I -m coverage run -m pytest`, then
+`python -I -m coverage html`; the site's commands are in the README.
+
 ## Quality gates
 
 | Gate | Where | Blocks |
 |---|---|---|
 | Required checks `python`, `site`, code scanning | pull requests to `main` | merging |
 | Coverage of the site's own code (Vitest and Playwright merged) | `site` job | fails below 90%, or if any file of the site's code is loaded by no test |
+| Coverage of the Python package | `coverage` job | fails below a ratchet that only rises (73% from the first measurement, 73.9%) towards the site's 90% floor; fails if a covered line has a wrong or missing layer |
+| Every test has a layer | pytest collection | the run |
 | Lock files agree with pins | `python` job | merging |
 | Release checks (`check-v1`, `check-v1-cpi`, `check-combos`, `site-check`) | release build | the build |
 | `ui-test`: the full Playwright suite on the built files, before upload | release build | the upload |

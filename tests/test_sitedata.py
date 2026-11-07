@@ -10,6 +10,8 @@ import sitedata
 from traceconomics.module1 import combinations
 from traceconomics.export import site
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture(scope="module")
 def data(tmp_path_factory):
