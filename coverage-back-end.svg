@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="365" height="20" role="img" aria-label="Back-end coverage: 73.9% of lines with code are run by a test (4792 of 6482): unit tests 52.9%, integration tests 21.0%. A line run by several kinds of test counts once, for the first of unit, integration, end-to-end.">
+<title>Back-end coverage: 73.9% of lines with code are run by a test (4792 of 6482): unit tests 52.9%, integration tests 21.0%. A line run by several kinds of test counts once, for the first of unit, integration, end-to-end.</title>
+<clipPath id="r"><rect width="365" height="20" rx="3"/></clipPath>
+<g clip-path="url(#r)">
+<rect x="0" width="122" height="20" fill="#555"/>
+<rect x="122" width="44" height="20" fill="#c62828"/>
+<rect x="166" width="77" height="20" fill="#1c5fb0"/>
+<rect x="243" width="122" height="20" fill="#6741d9"/>
+</g>
+<g fill="#fff" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">
+<text x="61.0" y="14">back-end coverage</text>
+<text x="144.0" y="14">73.9%</text>
+<text x="204.5" y="14">unit 52.9%</text>
+<text x="304.0" y="14">integration 21.0%</text>
+</g>
+</svg>
