@@ -1,0 +1,44 @@
+name: A number looks wrong
+description: A figure on the site or in a data file that seems wrong, even if you're not sure.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. A number that looks wrong is worth reporting even if you're not sure: a
+        difference from an official figure may be a bug, or a known difference we should explain
+        better. Either way it helps.
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The page address, or the data file's name.
+      placeholder: https://traceconomics.com/en/...
+    validations:
+      required: true
+  - type: input
+    id: series
+    attributes:
+      label: Series and period
+      description: Which series (group, item, option settings) and which month or year.
+      placeholder: e.g. pensioners, all items, default options, 2024-03
+    validations:
+      required: true
+  - type: textarea
+    id: seen
+    attributes:
+      label: What the site shows
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and why
+      description: If you compared with an official figure, say which publisher and table, with a link.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, your browser, a shared link that reproduces it.

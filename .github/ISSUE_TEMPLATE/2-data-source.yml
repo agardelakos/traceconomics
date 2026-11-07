@@ -1,0 +1,35 @@
+name: Data source problem
+description: A changed file layout, a broken link, reuse terms we have wrong, or a better source.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For problems with a publisher's data as we use it: the sources and their reuse terms are
+        listed in SOURCES.md. Please don't contact the publisher on the project's behalf.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem
+      options:
+        - A file's layout or format changed
+        - A link is broken or moved
+        - Reuse terms or the notice are wrong
+        - A better or lower-level source exists
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Publisher and dataset
+      placeholder: e.g. Eurostat prc_hicp_minr, ELSTAT CPI table 07
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What you found, with links and the date you checked.
+    validations:
+      required: true

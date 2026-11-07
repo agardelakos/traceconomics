@@ -186,9 +186,9 @@ Every test carries its test case: a stable ID and Given/When/Then, written on th
 
 ## Contributing
 
-Ideas, questions, corrections and bug reports are welcome as [issues](https://github.com/agardelakos/traceconomics/issues). A number that looks wrong is worth an issue even if you're not sure: say which page, which series and month, and what you expected.
+Ideas, questions, corrections and bug reports are welcome as [issues](https://github.com/agardelakos/traceconomics/issues/new/choose); each kind has a short form. A number that looks wrong is worth an issue even if you're not sure: say which page, which series and month, and what you expected.
 
-Before a pull request, read [CONTRIBUTING.md](CONTRIBUTING.md): what's welcome, the hard rules and why, how to run every test suite, and the policy on AI-assisted contributions. Coding agents also follow [AGENTS.md](AGENTS.md). The longer pages (architecture, design principles, test strategy) are in the [wiki](https://github.com/agardelakos/traceconomics/wiki).
+Before a pull request, read [CONTRIBUTING.md](CONTRIBUTING.md): what's welcome, the hard rules and why, how to run every test suite, and the policy on AI-assisted contributions. Coding agents also follow [AGENTS.md](AGENTS.md). Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md). The longer pages (architecture, design principles, test strategy) are in the [wiki](https://github.com/agardelakos/traceconomics/wiki).
 
 ## Data sources
 

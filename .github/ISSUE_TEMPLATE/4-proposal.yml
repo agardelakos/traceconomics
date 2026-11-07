@@ -1,0 +1,44 @@
+name: Proposal
+description: A new feature, data source, country, dependency, or a change to the method, layout or wording.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Proposals are discussed here before any code is written (see CONTRIBUTING.md, "How to
+        contribute"). Changes to layout, navigation or wording need the maintainer's agreement
+        first. This is a one-person project, so a proposal may wait or be declined; the reason
+        will be given.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change
+      options:
+        - A new feature or page
+        - A new data source or country
+        - A change to the method
+        - A change to layout, navigation or wording
+        - A new dependency
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem it solves
+      description: Who it helps and what they can't do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: For a source or method change, link the documents it rests on.
+    validations:
+      required: true
+  - type: checkboxes
+    id: work
+    attributes:
+      label: Your part
+      options:
+        - label: I'd like to write the pull request once the proposal is agreed.
