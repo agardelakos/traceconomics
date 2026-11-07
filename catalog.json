@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "f6afc31a01f4d8c1b43c3481c9b621eb2e400e09",
- "generated": "2026-11-07T14:40:04Z",
+ "commit": "457d40ce0d426b25fcdfcd5d6f176cb28b905560",
+ "generated": "2026-11-07T17:27:29Z",
  "missing": [],
  "cases": [
   {
@@ -2290,7 +2290,7 @@
    "suite": "pytest",
    "title": "the analytics export is off without a token",
    "file": "tests/test_analytics.py",
-   "line": 86,
+   "line": 88,
    "node": "tests/test_analytics.py::test_off_without_token",
    "given": [
     "no analytics token or account id in the environment, and none passed"
@@ -2305,7 +2305,9 @@
    "notes": "When neither env var is set, export returns off and stores nothing.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2314,7 +2316,7 @@
    "suite": "pytest",
    "title": "a first run with no bookmark stores yesterday only",
    "file": "tests/test_analytics.py",
-   "line": 110,
+   "line": 112,
    "node": "tests/test_analytics.py::test_first_run_empty_state_stores_yesterday",
    "given": [
     "an empty job state and an API that returns one row"
@@ -2331,7 +2333,9 @@
    "notes": "With an empty state dict, only yesterday is fetched and stored.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2340,7 +2344,7 @@
    "suite": "pytest",
    "title": "a catch-up fetches the missing days in order",
    "file": "tests/test_analytics.py",
-   "line": 153,
+   "line": 155,
    "node": "tests/test_analytics.py::test_catch_up_fetches_missing_days_in_order",
    "given": [
     "a bookmark three days ago"
@@ -2356,7 +2360,9 @@
    "notes": "State says 3 days ago; today should fetch the 2 intermediate days.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2365,7 +2371,7 @@
    "suite": "pytest",
    "title": "an empty day is stored once, and two empty days are stored apart",
    "file": "tests/test_analytics.py",
-   "line": 187,
+   "line": 189,
    "node": "tests/test_analytics.py::test_empty_days_stored_and_different_days_not_unchanged",
    "given": [
     "an API that returns no rows"
@@ -2383,7 +2389,9 @@
    "notes": "Two empty days each produce a stored file because the payload includes the date.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2392,7 +2400,7 @@
    "suite": "pytest",
    "title": "a GraphQL error fails the export without moving the bookmark",
    "file": "tests/test_analytics.py",
-   "line": 233,
+   "line": 235,
    "node": "tests/test_analytics.py::test_graphql_errors_returns_failed",
    "given": [
     "an API whose answer carries a GraphQL error"
@@ -2408,7 +2416,9 @@
    "notes": "A GraphQL error in the response returns 'failed' with state unchanged.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2417,7 +2427,7 @@
    "suite": "pytest",
    "title": "a network error fails the export after one request",
    "file": "tests/test_analytics.py",
-   "line": 264,
+   "line": 266,
    "node": "tests/test_analytics.py::test_url_error_returns_failed",
    "given": [
     "an API that cannot be reached"
@@ -2432,7 +2442,9 @@
    "notes": "A urllib error stops and returns 'failed'; state unchanged.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2441,7 +2453,7 @@
    "suite": "pytest",
    "title": "a full page of rows fails the export as possibly truncated",
    "file": "tests/test_analytics.py",
-   "line": 293,
+   "line": 295,
    "node": "tests/test_analytics.py::test_page_rows_returns_failed",
    "given": [
     "an API that returns exactly a page's limit of rows"
@@ -2456,7 +2468,9 @@
    "notes": "When the API returns PAGE or more rows, we treat it as possibly truncated.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2465,7 +2479,7 @@
    "suite": "pytest",
    "title": "the same rows in another order are not stored again",
    "file": "tests/test_analytics.py",
-   "line": 320,
+   "line": 322,
    "node": "tests/test_analytics.py::test_different_group_order_produces_same_stored_bytes",
    "given": [
     "a day's rows already stored"
@@ -2479,7 +2493,9 @@
    "notes": "Groups returned in a different order yield identical payload, so the second is unchanged.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2488,7 +2504,7 @@
    "suite": "pytest",
    "title": "a sampled row marks the stored day as sampled",
    "file": "tests/test_analytics.py",
-   "line": 352,
+   "line": 354,
    "node": "tests/test_analytics.py::test_sampled_flag_in_manifest",
    "given": [
     "an API that returns one unsampled row and one with a sample interval of 10"
@@ -2503,7 +2519,9 @@
    "notes": "A row with sampleInterval 10 produces manifest entry sampled=True.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2512,7 +2530,7 @@
    "suite": "pytest",
    "title": "exporting one chosen day stores it",
    "file": "tests/test_analytics.py",
-   "line": 382,
+   "line": 384,
    "node": "tests/test_analytics.py::test_export_day_stores_without_state",
    "given": [
     "a job state with an old bookmark, and an API that returns one row"
@@ -2528,7 +2546,9 @@
    "notes": "export_day fetches one day and stores it; any state dict passed is ignored.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2537,7 +2557,7 @@
    "suite": "pytest",
    "title": "the downloads export is off without a zone id",
    "file": "tests/test_analytics.py",
-   "line": 443,
+   "line": 445,
    "node": "tests/test_analytics.py::test_downloads_off_without_zone",
    "given": [
     "a token and an account id but no zone id in the environment or passed"
@@ -2551,7 +2571,9 @@
    "notes": "The token alone isn't enough: the zone feed needs the zone id too.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2560,7 +2582,7 @@
    "suite": "pytest",
    "title": "downloads are stored in their own dataset with their own bookmark",
    "file": "tests/test_analytics.py",
-   "line": 457,
+   "line": 459,
    "node": "tests/test_analytics.py::test_downloads_stored_in_their_own_dataset_with_their_own_bookmark",
    "given": [
     "a visits bookmark a week ago, no downloads bookmark, and a zone answer with two data-file rows (one from a bot, one not)"
@@ -2580,7 +2602,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2589,7 +2613,7 @@
    "suite": "pytest",
    "title": "a downloads row has request and byte counts, not page views",
    "file": "tests/test_analytics.py",
-   "line": 491,
+   "line": 493,
    "node": "tests/test_analytics.py::test_downloads_rows_have_request_and_byte_counts",
    "given": [
     "a zone answer with one row of 5 requests, 100 bytes and a sample interval of 2"
@@ -2604,7 +2628,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -2613,7 +2639,7 @@
    "suite": "pytest",
    "title": "a downloads answer without the zone fails",
    "file": "tests/test_analytics.py",
-   "line": 506,
+   "line": 509,
    "node": "tests/test_analytics.py::test_downloads_missing_zone_in_response_fails",
    "given": [
     "an API answer with no zone in it"
@@ -2627,7 +2653,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -2636,7 +2664,7 @@
    "suite": "pytest",
    "title": "exporting one day of downloads needs the zone id",
    "file": "tests/test_analytics.py",
-   "line": 518,
+   "line": 522,
    "node": "tests/test_analytics.py::test_export_day_downloads_needs_zone",
    "given": [
     "no zone id in the environment or passed"
@@ -2650,7 +2678,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2659,7 +2689,7 @@
    "suite": "pytest",
    "title": "a source URL names its archive dataset",
    "file": "tests/test_backfill.py",
-   "line": 15,
+   "line": 19,
    "node": "tests/test_backfill.py::test_dataset_for_url",
    "given": [
     "ELSTAT document URLs in English and Greek, Eurostat full TSV, full SDMX-CSV and partial-extract URLs, and another publisher's URL"
@@ -2676,7 +2706,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2685,7 +2717,7 @@
    "suite": "pytest",
    "title": "seeding copies only files whose checksum matches the manifest",
    "file": "tests/test_backfill.py",
-   "line": 33,
+   "line": 37,
    "node": "tests/test_backfill.py::test_seed_copies_verified_files_only",
    "given": [
     "a research folder whose MANIFEST.md lists a matching ELSTAT file, a changed ELSTAT file and a file from another publisher"
@@ -2704,7 +2736,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2713,7 +2747,7 @@
    "suite": "pytest",
    "title": "seeding reads SHA256SUMS and takes the date from the folder name",
    "file": "tests/test_backfill.py",
-   "line": 67,
+   "line": 71,
    "node": "tests/test_backfill.py::test_seed_uses_sha256sums_and_folder_date",
    "given": [
     "a folder named for a date holding a Eurostat file, its SHA256SUMS line and a README table with its source URL"
@@ -2728,7 +2762,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2737,7 +2773,7 @@
    "suite": "pytest",
    "title": "a hand-downloaded file is imported as a manual snapshot",
    "file": "tests/test_backfill.py",
-   "line": 89,
+   "line": 93,
    "node": "tests/test_backfill.py::test_import_manual_download",
    "given": [
     "a file downloaded by hand, with no dataset or URL given"
@@ -2753,7 +2789,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -2762,7 +2800,7 @@
    "suite": "pytest",
    "title": "a docstring's case is read into its ID, title, steps and notes",
    "file": "tests/test_catalog.py",
-   "line": 45,
+   "line": 47,
    "node": "tests/test_catalog.py::test_docstring_steps_and_notes",
    "given": [
     "a docstring with an ID and title, Given/And/When/Then steps and a closing note"
@@ -2780,7 +2818,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2789,7 +2829,7 @@
    "suite": "pytest",
    "title": "a docstring that breaks the convention is reported",
    "file": "tests/test_catalog.py",
-   "line": 65,
+   "line": 67,
    "node": "tests/test_catalog.py::test_docstring_problems",
    "given": [
     "a docstring that is missing, has no \"ID: title\" first line, puts Given after When, starts with And, or has a line that is not a step"
@@ -2810,7 +2850,9 @@
     "and-when"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2819,7 +2861,7 @@
    "suite": "pytest",
    "title": "a case is read from Playwright annotations and from Vitest meta",
    "file": "tests/test_catalog.py",
-   "line": 83,
+   "line": 85,
    "node": "tests/test_catalog.py::test_annotations_and_meta",
    "given": [
     "Playwright annotations with an ID, Given/And/When/Then steps and a fixme that names an issue",
@@ -2835,7 +2877,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2844,7 +2888,7 @@
    "suite": "pytest",
    "title": "issue numbers are read from a reason",
    "file": "tests/test_catalog.py",
-   "line": 102,
+   "line": 104,
    "node": "tests/test_catalog.py::test_issue_links",
    "given": [
     "a reason naming issues #12 and #7, and two hashes inside other words"
@@ -2858,7 +2902,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2867,7 +2913,7 @@
    "suite": "pytest",
    "title": "a real pytest collection reads an outline and a test with no case",
    "file": "tests/test_catalog.py",
-   "line": 114,
+   "line": 116,
    "node": "tests/test_catalog.py::test_pytest_plugin_collects_outlines",
    "given": [
     "a throwaway test file with a parametrized test that has a case and an xfail test that names an issue but has no case"
@@ -2882,7 +2928,9 @@
    "notes": "The plugin through a real pytest collection, on a throwaway test file.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2891,7 +2939,7 @@
    "suite": "pytest",
    "title": "tests generated by a loop in a Playwright listing become one outline",
    "file": "tests/test_catalog.py",
-   "line": 147,
+   "line": 149,
    "node": "tests/test_catalog.py::test_playwright_listing_and_loops",
    "given": [
     "a Playwright listing with the same case in English and Greek, tagged @smoke"
@@ -2909,7 +2957,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2918,7 +2968,7 @@
    "suite": "pytest",
    "title": "an outline over pages takes the title given with its case",
    "file": "tests/test_catalog.py",
-   "line": 175,
+   "line": 177,
    "node": "tests/test_catalog.py::test_an_outline_over_pages_takes_the_title_given_with_its_case",
    "given": [
     "Playwright tests made one per page, whose own titles are the pages' addresses",
@@ -2934,7 +2984,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2943,7 +2995,7 @@
    "suite": "pytest",
    "title": "a copied ID is a duplicate, not an outline",
    "file": "tests/test_catalog.py",
-   "line": 193,
+   "line": 195,
    "node": "tests/test_catalog.py::test_a_copied_id_is_a_duplicate_not_an_outline",
    "given": [
     "two pytest functions under one ID",
@@ -2961,7 +3013,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2970,7 +3024,7 @@
    "suite": "pytest",
    "title": "a missing ID warns, and is an error only in strict files",
    "file": "tests/test_catalog.py",
-   "line": 221,
+   "line": 223,
    "node": "tests/test_catalog.py::test_ratchet_warns_outside_strict_files",
    "given": [
     "a test with no case ID"
@@ -2986,7 +3040,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -2995,7 +3051,7 @@
    "suite": "pytest",
    "title": "the rules that are always errors",
    "file": "tests/test_catalog.py",
-   "line": 236,
+   "line": 238,
    "node": "tests/test_catalog.py::test_always_errors",
    "given": [
     "a catalog with no file marked strict"
@@ -3014,7 +3070,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3023,7 +3081,7 @@
    "suite": "pytest",
    "title": "a case without a Then step is reported in a strict file",
    "file": "tests/test_catalog.py",
-   "line": 259,
+   "line": 261,
    "node": "tests/test_catalog.py::test_missing_steps",
    "given": [
     "a case with no Then step, in a catalog where every file is strict"
@@ -3037,7 +3095,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3046,7 +3106,7 @@
    "suite": "pytest",
    "title": "the cross-suite mapping of browser cases is checked",
    "file": "tests/test_catalog.py",
-   "line": 269,
+   "line": 271,
    "node": "tests/test_catalog.py::test_mapping",
    "given": [
     "a Playwright case and a Selenium case"
@@ -3066,7 +3126,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3075,7 +3137,7 @@
    "suite": "pytest",
    "title": "a run record gives each test result to its case",
    "file": "tests/test_catalog.py",
-   "line": 327,
+   "line": 329,
    "node": "tests/test_catalog.py::test_record_gives_each_result_to_its_case",
    "given": [
     "a catalog of two pytest cases, and JUnit, Playwright and Vitest result files"
@@ -3095,7 +3157,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3104,7 +3168,7 @@
    "suite": "pytest",
    "title": "the microdata job counts as its own suite but feeds pytest cases",
    "file": "tests/test_catalog.py",
-   "line": 351,
+   "line": 353,
    "node": "tests/test_catalog.py::test_the_microdata_job_counts_as_its_own_suite_but_feeds_pytest_cases",
    "given": [
     "JUnit results from the CI job that runs the tests with the microdata extra"
@@ -3119,7 +3183,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3128,7 +3194,7 @@
    "suite": "pytest",
    "title": "the history keeps the newest runs and never forgets an obsolete ID",
    "file": "tests/test_catalog.py",
-   "line": 366,
+   "line": 368,
    "node": "tests/test_catalog.py::test_append_keeps_the_newest_and_never_forgets_an_obsolete_id",
    "given": [
     "a run history that keeps three runs per trigger"
@@ -3144,7 +3210,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3153,7 +3221,7 @@
    "suite": "pytest",
    "title": "the worse result of an example stands",
    "file": "tests/test_catalog.py",
-   "line": 388,
+   "line": 390,
    "node": "tests/test_catalog.py::test_the_worse_result_of_an_example_stands",
    "given": [
     "the same example run in both pytest jobs, failed in one and passed in the other"
@@ -3167,7 +3235,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3176,7 +3246,7 @@
    "suite": "pytest",
    "title": "Playwright describe titles keep examples apart",
    "file": "tests/test_catalog.py",
-   "line": 402,
+   "line": 404,
    "node": "tests/test_catalog.py::test_describe_titles_keep_examples_apart",
    "given": [
     "one case with the same test title in two describe blocks, failing in one and passing in the other"
@@ -3190,7 +3260,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3199,7 +3271,7 @@
    "suite": "pytest",
    "title": "the catalog never loses IDs to an incomplete run, and a revert is welcome",
    "file": "tests/test_catalog.py",
-   "line": 419,
+   "line": 421,
    "node": "tests/test_catalog.py::test_the_catalog_never_loses_ids_to_an_incomplete_run_and_a_revert_is_welcome",
    "given": [
     "a stored catalog with a pytest and a Playwright case"
@@ -3217,7 +3289,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3226,7 +3300,7 @@
    "suite": "pytest",
    "title": "a run record with an unknown trigger is refused",
    "file": "tests/test_catalog.py",
-   "line": 444,
+   "line": 446,
    "node": "tests/test_catalog.py::test_a_bad_record_is_refused",
    "given": [
     "a run record whose trigger is not a known one"
@@ -3241,7 +3315,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3250,7 +3326,7 @@
    "suite": "pytest",
    "title": "a case's flakiness is its share of result changes",
    "file": "tests/test_catalog.py",
-   "line": 461,
+   "line": 463,
    "node": "tests/test_catalog.py::test_flakiness",
    "given": [
     "a case's recent results"
@@ -3268,7 +3344,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3277,7 +3355,7 @@
    "suite": "pytest",
    "title": "the generated wiki pages replace the old ones and leave hand-written pages alone",
    "file": "tests/test_catalog.py",
-   "line": 479,
+   "line": 481,
    "node": "tests/test_catalog.py::test_pages",
    "given": [
     "a run history with one run, and a wiki with a stale generated page, a sidebar with a generated block and a hand-written home page"
@@ -3296,7 +3374,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3305,7 +3385,7 @@
    "suite": "pytest",
    "title": "the validator runs from the command line and fails on an error",
    "file": "tests/test_catalog.py",
-   "line": 509,
+   "line": 511,
    "node": "tests/test_catalog.py::test_scripts_run_from_the_command_line",
    "given": [
     "a catalog with a malformed ID"
@@ -3320,7 +3400,9 @@
    "notes": "The validator as CI calls it: isolated mode, exit code 1 on an error.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3329,7 +3411,7 @@
    "suite": "pytest",
    "title": "release test runs are pulled from the bucket, checked and stored once",
    "file": "tests/test_catalog.py",
-   "line": 553,
+   "line": 555,
    "node": "tests/test_catalog.py::test_release_runs_are_pulled_checked_and_stored_once",
    "given": [
     "a bucket listed in pages of two, holding a ui-test run, a failed promote check, a smoke run with a bad commit, a smoke run still uploading and the link check's object"
@@ -3349,7 +3431,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3358,7 +3442,7 @@
    "suite": "pytest",
    "title": "a release run's meta file is checked",
    "file": "tests/test_catalog.py",
-   "line": 593,
+   "line": 595,
    "node": "tests/test_catalog.py::test_meta_is_checked",
    "given": [
     "a meta file whose build differs from its folder, whose result is unknown, or whose environment has an unexpected key"
@@ -3376,7 +3460,9 @@
     "environment"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3385,7 +3471,7 @@
    "suite": "pytest",
    "title": "bad objects and outages never stop the pull",
    "file": "tests/test_catalog.py",
-   "line": 609,
+   "line": 611,
    "node": "tests/test_catalog.py::test_bad_objects_and_outages_never_stop_the_pull",
    "given": [
     "a bucket with a malformed results file, a meta file that is not an object and one nested too deep"
@@ -3403,7 +3489,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3412,7 +3500,7 @@
    "suite": "pytest",
    "title": "runs pruned from the history are not fetched again",
    "file": "tests/test_catalog.py",
-   "line": 635,
+   "line": 637,
    "node": "tests/test_catalog.py::test_runs_pruned_from_the_history_are_not_fetched_again",
    "given": [
     "a history that keeps one ui-test run and holds one newer than the bucket's"
@@ -3426,7 +3514,271 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-001",
+   "suite": "pytest",
+   "title": "each badge's parts add up to its total, which is rounded down",
+   "file": "tests/test_coverage.py",
+   "line": 22,
+   "node": "tests/test_coverage.py::test_parts_add_up_to_the_rounded_down_total",
+   "given": [
+    "7 lines with code, 2 covered by each of unit, integration and e2e tests"
+   ],
+   "when": [
+    "the total is split"
+   ],
+   "then": [
+    "the total is 85.7%, rounded down from 85.71%",
+    "the three parts add up to it exactly",
+    "the tenths left by rounding each part down go to the lower layers first on a tie"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-002",
+   "suite": "pytest",
+   "title": "a split with nothing to count, nothing covered or everything covered",
+   "file": "tests/test_coverage.py",
+   "line": 37,
+   "node": "tests/test_coverage.py::test_split_edge_cases",
+   "given": [
+    "no lines with code, then lines none of which are covered, then lines all covered by one layer"
+   ],
+   "when": [
+    "each is split"
+   ],
+   "then": [
+    "the first two give 0% in total and in every part",
+    "the last gives 100% to that layer alone"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-003",
+   "suite": "pytest",
+   "title": "a line run by several layers counts once, for the lowest",
+   "file": "tests/test_coverage.py",
+   "line": 50,
+   "node": "tests/test_coverage.py::test_a_line_counts_for_the_lowest_layer_that_ran_it",
+   "given": [
+    "lines run by unit and integration tests, by integration and e2e tests, by e2e tests alone, and by none"
+   ],
+   "when": [
+    "each line's layer is chosen"
+   ],
+   "then": [
+    "they count for unit, integration and e2e, and the last for none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-004",
+   "suite": "pytest",
+   "title": "the back-end split is read from coverage.py's contexts",
+   "file": "tests/test_coverage.py",
+   "line": 76,
+   "node": "tests/test_coverage.py::test_back_end_lines_per_layer_from_the_data_file",
+   "given": [
+    "a file of five statements, two run by unit tests, three by integration tests, one of them also by a unit test"
+   ],
+   "when": [
+    "the back-end split is read from the coverage data file"
+   ],
+   "then": [
+    "the file has five lines with code, two for unit and two for integration",
+    "no problem is reported"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-005",
+   "suite": "pytest",
+   "title": "a covered line without a layer, or run by a repository test, is a problem",
+   "file": "tests/test_coverage.py",
+   "line": 90,
+   "node": "tests/test_coverage.py::test_back_end_refuses_wrong_labels",
+   "given": [
+    "a line run with no context and a line run by a repository test"
+   ],
+   "when": [
+    "the back-end split is read"
+   ],
+   "then": [
+    "both lines are reported as problems",
+    "neither counts for a layer"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-006",
+   "suite": "pytest",
+   "title": "a badge shows its total and each layer's part, self-contained",
+   "file": "tests/test_coverage.py",
+   "line": 106,
+   "node": "tests/test_coverage.py::test_badge_shows_total_and_parts_and_nothing_else",
+   "given": [
+    "a front-end result of 92.4% split into unit, integration and e2e parts"
+   ],
+   "when": [
+    "its badge is drawn"
+   ],
+   "then": [
+    "the SVG parses, with one segment for the label, one for the total and one per layer",
+    "its title gives the total, each part and the rule for lines run by several layers",
+    "it has no script and refers to no other file or site"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-009",
+   "suite": "pytest",
+   "title": "the back-end total is coloured with the site's bounds",
+   "file": "tests/test_coverage.py",
+   "line": 130,
+   "node": "tests/test_coverage.py::test_back_end_standing_has_the_sites_bounds",
+   "given": [
+    "back-end totals just below 90%, at 90%, just below 95% and at 95%"
+   ],
+   "when": [
+    "each total's standing is read"
+   ],
+   "then": [
+    "they are low, fair, fair and good",
+    "the ratchet the run fails below is no higher than the 90% aim"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-010",
+   "suite": "pytest",
+   "title": "with --strict, a back-end total below the ratchet fails the run",
+   "file": "tests/test_coverage.py",
+   "line": 149,
+   "node": "tests/test_coverage.py::test_strict_run_fails_below_the_ratchet",
+   "given": [
+    "a back-end with 3 of 5 lines covered (60%), below the ratchet",
+    "the same back-end with all 5 covered"
+   ],
+   "when": [
+    "the split is run with --strict, and the first also without it"
+   ],
+   "then": [
+    "the 60% run fails with --strict and passes without it, its badge drawn either way",
+    "the fully covered run passes with --strict"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-007",
+   "suite": "pytest",
+   "title": "a test file that names no layer stops the run before any test",
+   "file": "tests/test_coverage.py",
+   "line": 194,
+   "node": "tests/test_coverage.py::test_a_test_file_without_a_layer_stops_the_run",
+   "given": [
+    "a test file with no `pytestmark` layer next to one that has it"
+   ],
+   "when": [
+    "pytest runs"
+   ],
+   "then": [
+    "it stops with a usage error naming the file without a layer",
+    "no test runs"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COV-008",
+   "suite": "pytest",
+   "title": "coverage records the layer of the test that ran each line",
+   "file": "tests/test_coverage.py",
+   "line": 212,
+   "node": "tests/test_coverage.py::test_each_line_is_labelled_with_the_layer_that_ran_it",
+   "given": [
+    "a unit test file calling one function and an integration test in it, marked to override its file, calling another"
+   ],
+   "when": [
+    "the tests run under coverage"
+   ],
+   "then": [
+    "the first function's body is recorded under unit and the second's under integration",
+    "the module-level lines, run when the file is imported, are recorded under the file's layer"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -3435,7 +3787,7 @@
    "suite": "pytest",
    "title": "a code's ancestors stop at the division",
    "file": "tests/test_engine.py",
-   "line": 16,
+   "line": 18,
    "node": "tests/test_engine.py::test_ancestors_stop_at_the_division",
    "given": [
     "a five-digit COICOP code and a division code"
@@ -3450,7 +3802,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3459,7 +3813,7 @@
    "suite": "pytest",
    "title": "the leaves are the finest codes with a weight",
    "file": "tests/test_engine.py",
-   "line": 28,
+   "line": 30,
    "node": "tests/test_engine.py::test_leaves_are_the_finest_weighted_codes",
    "given": [
     "weights at several levels, a zero-weight group and a special aggregate"
@@ -3475,7 +3829,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3484,7 +3840,7 @@
    "suite": "pytest",
    "title": "a negative weight is refused",
    "file": "tests/test_engine.py",
-   "line": 41,
+   "line": 43,
    "node": "tests/test_engine.py::test_negative_weight_is_refused",
    "given": [
     "a weight below zero"
@@ -3498,7 +3854,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3507,7 +3865,7 @@
    "suite": "pytest",
    "title": "weights at one level of the tree",
    "file": "tests/test_engine.py",
-   "line": 52,
+   "line": 54,
    "node": "tests/test_engine.py::test_at_level",
    "given": [
     "weights at the division, group and class levels"
@@ -3521,7 +3879,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3530,7 +3890,7 @@
    "suite": "pytest",
    "title": "one link of a two-item basket",
    "file": "tests/test_engine.py",
-   "line": 64,
+   "line": 66,
    "node": "tests/test_engine.py::test_two_item_basket",
    "given": [
     "60% food up 10% and 40% clothing flat between December and January"
@@ -3544,7 +3904,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3553,7 +3915,7 @@
    "suite": "pytest",
    "title": "weights in any unit give the same link",
    "file": "tests/test_engine.py",
-   "line": 76,
+   "line": 78,
    "node": "tests/test_engine.py::test_weights_in_any_unit_are_rescaled",
    "given": [
     "the two-item basket with weights 3 and 2 instead of 600 and 400"
@@ -3567,7 +3929,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3576,7 +3940,7 @@
    "suite": "pytest",
    "title": "price indices on different bases give the same link",
    "file": "tests/test_engine.py",
-   "line": 87,
+   "line": 89,
    "node": "tests/test_engine.py::test_prices_on_any_base",
    "given": [
     "food on one base year and clothing on another, with the same movements"
@@ -3590,7 +3954,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3599,7 +3965,7 @@
    "suite": "pytest",
    "title": "an item without an index is priced with its parent",
    "file": "tests/test_engine.py",
-   "line": 99,
+   "line": 101,
    "node": "tests/test_engine.py::test_missing_item_index_falls_back_to_its_parent",
    "given": [
     "a class with two subclasses, one of which has no index"
@@ -3615,7 +3981,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3624,7 +3992,7 @@
    "suite": "pytest",
    "title": "an item with no index anywhere is left out and reported",
    "file": "tests/test_engine.py",
-   "line": 116,
+   "line": 118,
    "node": "tests/test_engine.py::test_item_with_no_index_anywhere_is_left_out_and_reported",
    "given": [
     "a basket where one division has no index at any level"
@@ -3640,7 +4008,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3649,7 +4019,7 @@
    "suite": "pytest",
    "title": "the all-items index is never a fallback",
    "file": "tests/test_engine.py",
-   "line": 132,
+   "line": 134,
    "node": "tests/test_engine.py::test_all_items_index_is_never_used_as_a_fallback",
    "given": [
     "an item without an index and an all-items index that moved"
@@ -3663,7 +4033,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3672,7 +4044,7 @@
    "suite": "pytest",
    "title": "chain-linking at December across a weight change",
    "file": "tests/test_engine.py",
-   "line": 146,
+   "line": 148,
    "node": "tests/test_engine.py::test_chaining_with_a_weight_change",
    "given": [
     "two years with different weights and prices that move in December and January"
@@ -3687,7 +4059,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3696,7 +4070,7 @@
    "suite": "pytest",
    "title": "the chain stops where a December or a year's weights are missing",
    "file": "tests/test_engine.py",
-   "line": 167,
+   "line": 169,
    "node": "tests/test_engine.py::test_chain_stops_without_weights_or_december",
    "given": [
     "prices without December 2025"
@@ -3711,7 +4085,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3720,7 +4096,7 @@
    "suite": "pytest",
    "title": "periods limit what is computed",
    "file": "tests/test_engine.py",
-   "line": 182,
+   "line": 184,
    "node": "tests/test_engine.py::test_periods_limit_what_is_computed",
    "given": [
     "prices for two months"
@@ -3734,7 +4110,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3743,7 +4121,7 @@
    "suite": "pytest",
    "title": "annual and monthly rates",
    "file": "tests/test_engine.py",
-   "line": 200,
+   "line": 202,
    "node": "tests/test_engine.py::test_rates",
    "given": [
     "an index flat at 100 in 2024 that rises by one point a month in 2025"
@@ -3759,7 +4137,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3768,7 +4148,7 @@
    "suite": "pytest",
    "title": "the annual average rate compares yearly averages",
    "file": "tests/test_engine.py",
-   "line": 215,
+   "line": 217,
    "node": "tests/test_engine.py::test_annual_average_rate_is_not_the_mean_of_annual_rates",
    "given": [
     "two years of monthly index levels"
@@ -3784,7 +4164,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3793,7 +4175,7 @@
    "suite": "pytest",
    "title": "rebasing keeps every rate",
    "file": "tests/test_engine.py",
-   "line": 236,
+   "line": 238,
    "node": "tests/test_engine.py::test_rebase_keeps_rates",
    "given": [
     "an index"
@@ -3808,7 +4190,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3817,7 +4201,7 @@
    "suite": "pytest",
    "title": "each year links to its own file's December",
    "file": "tests/test_engine.py",
-   "line": 251,
+   "line": 253,
    "node": "tests/test_engine.py::test_each_year_links_to_its_own_december",
    "given": [
     "December 2024 printed on different bases in the 2024 and the 2025 files"
@@ -3832,7 +4216,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3841,7 +4227,7 @@
    "suite": "pytest",
    "title": "the pricing map prices an item with another code",
    "file": "tests/test_engine.py",
-   "line": 268,
+   "line": 270,
    "node": "tests/test_engine.py::test_price_with_starts_the_search_elsewhere_and_is_reported",
    "given": [
     "a pricing map that sends one item to its parent and another to a different class"
@@ -3856,7 +4242,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3865,7 +4253,7 @@
    "suite": "pytest",
    "title": "the pricing map's drop takes an item out and rescales",
    "file": "tests/test_engine.py",
-   "line": 285,
+   "line": 287,
    "node": "tests/test_engine.py::test_drop_takes_an_item_out_and_rescales",
    "given": [
     "an item mapped to drop"
@@ -3880,7 +4268,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3889,7 +4279,7 @@
    "suite": "pytest",
    "title": "the first series is exported from the store with its metadata",
    "file": "tests/test_export.py",
-   "line": 19,
+   "line": 22,
    "node": "tests/test_export.py::test_skeleton_export_from_a_store",
    "given": [
     "an archive holding the Eurostat HICP monthly rates and item weights for Greece",
@@ -3908,7 +4298,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -3917,7 +4309,7 @@
    "suite": "pytest",
    "title": "fields are read through nested braces with LaTeX markup removed",
    "file": "tests/test_export_bibliography.py",
-   "line": 24,
+   "line": 28,
    "node": "tests/test_export_bibliography.py::test_fields_are_read_with_nested_braces_and_latex_taken_off",
    "given": [
     "a BibTeX sample with braced authors, escaped characters, a \"--\" dash and a URL with \"_\" and \"&\""
@@ -3933,7 +4325,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3942,7 +4336,7 @@
    "suite": "pytest",
    "title": "the project's bibliography parses completely",
    "file": "tests/test_export_bibliography.py",
-   "line": 43,
+   "line": 47,
    "node": "tests/test_export_bibliography.py::test_the_real_bibliography_parses_completely",
    "given": [
     "the project's own bibliography"
@@ -3957,7 +4351,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3966,7 +4362,7 @@
    "suite": "pytest",
    "title": "a label loses its notation and keeps its kind",
    "file": "tests/test_export_labels.py",
-   "line": 12,
+   "line": 14,
    "node": "tests/test_export_labels.py::test_clean_takes_off_the_notation_and_keeps_the_kind",
    "given": [
     "category labels in English and Greek with a leading code and an optional kind marker"
@@ -3982,7 +4378,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -3991,7 +4389,7 @@
    "suite": "pytest",
    "title": "EU vocabulary names come first, and ELSTAT capitals take the single child's name",
    "file": "tests/test_export_labels.py",
-   "line": 45,
+   "line": 47,
    "node": "tests/test_export_labels.py::test_eu_names_first_then_elstat_with_capitals_replaced_by_the_single_child",
    "given": [
     "an EU vocabulary name for one code",
@@ -4007,7 +4405,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4016,7 +4416,7 @@
    "suite": "pytest",
    "title": "a name only in capitals, or a missing name, stops the export",
    "file": "tests/test_export_labels.py",
-   "line": 62,
+   "line": 64,
    "node": "tests/test_export_labels.py::test_a_name_only_in_capitals_or_missing_stops_the_export",
    "given": [
     "a code whose ELSTAT name is all capitals and whose single child has different words"
@@ -4032,7 +4432,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4041,7 +4443,7 @@
    "suite": "pytest",
    "title": "the calculator file rebuilds every preset exactly",
    "file": "tests/test_export_site.py",
-   "line": 39,
+   "line": 41,
    "node": "tests/test_export_site.py::test_calculator_file_rebuilds_every_preset_exactly",
    "given": [
     "made-up price blocks for 2008 to 2026-09 and baskets for every calculator preset",
@@ -4058,7 +4460,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4067,7 +4471,7 @@
    "suite": "pytest",
    "title": "calculator weights are summed under the index that prices them",
    "file": "tests/test_export_site.py",
-   "line": 61,
+   "line": 63,
    "node": "tests/test_export_site.py::test_calculator_weights_are_summed_by_the_index_that_prices_them",
    "given": [
     "a preset series whose 2020 weights price class 012 with the index of 011"
@@ -4082,7 +4486,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4091,7 +4497,7 @@
    "suite": "pytest",
    "title": "the calculator refuses inputs that don't rebuild the series",
    "file": "tests/test_export_site.py",
-   "line": 76,
+   "line": 78,
    "node": "tests/test_export_site.py::test_calculator_refuses_inputs_that_dont_rebuild_the_series",
    "given": [
     "preset series where one published month is changed by 0.5"
@@ -4105,7 +4511,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4114,7 +4522,7 @@
    "suite": "pytest",
    "title": "a setting's series file holds the published values on one month axis",
    "file": "tests/test_export_site.py",
-   "line": 104,
+   "line": 106,
    "node": "tests/test_export_site.py::test_series_file_holds_published_values_on_one_month_axis",
    "given": [
     "module 1 outputs written for three groups under the default setting and with weights timing \"U\"",
@@ -4134,7 +4542,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4143,7 +4553,7 @@
    "suite": "pytest",
    "title": "downloads add a CSV of every table only for the default setting",
    "file": "tests/test_export_site.py",
-   "line": 132,
+   "line": 134,
    "node": "tests/test_export_site.py::test_downloads_csv_only_for_core_tables_except_the_default",
    "given": [
     "module 1 outputs written for the default setting and for weights timing \"U\""
@@ -4160,7 +4570,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4169,7 +4581,7 @@
    "suite": "pytest",
    "title": "the official annual rate is computed from the levels in two years' files",
    "file": "tests/test_export_site.py",
-   "line": 152,
+   "line": 154,
    "node": "tests/test_export_site.py::test_official_rate_from_the_published_levels_of_two_files",
    "given": [
     "two years' CPI files, each holding its own months and the previous December",
@@ -4187,7 +4599,9 @@
    "notes": "Each year's file holds its own months plus the previous December; only its own months count.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4196,7 +4610,7 @@
    "suite": "pytest",
    "title": "a disagreement with the official rate is reported, not hidden",
    "file": "tests/test_export_site.py",
-   "line": 178,
+   "line": 180,
    "node": "tests/test_export_site.py::test_official_rate_reports_a_disagreement_instead_of_hiding_it",
    "given": [
     "levels that give 5.0% and a published rate of 5.1% for the same month"
@@ -4211,7 +4625,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4220,7 +4636,7 @@
    "suite": "pytest",
    "title": "our rate and the published one keep their own months",
    "file": "tests/test_export_site.py",
-   "line": 193,
+   "line": 195,
    "node": "tests/test_export_site.py::test_official_rate_keeps_each_figure_in_its_own_month",
    "given": [
     "levels up to 2026-09 and published rates up to 2026-10"
@@ -4235,7 +4651,9 @@
    "notes": "ELSTAT's table 05 can be a month ahead of table 07 (or behind): both are shown, not compared.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4244,7 +4662,7 @@
    "suite": "pytest",
    "title": "the official rate refuses a year without the one before",
    "file": "tests/test_export_site.py",
-   "line": 210,
+   "line": 212,
    "node": "tests/test_export_site.py::test_official_rate_refuses_a_year_without_the_one_before",
    "given": [
     "CPI levels for 2026 only"
@@ -4258,7 +4676,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4267,7 +4687,7 @@
    "suite": "pytest",
    "title": "one EUR/PPS factor for the year, least bent by rounding",
    "file": "tests/test_export_site.py",
-   "line": 221,
+   "line": 223,
    "node": "tests/test_export_site.py::test_pps_factor_is_one_for_the_whole_year_and_least_bent_by_rounding",
    "given": [
     "Eurostat's 2025 EU-SILC income limits for Greece in euros and in PPS, each rounded to a whole unit"
@@ -4282,7 +4702,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4291,7 +4713,7 @@
    "suite": "pytest",
    "title": "the income limits file names the missing Eurostat dataset",
    "file": "tests/test_export_site.py",
-   "line": 237,
+   "line": 239,
    "node": "tests/test_export_site.py::test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_eurostat_limits",
    "given": [
     "a store whose observations hold our own HBS limits but no eurostat:ilc_di01 rows"
@@ -4305,7 +4727,9 @@
    "notes": "The store's view is the union of the datasets it holds, so with no ilc_di01 rows its columns\n(quant_inc, statinfo) don't exist.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4314,7 +4738,7 @@
    "suite": "pytest",
    "title": "the PPS factor refuses limits that don't share one",
    "file": "tests/test_export_site.py",
-   "line": 260,
+   "line": 262,
    "node": "tests/test_export_site.py::test_pps_factor_refuses_limits_that_dont_share_one",
    "given": [
     "euro and PPS limits whose ratios differ by more than rounding allows"
@@ -4330,7 +4754,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4339,7 +4765,7 @@
    "suite": "pytest",
    "title": "the untouched fixtures match their listed hashes",
    "file": "tests/test_fixtures.py",
-   "line": 19,
+   "line": 23,
    "node": "tests/test_fixtures.py::test_untouched_fixtures_match_their_published_hashes",
    "given": [
     "the fixtures README, which lists the SHA-256 of each untouched fixture"
@@ -4354,7 +4780,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -4363,7 +4791,7 @@
    "suite": "pytest",
    "title": "HBS table 1.03 in the old layout (2018)",
    "file": "tests/test_hbs_tables.py",
-   "line": 13,
+   "line": 15,
    "node": "tests/test_hbs_tables.py::test_old_layout_2018",
    "given": [
     "ELSTAT's published HBS table 1.03 for 2018, in the old .xls layout"
@@ -4381,7 +4809,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4390,7 +4820,7 @@
    "suite": "pytest",
    "title": "HBS table 1.03 in the new layout (2024)",
    "file": "tests/test_hbs_tables.py",
-   "line": 32,
+   "line": 34,
    "node": "tests/test_hbs_tables.py::test_new_layout_2024",
    "given": [
     "ELSTAT's published HBS table 1.03 for 2024, in the new .xlsx layout"
@@ -4406,7 +4836,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4415,7 +4847,7 @@
    "suite": "pytest",
    "title": "the year asked for must match the table's own year",
    "file": "tests/test_hbs_tables.py",
-   "line": 48,
+   "line": 50,
    "node": "tests/test_hbs_tables.py::test_year_must_match_what_the_table_says",
    "given": [
     "the 2024 table"
@@ -4429,7 +4861,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4438,7 +4872,7 @@
    "suite": "pytest",
    "title": "the V2 comparison excuses only what a known missing item explains",
    "file": "tests/test_hbs_tables.py",
-   "line": 59,
+   "line": 61,
    "node": "tests/test_hbs_tables.py::test_v2_logic_on_a_tiny_survey",
    "given": [
     "a made-up two-household survey with annual purchases, and a published table with monthly means per household",
@@ -4455,7 +4889,9 @@
    "notes": "Needs pandas (skipped without the local extra).",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4464,7 +4900,7 @@
    "suite": "pytest",
    "title": "the heartbeat sends counts, not details",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 36,
+   "line": 38,
    "node": "tests/test_heartbeat_backup.py::test_heartbeat_sends_counts_not_details",
    "given": [
     "a local storage stand-in and a run record with its failures list, report channel and release days"
@@ -4479,7 +4915,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4488,7 +4926,7 @@
    "suite": "pytest",
    "title": "the heartbeat is off without an address and reports a failed upload",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 52,
+   "line": 54,
    "node": "tests/test_heartbeat_backup.py::test_heartbeat_is_off_without_an_address_and_reports_failures",
    "given": [
     "a heartbeat to send"
@@ -4504,7 +4942,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4513,7 +4953,7 @@
    "suite": "pytest",
    "title": "the backup sends the archive, never microdata, and only what changed",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 78,
+   "line": 80,
    "node": "tests/test_heartbeat_backup.py::test_backup_sends_the_archive_but_never_microdata",
    "given": [
     "a local storage stand-in and an archive holding prices, HBS microdata, the microdata catalogue page and an outbox report"
@@ -4532,7 +4972,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4541,7 +4983,7 @@
    "suite": "pytest",
    "title": "the backup's guard refuses microdata even if the filter misses it",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 104,
+   "line": 106,
    "node": "tests/test_heartbeat_backup.py::test_backup_guard_refuses_microdata_even_if_the_filter_misses_it",
    "given": [
     "an archive holding HBS microdata",
@@ -4556,7 +4998,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4565,7 +5009,7 @@
    "suite": "pytest",
    "title": "the Linux timer runs the job daily at 13:00 Athens time inside the pinned image",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 118,
+   "line": 120,
    "node": "tests/test_heartbeat_backup.py::test_systemd_units_run_daily_in_athens_time_inside_the_pinned_image",
    "given": [
     "a configuration with the run at 13:00 and the VM's user, folders and env file"
@@ -4584,7 +5028,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4593,7 +5039,7 @@
    "suite": "pytest",
    "title": "the watchdog's verdict on a heartbeat",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 154,
+   "line": 156,
    "node": "tests/test_heartbeat_backup.py::test_watchdog_rule",
    "given": [
     "the watchdog at 13:00 UTC"
@@ -4611,7 +5057,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4620,7 +5068,7 @@
    "suite": "pytest",
    "title": "the VM's shell command runs the same container as the timer",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 177,
+   "line": 179,
    "node": "tests/test_heartbeat_backup.py::test_the_shell_command_runs_the_same_container_as_the_timer",
    "given": [
     "the VM's user, folders and env file"
@@ -4636,7 +5084,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4645,7 +5095,7 @@
    "suite": "pytest",
    "title": "the units and the shell command run the configured image, else the pinned one",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 199,
+   "line": 201,
    "node": "tests/test_heartbeat_backup.py::test_units_and_shell_command_run_the_configured_image_else_the_pinned_one",
    "given": [
     "a configuration with a browser image, and one with no image"
@@ -4660,7 +5110,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4669,7 +5121,7 @@
    "suite": "pytest",
    "title": "the years argument takes ranges and single years",
    "file": "tests/test_history.py",
-   "line": 35,
+   "line": 39,
    "node": "tests/test_history.py::test_years_argument",
    "given": [
     "the years argument \"2011-2013,2015\""
@@ -4683,7 +5135,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4692,7 +5146,7 @@
    "suite": "pytest",
    "title": "the year's table 07 is found on the archived month page",
    "file": "tests/test_history.py",
-   "line": 45,
+   "line": 49,
    "node": "tests/test_history.py::test_finds_the_years_table07",
    "given": [
     "ELSTAT's archived month page listing tables 06, 07 and 08"
@@ -4707,7 +5161,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4716,7 +5172,7 @@
    "suite": "pytest",
    "title": "the table 07 check accepts the right year and flags a wrong one",
    "file": "tests/test_history.py",
-   "line": 57,
+   "line": 61,
    "node": "tests/test_history.py::test_check_accepts_the_real_2025_file_and_rejects_a_wrong_year",
    "given": [
     "the real CPI table 07 for 2025"
@@ -4731,7 +5187,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -4740,7 +5198,7 @@
    "suite": "pytest",
    "title": "a past year's page and table are fetched in both languages, once",
    "file": "tests/test_history.py",
-   "line": 74,
+   "line": 78,
    "node": "tests/test_history.py::test_fetches_page_and_both_languages_once",
    "given": [
     "a fake ELSTAT serving the 2015 month page and a table 07 file"
@@ -4758,7 +5216,9 @@
    "notes": "The fixture is the 2025 table, so the check must flag it as the wrong year.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4767,7 +5227,7 @@
    "suite": "pytest",
    "title": "a year without table 07 is a failure",
    "file": "tests/test_history.py",
-   "line": 101,
+   "line": 106,
    "node": "tests/test_history.py::test_missing_table_is_a_failure",
    "given": [
     "a month page for 2016 that doesn't list a 2016 table 07"
@@ -4781,7 +5241,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4790,7 +5252,7 @@
    "suite": "pytest",
    "title": "the first run is always due",
    "file": "tests/test_job.py",
-   "line": 30,
+   "line": 32,
    "node": "tests/test_job.py::test_first_run_is_due",
    "given": [
     "no job state (no good run yet)"
@@ -4804,7 +5266,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4813,7 +5277,7 @@
    "suite": "pytest",
    "title": "on a release day the run is due only from the run time",
    "file": "tests/test_job.py",
-   "line": 40,
+   "line": 42,
    "node": "tests/test_job.py::test_release_day_due_only_after_run_time",
    "given": [
     "a known release day after the last good run"
@@ -4829,7 +5293,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4838,7 +5304,7 @@
    "suite": "pytest",
    "title": "a missed release day is caught up and listed as missed",
    "file": "tests/test_job.py",
-   "line": 56,
+   "line": 58,
    "node": "tests/test_job.py::test_missed_release_day_is_caught_up_and_reported",
    "given": [
     "a release day that passed with no run since the last good run"
@@ -4853,7 +5319,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4862,7 +5330,7 @@
    "suite": "pytest",
    "title": "no run is due without a release since the last good run",
    "file": "tests/test_job.py",
-   "line": 69,
+   "line": 71,
    "node": "tests/test_job.py::test_not_due_without_release",
    "given": [
     "a last good run on the latest known release day"
@@ -4876,7 +5344,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4885,7 +5355,7 @@
    "suite": "pytest",
    "title": "extra release dates in the configuration make a run due",
    "file": "tests/test_job.py",
-   "line": 80,
+   "line": 82,
    "node": "tests/test_job.py::test_extra_dates_count",
    "given": [
     "no known release dates but an extra release date in the configuration"
@@ -4899,7 +5369,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4908,7 +5380,7 @@
    "suite": "pytest",
    "title": "a full run stores the sources, and a second run stores nothing new",
    "file": "tests/test_job.py",
-   "line": 146,
+   "line": 148,
    "node": "tests/test_job.py::test_full_run_then_second_run_stores_nothing",
    "given": [
     "fake publishers serving trimmed real pages and files"
@@ -4926,7 +5398,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4935,7 +5409,7 @@
    "suite": "pytest",
    "title": "changed reuse terms raise an alert",
    "file": "tests/test_job.py",
-   "line": 170,
+   "line": 172,
    "node": "tests/test_job.py::test_changed_terms_raise_an_alert",
    "given": [
     "a first run that stored a publisher's reuse terms page"
@@ -4950,7 +5424,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4959,7 +5435,7 @@
    "suite": "pytest",
    "title": "a new year in ELSTAT's microdata catalogue is reported",
    "file": "tests/test_job.py",
-   "line": 187,
+   "line": 189,
    "node": "tests/test_job.py::test_new_puf_year_raises_an_alert",
    "given": [
     "a first run that stored ELSTAT's microdata catalogue listing HBS 2008 - 2024"
@@ -4973,7 +5449,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -4982,7 +5460,7 @@
    "suite": "pytest",
    "title": "a run with failures doesn't count as a good run",
    "file": "tests/test_job.py",
-   "line": 202,
+   "line": 204,
    "node": "tests/test_job.py::test_failures_keep_the_run_due",
    "given": [
     "fake publishers where the microdata catalogue page is missing"
@@ -4997,7 +5475,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5006,7 +5486,7 @@
    "suite": "pytest",
    "title": "a dry run plans but fetches and stores nothing",
    "file": "tests/test_job.py",
-   "line": 217,
+   "line": 219,
    "node": "tests/test_job.py::test_dry_run_stores_nothing",
    "given": [
     "fake publishers"
@@ -5022,7 +5502,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5031,7 +5513,7 @@
    "suite": "pytest",
    "title": "a morning run doesn't cover that day's release",
    "file": "tests/test_job.py",
-   "line": 233,
+   "line": 235,
    "node": "tests/test_job.py::test_morning_run_doesnt_cover_that_days_release",
    "given": [
     "fake publishers"
@@ -5045,7 +5527,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5054,7 +5538,7 @@
    "suite": "pytest",
    "title": "marking the backup done leaves nothing stored since the mark",
    "file": "tests/test_job.py",
-   "line": 245,
+   "line": 247,
    "node": "tests/test_job.py::test_backup_mark",
    "given": [
     "an archive filled by a run"
@@ -5068,7 +5552,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5077,7 +5563,7 @@
    "suite": "pytest",
    "title": "the heartbeat, backup and release build follow a run with new data",
    "file": "tests/test_job.py",
-   "line": 259,
+   "line": 261,
    "node": "tests/test_job.py::test_heartbeat_backup_and_release_follow_a_run_with_new_data",
    "given": [
     "release builds turned on, and stand-ins for the heartbeat, the backup and the release build"
@@ -5097,7 +5583,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5106,7 +5594,7 @@
    "suite": "pytest",
    "title": "release builds are off by default",
    "file": "tests/test_job.py",
-   "line": 292,
+   "line": 294,
    "node": "tests/test_job.py::test_release_is_off_by_default",
    "given": [
     "a configuration with no release section"
@@ -5121,7 +5609,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5130,7 +5620,7 @@
    "suite": "pytest",
    "title": "a day with no run due still exports visit counts and backs them up",
    "file": "tests/test_job.py",
-   "line": 314,
+   "line": 316,
    "node": "tests/test_job.py::test_a_quiet_day_still_exports_visit_counts_and_backs_them_up",
    "given": [
     "a job state with no release due, an analytics stand-in that stores one day of visits and has downloads off, and stand-ins for the backup and heartbeat"
@@ -5147,7 +5637,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5156,7 +5648,7 @@
    "suite": "pytest",
    "title": "a lost analytics bookmark is rebuilt from the archive",
    "file": "tests/test_job.py",
-   "line": 347,
+   "line": 349,
    "node": "tests/test_job.py::test_the_bookmark_is_rebuilt_from_the_archive",
    "given": [
     "no bookmark in the job state, and stored visit days of which one was a later manual fill of an older day and one is today's"
@@ -5170,7 +5662,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5179,7 +5673,7 @@
    "suite": "pytest",
    "title": "a failing analytics export alerts only when days are running out",
    "file": "tests/test_job.py",
-   "line": 366,
+   "line": 368,
    "node": "tests/test_job.py::test_a_failing_export_alerts_only_when_days_are_running_out",
    "given": [
     "a visits bookmark that is recent, several days old, or missing",
@@ -5199,7 +5693,9 @@
     "None-1"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5208,7 +5704,7 @@
    "suite": "pytest",
    "title": "each analytics feed has its own bookmark and alert",
    "file": "tests/test_job.py",
-   "line": 384,
+   "line": 386,
    "node": "tests/test_job.py::test_each_feed_has_its_own_bookmark_and_alert",
    "given": [
     "a visits bookmark, no downloads bookmark and a stored downloads day five days back",
@@ -5225,7 +5721,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -5234,7 +5732,7 @@
    "suite": "pytest",
    "title": "the error bands equal the spread of series built one replicate at a time",
    "file": "tests/test_local_bands.py",
-   "line": 22,
+   "line": 24,
    "node": "tests/test_local_bands.py::test_bands_equal_the_spread_of_series_built_one_replicate_at_a_time",
    "given": [
     "made-up price blocks and five replicate baskets per survey year for group B/Q1",
@@ -5249,7 +5747,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5258,7 +5758,7 @@
    "suite": "pytest",
    "title": "years without replicates get no band",
    "file": "tests/test_local_bands.py",
-   "line": 49,
+   "line": 51,
    "node": "tests/test_local_bands.py::test_years_without_replicates_get_no_band",
    "given": [
     "replicate shares for every survey year except 2011"
@@ -5274,7 +5774,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5283,7 +5785,7 @@
    "suite": "pytest",
    "title": "bands with same-year weights and tutoring left out match a plain loop",
    "file": "tests/test_local_bands.py",
-   "line": 70,
+   "line": 72,
    "node": "tests/test_local_bands.py::test_bands_for_same_year_weights_and_tutoring_left_out_match_a_plain_loop",
    "given": [
     "made-up price blocks including division 10, and four replicate baskets per year to 2026 that include tutoring (10501)",
@@ -5299,7 +5801,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5308,7 +5812,7 @@
    "suite": "pytest",
    "title": "replicate factors keep each stratum whole and are reproducible",
    "file": "tests/test_local_bootstrap.py",
-   "line": 51,
+   "line": 53,
    "node": "tests/test_local_bootstrap.py::test_factors_keep_each_stratum_whole_and_are_reproducible",
    "given": [
     "a made-up stratified survey of 10 strata with 6 areas each"
@@ -5324,7 +5828,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5333,7 +5839,7 @@
    "suite": "pytest",
    "title": "the bootstrap agrees with the linearised variance of a share",
    "file": "tests/test_local_bootstrap.py",
-   "line": 72,
+   "line": 74,
    "node": "tests/test_local_bootstrap.py::test_bootstrap_agrees_with_the_linearised_variance_of_a_share",
    "given": [
     "a made-up stratified survey",
@@ -5349,7 +5855,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5358,7 +5866,7 @@
    "suite": "pytest",
    "title": "errors cover every published share and flag high relative errors",
    "file": "tests/test_local_bootstrap.py",
-   "line": 96,
+   "line": 98,
    "node": "tests/test_local_bootstrap.py::test_errors_cover_every_share_and_flag_high_relative_errors",
    "given": [
     "a made-up stratified survey, its groups and 200 bootstrap replicates"
@@ -5377,7 +5885,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5386,7 +5896,7 @@
    "suite": "pytest",
    "title": "without areas there are no errors; without strata the region stands in",
    "file": "tests/test_local_bootstrap.py",
-   "line": 124,
+   "line": 126,
    "node": "tests/test_local_bootstrap.py::test_without_areas_there_are_no_errors_and_without_strata_the_region_stands_in",
    "given": [
     "a made-up survey without areas"
@@ -5403,7 +5913,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5412,7 +5924,7 @@
    "suite": "pytest",
    "title": "the design refuses a single-area stratum and an area in two strata",
    "file": "tests/test_local_bootstrap.py",
-   "line": 143,
+   "line": 145,
    "node": "tests/test_local_bootstrap.py::test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata",
    "given": [
     "a made-up survey where one stratum has a single area"
@@ -5428,7 +5940,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5437,7 +5951,7 @@
    "suite": "pytest",
    "title": "the CV check passes on our own values and fails far from them",
    "file": "tests/test_local_bootstrap.py",
-   "line": 162,
+   "line": 164,
    "node": "tests/test_local_bootstrap.py::test_cv_check_passes_on_our_own_values_and_fails_far_from_them",
    "given": [
     "a made-up survey and the coefficients of variation it gives"
@@ -5453,7 +5967,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5462,7 +5978,7 @@
    "suite": "pytest",
    "title": "income-limit errors are reproducible and shrink with more areas",
    "file": "tests/test_local_bootstrap.py",
-   "line": 177,
+   "line": 179,
    "node": "tests/test_local_bootstrap.py::test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas",
    "given": [
     "a small and a large made-up stratified survey"
@@ -5481,7 +5997,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5490,7 +6008,7 @@
    "suite": "pytest",
    "title": "household size on the modified OECD scale",
    "file": "tests/test_local_groups.py",
-   "line": 44,
+   "line": 46,
    "node": "tests/test_local_groups.py::test_modified_oecd_scale",
    "given": [
     "made-up households of one adult; two adults, a 13-year-old and a 3-year-old; and two children with no adult"
@@ -5506,7 +6024,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5515,7 +6035,7 @@
    "suite": "pytest",
    "title": "each quintile holds a fifth of the weight",
    "file": "tests/test_local_groups.py",
-   "line": 61,
+   "line": 63,
    "node": "tests/test_local_groups.py::test_quintiles_hold_a_fifth_of_the_weight_each",
    "given": [
     "ten households of equal weight with values from 10 down to 1"
@@ -5529,7 +6049,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5538,7 +6060,7 @@
    "suite": "pytest",
    "title": "ties are broken by household id and a straddler goes where its middle is",
    "file": "tests/test_local_groups.py",
-   "line": 72,
+   "line": 74,
    "node": "tests/test_local_groups.py::test_quintile_ties_are_broken_by_household_id_and_a_straddler_goes_where_its_middle_is",
    "given": [
     "four households, two with the same value, and one with double weight"
@@ -5553,7 +6075,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5562,7 +6086,7 @@
    "suite": "pytest",
    "title": "a household with no value or no weight gets no quintile",
    "file": "tests/test_local_groups.py",
-   "line": 86,
+   "line": 88,
    "node": "tests/test_local_groups.py::test_missing_value_or_weight_gets_no_quintile",
    "given": [
     "three households: one complete, one without a value and one with zero weight"
@@ -5577,7 +6101,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5586,7 +6112,7 @@
    "suite": "pytest",
    "title": "tenure is renter first, then owner, then housed free",
    "file": "tests/test_local_groups.py",
-   "line": 98,
+   "line": 100,
    "node": "tests/test_local_groups.py::test_tenure_renter_first_then_owner_then_housed_free",
    "given": [
     "households paying rent and imputed rent, imputed rent as owners, imputed rent as housed free, and no rent of any kind"
@@ -5601,7 +6127,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5610,7 +6138,7 @@
    "suite": "pytest",
    "title": "a household that can't be placed is left out of that grouping only",
    "file": "tests/test_local_groups.py",
-   "line": 116,
+   "line": 118,
    "node": "tests/test_local_groups.py::test_unplaceable_households_are_left_out_of_that_grouping_only",
    "given": [
     "ten complete households, four of them living mainly on pensions",
@@ -5628,7 +6156,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5637,7 +6167,7 @@
    "suite": "pytest",
    "title": "the leaves are the finest spending codes",
    "file": "tests/test_local_groups.py",
-   "line": 148,
+   "line": 150,
    "node": "tests/test_local_groups.py::test_leaves_are_the_finest_codes",
    "given": [
     "a list of codes from the total down to subclasses"
@@ -5651,7 +6181,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5660,7 +6192,7 @@
    "suite": "pytest",
    "title": "spending shares are plutocratic and add up",
    "file": "tests/test_local_groups.py",
-   "line": 158,
+   "line": 160,
    "node": "tests/test_local_groups.py::test_shares_are_plutocratic_and_add_up",
    "given": [
     "three made-up households with weights and spending on food, rent, imputed rent and energy"
@@ -5677,7 +6209,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5686,7 +6220,7 @@
    "suite": "pytest",
    "title": "shares per group count the households that report spending",
    "file": "tests/test_local_groups.py",
-   "line": 183,
+   "line": 185,
    "node": "tests/test_local_groups.py::test_shares_per_group_count_reporting_households",
    "given": [
     "the three made-up households, one of them pensioners with weight 2"
@@ -5702,7 +6236,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5711,7 +6247,7 @@
    "suite": "pytest",
    "title": "reliability tiers by the number of reporting households",
    "file": "tests/test_local_groups.py",
-   "line": 201,
+   "line": 203,
    "node": "tests/test_local_groups.py::test_reliability_tiers",
    "given": [
     "a number of reporting households"
@@ -5730,7 +6266,9 @@
     "50-normal"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5739,7 +6277,7 @@
    "suite": "pytest",
    "title": "income bands include their top, after rounding to the euro",
    "file": "tests/test_local_groups.py",
-   "line": 220,
+   "line": 222,
    "node": "tests/test_local_groups.py::test_income_bands_include_their_top_after_rounding_to_the_euro",
    "given": [
     "made-up households with monthly incomes of 500, 750, 750.52 and 2000",
@@ -5756,7 +6294,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5765,7 +6305,7 @@
    "suite": "pytest",
    "title": "size bands, and a wrong band figure fails",
    "file": "tests/test_local_groups.py",
-   "line": 245,
+   "line": 247,
    "node": "tests/test_local_groups.py::test_size_bands_and_a_wrong_band_figure_fails",
    "given": [
     "made-up households of 1, 2 and 4 members and a table whose figure for \"3 members and over\" is wrong"
@@ -5783,7 +6323,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5792,7 +6334,7 @@
    "suite": "pytest",
    "title": "a band whose household count differs fails",
    "file": "tests/test_local_groups.py",
-   "line": 268,
+   "line": 270,
    "node": "tests/test_local_groups.py::test_band_count_that_differs_fails",
    "given": [
     "a table whose household count for the top income band differs from the survey's"
@@ -5806,7 +6348,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5815,7 +6359,7 @@
    "suite": "pytest",
    "title": "the uncovered share counts absent items whole and cut items in part",
    "file": "tests/test_local_groups.py",
-   "line": 283,
+   "line": 285,
    "node": "tests/test_local_groups.py::test_uncovered_share_counts_absent_items_whole_and_cut_items_in_part",
    "given": [
     "a published table with an item absent from the survey and an item cut short in it",
@@ -5832,7 +6376,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5841,7 +6387,7 @@
    "suite": "pytest",
    "title": "shares leave a household that can't be placed out of that grouping only",
    "file": "tests/test_local_groups.py",
-   "line": 302,
+   "line": 304,
    "node": "tests/test_local_groups.py::test_shares_leave_unplaceable_households_out_of_that_grouping_only",
    "given": [
     "five complete households and one with no persons and no income source"
@@ -5856,7 +6402,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5865,7 +6413,7 @@
    "suite": "pytest",
    "title": "the quintile matrix matches quintiles taken one column at a time",
    "file": "tests/test_local_groups.py",
-   "line": 320,
+   "line": 322,
    "node": "tests/test_local_groups.py::test_quintile_matrix_matches_one_column_at_a_time",
    "given": [
     "values, one of them missing, and two columns of replicate weights"
@@ -5880,7 +6428,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5889,7 +6439,7 @@
    "suite": "pytest",
    "title": "purchases leave out own production; imputed rent comes from all modes",
    "file": "tests/test_local_groups.py",
-   "line": 341,
+   "line": 343,
    "node": "tests/test_local_groups.py::test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_modes",
    "given": [
     "the three made-up households, one of which grew part of its food, and purchases with no imputed rent"
@@ -5904,7 +6454,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5913,7 +6465,7 @@
    "suite": "pytest",
    "title": "deciles, and ranking households instead of persons",
    "file": "tests/test_local_groups.py",
-   "line": 365,
+   "line": 367,
    "node": "tests/test_local_groups.py::test_deciles_and_household_rankings",
    "given": [
     "twenty values of equal weight",
@@ -5931,7 +6483,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5940,7 +6494,7 @@
    "suite": "pytest",
    "title": "income limits are midpoints between neighbouring households",
    "file": "tests/test_local_groups.py",
-   "line": 390,
+   "line": 392,
    "node": "tests/test_local_groups.py::test_cut_points_are_midpoints_between_neighbouring_households",
    "given": [
     "ten households of equal weight with values 10 to 100"
@@ -5955,7 +6509,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5964,7 +6520,7 @@
    "suite": "pytest",
    "title": "cut points skip households without weight and follow each column",
    "file": "tests/test_local_groups.py",
-   "line": 408,
+   "line": 410,
    "node": "tests/test_local_groups.py::test_cut_points_skip_households_without_weight_and_follow_each_column",
    "given": [
     "the ten households and two weight columns, the second with one household at zero weight"
@@ -5979,7 +6535,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -5988,7 +6546,7 @@
    "suite": "pytest",
    "title": "cut points ignore missing values and mark an empty part",
    "file": "tests/test_local_groups.py",
-   "line": 427,
+   "line": 429,
    "node": "tests/test_local_groups.py::test_cut_points_ignore_missing_values_and_mark_an_empty_part",
    "given": [
     "three households, one without a value"
@@ -6002,7 +6560,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6011,7 +6571,7 @@
    "suite": "pytest",
    "title": "the limits table rounds the midpoints to the euro",
    "file": "tests/test_local_groups.py",
-   "line": 441,
+   "line": 443,
    "node": "tests/test_local_groups.py::test_limits_table_rounds_midpoints_to_the_euro",
    "given": [
     "twenty made-up single-adult households with incomes 1000.25 to 20000.25"
@@ -6027,7 +6587,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6036,7 +6598,7 @@
    "suite": "pytest",
    "title": "household types follow Eurostat's dependent-child rule",
    "file": "tests/test_local_groups.py",
-   "line": 462,
+   "line": 464,
    "node": "tests/test_local_groups.py::test_household_types_follow_eurostats_dependent_child_rule",
    "given": [
     "made-up households: one adult; a parent and a child under 16; a couple with a 20-year-old student child; the same with the child working; a couple with a student nephew; a couple with a parent and a 25-year-old student child; and a child alone"
@@ -6051,7 +6613,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6060,7 +6624,7 @@
    "suite": "pytest",
    "title": "household types are a grouping, and households without persons are left out",
    "file": "tests/test_local_groups.py",
-   "line": 486,
+   "line": 488,
    "node": "tests/test_local_groups.py::test_household_types_are_a_grouping_and_unplaced_households_are_left_out",
    "given": [
     "three made-up households, the last with no person records"
@@ -6075,7 +6639,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6084,7 +6650,7 @@
    "suite": "pytest",
    "title": "the types table compares with ELSTAT's type and stops when far apart",
    "file": "tests/test_local_groups.py",
-   "line": 499,
+   "line": 501,
    "node": "tests/test_local_groups.py::test_types_table_compares_with_elstats_type_and_stops_when_far_apart",
    "given": [
     "ten made-up single adults, with ELSTAT's type agreeing for nine of them"
@@ -6103,7 +6669,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6112,7 +6680,7 @@
    "suite": "pytest",
    "title": "RAS fits both row and column totals where the links allow",
    "file": "tests/test_local_mapping.py",
-   "line": 17,
+   "line": 19,
    "node": "tests/test_local_mapping.py::test_ras_fits_both_totals_where_the_links_allow",
    "given": [
     "links A→x, A→y and B→y with row totals A 3, B 1 and column totals x 2, y 2"
@@ -6127,7 +6695,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6136,7 +6706,7 @@
    "suite": "pytest",
    "title": "RAS with conflicting totals keeps the rows exact and reports the misfit",
    "file": "tests/test_local_mapping.py",
-   "line": 32,
+   "line": 34,
    "node": "tests/test_local_mapping.py::test_ras_with_conflicting_totals_keeps_rows_exact_and_reports_the_misfit",
    "given": [
     "two separate link groups whose row and column totals differ",
@@ -6153,7 +6723,9 @@
    "notes": "Separate link groups are each scaled to their own row total, so they never conflict.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6162,7 +6734,7 @@
    "suite": "pytest",
    "title": "RAS ignores rows and columns without weight",
    "file": "tests/test_local_mapping.py",
-   "line": 56,
+   "line": 58,
    "node": "tests/test_local_mapping.py::test_ras_ignores_rows_and_columns_without_weight",
    "given": [
     "links where one source row and one target column have zero weight"
@@ -6176,7 +6748,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6185,7 +6759,7 @@
    "suite": "pytest",
    "title": "a lone subclass takes its published parent's weight",
    "file": "tests/test_local_mapping.py",
-   "line": 68,
+   "line": 70,
    "node": "tests/test_local_mapping.py::test_subclass_weights_take_a_lone_subclass_from_its_published_parent",
    "given": [
     "published weights at class and subclass levels, and the list of COICOP 2018 subclasses"
@@ -6200,7 +6774,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6209,7 +6785,7 @@
    "suite": "pytest",
    "title": "the COICOP 2018 table records each link's method and share",
    "file": "tests/test_local_mapping.py",
-   "line": 82,
+   "line": 84,
    "node": "tests/test_local_mapping.py::test_v1_table_methods_and_shares",
    "given": [
     "links of four kinds: a single link, links needing RAS, links whose source has no weight, and links with no weights at all"
@@ -6227,7 +6803,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6236,7 +6814,7 @@
    "suite": "pytest",
    "title": "the bridge from the older code lists",
    "file": "tests/test_local_mapping.py",
-   "line": 110,
+   "line": 112,
    "node": "tests/test_local_mapping.py::test_old_list_bridge",
    "given": [
     "older codes with their labels by year, the newer labels and 2015 spending"
@@ -6253,7 +6831,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6262,7 +6842,7 @@
    "suite": "pytest",
    "title": "moving a survey to COICOP 2018 keeps each household's total and adds parents",
    "file": "tests/test_local_mapping.py",
-   "line": 149,
+   "line": 151,
    "node": "tests/test_local_mapping.py::test_to_2018_keeps_every_household_total_and_adds_parents",
    "given": [
     "a made-up two-household survey in an older classification"
@@ -6283,7 +6863,9 @@
     "2010-columns1"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6292,7 +6874,7 @@
    "suite": "pytest",
    "title": "a code with no mapping is refused",
    "file": "tests/test_local_mapping.py",
-   "line": 177,
+   "line": 179,
    "node": "tests/test_local_mapping.py::test_to_2018_refuses_a_code_with_no_mapping",
    "given": [
     "a made-up survey with a code missing from the mapping tables"
@@ -6306,7 +6888,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6315,7 +6899,7 @@
    "suite": "pytest",
    "title": "the package's mapping tables chain",
    "file": "tests/test_local_mapping.py",
-   "line": 189,
+   "line": 191,
    "node": "tests/test_local_mapping.py::test_package_tables_add_up_and_chain",
    "given": [
     "the package's two mapping tables"
@@ -6330,7 +6914,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6339,7 +6925,7 @@
    "suite": "pytest",
    "title": "exposure counts only what a split decided",
    "file": "tests/test_local_mapping.py",
-   "line": 202,
+   "line": 204,
    "node": "tests/test_local_mapping.py::test_exposure_counts_only_what_a_split_decided",
    "given": [
     "a made-up survey and a table sending 90% of one code to division 01 and 10% to division 02"
@@ -6354,7 +6940,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6363,7 +6951,7 @@
    "suite": "pytest",
    "title": "ELSTAT microdata files are local-only",
    "file": "tests/test_local_only.py",
-   "line": 8,
+   "line": 10,
    "node": "tests/test_local_only.py::test_puf_files_are_local_only",
    "given": [
     "an ELSTAT microdata dataset name"
@@ -6381,7 +6969,9 @@
     "puf-statistics-on-income-and-living-conditions-silc-2025"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6390,7 +6980,7 @@
    "suite": "pytest",
    "title": "public files are not local-only",
    "file": "tests/test_local_only.py",
-   "line": 19,
+   "line": 21,
    "node": "tests/test_local_only.py::test_public_files_are_not",
    "given": [
     "a public dataset, including ELSTAT's microdata catalogue page"
@@ -6408,7 +6998,9 @@
     "eurostat-prc_hicp_minr"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6417,7 +7009,7 @@
    "suite": "pytest",
    "title": "a new microdata name is still caught",
    "file": "tests/test_local_only.py",
-   "line": 34,
+   "line": 36,
    "node": "tests/test_local_only.py::test_a_new_microdata_name_is_still_caught",
    "given": [
     "an ELSTAT microdata dataset name not yet in use"
@@ -6431,7 +7023,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6440,7 +7034,7 @@
    "suite": "pytest",
    "title": "the check refuses a list that includes microdata",
    "file": "tests/test_local_only.py",
-   "line": 44,
+   "line": 46,
    "node": "tests/test_local_only.py::test_check_refuses_microdata",
    "given": [
     "a list of public datasets",
@@ -6456,7 +7050,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6465,7 +7061,7 @@
    "suite": "pytest",
    "title": "every era's PUF layout reads the same",
    "file": "tests/test_local_puf.py",
-   "line": 75,
+   "line": 77,
    "node": "tests/test_local_puf.py::test_each_era_reads_the_same",
    "given": [
     "a synthetic HBS PUF of 120 households of two persons, written in one era's layout and archive format"
@@ -6492,7 +7088,9 @@
     "2024-2024-zip-cluster + 2 digits of MA04"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -6501,7 +7099,7 @@
    "suite": "pytest",
    "title": "a total that isn't purchases plus non-monetary spending is refused",
    "file": "tests/test_local_puf.py",
-   "line": 112,
+   "line": 114,
    "node": "tests/test_local_puf.py::test_total_that_isnt_purchases_plus_non_monetary_is_refused",
    "given": [
     "a synthetic 2016 PUF where one household's division 01 total is off by 1"
@@ -6515,7 +7113,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -6524,7 +7124,7 @@
    "suite": "pytest",
    "title": "a person without a household is refused",
    "file": "tests/test_local_puf.py",
-   "line": 125,
+   "line": 127,
    "node": "tests/test_local_puf.py::test_person_without_a_household_is_refused",
    "given": [
     "a synthetic 2016 PUF with a person whose household doesn't exist"
@@ -6538,7 +7138,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -6547,7 +7149,7 @@
    "suite": "pytest",
    "title": "a year not in the archive says how to add it",
    "file": "tests/test_local_puf.py",
-   "line": 138,
+   "line": 140,
    "node": "tests/test_local_puf.py::test_missing_year_says_how_to_add_it",
    "given": [
     "an empty archive"
@@ -6561,7 +7163,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -6570,7 +7174,7 @@
    "suite": "pytest",
    "title": "an activity code unknown to that year is refused",
    "file": "tests/test_local_puf.py",
-   "line": 149,
+   "line": 151,
    "node": "tests/test_local_puf.py::test_unknown_activity_code_is_refused",
    "given": [
     "a synthetic 2016 PUF with a 2020-style activity code"
@@ -6584,7 +7188,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -6593,7 +7199,7 @@
    "suite": "pytest",
    "title": "the hashed lock files match pyproject.toml's pins",
    "file": "tests/test_lock_files.py",
-   "line": 33,
+   "line": 37,
    "node": "tests/test_lock_files.py::test_lock_files_match_pyproject",
    "given": [
     "pyproject.toml's base dependencies and extras",
@@ -6611,7 +7217,9 @@
    "notes": "The Selenium browser tests have a lock of their own (with the dev extra), so their\ndependencies never enter the other two.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -6620,7 +7228,7 @@
    "suite": "pytest",
    "title": "a dry run changes nothing",
    "file": "tests/test_migrate.py",
-   "line": 38,
+   "line": 42,
    "node": "tests/test_migrate.py::test_dry_run_changes_nothing",
    "given": [
     "a made-up home with the earlier name's archive, store, config and keyring password"
@@ -6636,7 +7244,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6645,7 +7255,7 @@
    "suite": "pytest",
    "title": "the migration moves the folders, writes the config and copies the password",
    "file": "tests/test_migrate.py",
-   "line": 55,
+   "line": 59,
    "node": "tests/test_migrate.py::test_run_moves_folders_writes_config_and_copies_the_password",
    "given": [
     "a made-up home with the earlier name's archive, store, config and keyring password"
@@ -6664,7 +7274,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6673,7 +7285,7 @@
    "suite": "pytest",
    "title": "a target folder that already exists is a problem, not a merge",
    "file": "tests/test_migrate.py",
-   "line": 81,
+   "line": 85,
    "node": "tests/test_migrate.py::test_a_taken_target_is_a_problem_not_a_merge",
    "given": [
     "a made-up home where the new archive folder already exists"
@@ -6688,7 +7300,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6697,7 +7311,7 @@
    "suite": "pytest",
    "title": "KEPE's timing uses the same year's survey, then the one two years before",
    "file": "tests/test_module1_benchmarks.py",
-   "line": 7,
+   "line": 11,
    "node": "tests/test_module1_benchmarks.py::test_kepe_timing_uses_the_same_year_then_two_years_before",
    "given": [
     "index years 2016 to 2025 and surveys 2008 to 2024"
@@ -6712,7 +7326,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6721,7 +7337,7 @@
    "suite": "pytest",
    "title": "baskets are cut to one level of the tree",
    "file": "tests/test_module1_benchmarks.py",
-   "line": 20,
+   "line": 24,
    "node": "tests/test_module1_benchmarks.py::test_cutting_baskets_to_one_level",
    "given": [
     "a basket with shares at the division, group and subclass levels"
@@ -6736,7 +7352,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6745,7 +7363,7 @@
    "suite": "pytest",
    "title": "KEPE's published figures are on file",
    "file": "tests/test_module1_benchmarks.py",
-   "line": 33,
+   "line": 37,
    "node": "tests/test_module1_benchmarks.py::test_kepe_figures_are_on_file",
    "given": [
     "the package's file of KEPE's published figures"
@@ -6760,7 +7378,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6769,7 +7389,7 @@
    "suite": "pytest",
    "title": "48 settings, with the default first",
    "file": "tests/test_module1_combinations.py",
-   "line": 28,
+   "line": 30,
    "node": "tests/test_module1_combinations.py::test_48_settings_with_the_default_first",
    "given": [
     "the module 1 options"
@@ -6785,7 +7405,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6794,7 +7416,7 @@
    "suite": "pytest",
    "title": "quality flags follow the price source",
    "file": "tests/test_module1_combinations.py",
-   "line": 43,
+   "line": 45,
    "node": "tests/test_module1_combinations.py::test_quality_flags_follow_the_price_source",
    "given": [
     "periods on each side of the price sources' limits"
@@ -6810,7 +7432,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6819,7 +7443,7 @@
    "suite": "pytest",
    "title": "small cells are published only inside a rest row",
    "file": "tests/test_module1_combinations.py",
-   "line": 60,
+   "line": 62,
    "node": "tests/test_module1_combinations.py::test_small_cells_are_published_only_inside_a_rest_row",
    "given": [
     "a year's weights where two small subclasses are priced with their class"
@@ -6835,7 +7459,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6844,7 +7470,7 @@
    "suite": "pytest",
    "title": "series carry their options, and rule U ends with its surveys",
    "file": "tests/test_module1_combinations.py",
-   "line": 79,
+   "line": 81,
    "node": "tests/test_module1_combinations.py::test_series_carry_their_options_and_rule_u_ends_with_its_surveys",
    "given": [
     "made-up prices and baskets for B/Q1"
@@ -6862,7 +7488,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6871,7 +7499,7 @@
    "suite": "pytest",
    "title": "availability greys out what a rule can't cover",
    "file": "tests/test_module1_combinations.py",
-   "line": 102,
+   "line": 104,
    "node": "tests/test_module1_combinations.py::test_availability_greys_out_what_a_rule_cannot_cover",
    "given": [
     "series for B/Q1 and B/Q5 under weights timing N, F and U"
@@ -6889,7 +7517,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6898,7 +7528,7 @@
    "suite": "pytest",
    "title": "a rest row with one cell is flagged low reliability",
    "file": "tests/test_module1_combinations.py",
-   "line": 135,
+   "line": 137,
    "node": "tests/test_module1_combinations.py::test_a_rest_row_with_one_cell_is_flagged_low_reliability",
    "given": [
     "a series whose 2015 weights have one small cell (10501) priced with its group"
@@ -6912,7 +7542,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6921,7 +7553,7 @@
    "suite": "pytest",
    "title": "the code fingerprint ignores line endings",
    "file": "tests/test_module1_combinations.py",
-   "line": 150,
+   "line": 152,
    "node": "tests/test_module1_combinations.py::test_code_fingerprint_ignores_line_endings",
    "given": [
     "a made-up package with one source file with LF line endings, and its fingerprint"
@@ -6937,7 +7569,9 @@
    "notes": "The same code checked out on Windows (CRLF) and on Linux (LF) must give the same fingerprint.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6946,7 +7580,7 @@
    "suite": "pytest",
    "title": "the published metadata has LF line endings",
    "file": "tests/test_module1_combinations.py",
-   "line": 177,
+   "line": 179,
    "node": "tests/test_module1_combinations.py::test_published_json_has_lf_line_endings",
    "given": [
     "an output folder"
@@ -6960,7 +7594,9 @@
    "notes": "Python on Windows writes CRLF unless told otherwise; published files must be byte-identical\nwhichever machine wrote them.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6969,7 +7605,7 @@
    "suite": "pytest",
    "title": "Parquet is written with one thread",
    "file": "tests/test_module1_combinations.py",
-   "line": 196,
+   "line": 198,
    "node": "tests/test_module1_combinations.py::test_parquet_is_written_with_one_thread",
    "given": [
     "the connection used to write Parquet"
@@ -6983,7 +7619,9 @@
    "notes": "DuckDB reads a large CSV in parallel chunks and the Parquet row groups follow them: on the real\ncontributions table (2.8 million rows) 2 threads gave a different file from 1 or 16. Published\nfiles must be byte-identical wherever they are built, so they are written with one thread.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -6992,7 +7630,7 @@
    "suite": "pytest",
    "title": "Ribe contributions add up to the annual rate every month",
    "file": "tests/test_module1_contributions.py",
-   "line": 31,
+   "line": 33,
    "node": "tests/test_module1_contributions.py::test_contributions_add_up_to_the_annual_rate_every_month",
    "given": [
     "made-up prices and B/Q1 baskets whose weights change from year to year"
@@ -7008,7 +7646,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7017,7 +7657,7 @@
    "suite": "pytest",
    "title": "a price rise in one item moves each group by its share",
    "file": "tests/test_module1_index.py",
-   "line": 31,
+   "line": 33,
    "node": "tests/test_module1_index.py::test_a_price_rise_in_one_item_moves_groups_by_their_share",
    "given": [
     "made-up prices where food rises 10% through 2022 and nothing else moves",
@@ -7035,7 +7675,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7044,7 +7686,7 @@
    "suite": "pytest",
    "title": "an item with no index anywhere fails the run",
    "file": "tests/test_module1_index.py",
-   "line": 54,
+   "line": 56,
    "node": "tests/test_module1_index.py::test_an_item_with_no_index_anywhere_fails_the_run",
    "given": [
     "baskets with an item (05) whose price index stops after 2014"
@@ -7058,7 +7700,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7067,7 +7711,7 @@
    "suite": "pytest",
    "title": "gap rows use the rates as shown",
    "file": "tests/test_module1_index.py",
-   "line": 69,
+   "line": 71,
    "node": "tests/test_module1_index.py::test_gap_rows_use_the_rates_as_shown",
    "given": [
     "the B/Q1 and B/Q5 series"
@@ -7081,7 +7725,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7090,7 +7736,7 @@
    "suite": "pytest",
    "title": "values resting on ELSTAT's original tables are flagged",
    "file": "tests/test_module1_index.py",
-   "line": 82,
+   "line": 84,
    "node": "tests/test_module1_index.py::test_values_resting_on_the_original_tables_are_flagged",
    "given": [
     "periods on each side of the end of the original tables"
@@ -7105,7 +7751,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7114,7 +7762,7 @@
    "suite": "pytest",
    "title": "the 2005-based file is put on the 2009 base",
    "file": "tests/test_module1_originals.py",
-   "line": 22,
+   "line": 24,
    "node": "tests/test_module1_originals.py::test_the_2005_based_file_is_put_on_the_2009_base",
    "given": [
     "a made-up 2009 original table on the 2005 base"
@@ -7128,7 +7776,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7137,7 +7787,7 @@
    "suite": "pytest",
    "title": "a subclass takes its class's row, else its group's, else its division's",
    "file": "tests/test_module1_originals.py",
-   "line": 34,
+   "line": 36,
    "node": "tests/test_module1_originals.py::test_a_subclass_takes_its_class_row_else_group_else_division",
    "given": [
     "a made-up 2010 original table with a class, a group and a division row",
@@ -7155,7 +7805,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7164,7 +7816,7 @@
    "suite": "pytest",
    "title": "old item numbers are never matched to subclasses",
    "file": "tests/test_module1_originals.py",
-   "line": 54,
+   "line": 56,
    "node": "tests/test_module1_originals.py::test_old_item_numbers_are_never_matched_to_subclasses",
    "given": [
     "a made-up 2010 table where old item 07222 (lubricants) is flat while its class (car fuels) rises 30%"
@@ -7180,7 +7832,9 @@
    "notes": "In the old list 07222 is \"lubricants\" (flat) while the class (car fuels) rose 30%: every v1\nsubclass of 07.2.2, petrol included, must take the class's movement, not the item's.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7189,7 +7843,7 @@
    "suite": "pytest",
    "title": "each year keeps its own December and borrows one only when missing",
    "file": "tests/test_module1_prices.py",
-   "line": 34,
+   "line": 36,
    "node": "tests/test_module1_prices.py::test_each_year_keeps_its_own_december_and_borrows_one_only_when_missing",
    "given": [
     "CPI table 07 rows for 2012 and 2013 from files with no link month, and 2014 from a file with its own December 2013 on another base"
@@ -7205,7 +7859,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7214,7 +7870,7 @@
    "suite": "pytest",
    "title": "two table 07 files for one year are refused",
    "file": "tests/test_module1_prices.py",
-   "line": 51,
+   "line": 53,
    "node": "tests/test_module1_prices.py::test_two_files_for_one_year_are_refused",
    "given": [
     "CPI rows for 2014 from two different files"
@@ -7228,7 +7884,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7237,7 +7895,7 @@
    "suite": "pytest",
    "title": "the price update is chained through each December",
    "file": "tests/test_module1_prices.py",
-   "line": 71,
+   "line": 73,
    "node": "tests/test_module1_prices.py::test_price_update_is_chained_through_each_december",
    "given": [
     "blocks where 2021 averages 110 and ends at 220, and 2022 and 2023 each rise 10% December to December"
@@ -7254,7 +7912,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7263,7 +7923,7 @@
    "suite": "pytest",
    "title": "which index prices each leaf",
    "file": "tests/test_module1_prices.py",
-   "line": 88,
+   "line": 90,
    "node": "tests/test_module1_prices.py::test_pricing_map_rules",
    "given": [
     "a basket with games of chance, education not by level, and suppressed food cells",
@@ -7279,7 +7939,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7288,7 +7950,7 @@
    "suite": "pytest",
    "title": "weights drop and rescale after price-updating",
    "file": "tests/test_module1_prices.py",
-   "line": 106,
+   "line": 108,
    "node": "tests/test_module1_prices.py::test_weights_used_drop_and_rescale_after_updating",
    "given": [
     "a basket with food, games of chance and a flat item, and a source with no index for games of chance"
@@ -7304,7 +7966,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7313,7 +7977,7 @@
    "suite": "pytest",
    "title": "an item that can't be price-updated is refused",
    "file": "tests/test_module1_prices.py",
-   "line": 125,
+   "line": 127,
    "node": "tests/test_module1_prices.py::test_weights_used_refuses_an_item_it_cannot_update",
    "given": [
     "a basket with an item that has no price index"
@@ -7327,7 +7991,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7336,7 +8002,7 @@
    "suite": "pytest",
    "title": "imputed rent is priced with actual rents even when its cell is small",
    "file": "tests/test_module1_prices.py",
-   "line": 137,
+   "line": 139,
    "node": "tests/test_module1_prices.py::test_imputed_rent_is_priced_with_actual_rents_even_when_its_cell_is_small",
    "given": [
     "a basket whose imputed rent subclasses include a suppressed cell"
@@ -7350,7 +8016,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7359,7 +8027,7 @@
    "suite": "pytest",
    "title": "tutoring's fraction and exclusion with a COICOP 2018 survey",
    "file": "tests/test_module1_prices.py",
-   "line": 151,
+   "line": 153,
    "node": "tests/test_module1_prices.py::test_tutoring_fraction_and_exclusion_with_a_2018_coded_survey",
    "given": [
     "a basket coded in COICOP 2018 with education by level and not by level",
@@ -7375,7 +8043,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7384,7 +8054,7 @@
    "suite": "pytest",
    "title": "tutoring exclusion with an older survey uses the group's split",
    "file": "tests/test_module1_prices.py",
-   "line": 167,
+   "line": 169,
    "node": "tests/test_module1_prices.py::test_tutoring_exclusion_with_an_older_survey_uses_the_groups_split",
    "given": [
     "education leaves totalling 0.10, with a tutoring split of 0.5"
@@ -7402,7 +8072,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7411,7 +8083,7 @@
    "suite": "pytest",
    "title": "a tutoring split of 1 leaves zero, not negative, weights",
    "file": "tests/test_module1_prices.py",
-   "line": 190,
+   "line": 192,
    "node": "tests/test_module1_prices.py::test_tutoring_exclusion_with_a_split_of_one_leaves_zero_not_negative_weights",
    "given": [
     "education leaves whose shares round badly, with a tutoring split of 1.0"
@@ -7427,7 +8099,9 @@
    "notes": "A group whose 2018-coded survey has all its education in 10.5 (split 1.0) loses all of\n10.1-10.2. Computed as 1 - rest / level, the kept share came out about -1e-18 for these\nshares (rounding), and the engine refuses negative weights.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7436,7 +8110,7 @@
    "suite": "pytest",
    "title": "tutoring is left out only from 2026",
    "file": "tests/test_module1_prices.py",
-   "line": 216,
+   "line": 218,
    "node": "tests/test_module1_prices.py::test_weights_used_leaves_tutoring_out_only_from_2026",
    "given": [
     "a basket with tutoring and the option tutoring \"excluded\""
@@ -7453,7 +8127,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7462,7 +8138,7 @@
    "suite": "pytest",
    "title": "HICP blocks keep an item only for years it fully prices",
    "file": "tests/test_module1_prices.py",
-   "line": 251,
+   "line": 253,
    "node": "tests/test_module1_prices.py::test_hicp_blocks_keep_an_item_only_for_years_it_fully_prices",
    "given": [
     "HICP rows for food over 2014-2015, an item that stops in 2014-12 and one that starts in 2015-12"
@@ -7478,7 +8154,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7487,7 +8165,7 @@
    "suite": "pytest",
    "title": "final weights where the year before is held, else the newest out in January",
    "file": "tests/test_module1_schedule.py",
-   "line": 12,
+   "line": 16,
    "node": "tests/test_module1_schedule.py::test_final_where_the_year_before_is_held_else_the_newest_available_in_january",
    "given": [
     "surveys 2021 to 2024 and release dates for 2023 and 2024"
@@ -7502,7 +8180,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7511,7 +8191,7 @@
    "suite": "pytest",
    "title": "with no survey out in time, the schedule is empty",
    "file": "tests/test_module1_schedule.py",
-   "line": 27,
+   "line": 31,
    "node": "tests/test_module1_schedule.py::test_no_candidate_ends_the_schedule",
    "given": [
     "only survey 2024, released on 2026-04-01"
@@ -7525,7 +8205,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7534,7 +8216,7 @@
    "suite": "pytest",
    "title": "the package's release dates load",
    "file": "tests/test_module1_schedule.py",
-   "line": 38,
+   "line": 42,
    "node": "tests/test_module1_schedule.py::test_package_release_dates_load",
    "given": [
     "the package's survey release dates"
@@ -7548,7 +8230,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7557,7 +8241,7 @@
    "suite": "pytest",
    "title": "rule F's fixed lag starts at the first held survey and never revises",
    "file": "tests/test_module1_schedule.py",
-   "line": 49,
+   "line": 53,
    "node": "tests/test_module1_schedule.py::test_rule_f_fixed_lag_starts_at_the_first_held_survey_and_never_revises",
    "given": [
     "surveys 2008 to 2024"
@@ -7573,7 +8257,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7582,7 +8268,7 @@
    "suite": "pytest",
    "title": "rule F's 2026 equals rule N's first estimate on the package's dates",
    "file": "tests/test_module1_schedule.py",
-   "line": 65,
+   "line": 69,
    "node": "tests/test_module1_schedule.py::test_rule_f_2026_equals_rule_n_first_estimate_with_the_package_dates",
    "given": [
     "surveys 2008 to 2024 and the package's release dates"
@@ -7597,7 +8283,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7606,7 +8294,7 @@
    "suite": "pytest",
    "title": "rule U uses the same year and stops at the newest survey",
    "file": "tests/test_module1_schedule.py",
-   "line": 80,
+   "line": 84,
    "node": "tests/test_module1_schedule.py::test_rule_u_same_year_and_stops_at_the_newest_survey",
    "given": [
     "surveys 2008 to 2024"
@@ -7621,7 +8309,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7630,7 +8320,7 @@
    "suite": "pytest",
    "title": "a missing survey ends rule F rather than skipping a year",
    "file": "tests/test_module1_schedule.py",
-   "line": 94,
+   "line": 98,
    "node": "tests/test_module1_schedule.py::test_a_missing_survey_ends_rule_f_rather_than_skipping_a_year",
    "given": [
     "surveys 2008, 2009, 2011 and 2012"
@@ -7644,7 +8334,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7653,7 +8345,7 @@
    "suite": "pytest",
    "title": "without email settings a report goes to the outbox",
    "file": "tests/test_notify_schedule.py",
-   "line": 12,
+   "line": 16,
    "node": "tests/test_notify_schedule.py::test_notify_without_email_writes_outbox",
    "given": [
     "a configuration with no email settings"
@@ -7668,7 +8360,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7677,7 +8371,7 @@
    "suite": "pytest",
    "title": "the Windows scheduled task runs the archive job daily at 13:00",
    "file": "tests/test_notify_schedule.py",
-   "line": 25,
+   "line": 29,
    "node": "tests/test_notify_schedule.py::test_task_xml_is_valid",
    "given": [
     "a default configuration and a Windows Python interpreter"
@@ -7694,7 +8388,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7703,7 +8399,7 @@
    "suite": "pytest",
    "title": "the example configuration parses",
    "file": "tests/test_notify_schedule.py",
-   "line": 43,
+   "line": 47,
    "node": "tests/test_notify_schedule.py::test_config_example_parses",
    "given": [
     "the repository's config.example.toml"
@@ -7719,7 +8415,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -7728,7 +8426,7 @@
    "suite": "pytest",
    "title": "a first load, then a revision and a withdrawal",
    "file": "tests/test_observation_store.py",
-   "line": 64,
+   "line": 66,
    "node": "tests/test_observation_store.py::test_first_load_then_a_revision_and_a_withdrawal",
    "given": [
     "an archive with one snapshot of Eurostat's HICP monthly indices"
@@ -7748,7 +8446,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7757,7 +8457,7 @@
    "suite": "pytest",
    "title": "observations carry their publication time, its quality and their status",
    "file": "tests/test_observation_store.py",
-   "line": 101,
+   "line": 103,
    "node": "tests/test_observation_store.py::test_vintage_dates_and_status",
    "given": [
     "an archive with one HICP snapshot whose Eurostat update time is 2026-09-16 23:00 +02:00"
@@ -7772,7 +8472,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7781,7 +8483,7 @@
    "suite": "pytest",
    "title": "an incremental store equals a full rebuild",
    "file": "tests/test_observation_store.py",
-   "line": 121,
+   "line": 123,
    "node": "tests/test_observation_store.py::test_incremental_equals_full_rebuild",
    "given": [
     "an archive with two HICP snapshots"
@@ -7796,7 +8498,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7805,7 +8509,7 @@
    "suite": "pytest",
    "title": "two files feed one dataset without withdrawing each other",
    "file": "tests/test_observation_store.py",
-   "line": 140,
+   "line": 142,
    "node": "tests/test_observation_store.py::test_two_files_feed_one_dataset_without_withdrawing_each_other",
    "given": [
     "an archive with CPI table 07 for 2025 and for 2026, each its own archive dataset"
@@ -7821,7 +8525,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7830,7 +8536,7 @@
    "suite": "pytest",
    "title": "table 05 is read from the English file only",
    "file": "tests/test_observation_store.py",
-   "line": 162,
+   "line": 164,
    "node": "tests/test_observation_store.py::test_table05_english_file_only",
    "given": [
     "an archive with CPI table 05 in English and in Greek"
@@ -7845,7 +8551,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7854,7 +8562,7 @@
    "suite": "pytest",
    "title": "an older snapshot arriving late rebuilds the dataset",
    "file": "tests/test_observation_store.py",
-   "line": 182,
+   "line": 184,
    "node": "tests/test_observation_store.py::test_older_snapshot_arriving_late_rebuilds",
    "given": [
     "a store updated from the newer HICP snapshot"
@@ -7869,7 +8577,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7878,7 +8588,7 @@
    "suite": "pytest",
    "title": "a parser change rebuilds the dataset",
    "file": "tests/test_observation_store.py",
-   "line": 198,
+   "line": 200,
    "node": "tests/test_observation_store.py::test_parser_change_rebuilds",
    "given": [
     "a store updated from one HICP snapshot"
@@ -7893,7 +8603,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7902,7 +8614,7 @@
    "suite": "pytest",
    "title": "a store part without a loaded record is dropped",
    "file": "tests/test_observation_store.py",
-   "line": 214,
+   "line": 216,
    "node": "tests/test_observation_store.py::test_part_without_a_loaded_record_is_dropped",
    "given": [
     "a store updated from one HICP snapshot",
@@ -7917,7 +8629,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7926,7 +8640,7 @@
    "suite": "pytest",
    "title": "as-of rows come in a fixed order",
    "file": "tests/test_observation_store.py",
-   "line": 232,
+   "line": 234,
    "node": "tests/test_observation_store.py::test_as_of_rows_come_in_a_fixed_order",
    "given": [
     "an archive with one HICP snapshot"
@@ -7941,7 +8655,9 @@
    "notes": "Parallel reads return rows in any order; sums over them must not depend on it.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7950,7 +8666,7 @@
    "suite": "pytest",
    "title": "label files come only from the datasets the store reads",
    "file": "tests/test_observation_store.py",
-   "line": 256,
+   "line": 258,
    "node": "tests/test_observation_store.py::test_label_files_come_only_from_the_datasets_the_store_reads",
    "given": [
     "an archive with a Greek table 07 document and an old original table whose file name the label pattern also matches"
@@ -7964,7 +8680,9 @@
    "notes": "An old table kept elsewhere in the archive for another purpose has a name the label\npattern matches, but another format: it must not be read for labels.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -7973,7 +8691,7 @@
    "suite": "pytest",
    "title": "a weights table becomes one row per value, keeping its text",
    "file": "tests/test_oet_local.py",
-   "line": 32,
+   "line": 34,
    "node": "tests/test_oet_local.py::test_rows_are_one_value_each_and_keep_text",
    "given": [
     "a made-up weights CSV with a spending column, including a \"<20\" count and an empty standard error"
@@ -7991,7 +8709,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8000,7 +8720,7 @@
    "suite": "pytest",
    "title": "files from before the spending dimension read as all modes",
    "file": "tests/test_oet_local.py",
-   "line": 56,
+   "line": 58,
    "node": "tests/test_oet_local.py::test_files_from_before_the_spending_dimension_read_as_all_modes",
    "given": [
     "a made-up weights CSV without a spending column"
@@ -8014,7 +8734,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8023,7 +8745,7 @@
    "suite": "pytest",
    "title": "duplicate rows and missing columns are refused",
    "file": "tests/test_oet_local.py",
-   "line": 68,
+   "line": 70,
    "node": "tests/test_oet_local.py::test_duplicate_or_missing_columns_are_refused",
    "given": [
     "a made-up weights CSV with a row repeated",
@@ -8039,7 +8761,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8048,7 +8772,7 @@
    "suite": "pytest",
    "title": "archived weights and groups tables reach the store",
    "file": "tests/test_oet_local.py",
-   "line": 87,
+   "line": 89,
    "node": "tests/test_oet_local.py::test_archived_tables_reach_the_store",
    "given": [
     "made-up weights and groups tables archived under oet-local"
@@ -8064,7 +8788,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -8073,7 +8799,7 @@
    "suite": "pytest",
    "title": "the CSV writes small counts as text and is repeatable",
    "file": "tests/test_oet_local.py",
-   "line": 111,
+   "line": 114,
    "node": "tests/test_oet_local.py::test_csv_writes_small_counts_as_text_and_is_repeatable",
    "given": [
     "counts of 19 and 20, and a table with a missing number and a missing text"
@@ -8088,7 +8814,9 @@
    "notes": "Needs pandas (skipped without the local extra).",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8097,7 +8825,7 @@
    "suite": "pytest",
    "title": "a bands file has many periods per series",
    "file": "tests/test_oet_local.py",
-   "line": 128,
+   "line": 131,
    "node": "tests/test_oet_local.py::test_bands_file_has_many_periods_per_series",
    "given": [
     "a made-up bands CSV with one series over two months",
@@ -8113,7 +8841,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8122,7 +8852,7 @@
    "suite": "pytest",
    "title": "an income limits file is read per fifth",
    "file": "tests/test_oet_local.py",
-   "line": 147,
+   "line": 150,
    "node": "tests/test_oet_local.py::test_limits_file_reads_one_row_per_fifth",
    "given": [
     "a made-up limits CSV for Q1 and Q2, Q2 without a standard error"
@@ -8138,7 +8868,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8147,7 +8879,7 @@
    "suite": "pytest",
    "title": "the 2025 English .xls table 07",
    "file": "tests/test_parse_elstat.py",
-   "line": 14,
+   "line": 16,
    "node": "tests/test_parse_elstat.py::test_2025_english_xls",
    "given": [
     "ELSTAT's CPI table 07 for 2025 in English (.xls)"
@@ -8165,7 +8897,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8174,7 +8908,7 @@
    "suite": "pytest",
    "title": "the 2026 English .xlsx table 07 for part of a year",
    "file": "tests/test_parse_elstat.py",
-   "line": 35,
+   "line": 37,
    "node": "tests/test_parse_elstat.py::test_2026_english_xlsx_part_year",
    "given": [
     "ELSTAT's CPI table 07 for 2026 in English (.xlsx), January to September"
@@ -8190,7 +8924,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8199,7 +8935,7 @@
    "suite": "pytest",
    "title": "the 2011 Greek .xls table 07 without a link month",
    "file": "tests/test_parse_elstat.py",
-   "line": 51,
+   "line": 53,
    "node": "tests/test_parse_elstat.py::test_2011_greek_xls_without_link_month",
    "given": [
     "ELSTAT's CPI table 07 for 2011 in Greek (.xls), from the years whose files carry no December column"
@@ -8216,7 +8952,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8225,7 +8963,7 @@
    "suite": "pytest",
    "title": "the table as long rows",
    "file": "tests/test_parse_elstat.py",
-   "line": 70,
+   "line": 72,
    "node": "tests/test_parse_elstat.py::test_long_rows",
    "given": [
     "the 2025 table 07"
@@ -8240,7 +8978,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8249,7 +8989,7 @@
    "suite": "pytest",
    "title": "a file that isn't Excel is refused",
    "file": "tests/test_parse_elstat.py",
-   "line": 84,
+   "line": 86,
    "node": "tests/test_parse_elstat.py::test_not_excel_is_refused",
    "given": [
     "a CSV file"
@@ -8263,7 +9003,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8272,7 +9014,7 @@
    "suite": "pytest",
    "title": "V1-CPI on the 2025 and 2026 tables",
    "file": "tests/test_parse_elstat.py",
-   "line": 97,
+   "line": 99,
    "node": "tests/test_parse_elstat.py::test_v1_cpi_on_2025_and_2026",
    "given": [
     "the 2025 and 2026 tables 07"
@@ -8288,7 +9030,9 @@
    "notes": "Two files give 2026's links to December 2025, but no annual rates (2025 isn't chained).",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -8297,7 +9041,7 @@
    "suite": "pytest",
    "title": "the real table 05 for September 2026",
    "file": "tests/test_parse_elstat_table05.py",
-   "line": 16,
+   "line": 18,
    "node": "tests/test_parse_elstat_table05.py::test_real_file_september_2026",
    "given": [
     "ELSTAT's CPI table 05 as published for September 2026"
@@ -8317,7 +9061,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8326,7 +9072,7 @@
    "suite": "pytest",
    "title": "the published rate is its own index ratio except in eight months",
    "file": "tests/test_parse_elstat_table05.py",
-   "line": 46,
+   "line": 48,
    "node": "tests/test_parse_elstat_table05.py::test_published_rate_is_its_own_index_ratio_except_eight_months",
    "given": [
     "the real table 05 for September 2026"
@@ -8341,7 +9087,9 @@
    "notes": "June-December 1999 were published rounded to one decimal; June 2001's rate (3.9332%) doesn't\nfollow from the two index levels (3.9239%), and rounding doesn't explain it.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8350,7 +9098,7 @@
    "suite": "pytest",
    "title": "a made-up file in table 05's layout parses",
    "file": "tests/test_parse_elstat_table05.py",
-   "line": 90,
+   "line": 92,
    "node": "tests/test_parse_elstat_table05.py::test_made_up_file_parses",
    "given": [
     "a made-up table 05 for 1959 to March 1960"
@@ -8365,7 +9113,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8374,7 +9124,7 @@
    "suite": "pytest",
    "title": "a changed layout is refused",
    "file": "tests/test_parse_elstat_table05.py",
-   "line": 102,
+   "line": 104,
    "node": "tests/test_parse_elstat_table05.py::test_refuses_a_changed_layout",
    "given": [
     "a made-up table 05 with one thing changed: another table's title, another base year, another rate header, months out of order, or a title whose last month doesn't match the data"
@@ -8394,7 +9144,9 @@
     "change4"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8403,7 +9155,7 @@
    "suite": "pytest",
    "title": "every Eurostat TSV dataset's fixture parses",
    "file": "tests/test_parse_eurostat.py",
-   "line": 26,
+   "line": 28,
    "node": "tests/test_parse_eurostat.py::test_every_dataset_fixture_parses",
    "given": [
     "the trimmed fixture of a Eurostat TSV dataset the catalog lists"
@@ -8427,7 +9179,9 @@
     "eurostat:prc_hicp_minr"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8436,7 +9190,7 @@
    "suite": "pytest",
    "title": "the EU-SILC income limits parse with their units",
    "file": "tests/test_parse_eurostat.py",
-   "line": 46,
+   "line": 48,
    "node": "tests/test_parse_eurostat.py::test_income_limits_parse_with_their_units",
    "given": [
     "the ilc_di01 fixture"
@@ -8450,7 +9204,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8459,7 +9215,7 @@
    "suite": "pytest",
    "title": "values are kept as published",
    "file": "tests/test_parse_eurostat.py",
-   "line": 59,
+   "line": 61,
    "node": "tests/test_parse_eurostat.py::test_values_kept_as_published",
    "given": [
     "the HICP monthly index fixture"
@@ -8473,7 +9229,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8482,7 +9240,7 @@
    "suite": "pytest",
    "title": "the item weights parse",
    "file": "tests/test_parse_eurostat.py",
-   "line": 72,
+   "line": 74,
    "node": "tests/test_parse_eurostat.py::test_weights",
    "given": [
     "the HICP item weights fixture"
@@ -8496,7 +9254,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8505,7 +9265,7 @@
    "suite": "pytest",
    "title": "a flagged empty cell is kept without a value",
    "file": "tests/test_parse_eurostat.py",
-   "line": 83,
+   "line": 85,
    "node": "tests/test_parse_eurostat.py::test_flagged_empty_cell_is_kept_without_a_value",
    "given": [
     "the HICP monthly index fixture"
@@ -8520,7 +9280,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8529,7 +9291,7 @@
    "suite": "pytest",
    "title": "the release dimension is read",
    "file": "tests/test_parse_eurostat.py",
-   "line": 96,
+   "line": 98,
    "node": "tests/test_parse_eurostat.py::test_release_dimension",
    "given": [
     "the HICP flash estimate fixture"
@@ -8543,7 +9305,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8552,7 +9316,7 @@
    "suite": "pytest",
    "title": "a file with the wrong dimensions is refused",
    "file": "tests/test_parse_eurostat.py",
-   "line": 117,
+   "line": 119,
    "node": "tests/test_parse_eurostat.py::test_wrong_dimensions_are_refused",
    "given": [
     "the item weights fixture"
@@ -8566,7 +9330,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8575,7 +9341,7 @@
    "suite": "pytest",
    "title": "surprises in a file are refused",
    "file": "tests/test_parse_eurostat.py",
-   "line": 128,
+   "line": 130,
    "node": "tests/test_parse_eurostat.py::test_surprises_are_refused",
    "given": [
     "a made-up weights file with one surprise: an unknown flag, a value that isn't a number, an unknown country code or a series that appears twice"
@@ -8594,7 +9360,9 @@
     "A,CP01,IW,EL\\t1.0 \\t2.0 \\nA,CP01,IW,EL\\t1.0 \\t2.0 \\n-appear twice"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8603,7 +9371,7 @@
    "suite": "pytest",
    "title": "an unexpected period column is refused",
    "file": "tests/test_parse_eurostat.py",
-   "line": 146,
+   "line": 148,
    "node": "tests/test_parse_eurostat.py::test_unexpected_period_column_is_refused",
    "given": [
     "a made-up annual weights file with a monthly period column"
@@ -8617,7 +9385,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8626,7 +9396,7 @@
    "suite": "pytest",
    "title": "document links on ELSTAT's CPI page",
    "file": "tests/test_parsers.py",
-   "line": 7,
+   "line": 11,
    "node": "tests/test_parsers.py::test_elstat_document_links",
    "given": [
     "a saved copy of ELSTAT's CPI page"
@@ -8641,7 +9411,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8650,7 +9422,7 @@
    "suite": "pytest",
    "title": "release dates on ELSTAT's calendar",
    "file": "tests/test_parsers.py",
-   "line": 20,
+   "line": 24,
    "node": "tests/test_parsers.py::test_elstat_calendar",
    "given": [
     "a saved copy of ELSTAT's release calendar"
@@ -8666,7 +9438,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8675,7 +9449,7 @@
    "suite": "pytest",
    "title": "rows of ELSTAT's microdata catalogue",
    "file": "tests/test_parsers.py",
-   "line": 35,
+   "line": 39,
    "node": "tests/test_parsers.py::test_elstat_puf_catalogue",
    "given": [
     "a saved copy of ELSTAT's microdata (PUF) catalogue page"
@@ -8690,7 +9464,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8699,7 +9475,7 @@
    "suite": "pytest",
    "title": "a Eurostat dataflow's last update time",
    "file": "tests/test_parsers.py",
-   "line": 48,
+   "line": 52,
    "node": "tests/test_parsers.py::test_eurostat_last_update",
    "given": [
     "a saved Eurostat dataflow for prc_hicp_minr"
@@ -8713,7 +9489,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8722,7 +9500,7 @@
    "suite": "pytest",
    "title": "release dates on Eurostat's calendar",
    "file": "tests/test_parsers.py",
-   "line": 58,
+   "line": 62,
    "node": "tests/test_parsers.py::test_eurostat_calendar",
    "given": [
     "a saved copy of Eurostat's release calendar"
@@ -8736,7 +9514,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8745,7 +9525,7 @@
    "suite": "pytest",
    "title": "a Eurostat bulk download URL",
    "file": "tests/test_parsers.py",
-   "line": 69,
+   "line": 73,
    "node": "tests/test_parsers.py::test_eurostat_urls",
    "given": [
     "the dataset code prc_hicp_minr"
@@ -8759,7 +9539,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8768,7 +9550,7 @@
    "suite": "pytest",
    "title": "visible text skips scripts and the title",
    "file": "tests/test_parsers.py",
-   "line": 79,
+   "line": 83,
    "node": "tests/test_parsers.py::test_visible_text_skips_scripts",
    "given": [
     "an HTML page with a title, a script and a paragraph with bold text"
@@ -8782,7 +9564,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8791,7 +9575,7 @@
    "suite": "pytest",
    "title": "the bibliography's keys are many and tidy",
    "file": "tests/test_references.py",
-   "line": 10,
+   "line": 14,
    "node": "tests/test_references.py::test_keys_are_unique_and_tidy",
    "given": [
     "the project's bibliography"
@@ -8806,7 +9590,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8815,7 +9601,7 @@
    "suite": "pytest",
    "title": "every entry has a title, an author and a way to find it",
    "file": "tests/test_references.py",
-   "line": 24,
+   "line": 28,
    "node": "tests/test_references.py::test_every_entry_has_a_title_and_a_way_to_find_it",
    "given": [
     "the project's bibliography"
@@ -8830,7 +9616,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8839,7 +9627,7 @@
    "suite": "pytest",
    "title": "the braces balance",
    "file": "tests/test_references.py",
-   "line": 40,
+   "line": 44,
    "node": "tests/test_references.py::test_braces_balance",
    "given": [
     "the bibliography's text"
@@ -8854,7 +9642,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8863,7 +9653,7 @@
    "suite": "pytest",
    "title": "missing citation keys are reported",
    "file": "tests/test_references.py",
-   "line": 55,
+   "line": 59,
    "node": "tests/test_references.py::test_missing_keys_are_reported",
    "given": [
     "two keys in the bibliography and one that isn't"
@@ -8877,7 +9667,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8886,7 +9678,7 @@
    "suite": "pytest",
    "title": "a good release build keeps its files and reports the preview",
    "file": "tests/test_release.py",
-   "line": 71,
+   "line": 73,
    "node": "tests/test_release.py::test_a_good_build_keeps_everything_and_reports_the_preview",
    "given": [
     "a configuration with release builds on and steps that all succeed"
@@ -8905,7 +9697,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8914,7 +9708,7 @@
    "suite": "pytest",
    "title": "a failed step stops the release build and raises an alert",
    "file": "tests/test_release.py",
-   "line": 98,
+   "line": 100,
    "node": "tests/test_release.py::test_a_failed_step_stops_the_build_and_raises_an_alert",
    "given": [
     "steps where check-v1 fails"
@@ -8931,7 +9725,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8940,7 +9736,7 @@
    "suite": "pytest",
    "title": "the upload is a preview version named from the configuration",
    "file": "tests/test_release.py",
-   "line": 117,
+   "line": 119,
    "node": "tests/test_release.py::test_upload_is_a_preview_version_named_from_the_config",
    "given": [
     "a release configuration"
@@ -8957,7 +9753,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8966,7 +9764,7 @@
    "suite": "pytest",
    "title": "release builds turn on the visit-count beacon",
    "file": "tests/test_release.py",
-   "line": 135,
+   "line": 137,
    "node": "tests/test_release.py::test_release_builds_carry_the_visit_count_beacon",
    "given": [
     "no analytics setting in the environment"
@@ -8980,7 +9778,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -8989,7 +9789,7 @@
    "suite": "pytest",
    "title": "only a good build can be promoted, and it becomes the baseline",
    "file": "tests/test_release.py",
-   "line": 147,
+   "line": 149,
    "node": "tests/test_release.py::test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline",
    "given": [
     "a build that failed at the series step, and a good build"
@@ -9007,7 +9807,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9016,7 +9818,7 @@
    "suite": "pytest",
    "title": "pruning keeps the newest builds and the promoted one",
    "file": "tests/test_release.py",
-   "line": 171,
+   "line": 173,
    "node": "tests/test_release.py::test_pruning_keeps_the_newest_and_the_promoted_build",
    "given": [
     "a configuration that keeps two builds",
@@ -9031,7 +9833,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9040,7 +9844,7 @@
    "suite": "pytest",
    "title": "the changes since the last release are counted",
    "file": "tests/test_release.py",
-   "line": 189,
+   "line": 191,
    "node": "tests/test_release.py::test_changes_since_the_last_release",
    "given": [
     "an old and a new set of rate outputs, where the new one revises one month by 0.1 points and adds a month"
@@ -9055,7 +9859,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9064,7 +9870,7 @@
    "suite": "pytest",
    "title": "only newly stored files that feed the store trigger a release",
    "file": "tests/test_release.py",
-   "line": 211,
+   "line": 213,
    "node": "tests/test_release.py::test_only_files_that_feed_the_store_trigger_a_release",
    "given": [
     "a run that stored a HICP file and a calendar page, and found another HICP file unchanged"
@@ -9078,7 +9884,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9087,7 +9895,7 @@
    "suite": "pytest",
    "title": "a promote to production deploys the build",
    "file": "tests/test_release.py",
-   "line": 228,
+   "line": 230,
    "node": "tests/test_release.py::test_promoting_to_production_publishes_on_the_public_address",
    "given": [
     "a good build"
@@ -9101,7 +9909,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9110,7 +9920,7 @@
    "suite": "pytest",
    "title": "a promote to an unknown target is refused",
    "file": "tests/test_release.py",
-   "line": 242,
+   "line": 244,
    "node": "tests/test_release.py::test_the_target_is_chosen_on_each_promote",
    "given": [
     "a good build"
@@ -9125,7 +9935,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9134,7 +9946,7 @@
    "suite": "pytest",
    "title": "staging and production serve their own builds",
    "file": "tests/test_release.py",
-   "line": 257,
+   "line": 259,
    "node": "tests/test_release.py::test_staging_and_production_serve_their_own_builds",
    "given": [
     "two good builds, the first promoted to production and the second to staging"
@@ -9151,7 +9963,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9160,7 +9974,7 @@
    "suite": "pytest",
    "title": "a promote record from before targets reads as staging",
    "file": "tests/test_release.py",
-   "line": 283,
+   "line": 285,
    "node": "tests/test_release.py::test_a_promote_record_from_before_targets_reads_as_staging",
    "given": [
     "an old single promote record"
@@ -9175,7 +9989,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9184,7 +10000,7 @@
    "suite": "pytest",
    "title": "the browser tests run before the upload and again on the preview",
    "file": "tests/test_release.py",
-   "line": 298,
+   "line": 300,
    "node": "tests/test_release.py::test_the_browser_tests_run_before_upload_and_again_on_the_preview",
    "given": [
     "steps that all succeed"
@@ -9202,7 +10018,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9211,7 +10029,7 @@
    "suite": "pytest",
    "title": "a build held back by its browser tests publishes nothing and keeps its files",
    "file": "tests/test_release.py",
-   "line": 321,
+   "line": 323,
    "node": "tests/test_release.py::test_a_build_held_back_by_its_browser_tests_publishes_nothing_and_keeps_its_files",
    "given": [
     "steps where ui-test fails"
@@ -9228,7 +10046,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9237,7 +10057,7 @@
    "suite": "pytest",
    "title": "a retest runs the remaining steps on the build's own files",
    "file": "tests/test_release.py",
-   "line": 342,
+   "line": 344,
    "node": "tests/test_release.py::test_a_retest_runs_the_rest_on_the_files_the_build_made",
    "given": [
     "a build held back at ui-test",
@@ -9256,7 +10076,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9265,7 +10087,7 @@
    "suite": "pytest",
    "title": "a retest after the upload tests the version already uploaded",
    "file": "tests/test_release.py",
-   "line": 369,
+   "line": 371,
    "node": "tests/test_release.py::test_a_retest_after_the_upload_tests_the_version_already_uploaded",
    "given": [
     "a build that failed at smoke, after its upload"
@@ -9279,7 +10101,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9288,7 +10112,7 @@
    "suite": "pytest",
    "title": "a retest refuses what a retest can't fix",
    "file": "tests/test_release.py",
-   "line": 383,
+   "line": 385,
    "node": "tests/test_release.py::test_a_retest_refuses_what_a_retest_cant_fix",
    "given": [
     "a good build, a build that failed at check-v1, an unknown build id",
@@ -9306,7 +10130,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9315,7 +10141,7 @@
    "suite": "pytest",
    "title": "a promote is confirmed only when the target serves the build",
    "file": "tests/test_release.py",
-   "line": 409,
+   "line": 411,
    "node": "tests/test_release.py::test_a_promote_is_confirmed_only_when_the_target_serves_the_build",
    "given": [
     "a good build and a host that serves each promoted build's files"
@@ -9334,7 +10160,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9343,7 +10171,7 @@
    "suite": "pytest",
    "title": "a promote to production needs the public address",
    "file": "tests/test_release.py",
-   "line": 436,
+   "line": 438,
    "node": "tests/test_release.py::test_a_promote_to_production_needs_the_public_address",
    "given": [
     "a good build and a release configuration with no production address"
@@ -9358,7 +10186,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9367,7 +10197,7 @@
    "suite": "pytest",
    "title": "the public address is read from the configuration without a trailing slash",
    "file": "tests/test_release.py",
-   "line": 454,
+   "line": 456,
    "node": "tests/test_release.py::test_the_public_address_is_read_from_the_config_without_a_trailing_slash",
    "given": [
     "a configuration whose production address ends in a slash"
@@ -9382,7 +10212,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9391,7 +10223,7 @@
    "suite": "pytest",
    "title": "the failing browser tests are named from their results file",
    "file": "tests/test_release.py",
-   "line": 481,
+   "line": 483,
    "node": "tests/test_release.py::test_the_failing_browser_tests_are_named_from_their_results_file",
    "given": [
     "a Playwright results file with a passing test, a failing nested test and an error outside the tests"
@@ -9407,7 +10239,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9416,7 +10250,7 @@
    "suite": "pytest",
    "title": "a browser-test failure email names the tests and the report",
    "file": "tests/test_release.py",
-   "line": 499,
+   "line": 501,
    "node": "tests/test_release.py::test_a_browser_test_failure_email_names_the_tests_and_the_report",
    "given": [
     "steps where ui-test fails and writes a results file"
@@ -9432,7 +10266,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9441,7 +10277,7 @@
    "suite": "pytest",
    "title": "every setting gets its files, and the shared ones are there",
    "file": "tests/test_sitedata.py",
-   "line": 21,
+   "line": 23,
    "node": "tests/test_sitedata.py::test_every_setting_gets_its_files_and_the_shared_ones_are_there",
    "given": [
     "the made-up site data generated through the real export"
@@ -9457,7 +10293,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -9466,7 +10304,7 @@
    "suite": "pytest",
    "title": "the country card's two rates agree",
    "file": "tests/test_sitedata.py",
-   "line": 38,
+   "line": 40,
    "node": "tests/test_sitedata.py::test_the_country_card_rates_come_from_one_index_so_they_agree",
    "given": [
     "the made-up site data"
@@ -9480,7 +10318,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -9489,7 +10329,7 @@
    "suite": "pytest",
    "title": "the made-up baskets take the special paths",
    "file": "tests/test_sitedata.py",
-   "line": 49,
+   "line": 51,
    "node": "tests/test_sitedata.py::test_made_up_baskets_take_the_special_paths",
    "given": [
     "the made-up site data's weights-used downloads"
@@ -9505,7 +10345,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -9514,7 +10356,7 @@
    "suite": "pytest",
    "title": "a file is stored, then the same bytes are unchanged",
    "file": "tests/test_store.py",
-   "line": 10,
+   "line": 14,
    "node": "tests/test_store.py::test_store_then_unchanged",
    "given": [
     "an empty archive"
@@ -9533,7 +10375,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9542,7 +10386,7 @@
    "suite": "pytest",
    "title": "a change is stored, and the index survives a reload",
    "file": "tests/test_store.py",
-   "line": 35,
+   "line": 39,
    "node": "tests/test_store.py::test_change_is_stored_and_index_survives_reload",
    "given": [
     "an archive that stored two different versions of a dataset"
@@ -9557,7 +10401,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9566,7 +10412,7 @@
    "suite": "pytest",
    "title": "a content hash ignores noise in the page",
    "file": "tests/test_store.py",
-   "line": 51,
+   "line": 55,
    "node": "tests/test_store.py::test_content_hash_ignores_noise",
    "given": [
     "two pages that differ only in a session token, stored with the same content hash"
@@ -9580,7 +10426,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9589,7 +10437,7 @@
    "suite": "pytest",
    "title": "two snapshots in the same second get their own folders",
    "file": "tests/test_store.py",
-   "line": 65,
+   "line": 69,
    "node": "tests/test_store.py::test_same_second_gets_a_new_folder",
    "given": [
     "an empty archive"
@@ -9603,7 +10451,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9612,7 +10462,7 @@
    "suite": "pytest",
    "title": "dedupe \"any\" matches any earlier snapshot",
    "file": "tests/test_store.py",
-   "line": 78,
+   "line": 82,
    "node": "tests/test_store.py::test_dedupe_any_for_backfill",
    "given": [
     "an archive holding an old and then a new version of a dataset"
@@ -9626,7 +10476,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9635,7 +10487,7 @@
    "suite": "pytest",
    "title": "unsafe dataset names are rejected",
    "file": "tests/test_store.py",
-   "line": 92,
+   "line": 96,
    "node": "tests/test_store.py::test_unsafe_names_rejected",
    "given": [
     "a dataset name that climbs out of the archive (\"../x\")"
@@ -9649,7 +10501,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9658,7 +10512,7 @@
    "suite": "pytest",
    "title": "listing what was stored since a time",
    "file": "tests/test_store.py",
-   "line": 106,
+   "line": 110,
    "node": "tests/test_store.py::test_stored_since",
    "given": [
     "an archive with one stored file"
@@ -9673,7 +10527,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9682,7 +10538,7 @@
    "suite": "pytest",
    "title": "the build's commit is read from git's own files",
    "file": "tests/test_testresults.py",
-   "line": 20,
+   "line": 22,
    "node": "tests/test_testresults.py::test_the_commit_is_read_from_git_itself",
    "given": [
     "a repository whose HEAD points to a branch"
@@ -9704,7 +10560,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9713,7 +10571,7 @@
    "suite": "pytest",
    "title": "a worktree checkout is followed to its repository",
    "file": "tests/test_testresults.py",
-   "line": 49,
+   "line": 51,
    "node": "tests/test_testresults.py::test_a_worktree_checkout_is_followed_to_its_repository",
    "given": [
     "a worktree whose .git file points into the main repository, on a branch whose ref is kept there"
@@ -9727,7 +10585,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9736,7 +10596,7 @@
    "suite": "pytest",
    "title": "a browser step sends its results first and its meta file last",
    "file": "tests/test_testresults.py",
-   "line": 67,
+   "line": 69,
    "node": "tests/test_testresults.py::test_results_then_meta_last",
    "given": [
     "a ui-test step run with a results file and a bucket link"
@@ -9753,7 +10613,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9762,7 +10624,7 @@
    "suite": "pytest",
    "title": "a promote check sends its meta file alone",
    "file": "tests/test_testresults.py",
-   "line": 91,
+   "line": 93,
    "node": "tests/test_testresults.py::test_a_promote_check_sends_its_meta_alone",
    "given": [
     "a promote check with no results file"
@@ -9777,7 +10639,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9786,7 +10650,7 @@
    "suite": "pytest",
    "title": "sending is off without a link, and failures are returned, not raised",
    "file": "tests/test_testresults.py",
-   "line": 105,
+   "line": 107,
    "node": "tests/test_testresults.py::test_off_without_a_link_and_failures_returned_not_raised",
    "given": [
     "a step's test results to send"
@@ -9810,7 +10674,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9819,7 +10685,7 @@
    "suite": "pytest",
    "title": "a release build and its promote send every browser step",
    "file": "tests/test_testresults.py",
-   "line": 170,
+   "line": 172,
    "node": "tests/test_testresults.py::test_a_build_and_its_promote_send_every_browser_step",
    "given": [
     "a release build whose browser steps write results files, and uploads that succeed"
@@ -9839,7 +10705,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9848,7 +10716,7 @@
    "suite": "pytest",
    "title": "a failed browser step is sent too, and a failed upload is only reported",
    "file": "tests/test_testresults.py",
-   "line": 196,
+   "line": 198,
    "node": "tests/test_testresults.py::test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported",
    "given": [
     "uploads that always fail",
@@ -9867,7 +10735,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "unit"
+   ],
    "problems": [],
    "named": false
   },
@@ -9876,7 +10746,7 @@
    "suite": "pytest",
    "title": "V1 at the finest detail rebuilds Greece's official HICP",
    "file": "tests/test_v1.py",
-   "line": 18,
+   "line": 21,
    "node": "tests/test_v1.py::test_v1_greece_finest_detail_passes",
    "given": [
     "a committed Greek extract of the HICP indices and item weights"
@@ -9891,7 +10761,9 @@
    "notes": "The extract starts in 2014-12, so only the finest-detail run (from 2015) has its base month.",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -9900,7 +10772,7 @@
    "suite": "pytest",
    "title": "V1 catches a broken engine",
    "file": "tests/test_v1.py",
-   "line": 36,
+   "line": 39,
    "node": "tests/test_v1.py::test_v1_catches_a_broken_engine",
    "given": [
     "the Greek extract with food dropped from every year's basket"
@@ -9914,7 +10786,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "integration"
+   ],
    "problems": [],
    "named": false
   },
@@ -9923,7 +10797,7 @@
    "suite": "pytest",
    "title": "the wiki has its home page and sidebar",
    "file": "tests/test_wiki_pages.py",
-   "line": 39,
+   "line": 41,
    "node": "tests/test_wiki_pages.py::test_there_are_pages",
    "given": [
     "the hand-written wiki pages in wiki/"
@@ -9937,7 +10811,9 @@
    "notes": "",
    "examples": [],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -9946,7 +10822,7 @@
    "suite": "pytest",
    "title": "every path a wiki page names exists in the repository",
    "file": "tests/test_wiki_pages.py",
-   "line": 49,
+   "line": 51,
    "node": "tests/test_wiki_pages.py::test_named_paths_exist",
    "given": [
     "a hand-written wiki page"
@@ -9969,7 +10845,9 @@
     "_Sidebar.md"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
@@ -9978,7 +10856,7 @@
    "suite": "pytest",
    "title": "every link to another wiki page has a page behind it",
    "file": "tests/test_wiki_pages.py",
-   "line": 61,
+   "line": 63,
    "node": "tests/test_wiki_pages.py::test_wiki_links_have_a_page",
    "given": [
     "a hand-written wiki page"
@@ -10001,7 +10879,9 @@
     "_Sidebar.md"
    ],
    "defects": [],
-   "tags": [],
+   "tags": [
+    "repository"
+   ],
    "problems": [],
    "named": false
   },
