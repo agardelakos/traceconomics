@@ -187,14 +187,20 @@ def test_to_2018_refuses_a_code_with_no_mapping():
 
 
 def test_package_tables_add_up_and_chain():
-    """PY-MAP-009: the package's mapping tables chain
+    """PY-MAP-009: the package's mapping tables add up and chain
 
     Given the package's two mapping tables
     When they are loaded
-    Then every target of the older-codes table is a source in the COICOP 2018 table
+    Then in each table every source code's shares add up to 1
+    And every target of the older-codes table is a source in the COICOP 2018 table
     And every code in the COICOP 2018 table has five digits
+
+    The reader refuses a table whose shares don't add up; this checks the shipped data directly,
+    so the data stays covered even if that guard changes.
     """
     v1, old = mapping.load(mapping.V1_TO_2018), mapping.load(mapping.OLD_TO_V1)
+    for table in (v1, old):
+        assert (table.groupby("from_code").share.sum() - 1).abs().max() < 1e-9
     assert set(old.to_code) <= set(v1.from_code)
     assert v1.to_code.str.fullmatch(r"\d{5}").all() and v1.from_code.str.fullmatch(r"\d{5}").all()
 

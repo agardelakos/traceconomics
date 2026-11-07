@@ -225,21 +225,26 @@ def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
     assert release.feeds_store(None, results) == ["eurostat/prc_hicp_minr"]
 
 
-def test_promoting_to_production_publishes_on_the_public_address(tmp_path):
-    """PY-REL-009: a promote to production deploys the build
+def test_promoting_to_production_publishes_on_the_public_address(tmp_path, host):
+    """PY-REL-009: a promote to production deploys the build and checks it on the public address
 
-    Given a good build
+    Given a good build, and a configuration whose public address is https://example.org
     When it is promoted to production
-    Then the last command is wrangler's deploy through npx without installing
+    Then the last command is wrangler's deploy through npx without installing, not a preview upload
+    And the promote is checked on the public address, and recorded with it
     """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     fake = FakeSteps(cfg.release.site_dir)
-    release.promote(cfg, good["id"], "production", runner=fake)
+    done = release.promote(cfg, good["id"], "production", runner=fake)
     assert fake.argvs[-1][:4] == ("npx", "--no-install", "wrangler", "deploy")
+    assert "--preview-alias" not in fake.argvs[-1]
+    assert host[-1] == f"https://example.org/{release.METADATA}?promote={good['id']}"
+    assert done["url"] == "https://example.org" and "confirmed" in done
+    assert release.promoted(cfg.release.releases_dir)["production"]["url"] == "https://example.org"
 
 
-def test_the_target_is_chosen_on_each_promote(tmp_path):
+def test_a_promote_to_an_unknown_target_is_refused(tmp_path):
     """PY-REL-010: a promote to an unknown target is refused
 
     Given a good build

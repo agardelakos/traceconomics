@@ -184,47 +184,52 @@ def test_catch_up_fetches_missing_days_in_order():
 # -- 4. empty days stored; different empty days don't collide -------------- #
 
 
-def test_empty_days_stored_and_different_days_not_unchanged():
-    """PY-ANALYT-004: an empty day is stored once, and two empty days are stored apart
+def test_an_empty_day_is_stored_once():
+    """PY-ANALYT-004: an empty day is stored once
 
     Given an API that returns no rows
     When the visits export runs today with no bookmark
-    And it runs again with no bookmark and the same empty answer
-    And it runs into a new archive with a bookmark three days ago and two empty answers
+    And it runs again into the same archive with no bookmark and the same empty answer
     Then the first run stores one file, for yesterday
     And the second run stores nothing new
-    And the third run stores two files, one per day
 
-    Two empty days each produce a stored file because the payload includes the date.
+    The second run is the same day with the same (empty) content, so the archive's dedup by
+    content hash keeps the first file.
     """
     today = date(2026, 10, 28)
-    yesterday = today - timedelta(days=1)
 
-    # First run: yesterday is due, empty response -> stored.
     tmp_path = Path(tempfile.mkdtemp())
     post, _ = fake_post([_response([])])
-    a = Archive(tmp_path)
-    result1 = export(a, {}, today, token="tok", account="acc", post=post, now=_now(today))
+    result1 = export(Archive(tmp_path), {}, today, token="tok", account="acc", post=post, now=_now(today))
     assert result1["result"] == "ok"
+    assert result1["days"] == ["2026-10-27"]
     assert result1["stored"] == 1
 
-    # Second run with the same empty response for yesterday -> unchanged (same content).
     post2, _ = fake_post([_response([])])
-    a2 = Archive(tmp_path)
-    result2 = export(a2, {}, today, token="tok", account="acc", post=post2, now=_now(today))
+    result2 = export(Archive(tmp_path), {}, today, token="tok", account="acc", post=post2, now=_now(today))
     assert result2["result"] == "ok"
     assert result2["stored"] == 0
 
-    # Two different empty days each get a separate stored file (different date in payload).
-    tmp_path2 = Path(tempfile.mkdtemp())
-    post3, _ = fake_post([_response([]), _response([])])
-    a3 = Archive(tmp_path2)
-    # State set so that both yesterday and day-2 need to be fetched.
-    fresh_state = {"analytics_through": (today - timedelta(days=3)).isoformat()}
-    result3 = export(a3, fresh_state, today, token="tok", account="acc", post=post3, now=_now(today))
-    assert result3["result"] == "ok"
-    # Both empty days are stored because their payloads differ (date string).
-    assert result3["stored"] == 2
+
+def test_two_empty_days_are_stored_apart():
+    """PY-ANALYT-016: two empty days are stored apart
+
+    Given an API that returns no rows, and a bookmark three days before today
+    When the visits export runs today
+    Then two days are fetched, and each is stored as its own file
+
+    Two empty days each produce a stored file because the payload includes the date: if it
+    didn't, dedup would keep only the first and the second day would look already stored.
+    """
+    today = date(2026, 10, 28)
+
+    tmp_path = Path(tempfile.mkdtemp())
+    post, _ = fake_post([_response([]), _response([])])
+    state = {"analytics_through": (today - timedelta(days=3)).isoformat()}
+    result = export(Archive(tmp_path), state, today, token="tok", account="acc", post=post, now=_now(today))
+    assert result["result"] == "ok"
+    assert result["days"] == ["2026-10-26", "2026-10-27"]
+    assert result["stored"] == 2
 
 
 # -- 5. GraphQL errors list -> failed ------------------------------------- #
@@ -262,14 +267,16 @@ def test_graphql_errors_returns_failed():
 
 
 def test_url_error_returns_failed():
-    """PY-ANALYT-006: a network error fails the export after one request
+    """PY-ANALYT-006: a network error fails the export after one request, keeping the bookmark
 
-    Given an API that cannot be reached
+    Given a bookmark three days before today, and an API that cannot be reached
     When the visits export runs today
     Then the result is "failed"
     And exactly one request was tried
+    And the bookmark is where it was
+    And the archive holds no dataset
 
-    A urllib error stops and returns 'failed'; state unchanged.
+    A urllib error stops the run at the first day; the next run resumes from the same bookmark.
     """
     today = date(2026, 10, 28)
 
@@ -281,10 +288,13 @@ def test_url_error_returns_failed():
         raise urllib.error.URLError("network down")
 
     a = Archive(tmp_path)
-    result = export(a, {}, today, token="tok", account="acc", post=raising_post, now=_now(today))
+    state = {"analytics_through": "2026-10-25"}
+    result = export(a, state, today, token="tok", account="acc", post=raising_post, now=_now(today))
 
     assert result["result"] == "failed"
     assert raise_count[0] == 1
+    assert state == {"analytics_through": "2026-10-25"}
+    assert a.datasets() == []
 
 
 # -- 7. PAGE rows -> failed (truncated) ----------------------------------- #
@@ -379,34 +389,31 @@ def test_sampled_flag_in_manifest():
 # -- 10. export_day stores and leaves state untouched ---------------------- #
 
 
-def test_export_day_stores_without_state():
+def test_export_day_stores_the_chosen_day():
     """PY-ANALYT-010: exporting one chosen day stores it
 
-    Given a job state with an old bookmark, and an API that returns one row
+    Given an API that returns one row
     When yesterday alone is exported
     Then the result is ok, with one row and status "stored"
-    And the job state is as it was
     And the request asked for yesterday
+    And the archive holds the visits dataset
 
-    export_day fetches one day and stores it; any state dict passed is ignored.
+    export_day takes no job state, so it can't move a bookmark: there is nothing to check there.
     """
     today = date(2026, 10, 28)
 
     tmp_path = Path(tempfile.mkdtemp())
     post, calls = fake_post([_response([_group()])])
     a = Archive(tmp_path)
-    state = {"analytics_through": "2026-01-01"}  # stale value, should be ignored.
 
     result = export_day(a, today - timedelta(days=1), token="tok", account="acc", post=post)
     assert result["result"] == "ok"
     assert result["rows"] == 1
     assert result["status"] == "stored"
 
-    # State must be unchanged.
-    assert state == {"analytics_through": "2026-01-01"}
-    # The API call was made for the right day.
     call_day = json.loads(calls[0]["body"])["variables"]["day"]
     assert call_day == (today - timedelta(days=1)).isoformat()
+    assert len(a.datasets()) == 1
 
 
 # -- downloads feed ------------------------------------------------------- #

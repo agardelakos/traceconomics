@@ -129,7 +129,7 @@ def test_series_file_holds_published_values_on_one_month_axis(tmp_path):
     assert json.dumps(f)                                                       # plain JSON, no NaN
 
 
-def test_downloads_csv_only_for_core_tables_except_the_default(tmp_path):
+def test_downloads_add_a_csv_of_every_table_only_for_the_default_setting(tmp_path):
     """PY-SITEEXP-005: downloads add a CSV of every table only for the default setting
 
     Given module 1 outputs written for the default setting and for weights timing "U"

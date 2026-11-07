@@ -35,15 +35,24 @@ def test_every_setting_gets_its_files_and_the_shared_ones_are_there(data):
     assert (data.parents[2] / "labels" / "coicop18.json").is_file() and (data.parents[2] / "references.json").is_file()
 
 
-def test_the_country_card_rates_come_from_one_index_so_they_agree(data):
-    """PY-SITEDATA-002: the country card's two rates agree
+def test_the_country_card_rates_are_for_the_same_month_and_agree(data):
+    """PY-SITEDATA-002: the country card's two rates are for the same month and agree
 
-    Given the made-up site data
+    Given the made-up site data, whose published rates are made from its own overall index
     When its official rate file is read
-    Then the comparison says our rate and the published one agree
+    Then our rate and the published one are for the same month
+    And they differ by no more than the agreement tolerance, and the comparison says they agree
+    And the two rates the card shows, to one decimal, are equal
+
+    The made-up published rates are computed from the made-up index, as ELSTAT's come from the
+    index it publishes, so a gap here means the export changed how one side is read.
     """
     official = json.loads((data / "official.json").read_text(encoding="utf-8"))
+    computed, published = official["computed"], official["published"]
+    assert computed["period"] == published["period"] == official["comparison"]["period"]
+    assert abs(computed["annual_rate_full"] - published["annual_rate_full"]) <= site.AGREE
     assert official["comparison"]["agree"] is True
+    assert computed["annual_rate"] == published["annual_rate"]
 
 
 def test_made_up_baskets_take_the_special_paths(data):

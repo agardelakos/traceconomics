@@ -48,5 +48,7 @@ def test_contributions_add_up_to_the_annual_rate_every_month():
             continue
         assert sum(parts.values()) == pytest.approx(rate, abs=1e-9), period
         checked += 1
-    assert checked > 150 and "2011-12" in c          # December of the first year comes from 8.42a alone
+    # December of the first year comes from equation 8.42a alone (Eurostat's HICP Methodological
+    # Manual 2024, section 8.6.3; bibliography key hicp-manual-2024).
+    assert checked > 150 and "2011-12" in c
     assert c["2022-06"]["01"] > c["2022-06"]["07"]   # food drives 2022 in this made-up basket

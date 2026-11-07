@@ -59,19 +59,17 @@ def test_eu_names_first_then_elstat_with_capitals_replaced_by_the_single_child(t
     assert out["013"]["el"] == "Υπηρεσίες μεταποίησης" and out["013"]["source"] == "elstat-hbs"
 
 
-def test_a_name_only_in_capitals_or_missing_stops_the_export(tmp_path):
+@pytest.mark.parametrize("code", ["014", "099"], ids=["only in capitals", "no name"])
+def test_a_name_only_in_capitals_or_missing_stops_the_export(tmp_path, code):
     """PY-LABELS-003: a name only in capitals, or a missing name, stops the export
 
-    Given a code whose ELSTAT name is all capitals and whose single child has different words
-    When its labels are built
-    And labels are built for a code with no name anywhere
-    Then a FormatError naming the first code is raised
-    And the code with no name raises a FormatError naming it too
+    Given a code whose ELSTAT name is all capitals and whose single child has different words (014)
+    And a code with no name anywhere (099)
+    When labels are built for one of them
+    Then a FormatError naming that code is raised
     """
     write_eu(tmp_path / "eu.csv", [])
     write_hbs(tmp_path / "en.xlsx", [("014", "SOMETHING"), ("0141", "Other words")])
     write_hbs(tmp_path / "el.xlsx", [("014", "ΚΑΤΙ"), ("0141", "Άλλες λέξεις")])
-    with pytest.raises(FormatError, match="014"):
-        labels.build(["014"], tmp_path / "eu.csv", tmp_path / "en.xlsx", tmp_path / "el.xlsx")
-    with pytest.raises(FormatError, match="099"):
-        labels.build(["099"], tmp_path / "eu.csv", tmp_path / "en.xlsx", tmp_path / "el.xlsx")
+    with pytest.raises(FormatError, match=code):
+        labels.build([code], tmp_path / "eu.csv", tmp_path / "en.xlsx", tmp_path / "el.xlsx")

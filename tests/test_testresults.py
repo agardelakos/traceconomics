@@ -17,32 +17,54 @@ SHA = "0123456789abcdef0123456789abcdef01234567"
 STARTED = datetime(2026, 11, 10, 11, 5, 0, tzinfo=UTC)
 
 
-def test_the_commit_is_read_from_git_itself(tmp_path):
+OTHER = "f" * 40
+
+
+def _no_ref(git):
+    pass
+
+
+def _packed(git):
+    (git / "packed-refs").write_text(f"# pack-refs with: peeled\n{SHA} refs/heads/main\n", encoding="utf-8")
+
+
+def _loose_and_packed(git):
+    _packed(git)
+    (git / "refs/heads/main").write_text(OTHER + "\n", encoding="utf-8")
+
+
+def _detached(git):
+    _loose_and_packed(git)
+    (git / "HEAD").write_text(SHA + "\n", encoding="utf-8")
+
+
+@pytest.mark.parametrize("layout, expected", [
+    (_no_ref, None), (_packed, SHA), (_loose_and_packed, OTHER), (_detached, SHA),
+], ids=["no ref", "packed only", "loose wins", "detached"])
+def test_the_commit_is_read_from_git_itself(tmp_path, layout, expected):
     """PY-TRES-001: the build's commit is read from git's own files
 
-    Given a repository whose HEAD points to a branch
-    When the commit is read with no ref for the branch yet
-    And then with the branch in packed-refs
-    And then with a loose ref for it too
-    And then with HEAD detached
-    And from a folder with no repository
-    Then without a ref there is no commit
-    And with packed-refs alone, the packed commit is read
+    Given a repository whose HEAD points to a branch, laid out one of four ways
+    When the commit is read
+    Then without a ref for the branch there is no commit
+    And with the branch in packed-refs alone, the packed commit is read
     And with a loose ref too, the loose ref wins
     And with HEAD detached, its commit is read
-    And the folder with no repository has no commit
     """
     git = tmp_path / ".git"
     (git / "refs/heads").mkdir(parents=True)
     (git / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
-    assert testresults.source_commit(tmp_path) is None                       # no such ref yet
-    (git / "packed-refs").write_text(f"# pack-refs with: peeled\n{SHA} refs/heads/main\n", encoding="utf-8")
-    assert testresults.source_commit(tmp_path) == SHA                         # a packed ref
-    other = "f" * 40
-    (git / "refs/heads/main").write_text(other + "\n", encoding="utf-8")
-    assert testresults.source_commit(tmp_path) == other                       # a loose ref wins
-    (git / "HEAD").write_text(SHA + "\n", encoding="utf-8")
-    assert testresults.source_commit(tmp_path) == SHA                         # detached
+    layout(git)
+    assert testresults.source_commit(tmp_path) == expected
+
+
+def test_a_folder_with_no_repository_has_no_commit(tmp_path):
+    """PY-TRES-008: a folder with no repository has no commit
+
+    Given a folder with no git repository in it
+    When the commit is read
+    Then there is no commit
+    """
     assert testresults.source_commit(tmp_path / "nowhere") is None
 
 
@@ -102,45 +124,56 @@ def test_a_promote_check_sends_its_meta_alone():
     assert out["result"] == "ok" and [u.rsplit("/", 1)[1] for u in sent] == ["meta.json"]
 
 
-def test_off_without_a_link_and_failures_returned_not_raised(tmp_path, monkeypatch):
-    """PY-TRES-005: sending is off without a link, and failures are returned, not raised
+def test_off_without_a_link(monkeypatch):
+    """PY-TRES-005: sending is off without a link
 
     Given a step's test results to send
     When they are sent with no bucket link in the environment
-    And with a link the bucket refuses
-    And for a build whose commit is unknown
-    And with a link that doesn't end in /o/, or doesn't start with https://
-    And with an upload that breaks off with an error that is not an OSError
-    And with an upload whose error quotes the address
-    Then without a link the result is "off"
-    And a refused upload is "failed", and the error doesn't repeat the link's secret
-    And an unknown commit is "failed", with an error that says so
-    And a wrong link is "failed", with an error saying what it should be
-    And an upload that breaks off is "failed", and the error names the kind of error
-    And an error that quotes the address doesn't repeat the link's secret
+    Then the result is "off"
     """
     monkeypatch.delenv(testresults.URL_ENV, raising=False)
     assert testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed") == {"result": "off"}
 
-    def refused(u, body, t):
-        raise urllib.error.HTTPError(u, 401, "Unauthorized", {}, None)
-    out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed", url=URL, put=refused)
-    assert out["result"] == "failed" and "SECRET" not in out["error"]         # the link is never repeated
-    assert testresults.send(build="b", commit=None, step="promote", started=STARTED, result="passed",
-                            url=URL)["error"] == "the build's commit is unknown"
-    assert "should start with https://" in testresults.send(build="b", commit=SHA, step="promote", started=STARTED,
-                                                            result="passed", url=URL + "results/")["error"]
-    assert "should start with https://" in testresults.send(build="b", commit=SHA, step="promote", started=STARTED,
-                                                            result="passed", url=URL.replace("https://", ""))["error"]
 
-    def torn(u, body, t):
-        raise http.client.IncompleteRead(b"x")                        # not an OSError
-    out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed", url=URL, put=torn)
-    assert out["result"] == "failed" and out["error"].endswith("IncompleteRead: IncompleteRead")
+def _refused(u, body, t):
+    raise urllib.error.HTTPError(u, 401, "Unauthorized", {}, None)
 
-    def quoting(u, body, t):
-        raise ValueError(f"unknown url type: {u}")                     # some errors quote the address
-    out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed", url=URL, put=quoting)
+
+def _torn(u, body, t):
+    raise http.client.IncompleteRead(b"x")                            # not an OSError
+
+
+def _quoting(u, body, t):
+    raise ValueError(f"unknown url type: {u}")                         # some errors quote the address
+
+
+def _unused(u, body, t):
+    pytest.fail("nothing is sent when the commit or the link is wrong")
+
+
+@pytest.mark.parametrize("commit, url, put, error", [
+    (SHA, URL, _refused, "401"),
+    (None, URL, _unused, "the build's commit is unknown"),
+    (SHA, URL + "results/", _unused, "should start with https://"),
+    (SHA, URL.replace("https://", ""), _unused, "should start with https://"),
+    (SHA, URL, _torn, "IncompleteRead: IncompleteRead"),
+    (SHA, URL, _quoting, "ValueError"),           # the type only: the message would quote the address
+], ids=["refused", "unknown commit", "not ending in /o/", "not https", "broken off", "error quotes the address"])
+def test_a_failed_send_is_returned_not_raised_and_never_repeats_the_secret(commit, url, put, error):
+    """PY-TRES-009: a failed send is returned, not raised, and never repeats the link's secret
+
+    Given a step's test results to send, with a bucket link whose path holds a secret
+    And one failure: the bucket refuses, the commit is unknown, the link doesn't end in /o/ or start with https://, the upload breaks off with an error that is not an OSError, or the upload's error quotes the address
+    When they are sent
+    Then the result is "failed", with an error that says what went wrong
+    And the error never repeats the link's secret
+
+    The link is a pre-authenticated request: anyone holding it can write to the bucket, and errors
+    end up in emails and logs.
+    """
+    out = testresults.send(build="b", commit=commit, step="promote", started=STARTED, result="passed", url=url, put=put)
+    assert out["result"] == "failed"
+    assert error in out["error"]
     assert "SECRET" not in out["error"]
 
 
