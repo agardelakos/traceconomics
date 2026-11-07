@@ -47,31 +47,29 @@ test.describe("the group finder", () => {
     await expect(f.locator('[data-find="starts"] a')).toHaveCount(1);
   });
 
-  test("the household type follows Eurostat's dependent-child rule", gwt({
-    id: "PW-GRP-002",
-    given: "the group finder",
-    when: ["three people aged 14 or over and no children are entered",
-      "one of the three is a dependent child (a student living at home)",
-      "the household is changed to one person aged 14 or over and one child, with no dependent child",
-      "that one person is made a dependent child"],
-    then: ["the household type is three or more adults", "with the dependent child, it is two adults with dependent children",
-      "then it is one adult with dependent children", "with nobody counting as an adult, no household type is named"],
-  }), async ({ page }) => {
-    await page.goto(PAGE);
-    const f = finder(page);
-    const type = f.locator('[data-find="type-value"]');
-    await setHousehold(f, 3, 0);
-    await expect(type).toHaveText(t("en", "group.hhtype/A_GE3"));
-    // One of the three is a student living at home: two adults with a dependent child.
-    await f.getByLabel(t("en", "find.dependents")).fill("1");
-    await expect(type).toHaveText(t("en", "group.hhtype/A2_DCH"));
-    await setHousehold(f, 1, 1);
-    await f.getByLabel(t("en", "find.dependents")).fill("0");
-    await expect(type).toHaveText(t("en", "group.hhtype/A1_DCH"));
-    // Nobody counts as an adult: the survey has no such type, so none is named.
-    await f.getByLabel(t("en", "find.dependents")).fill("1");
-    await expect(f.locator('[data-find="type-row"]')).toBeHidden();
-  });
+  // [people aged 14 or over, children under 14, dependants among the older ones, expected type]
+  for (const [older, children, dependents, type] of [
+    [3, 0, 0, "A_GE3"],
+    [3, 0, 1, "A2_DCH"],       // one of the three is a student living at home
+    [1, 1, 0, "A1_DCH"],
+    [1, 1, 1, null],           // nobody counts as an adult: the survey has no such type
+  ] as const) {
+    test(`${older} aged 14 or over (${dependents} dependent), ${children} children: ${type ?? "no type"}`, gwt({
+      id: "PW-GRP-002",
+      title: "the household type follows Eurostat's dependent-child rule",
+      given: "the group finder",
+      when: "a household is entered: people aged 14 or over, children, and how many of the older ones are dependent children",
+      then: ["three adults are three or more adults; with one a dependent child, two adults with dependent children",
+        "one adult and a child is one adult with dependent children; with nobody counting as an adult, no household type is named"],
+    }), async ({ page }) => {
+      await page.goto(PAGE);
+      const f = finder(page);
+      await setHousehold(f, older, children);
+      await f.getByLabel(t("en", "find.dependents")).fill(String(dependents));
+      if (type === null) await expect(f.locator('[data-find="type-row"]')).toBeHidden();
+      else await expect(f.locator('[data-find="type-value"]')).toHaveText(t("en", `group.hhtype/${type}`));
+    });
+  }
 
   test("places a yearly income in its fifth, and says how big the household counts", gwt({
     id: "PW-GRP-003",
@@ -169,6 +167,22 @@ test.describe("the group finder", () => {
     await expect(f.locator('[data-find="starts"] a')).toHaveCount(3);
   });
 
+  for (const typed of ["abc", "1,50,0", "-5", "0"]) {
+    test(`"${typed}" is not an income, and is ignored`, gwt({
+      id: "PW-GRP-019",
+      title: "an entry that isn't a positive income is ignored",
+      given: "the group finder",
+      when: "something that isn't a positive income is typed as the income: text, a malformed number, a negative amount or zero",
+      then: ["it still asks for an income", "no income group is shown"],
+    }), async ({ page }) => {
+      await page.goto(PAGE);
+      const f = finder(page);
+      await f.getByLabel(t("en", "find.income")).fill(typed);
+      await expect(f.getByText(t("en", "find.empty"))).toBeVisible();
+      await expect(f.locator('[data-find="income-row"]')).toBeHidden();
+    });
+  }
+
   test("out-of-range household numbers are kept within bounds for the sums", gwt({
     id: "PW-GRP-008",
     given: "the group finder",
@@ -249,23 +263,31 @@ test.describe("the income panel", () => {
     await expectRows(page, equivalentSize(4, 2), "eur");
   });
 
-  test("purchasing power standards replace euros, or are greyed with the reason", gwt({
+  // Which of the next tests run depends on the built data: our limits with or without a PPS version,
+  // Eurostat's for the same income year or not. Each branch is its own case, and a build without
+  // that branch skips it with the reason, so a report shows which branches ran.
+  test("purchasing power standards replace euros", gwt({
     id: "PW-GRP-012",
-    given: "the income panel, for one adult",
-    when: "purchasing power standards are chosen as the unit, where they can be",
-    then: ["where our limits have a conversion, each fifth's yearly and monthly range is given in purchasing power standards",
-      "where they have none yet, the choice is disabled and the reason is shown"],
+    given: "the income panel, for one adult, built from our limits with a conversion to purchasing power standards",
+    when: "purchasing power standards are chosen as the unit",
+    then: "each fifth's yearly and monthly range is given in purchasing power standards",
   }), async ({ page }) => {
+    test.skip(limits.ours.top_cutoffs_pps === null, "these data have no PPS version of our limits");
     await page.goto(PAGE);
-    const pps = panel(page).getByLabel(t("en", "income.unit.pps"));
-    if (limits.ours.top_cutoffs_pps === null) {
-      // No conversion for our year's incomes yet.
-      await expect(pps).toBeDisabled();
-      await expect(panel(page).locator('[data-income-role="pps-none"]')).toBeVisible();
-    } else {
-      await pps.check();
-      await expectRows(page, 1, "pps");
-    }
+    await panel(page).getByLabel(t("en", "income.unit.pps")).check();
+    await expectRows(page, 1, "pps");
+  });
+
+  test("without a conversion, purchasing power standards are greyed with the reason", gwt({
+    id: "PW-GRP-016",
+    given: "the income panel, built from our limits with no conversion to purchasing power standards yet",
+    when: "it is drawn",
+    then: ["the purchasing power standards choice is disabled", "the reason is shown"],
+  }), async ({ page }) => {
+    test.skip(limits.ours.top_cutoffs_pps !== null, "these data have a PPS version of our limits");
+    await page.goto(PAGE);
+    await expect(panel(page).getByLabel(t("en", "income.unit.pps"))).toBeDisabled();
+    await expect(panel(page).locator('[data-income-role="pps-none"]')).toBeVisible();
   });
 
   test("Eurostat's limits are one click away, in both units", gwt({
@@ -284,28 +306,48 @@ test.describe("the income panel", () => {
     await expectRows(page, 1, "pps", "eurostat");
   });
 
-  test("our limits say how they are made, and how far Eurostat's are from them", gwt({
+  test("our limits say how they are made", gwt({
     id: "PW-GRP-014",
     given: "the Groups page",
-    when: "the income panel's notes are read",
+    when: "the income panel's note on our limits and the group finder are read",
     then: ["the note on our limits gives their survey year, income year and the range of their standard errors",
-      "where Eurostat's limits are for the same income year, it compares both poorest-fifth limits and says how much lower or higher Eurostat's is, in percent",
       "the group finder says which survey year its limits come from"],
   }), async ({ page }) => {
-    const ours = limits.ours, eu = limits.eurostat;
+    const ours = limits.ours;
     await page.goto(PAGE);
     const ses = Object.values(ours.se as Record<string, number | null>).filter((v): v is number => v !== null);
     await expect(panel(page).locator('[data-income-role="ours-note"]')).toHaveText(t("en", "income.source.ours_note", {
       survey: ours.survey_year, income: ours.income_year, se_from: amount("eur", Math.min(...ses)), se_to: amount("eur", Math.max(...ses)),
     }));
-    if (eu.income_year === ours.income_year) {
-      const a = eu.top_cutoffs.Q1, b = ours.top_cutoffs.Q1;
-      const diff = t("en", a <= b ? "income.compare.lower" : "income.compare.higher", { pct: pct("en", (Math.abs(a - b) / b) * 100) });
-      await expect(panel(page).locator('[data-income-role="compare"]')).toHaveText(t("en", "income.source.compare", {
-        income: ours.income_year, eurostat: amount("eur", a), ours: amount("eur", b), diff,
-      }));
-    }
     await expect(finder(page)).toContainText(t("en", "find.limits", { year: ours.survey_year }));
+  });
+
+  test("for the same income year, a note says how far Eurostat's limits are from ours", gwt({
+    id: "PW-GRP-017",
+    given: "the Groups page, built from our limits and Eurostat's for the same income year",
+    when: "the income panel's notes are read",
+    then: "a note compares both poorest-fifth limits and says how much lower or higher Eurostat's is, in percent",
+  }), async ({ page }) => {
+    const ours = limits.ours, eu = limits.eurostat;
+    test.skip(eu.income_year !== ours.income_year, "in these data Eurostat's limits are for another income year");
+    await page.goto(PAGE);
+    const a = eu.top_cutoffs.Q1, b = ours.top_cutoffs.Q1;
+    const diff = t("en", a <= b ? "income.compare.lower" : "income.compare.higher", { pct: pct("en", (Math.abs(a - b) / b) * 100) });
+    await expect(panel(page).locator('[data-income-role="compare"]')).toHaveText(t("en", "income.source.compare", {
+      income: ours.income_year, eurostat: amount("eur", a), ours: amount("eur", b), diff,
+    }));
+  });
+
+  test("for different income years, the limits are not compared", gwt({
+    id: "PW-GRP-018",
+    given: "the Groups page, built from our limits and Eurostat's for different income years",
+    when: "the income panel's notes are read",
+    then: "there is no note comparing the two",
+  }), async ({ page }) => {
+    test.skip(limits.eurostat.income_year === limits.ours.income_year, "in these data both limits are for the same income year");
+    await page.goto(PAGE);
+    await expect(panel(page).locator('[data-income-role="ours-note"]')).toBeVisible();
+    await expect(panel(page).locator('[data-income-role="compare"]')).toHaveCount(0);
   });
 });
 

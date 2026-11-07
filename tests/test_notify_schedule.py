@@ -26,12 +26,13 @@ def test_notify_without_email_writes_outbox(tmp_path):
     assert Path(where).read_text(encoding="utf-8").startswith("Subject: [Traceconomics] hello")
 
 
-def test_task_xml_is_valid(tmp_path):
-    """PY-NOTIFY-002: the Windows scheduled task runs the archive job daily at 13:00
+def test_the_windows_task_runs_the_archive_job_daily_at_13_and_catches_up(tmp_path):
+    """PY-NOTIFY-002: the Windows scheduled task runs the archive job daily at 13:00, and catches up
 
     Given a default configuration and a Windows Python interpreter
     When the Task Scheduler XML is written
     Then it parses as XML
+    And its trigger repeats every day
     And the task starts when available if a run was missed
     And its start boundary is at 13:00
     And it runs the archive command with Python's isolated mode ("-I -m traceconomics archive")
@@ -39,6 +40,7 @@ def test_task_xml_is_valid(tmp_path):
     c = Config(archive_dir=tmp_path, user_agent="t")
     xml = schedule.task_xml(c, Path("C:/venv/Scripts/pythonw.exe"))
     root = ET.fromstring(xml.split("?>", 1)[1])
+    assert root.find(".//t:CalendarTrigger/t:ScheduleByDay/t:DaysInterval", TASK_NS).text == "1"
     assert root.find(".//t:StartWhenAvailable", TASK_NS).text == "true"
     assert root.find(".//t:StartBoundary", TASK_NS).text.endswith("T13:00:00")
     assert root.find(".//t:Arguments", TASK_NS).text == "-I -m traceconomics archive"

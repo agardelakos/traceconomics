@@ -176,9 +176,7 @@ def test_code_fingerprint_ignores_line_endings(monkeypatch, tmp_path):
     assert output.code_fingerprint() != lf
 
 
-def test_published_json_has_lf_line_endings(tmp_path):
-    # Python on Windows writes CRLF unless told otherwise; published files must be byte-identical
-    # whichever machine wrote them.
+def test_the_published_metadata_has_lf_line_endings(tmp_path):
     """PY-COMBO-008: the published metadata has LF line endings
 
     Given an output folder

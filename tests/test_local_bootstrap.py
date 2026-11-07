@@ -123,56 +123,82 @@ def test_errors_cover_every_share_and_flag_high_relative_errors():
     assert food[("B", "Q1")] > food[("all", "all")]
 
 
-def test_without_areas_there_are_no_errors_and_without_strata_the_region_stands_in():
-    """PY-BOOT-004: without areas there are no errors; without strata the region stands in
+def test_without_areas_there_are_no_errors():
+    """PY-BOOT-004: without areas there are no errors
 
     Given a made-up survey without areas
     When standard errors are computed
-    And the design of a made-up survey without strata is read
-    Then the survey without areas has design "unavailable" and no errors
+    Then the design is "unavailable" and there are no errors
     And its shares joined with them have no errors and design "unavailable"
-    And the survey without strata gets an "approximate" design whose strata are the regions
     """
     s = sample(design="no-clusters")
     d, se = bootstrap.standard_errors(s, assign(s), replicates=10)
     assert d.status == "unavailable" and se.empty
     t = bootstrap.with_errors(shares(s), se, d)
     assert t.se.isna().all() and (t.se_design == "unavailable").all()
+
+
+def test_without_strata_the_region_stands_in():
+    """PY-BOOT-008: without strata the region stands in
+
+    Given a made-up survey without strata
+    When its design is read
+    Then the design is "approximate" and its strata are the regions
+    """
     d = bootstrap.design(sample(design="no-strata"))
     assert d.status == "approximate" and set(d.strata) == {"EL0", "EL1", "EL2"}
 
 
-def test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata():
+def _single_area_stratum(s):
+    s.households.loc[s.households.cluster == "C0001", "stratum"] = "lonely"
+
+
+def _area_in_two_strata(s):
+    s.households.loc[0, "stratum"] = "S1"
+
+
+@pytest.mark.parametrize("break_design, message", [
+    (_single_area_stratum, "single area"), (_area_in_two_strata, "more than one stratum"),
+], ids=["single-area stratum", "area in two strata"])
+def test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata(break_design, message):
     """PY-BOOT-005: the design refuses a single-area stratum and an area in two strata
 
-    Given a made-up survey where one stratum has a single area
+    Given a made-up survey where one stratum has a single area, or where one area sits in two strata
     When the design is read
-    And the design of a survey where one area sits in two strata is read
-    Then the first raises a FormatError about a "single area"
-    And the second raises a FormatError about "more than one stratum"
+    Then a FormatError says which: a "single area", or "more than one stratum"
     """
     s = sample(strata=2, areas=2, households=3)
-    s.households.loc[s.households.cluster == "C0001", "stratum"] = "lonely"
-    with pytest.raises(FormatError, match="single area"):
-        bootstrap.design(s)
-    s = sample(strata=2, areas=2, households=3)
-    s.households.loc[0, "stratum"] = "S1"
-    with pytest.raises(FormatError, match="more than one stratum"):
+    break_design(s)
+    with pytest.raises(FormatError, match=message):
         bootstrap.design(s)
 
 
-def test_cv_check_passes_on_our_own_values_and_fails_far_from_them():
-    """PY-BOOT-006: the CV check passes on our own values and fails far from them
+@pytest.fixture(scope="module")
+def cv_survey():
+    """A made-up survey and the coefficients of variation it gives (500 replicates, computed once)."""
+    s = sample()
+    return s, {c: cv for c, _, cv in v2.cv_check(s, {"00": 1.0, "01": 1.0}, replicates=500).rows}
+
+
+def test_cv_check_passes_on_our_own_values(cv_survey):
+    """PY-BOOT-006: the CV check passes on our own values
 
     Given a made-up survey and the coefficients of variation it gives
     When they are checked as if published
-    And a published CV twice ours for division 01 is checked
-    Then the first check passes
-    And the second fails
+    Then the check passes
     """
-    s = sample()
-    ours = {c: cv for c, _, cv in v2.cv_check(s, {"00": 1.0, "01": 1.0}, replicates=500).rows}
+    s, ours = cv_survey
     assert v2.cv_check(s, ours, replicates=500).passed
+
+
+def test_cv_check_fails_far_from_our_values(cv_survey):
+    """PY-BOOT-009: the CV check fails far from our values
+
+    Given a made-up survey and the coefficients of variation it gives
+    When a published CV twice ours for division 01 is checked
+    Then the check fails
+    """
+    s, ours = cv_survey
     assert not v2.cv_check(s, {"01": ours["01"] * 2}, replicates=500).passed
 
 
@@ -182,11 +208,9 @@ def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas()
     Given a small and a large made-up stratified survey
     When the standard errors of the income limits are computed with 200 replicates
     And the small survey's are computed again
-    And a survey without areas is given
     Then the small survey's design is "full", with 4 positive errors
     And the large survey's errors are smaller on average
     And the second computation gives the same errors
-    And the survey without areas gives no errors (None)
     """
     from traceconomics.local.bootstrap import limit_errors
     small, big = sample(strata=4, areas=3, households=6), sample(strata=16, areas=8, households=6)
@@ -195,4 +219,14 @@ def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas()
     assert d.status == "full" and len(se_small) == 4 and (se_small > 0).all()
     assert se_big.mean() < se_small.mean()
     assert (limit_errors(small, replicates=200)[1] == se_small).all()     # same seed, same errors
+
+
+def test_without_areas_the_income_limits_have_no_errors():
+    """PY-BOOT-010: without areas, the income limits have no standard errors
+
+    Given a made-up survey without areas
+    When the standard errors of the income limits are computed
+    Then there are none (None)
+    """
+    from traceconomics.local.bootstrap import limit_errors
     assert limit_errors(sample(design="no-clusters"), replicates=50)[1] is None

@@ -130,3 +130,49 @@ test.describe("on a phone", () => {
     await expect(page.locator('input[name="theme"][value="light"]')).toBeChecked();
   });
 });
+
+test("on a first visit the control starts on the device setting, with nothing stored", gwt({
+  id: "PW-THEME-009",
+  given: "a first visit, with nothing stored",
+  when: ["the home page opens", "the settings menu is opened"],
+  then: ["the page sets no theme of its own and nothing is stored", "the device setting is the option ticked"],
+}), async ({ page }) => {
+  await page.goto("/en/");
+  await expect(html(page)).not.toHaveAttribute("data-theme");
+  expect(await stored(page)).toBeNull();
+  await page.getByRole("button", { name: SETTINGS }).click();
+  await expect(page.getByRole("radio", { name: t("en", "theme.system") })).toBeChecked();
+});
+
+const background = (page: Page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+test("the device setting follows the system", gwt({
+  id: "PW-THEME-010",
+  given: "the home page on the device setting, with the device set to light",
+  when: "the device switches to dark",
+  then: "the background changes with the device",
+}), async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/en/");
+  const light = await background(page);
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(() => background(page)).not.toBe(light);
+});
+
+test("a choice overrides the device setting", gwt({
+  id: "PW-THEME-011",
+  given: "the home page, its light background noted, then the device switched to dark",
+  when: ["light is chosen", "then dark is chosen"],
+  then: ["light brings back the light background, though the device is dark", "dark brings back the device's dark background"],
+}), async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/en/");
+  const light = await background(page);
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(() => background(page)).not.toBe(light);
+  const dark = await background(page);
+  await choose(page, "light");
+  await expect.poll(() => background(page)).toBe(light);
+  await choose(page, "dark");
+  await expect.poll(() => background(page)).toBe(dark);
+});

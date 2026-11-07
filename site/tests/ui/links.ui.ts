@@ -4,7 +4,7 @@
 // followed (the tests never touch the network beyond the site under test).
 import { existsSync, readFileSync } from "node:fs";
 import type { APIRequestContext } from "@playwright/test";
-import { expect, gwt, test } from "./helpers";
+import { expect, gwt, OFFERED, test } from "./helpers";
 
 const SITE = "https://traceconomics.com";
 const SITEMAP = new URL("../../dist/sitemap.xml", import.meta.url);
@@ -88,4 +88,33 @@ test("every link to this site answers, and every #spot exists on its page", gwt(
     if (html && !html.includes(`id="${decodeURIComponent(id)}"`)) broken.push(`${spot} (no such spot), linked from ${from}`);
   }
   expect(broken).toEqual([]);
+});
+
+test("the sitemap lists only pages in offered languages", gwt({
+  id: "PW-LINK-004",
+  given: "a built site",
+  when: "its sitemap's pages are read",
+  then: "every page it lists is in a language the site offers",
+}), () => {
+  test.skip(!offered.length, "needs a build (dist/sitemap.xml)");
+  const elsewhere = offered.filter((p) => !OFFERED.some((lang) => p.startsWith(`/${lang}/`)));
+  expect(elsewhere).toEqual([]);
+});
+
+test("each page has exactly one canonical link, to its own address", gwt({
+  id: "PW-LINK-005",
+  given: "every page in the sitemap, and the Greek twin of every English one",
+  when: "its canonical links are read",
+  then: "each page has exactly one, and it points at the page itself",
+}), async ({ request }) => {
+  test.skip(!offered.length, "needs a build (dist/sitemap.xml)");
+  test.setTimeout(120_000);
+  const wrong: string[] = [];
+  for (const path of [...offered, ...greek]) {
+    const html = await (await request.get(path)).text();
+    const canonical = [...html.matchAll(/<link\b[^>]*\brel="canonical"[^>]*>/g)].map((m) => m[0].match(/\bhref="([^"]+)"/)?.[1] ?? "");
+    if (canonical.length !== 1) wrong.push(`${path}: ${canonical.length} canonical links`);
+    else if (new URL(canonical[0], SITE).pathname !== path) wrong.push(`${path}: canonical is ${canonical[0]}`);
+  }
+  expect(wrong).toEqual([]);
 });

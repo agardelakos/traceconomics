@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { analyticsOn, BEACON } from "./analytics";
 import { flag } from "./flags";
 import { GLOSSARY_CATEGORIES } from "./glossary";
-import { countries, countryHref, countryPaths, dataCountries, dataHref, m1Text, officialSources, topic, topicHref, topicPath, TOPICS } from "./topics";
+import { countries, countryHref, countryPaths, dataCountries, dataHref, m1Text, OFFICES, officialSources, topic, topicHref, topicPath, TOPICS } from "./topics";
 
 describe("topics", () => {
   it("each have a unique slug, and live ones cover at least one country", { meta: {
@@ -124,11 +124,18 @@ describe("countries", () => {
     then: [
       "the last source is Eurostat",
       "there is one source per country with data, plus Eurostat",
+      "each country's source is its own office, in the countries' order, and no two are the same",
+      "Greece's office is ELSTAT",
     ],
   } }, () => {
     const sources = officialSources();
     expect(sources.at(-1)!.key).toBe("eurostat");
     expect(sources).toHaveLength(dataCountries().length + 1);
+    const offices = sources.slice(0, -1);
+    offices.forEach((office, i) => expect(office).toBe(OFFICES[dataCountries()[i]]));
+    expect(offices.map((o) => o.key)).not.toContain("eurostat");
+    expect(new Set(offices.map((o) => o.key)).size).toBe(offices.length);
+    expect(offices[dataCountries().indexOf("gr")].key).toBe("elstat");
   });
 
   it("each have a flag, drawn as a hidden SVG; a country without one stops the build", { meta: {
@@ -163,7 +170,7 @@ describe("countries", () => {
 });
 
 describe("the glossary's categories", () => {
-  it("are fixed and distinct", { meta: {
+  it("are distinct", { meta: {
     id: "VT-TOPICS-011",
     given: "the glossary's categories",
     when: "they are listed",

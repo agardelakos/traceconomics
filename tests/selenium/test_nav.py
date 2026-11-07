@@ -1,13 +1,17 @@
 """The header: the quick lists of topics and countries, the phone menu, the language switch, the
 skip link and the breadcrumbs."""
 
+import json
 import urllib.error
 import urllib.request
 
 import pytest
 from selenium.webdriver.common.keys import Keys
 
-from helpers import t
+from helpers import ROOT, t
+
+# The languages offered to readers, as the site's own list has them.
+OFFERED = json.loads((ROOT / "site/src/i18n/languages.json").read_text(encoding="utf-8"))["offered"]
 
 TOPIC_PAGE = "/{lang}/gr/inflation-by-group/explore/"
 
@@ -61,26 +65,37 @@ def test_country_list_keeps_the_page_the_reader_is_on(site):
     """SEL-NAV-003: the country list keeps the page the reader is on
 
     Given the calculator for Greece
-    When the countries' quick list is read
-    Then the current country's entry links to this same calculator page
+    When the countries' quick list is opened
+    Then the current country's entry shows
+    And it links to this same calculator page
     """
     site.open("/en/gr/inflation-by-group/calculator/")
-    hrefs = [a.get_attribute("href") for a in site.all("#country-menu a[aria-current]")]
-    assert hrefs and hrefs[0].endswith("/en/gr/inflation-by-group/calculator/")
+    arrow = _arrow(site, "en", "countries")
+    arrow.click()
+    site.wait(lambda _: site.popover_open(site.find("#country-menu")), "the countries' quick list did not open")
+    current = site.visible('#country-menu a[aria-current="true"]')
+    assert current.get_attribute("href").endswith("/en/gr/inflation-by-group/calculator/")
 
 
 def test_section_is_marked_current(site):
-    """SEL-NAV-004: the current section is marked in the header
+    """SEL-NAV-004: on a section's own page, its link alone is marked as the current page
 
     Given the glossary
     When its header's navigation is read
-    And the topic page for Greece is opened
-    Then on the glossary the Glossary link alone is marked as the current page
-    And on the topic page the Countries link is marked current
+    Then the Glossary link alone is marked as the current page
     """
     site.open("/en/glossary/")
     current = site.all('nav#site-menu a[aria-current="page"]')
     assert [a.text for a in current] == [t("en", "nav.glossary")]
+
+
+def test_a_page_inside_a_section_marks_the_section(site):
+    """SEL-NAV-015: on a page inside a section, the section is marked current
+
+    Given the topic page for Greece, which is inside Countries
+    When its header's navigation is read
+    Then the Countries link is marked as the current section ("true")
+    """
     site.open("/en/gr/inflation-by-group/")
     countries = site.find(f'nav#site-menu a[href="/en/countries/"]')
     assert countries.get_attribute("aria-current") == "true"
@@ -138,15 +153,16 @@ def test_phone_menu_link_navigates(phone):
     phone.wait(lambda _: phone.path == "/en/glossary/")
 
 
-def test_language_switch_on_english_pages(site):
+@pytest.mark.parametrize("path", ["/en/", "/en/about/", TOPIC_PAGE.format(lang="en")], ids=["home", "about", "explore"])
+def test_language_switch_on_english_pages(site, path):
     """SEL-NAV-008: the language switch on an English page
 
-    Given the English About page
+    Given an English page: the home page, About or Explore
     When the language switch is read
     Then English is linked and marked current
     And Greek is shown but not linked, as it isn't offered
     """
-    site.open("/en/about/")
+    site.open(path)
     box = site.find(f'.lang-switch[role=group][aria-label="{t("en", "lang.switch")}"]')
     en = site.find('a[lang="en"]', box)
     assert en.get_attribute("aria-current") == "true"
@@ -219,3 +235,40 @@ def test_missing_page_is_404(base_url):
     with pytest.raises(urllib.error.HTTPError) as e:
         urllib.request.urlopen(base_url + "/en/no-such-page/", timeout=30)
     assert e.value.code == 404
+
+
+def test_opening_one_quick_list_closes_the_other(site):
+    """SEL-NAV-013: opening one quick list closes the other
+
+    Given the home page, with the Topics quick list open
+    When the Countries quick list is opened
+    Then the Countries list is shown
+    And the Topics list is closed
+    """
+    site.open("/en/")
+    topics, countries = site.find("#topic-menu"), site.find("#country-menu")
+    _arrow(site, "en", "topics").click()
+    site.wait(lambda _: site.popover_open(topics), "the Topics list did not open")
+    _arrow(site, "en", "countries").click()
+    site.wait(lambda _: site.popover_open(countries), "the Countries list did not open")
+    assert not site.popover_open(topics), "the Topics list stayed open"
+
+
+@pytest.mark.parametrize("locale", ["el-GR", "en-US", "de-DE"])
+def test_root_sends_the_browser_to_its_language(site, locale):
+    """SEL-NAV-014: the root address sends the visitor to the browser's language if offered, else English
+
+    Given a browser set to Greek, US English or German
+    When the site's root address is opened
+    Then the visitor is sent to the home page in the browser's language if the site offers it, else in English
+    """
+    agent = site.driver.execute_script("return navigator.userAgent")
+    site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": locale})
+    try:
+        site.open("/")
+        assert site.js("return navigator.languages[0]") == locale, "the browser's language was not set"
+        wanted = locale.split("-")[0]
+        expected = wanted if wanted in OFFERED else "en"
+        site.wait(lambda _: site.path == f"/{expected}/", f"the root did not send a {locale} browser to /{expected}/")
+    finally:
+        site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"})

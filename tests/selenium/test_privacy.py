@@ -5,6 +5,8 @@ everything the page sent."""
 
 from urllib.parse import unquote, urlsplit
 
+import pytest
+
 from selenium.webdriver.common.keys import Keys
 
 GR = "/en/gr/inflation-by-group/"
@@ -114,17 +116,42 @@ def test_theme_is_the_only_thing_stored(site):
 
     Given the English home page
     When the dark theme is picked
-    And the About page, Explore and the calculator are opened in turn
-    Then the only thing stored is the theme, dark
-    And no cookie is set
-    And none of the pages talked to another site
+    And the About page, Explore and the calculator are opened in turn, each left to load its data
+    Then on each page the only thing stored is the theme, dark, and no cookie is set
+    And no page talked to another site, each page's own requests checked apart so a failure names the page
     """
     site.open("/en/")
     site.find(".settings[data-role=theme] button").click()
     site.find('#settings-menu input[value="dark"]').find_element("xpath", "./ancestor::label").click()
     site.wait(lambda _: site.storage() == {"theme": "dark"})
-    for page in ("about/", "gr/inflation-by-group/explore/", "gr/inflation-by-group/calculator/"):
+    base = urlsplit(site.base).netloc
+    # What each page shows once its own data requests are done, so they are in the log.
+    pages = {"about/": "main h1", "gr/inflation-by-group/explore/": "#explore [data-role=chart] svg",
+             "gr/inflation-by-group/calculator/": "[data-role=result]"}
+    for page, ready in pages.items():
+        before = len(site.requests())
         site.open(f"/en/{page}")
-    assert site.storage() == {"theme": "dark"}
-    assert not site.driver.get_cookies()
-    assert not _foreign(site)
+        site.visible(ready)
+        mine = site.requests()[before:]
+        foreign = [r["url"] for r in mine
+                   if urlsplit(r["url"]).scheme in ("http", "https") and urlsplit(r["url"]).netloc != base]
+        assert not foreign, f"/en/{page} talked to another site: {foreign}"
+        assert site.storage() == {"theme": "dark"}, f"/en/{page} stored {site.storage()}"
+        assert not site.driver.get_cookies(), f"/en/{page} set a cookie"
+
+
+@pytest.mark.parametrize("path, ready", [
+    (GR, "main h1"), ("/en/data/gr/", "main h1"), ("/en/glossary/", "#glossary-list"),
+], ids=["topic page", "data page", "glossary"])
+def test_the_topic_data_and_glossary_pages_ask_nothing_of_other_sites(site, path, ready):
+    """SEL-PRIV-005: the topic page, the data page and the glossary ask nothing of other sites
+
+    Given the inflation-by-group page for Greece, the data page for Greece, or the glossary
+    When it opens and finishes loading
+    Then no request it sent goes to another site
+    """
+    site.open(path)
+    site.visible(ready)
+    # The log must have seen the page itself, or an empty log would pass.
+    assert any(urlsplit(r["url"]).path == path for r in site.requests()), "the page's own request was not recorded"
+    assert not _foreign(site), f"{path} talked to another site: {_foreign(site)}"

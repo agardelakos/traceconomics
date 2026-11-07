@@ -37,17 +37,25 @@ def test_a_subclass_takes_its_class_row_else_group_else_division():
     """PY-ORIG-002: a subclass takes its class's row, else its group's, else its division's
 
     Given a made-up 2010 original table with a class, a group and a division row
-    And earlier levels with a December 2009 for the group only
     When the row for each COICOP 2018 subclass is chosen
-    And chosen again where a December 2009 level is needed
     Then subclasses take their class's, group's or division's row in that order
-    And needing December 2009, the subclass under the group still gets the group's row
-    And the subclass whose class, group and division have no December 2009 gets none
     """
     t = table(2010, "2009", {"0722": (40, [100.0] * 12), "022": (20, [100.0] * 12), "10": (30, [100.0] * 12)})
     assert originals._row_for("07222", t) == "0722"
     assert originals._row_for("02201", t) == "022"
     assert originals._row_for("10500", t) == "10"
+
+
+def test_needing_december_2009_a_subclass_takes_a_row_that_has_it():
+    """PY-ORIG-004: needing December 2009, a subclass takes only a row that has it
+
+    Given a made-up 2010 original table with a class, a group and a division row
+    And earlier levels with a December 2009 for the group only
+    When the row for each subclass is chosen where a December 2009 level is needed
+    Then the subclass under the group still gets the group's row
+    And the subclass whose class, group and division have no December 2009 gets none
+    """
+    t = table(2010, "2009", {"0722": (40, [100.0] * 12), "022": (20, [100.0] * 12), "10": (30, [100.0] * 12)})
     previous = {"022": {"2009-12": 90.0}}
     assert originals._row_for("02201", t, previous, "2009-12") == "022"
     assert originals._row_for("07222", t, previous, "2009-12") is None    # no December 2009 for 0722 or 072 or 07
