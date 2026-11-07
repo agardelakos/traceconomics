@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "7dcad34053fd519fba98dac1173ed3a5765014b6",
- "generated": "2026-11-07T20:52:22Z",
+ "commit": "ecfdcc672144825152b77f30f3e24b92b01c3353",
+ "generated": "2026-11-07T21:01:51Z",
  "missing": [],
  "cases": [
   {
@@ -178,7 +178,7 @@
    "suite": "playwright",
    "title": "the home page passes the accessibility check with each header menu open",
    "file": "site/tests/ui/a11y.ui.ts",
-   "line": 49,
+   "line": 52,
    "node": "site/tests/ui/a11y.ui.ts › /el/ with each menu open",
    "given": [
     "the home page, in a language, at phone or desktop width, in light or dark mode"
@@ -1752,7 +1752,7 @@
    "suite": "playwright",
    "title": "every link to this site answers, and every #spot exists on its page",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 54,
+   "line": 58,
    "node": "site/tests/ui/links.ui.ts › every link to this site answers, and every #spot exists on its page",
    "given": [
     "every page in the sitemap, and the Greek twin of every English one"
@@ -1777,7 +1777,7 @@
    "suite": "playwright",
    "title": "the sitemap lists only pages in offered languages",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 93,
+   "line": 97,
    "node": "site/tests/ui/links.ui.ts › the sitemap lists only pages in offered languages",
    "given": [
     "a built site"
@@ -1800,7 +1800,7 @@
    "suite": "playwright",
    "title": "each page has exactly one canonical link, to its own address",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 104,
+   "line": 108,
    "node": "site/tests/ui/links.ui.ts › each page has exactly one canonical link, to its own address",
    "given": [
     "every page in the sitemap, and the Greek twin of every English one"

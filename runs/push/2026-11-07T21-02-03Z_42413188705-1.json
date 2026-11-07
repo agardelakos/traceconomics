@@ -1,0 +1,5653 @@
+{
+ "schema": 1,
+ "run_id": "42413188705-1",
+ "trigger": "push",
+ "commit": "ecfdcc672144825152b77f30f3e24b92b01c3353",
+ "build": null,
+ "started": "2026-11-07T21:02:03Z",
+ "environment": {
+  "platform": "linux-x86_64",
+  "runner": "ubuntu-24.04",
+  "data": "made-up"
+ },
+ "suites": {
+  "pytest": {
+   "passed": 472,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 10,
+   "duration": 236.362
+  },
+  "pytest-local": {
+   "passed": 129,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 0,
+   "duration": 12.761
+  },
+  "selenium": {
+   "passed": 432,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 59,
+   "duration": 288.705
+  },
+  "playwright": {
+   "passed": 390,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 8,
+   "duration": 592.775
+  },
+  "vitest": {
+   "passed": 86,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 0,
+   "duration": 0.314
+  }
+ },
+ "no_case": {
+  "pytest": 7
+ },
+ "cases": {
+  "PW-A11Y-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 357.821,
+   "retries": 0,
+   "examples": {
+    "light, phone › /el/": "passed",
+    "light, phone › /el/countries/": "passed",
+    "light, phone › /el/topics/": "passed",
+    "light, phone › /el/gr/": "passed",
+    "light, phone › /el/inflation-by-group/": "passed",
+    "light, phone › /el/gr/inflation-by-group/": "passed",
+    "light, phone › /el/gr/inflation-by-group/explore/": "passed",
+    "light, phone › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, phone › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, phone › /el/gr/inflation-by-group/calculator/": "passed",
+    "light, phone › /el/gr/inflation-by-group/method/": "passed",
+    "light, phone › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, phone › /el/gr/inflation-by-group/groups/": "passed",
+    "light, phone › /el/data/": "passed",
+    "light, phone › /el/data/gr/": "passed",
+    "light, phone › /el/glossary/": "passed",
+    "light, phone › /el/glossary/imputed-rent/": "passed",
+    "light, phone › /el/about/": "passed",
+    "light, phone › /en/": "passed",
+    "light, phone › /en/countries/": "passed",
+    "light, phone › /en/topics/": "passed",
+    "light, phone › /en/gr/": "passed",
+    "light, phone › /en/inflation-by-group/": "passed",
+    "light, phone › /en/gr/inflation-by-group/": "passed",
+    "light, phone › /en/gr/inflation-by-group/explore/": "passed",
+    "light, phone › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, phone › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, phone › /en/gr/inflation-by-group/calculator/": "passed",
+    "light, phone › /en/gr/inflation-by-group/method/": "passed",
+    "light, phone › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, phone › /en/gr/inflation-by-group/groups/": "passed",
+    "light, phone › /en/data/": "passed",
+    "light, phone › /en/data/gr/": "passed",
+    "light, phone › /en/glossary/": "passed",
+    "light, phone › /en/glossary/imputed-rent/": "passed",
+    "light, phone › /en/about/": "passed",
+    "light, desktop › /el/": "passed",
+    "light, desktop › /el/countries/": "passed",
+    "light, desktop › /el/topics/": "passed",
+    "light, desktop › /el/gr/": "passed",
+    "light, desktop › /el/inflation-by-group/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/explore/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, desktop › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, desktop › /el/gr/inflation-by-group/calculator/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/method/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/groups/": "passed",
+    "light, desktop › /el/data/": "passed",
+    "light, desktop › /el/data/gr/": "passed",
+    "light, desktop › /el/glossary/": "passed",
+    "light, desktop › /el/glossary/imputed-rent/": "passed",
+    "light, desktop › /el/about/": "passed",
+    "light, desktop › /en/": "passed",
+    "light, desktop › /en/countries/": "passed",
+    "light, desktop › /en/topics/": "passed",
+    "light, desktop › /en/gr/": "passed",
+    "light, desktop › /en/inflation-by-group/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/explore/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, desktop › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, desktop › /en/gr/inflation-by-group/calculator/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/method/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/groups/": "passed",
+    "light, desktop › /en/data/": "passed",
+    "light, desktop › /en/data/gr/": "passed",
+    "light, desktop › /en/glossary/": "passed",
+    "light, desktop › /en/glossary/imputed-rent/": "passed",
+    "light, desktop › /en/about/": "passed",
+    "dark, phone › /el/": "passed",
+    "dark, phone › /el/countries/": "passed",
+    "dark, phone › /el/topics/": "passed",
+    "dark, phone › /el/gr/": "passed",
+    "dark, phone › /el/inflation-by-group/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/explore/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, phone › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, phone › /el/gr/inflation-by-group/calculator/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/method/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/groups/": "passed",
+    "dark, phone › /el/data/": "passed",
+    "dark, phone › /el/data/gr/": "passed",
+    "dark, phone › /el/glossary/": "passed",
+    "dark, phone › /el/glossary/imputed-rent/": "passed",
+    "dark, phone › /el/about/": "passed",
+    "dark, phone › /en/": "passed",
+    "dark, phone › /en/countries/": "passed",
+    "dark, phone › /en/topics/": "passed",
+    "dark, phone › /en/gr/": "passed",
+    "dark, phone › /en/inflation-by-group/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/explore/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, phone › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, phone › /en/gr/inflation-by-group/calculator/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/method/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/groups/": "passed",
+    "dark, phone › /en/data/": "passed",
+    "dark, phone › /en/data/gr/": "passed",
+    "dark, phone › /en/glossary/": "passed",
+    "dark, phone › /en/glossary/imputed-rent/": "passed",
+    "dark, phone › /en/about/": "passed",
+    "dark, desktop › /el/": "passed",
+    "dark, desktop › /el/countries/": "passed",
+    "dark, desktop › /el/topics/": "passed",
+    "dark, desktop › /el/gr/": "passed",
+    "dark, desktop › /el/inflation-by-group/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/explore/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/calculator/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/method/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/groups/": "passed",
+    "dark, desktop › /el/data/": "passed",
+    "dark, desktop › /el/data/gr/": "passed",
+    "dark, desktop › /el/glossary/": "passed",
+    "dark, desktop › /el/glossary/imputed-rent/": "passed",
+    "dark, desktop › /el/about/": "passed",
+    "dark, desktop › /en/": "passed",
+    "dark, desktop › /en/countries/": "passed",
+    "dark, desktop › /en/topics/": "passed",
+    "dark, desktop › /en/gr/": "passed",
+    "dark, desktop › /en/inflation-by-group/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/explore/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/calculator/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/method/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/groups/": "passed",
+    "dark, desktop › /en/data/": "passed",
+    "dark, desktop › /en/data/gr/": "passed",
+    "dark, desktop › /en/glossary/": "passed",
+    "dark, desktop › /en/glossary/imputed-rent/": "passed",
+    "dark, desktop › /en/about/": "passed"
+   }
+  },
+  "PW-A11Y-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 26.046,
+   "retries": 0,
+   "examples": {
+    "light, phone › /el/ with each menu open": "passed",
+    "light, phone › /en/ with each menu open": "passed",
+    "light, desktop › /el/ with each menu open": "passed",
+    "light, desktop › /en/ with each menu open": "passed",
+    "dark, phone › /el/ with each menu open": "passed",
+    "dark, phone › /en/ with each menu open": "passed",
+    "dark, desktop › /el/ with each menu open": "passed",
+    "dark, desktop › /en/ with each menu open": "passed"
+   }
+  },
+  "PW-CALC-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.617,
+   "retries": 0,
+   "examples": {
+    "el: untouched, it shows the published series' latest rate": "passed",
+    "en: untouched, it shows the published series' latest rate": "passed"
+   }
+  },
+  "PW-CALC-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.993,
+   "retries": 0
+  },
+  "PW-CALC-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.005,
+   "retries": 0
+  },
+  "PW-CALC-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.943,
+   "retries": 0
+  },
+  "PW-CALC-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.564,
+   "retries": 0
+  },
+  "PW-CALC-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.376,
+   "retries": 0
+  },
+  "PW-CALC-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.848,
+   "retries": 0
+  },
+  "PW-CALC-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.995,
+   "retries": 0
+  },
+  "PW-CALC-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.078,
+   "retries": 0
+  },
+  "PW-CALC-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.981,
+   "retries": 0
+  },
+  "PW-EXPL-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.919,
+   "retries": 0,
+   "examples": {
+    "el: the default view's summary is the default setting's latest values": "passed",
+    "en: the default view's summary is the default setting's latest values": "passed"
+   }
+  },
+  "PW-EXPL-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.948,
+   "retries": 0
+  },
+  "PW-EXPL-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.359,
+   "retries": 0
+  },
+  "PW-EXPL-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.778,
+   "retries": 0
+  },
+  "PW-EXPL-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.331,
+   "retries": 0
+  },
+  "PW-EXPL-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.243,
+   "retries": 0
+  },
+  "PW-EXPL-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.781,
+   "retries": 0,
+   "examples": {
+    "the rch_m measure changes the summary, and the gap is for the annual rate only": "passed",
+    "the index measure changes the summary, and the gap is for the annual rate only": "passed"
+   }
+  },
+  "PW-EXPL-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.204,
+   "retries": 0
+  },
+  "PW-EXPL-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.07,
+   "retries": 0
+  },
+  "PW-EXPL-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.597,
+   "retries": 0
+  },
+  "PW-EXPL-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.316,
+   "retries": 0
+  },
+  "PW-EXPL-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.637,
+   "retries": 0
+  },
+  "PW-EXPL-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.454,
+   "retries": 0
+  },
+  "PW-EXPL-014": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.762,
+   "retries": 0
+  },
+  "PW-EXPL-015": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.392,
+   "retries": 0
+  },
+  "PW-EXPL-016": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.185,
+   "retries": 0
+  },
+  "PW-EXPL-017": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.184,
+   "retries": 0
+  },
+  "PW-EXPL-018": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.39,
+   "retries": 0
+  },
+  "PW-EXPL-019": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.924,
+   "retries": 0
+  },
+  "PW-EXPL-020": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.571,
+   "retries": 0
+  },
+  "PW-EXPL-021": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.175,
+   "retries": 0
+  },
+  "PW-EXPL-022": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.358,
+   "retries": 0
+  },
+  "PW-GRP-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.7,
+   "retries": 0
+  },
+  "PW-GRP-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 3.725,
+   "retries": 0,
+   "examples": {
+    "the group finder › 3 aged 14 or over (0 dependent), 0 children: A_GE3": "passed",
+    "the group finder › 3 aged 14 or over (1 dependent), 0 children: A2_DCH": "passed",
+    "the group finder › 1 aged 14 or over (0 dependent), 1 children: A1_DCH": "passed",
+    "the group finder › 1 aged 14 or over (1 dependent), 1 children: no type": "passed"
+   }
+  },
+  "PW-GRP-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.123,
+   "retries": 0
+  },
+  "PW-GRP-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.82,
+   "retries": 0
+  },
+  "PW-GRP-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.691,
+   "retries": 0
+  },
+  "PW-GRP-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.377,
+   "retries": 0
+  },
+  "PW-GRP-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.945,
+   "retries": 0
+  },
+  "PW-GRP-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.769,
+   "retries": 0
+  },
+  "PW-GRP-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.203,
+   "retries": 0
+  },
+  "PW-GRP-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.819,
+   "retries": 0
+  },
+  "PW-GRP-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.298,
+   "retries": 0
+  },
+  "PW-GRP-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.963,
+   "retries": 0
+  },
+  "PW-GRP-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.3,
+   "retries": 0
+  },
+  "PW-GRP-014": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.642,
+   "retries": 0
+  },
+  "PW-GRP-015": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.824,
+   "retries": 0
+  },
+  "PW-GRP-016": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.165,
+   "retries": 0
+  },
+  "PW-GRP-017": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.67,
+   "retries": 0
+  },
+  "PW-GRP-018": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.185,
+   "retries": 0
+  },
+  "PW-GRP-019": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 3.496,
+   "retries": 0,
+   "examples": {
+    "the group finder › \"abc\" is not an income, and is ignored": "passed",
+    "the group finder › \"1,50,0\" is not an income, and is ignored": "passed",
+    "the group finder › \"-5\" is not an income, and is ignored": "passed",
+    "the group finder › \"0\" is not an income, and is ignored": "passed"
+   }
+  },
+  "PW-HOST-001": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-HOST-002": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-HOST-003": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-HOST-004": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0,
+   "examples": {
+    "Explore with its default view draws within the policy": "skipped",
+    "Explore with other options draws within the policy": "skipped",
+    "Explore with the parts view draws within the policy": "skipped"
+   }
+  },
+  "PW-LINK-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.155,
+   "retries": 0
+  },
+  "PW-LINK-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 70.875,
+   "retries": 0,
+   "examples": {
+    "/en/ loads, with a heading, and logs no error": "passed",
+    "/en/about/ loads, with a heading, and logs no error": "passed",
+    "/en/countries/ loads, with a heading, and logs no error": "passed",
+    "/en/data/ loads, with a heading, and logs no error": "passed",
+    "/en/data/gr/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/actual-rent/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/annual-average/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/annual-rate/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/bootstrap/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/chain-linking/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/coicop/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/consumer-price-index/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/contribution/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/democratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/dependent-child/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/equivalence-scale/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/equivalised-income/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/gap/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/hicp/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/household-budget-survey/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/inflation/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/laspeyres-index/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/microdata/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/monthly-rate/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/pensioner-household/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/percentage-point/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/plutocratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/price-index/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/price-updating/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/purchasing-power-standard/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/quintile/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/reliability/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/spending-concept/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/standard-error/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/tenure/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/weights/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/calculator/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/explore/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/groups/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/grouping/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/price-source/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/spending/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/en/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/en/topics/ loads, with a heading, and logs no error": "passed",
+    "/el/ loads, with a heading, and logs no error": "passed",
+    "/el/about/ loads, with a heading, and logs no error": "passed",
+    "/el/countries/ loads, with a heading, and logs no error": "passed",
+    "/el/data/ loads, with a heading, and logs no error": "passed",
+    "/el/data/gr/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/actual-rent/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/annual-average/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/annual-rate/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/bootstrap/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/chain-linking/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/coicop/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/consumer-price-index/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/contribution/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/democratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/dependent-child/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/equivalence-scale/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/equivalised-income/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/gap/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/hicp/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/household-budget-survey/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/inflation/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/laspeyres-index/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/microdata/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/monthly-rate/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/pensioner-household/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/percentage-point/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/plutocratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/price-index/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/price-updating/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/purchasing-power-standard/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/quintile/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/reliability/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/spending-concept/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/standard-error/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/tenure/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/weights/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/calculator/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/explore/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/groups/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/grouping/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/price-source/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/spending/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/el/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/el/topics/ loads, with a heading, and logs no error": "passed"
+   }
+  },
+  "PW-LINK-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 3.954,
+   "retries": 0
+  },
+  "PW-LINK-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.14,
+   "retries": 0
+  },
+  "PW-LINK-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.21,
+   "retries": 0
+  },
+  "PW-NAV-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.735,
+   "retries": 0
+  },
+  "PW-NAV-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.031,
+   "retries": 0
+  },
+  "PW-NAV-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.711,
+   "retries": 0
+  },
+  "PW-NAV-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.086,
+   "retries": 0,
+   "examples": {
+    "Glossary is marked as the current page on /en/glossary/": "passed",
+    "Topics is marked as the current page on /en/topics/": "passed"
+   }
+  },
+  "PW-NAV-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.989,
+   "retries": 0
+  },
+  "PW-NAV-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.624,
+   "retries": 0
+  },
+  "PW-NAV-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.852,
+   "retries": 0,
+   "examples": {
+    "a browser in el-GR › is sent from the root to the right language": "passed",
+    "a browser in en-US › is sent from the root to the right language": "passed",
+    "a browser in de-DE › is sent from the root to the right language": "passed"
+   }
+  },
+  "PW-NAV-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.373,
+   "retries": 0
+  },
+  "PW-NAV-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.089,
+   "retries": 0
+  },
+  "PW-NAV-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.624,
+   "retries": 0
+  },
+  "PW-NAV-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.826,
+   "retries": 0
+  },
+  "PW-NAV-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.687,
+   "retries": 0
+  },
+  "PW-NAV-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.629,
+   "retries": 0
+  },
+  "PW-NOJS-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.516,
+   "retries": 0
+  },
+  "PW-NOJS-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.665,
+   "retries": 0
+  },
+  "PW-NOJS-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.688,
+   "retries": 0
+  },
+  "PW-NOJS-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.64,
+   "retries": 0
+  },
+  "PW-NOJS-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.293,
+   "retries": 0,
+   "examples": {
+    "explore says it needs a script and links to the data files": "passed",
+    "calculator says it needs a script and links to the data files": "passed"
+   }
+  },
+  "PW-NOJS-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.523,
+   "retries": 0
+  },
+  "PW-PRIV-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.08,
+   "retries": 0
+  },
+  "PW-PRIV-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.368,
+   "retries": 0
+  },
+  "PW-PRIV-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.314,
+   "retries": 0
+  },
+  "PW-PRIV-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 5.579,
+   "retries": 0
+  },
+  "PW-SMOKE-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 15.936,
+   "retries": 0,
+   "examples": {
+    "/en/ loads, shows its heading and logs no error": "passed",
+    "/el/ loads, shows its heading and logs no error": "passed",
+    "/en/countries/ loads, shows its heading and logs no error": "passed",
+    "/en/topics/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/ loads, shows its heading and logs no error": "passed",
+    "/en/inflation-by-group/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/groups/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/explore/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/calculator/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/weights-timing/ loads, shows its heading and logs no error": "passed",
+    "/el/gr/inflation-by-group/explore/ loads, shows its heading and logs no error": "passed",
+    "/en/data/ loads, shows its heading and logs no error": "passed",
+    "/en/data/gr/ loads, shows its heading and logs no error": "passed",
+    "/en/glossary/ loads, shows its heading and logs no error": "passed",
+    "/en/glossary/imputed-rent/ loads, shows its heading and logs no error": "passed",
+    "/en/about/ loads, shows its heading and logs no error": "passed"
+   }
+  },
+  "PW-SMOKE-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.307,
+   "retries": 0
+  },
+  "PW-SMOKE-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.15,
+   "retries": 0
+  },
+  "PW-TERM-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.962,
+   "retries": 0
+  },
+  "PW-TERM-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.821,
+   "retries": 0
+  },
+  "PW-TERM-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.861,
+   "retries": 0
+  },
+  "PW-TERM-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.833,
+   "retries": 0
+  },
+  "PW-TERM-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.256,
+   "retries": 0
+  },
+  "PW-TERM-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.802,
+   "retries": 0
+  },
+  "PW-TERM-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.654,
+   "retries": 0
+  },
+  "PW-TERM-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.838,
+   "retries": 0
+  },
+  "PW-TERM-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.717,
+   "retries": 0
+  },
+  "PW-THEME-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.762,
+   "retries": 0,
+   "examples": {
+    "choosing dark applies it and keeps it in this browser": "passed",
+    "choosing light applies it and keeps it in this browser": "passed"
+   }
+  },
+  "PW-THEME-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.78,
+   "retries": 0
+  },
+  "PW-THEME-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.305,
+   "retries": 0
+  },
+  "PW-THEME-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.976,
+   "retries": 0
+  },
+  "PW-THEME-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.654,
+   "retries": 0
+  },
+  "PW-THEME-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.679,
+   "retries": 0
+  },
+  "PW-THEME-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.899,
+   "retries": 0
+  },
+  "PW-THEME-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.863,
+   "retries": 0
+  },
+  "PW-THEME-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.74,
+   "retries": 0
+  },
+  "PW-THEME-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.681,
+   "retries": 0
+  },
+  "PW-THEME-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.483,
+   "retries": 0
+  },
+  "PY-ANALYT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ANALYT-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-ANALYT-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ANALYT-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-ANALYT-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ANALYT-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ANALYT-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.057,
+   "retries": 0
+  },
+  "PY-ANALYT-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ANALYT-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-ANALYT-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.02,
+   "retries": 0
+  },
+  "PY-ANALYT-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ANALYT-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-ANALYT-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ANALYT-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ANALYT-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ANALYT-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ARCHIVE-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ARCHIVE-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ARCHIVE-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ARCHIVE-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ARCHIVE-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-ARCHIVE-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ARCHIVE-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-BACKFILL-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-BACKFILL-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-BACKFILL-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-BACKFILL-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-BACKFILL-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-BACKFILL-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.024,
+   "retries": 0
+  },
+  "PY-BACKFILL-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-BACKFILL-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-BANDS-001": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.04,
+   "retries": 0
+  },
+  "PY-BANDS-002": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-BANDS-003": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.035,
+   "retries": 0
+  },
+  "PY-BANDS-004": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.947,
+   "retries": 0
+  },
+  "PY-BANDS-005": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.626,
+   "retries": 0
+  },
+  "PY-BENCH-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-BENCH-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-BENCH-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-BENCH-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-BENCH-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-BENCH-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.485,
+   "retries": 0
+  },
+  "PY-BENCH-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.486,
+   "retries": 0
+  },
+  "PY-BENCH-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-BENCH-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-BENCH-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 1.104,
+   "retries": 0
+  },
+  "PY-BENCH-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-BIBEXP-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-BIBEXP-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-BOOT-001": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.025,
+   "retries": 0
+  },
+  "PY-BOOT-002": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.452,
+   "retries": 0
+  },
+  "PY-BOOT-003": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.137,
+   "retries": 0
+  },
+  "PY-BOOT-004": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.111,
+   "retries": 0
+  },
+  "PY-BOOT-005": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0,
+   "examples": {
+    "single-area stratum": "passed",
+    "area in two strata": "passed"
+   }
+  },
+  "PY-BOOT-006": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.02,
+   "retries": 0
+  },
+  "PY-BOOT-007": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.091,
+   "retries": 0
+  },
+  "PY-BOOT-008": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-BOOT-009": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-BOOT-010": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-CAT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0,
+   "examples": {
+    "none": "passed",
+    "no-header": "passed",
+    "order": "passed",
+    "and-first": "passed",
+    "stray-line": "passed",
+    "and-when": "passed"
+   }
+  },
+  "PY-CAT-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.316,
+   "retries": 0
+  },
+  "PY-CAT-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.02,
+   "retries": 0
+  },
+  "PY-CAT-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-CAT-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-018": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-019": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-020": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-CAT-021": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.044,
+   "retries": 0
+  },
+  "PY-CAT-022": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-CAT-023": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0,
+   "examples": {
+    "folder": "passed",
+    "result": "passed",
+    "environment": "passed"
+   }
+  },
+  "PY-CAT-024": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.019,
+   "retries": 0
+  },
+  "PY-CAT-025": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-026": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-027": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-028": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-029": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CAT-030": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-CAT-031": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CAT-032": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CLI-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-CLI-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-CLI-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-CLI-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-CLI-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.02,
+   "retries": 0,
+   "examples": {
+    "ok-0": "passed",
+    "not-due-0": "passed",
+    "dry-run-0": "passed",
+    "partial-1": "passed"
+   }
+  },
+  "PY-CLI-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.015,
+   "retries": 0,
+   "examples": {
+    "ok-0": "passed",
+    "dry-run-0": "passed",
+    "failed-1": "passed"
+   }
+  },
+  "PY-CLI-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-CLI-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-CLI-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "PY-CLI-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.016,
+   "retries": 0,
+   "examples": {
+    "ok-0": "passed",
+    "off-0": "passed",
+    "failed-1": "passed"
+   }
+  },
+  "PY-CLI-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-018": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0,
+   "examples": {
+    "ok-0": "passed",
+    "failed-1": "passed"
+   }
+  },
+  "PY-CLI-019": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.015,
+   "retries": 0,
+   "examples": {
+    "args0-Which build?": "passed",
+    "args1-Which build?": "passed",
+    "args2-Where to? Pass --to staging or --to production.": "passed"
+   }
+  },
+  "PY-CLI-020": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-CLI-021": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-CLI-022": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-CLI-023": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-024": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-025": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.123,
+   "retries": 0
+  },
+  "PY-CLI-026": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-027": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.579,
+   "retries": 0
+  },
+  "PY-CLI-028": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0,
+   "examples": {
+    "True": "passed",
+    "False": "passed"
+   }
+  },
+  "PY-CLI-029": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-030": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0,
+   "examples": {
+    "0.124-0.12-0": "passed",
+    "0.104-0.12-1": "passed"
+   }
+  },
+  "PY-CLI-031": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-032": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-033": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0,
+   "examples": {
+    "True": "passed",
+    "False": "passed"
+   }
+  },
+  "PY-CLI-034": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-CLI-035": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-CLI-036": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 8.972,
+   "retries": 0
+  },
+  "PY-CLI-037": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-CLI-038": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "PY-CLI-039": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.012,
+   "retries": 0
+  },
+  "PY-CLI-040": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-CLI-041": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.023,
+   "retries": 0,
+   "examples": {
+    "True-0": "passed",
+    "False-1": "passed"
+   }
+  },
+  "PY-CLI-042": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.02,
+   "retries": 0,
+   "examples": {
+    "True-0": "passed",
+    "False-1": "passed"
+   }
+  },
+  "PY-CLI-043": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-COMBO-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-COMBO-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-COMBO-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-COMBO-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.026,
+   "retries": 0
+  },
+  "PY-COMBO-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.042,
+   "retries": 0
+  },
+  "PY-COMBO-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-COMBO-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-COMBO-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-COMBO-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.009,
+   "retries": 0
+  },
+  "PY-COMBO-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 9.386,
+   "retries": 0
+  },
+  "PY-COMBO-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.144,
+   "retries": 0
+  },
+  "PY-COMBO-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.342,
+   "retries": 0
+  },
+  "PY-COMBO-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.018,
+   "retries": 0
+  },
+  "PY-COMBO-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.88,
+   "retries": 0
+  },
+  "PY-COMBO-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.057,
+   "retries": 0
+  },
+  "PY-COMBO-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.028,
+   "retries": 0
+  },
+  "PY-COMBO-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.033,
+   "retries": 0
+  },
+  "PY-CONF-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-CONF-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0,
+   "examples": {
+    "[email]\\nsmtp_host = \"h\"\\nsmtp_port = 25\\nusername = \"u\"\\nrecipients = []\\nsecurity = \"plain\"\\n-email.security must be 'starttls' or 'ssl'": "passed",
+    "[release]\\nenabled = true\\n-release.site_dir is required": "passed",
+    "[email]\\nsmtp_host = \"h\"\\n-Missing config field: 'smtp_port'": "passed"
+   }
+  },
+  "PY-CONF-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CONF-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0,
+   "examples": {
+    "linux-XDG_CONFIG_HOME-xdg": "passed",
+    "win32-APPDATA-appdata": "passed"
+   }
+  },
+  "PY-CONF-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0,
+   "examples": {
+    "None": "passed",
+    "2": "passed"
+   }
+  },
+  "PY-CONTRIB-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0
+  },
+  "PY-COV-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-COV-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-COV-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-COV-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-COV-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-COV-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-COV-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.191,
+   "retries": 0
+  },
+  "PY-COV-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.263,
+   "retries": 0
+  },
+  "PY-COV-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-COV-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-CPIHIST-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CPIHIST-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-CPIHIST-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.034,
+   "retries": 0
+  },
+  "PY-CPIHIST-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.042,
+   "retries": 0
+  },
+  "PY-CPIHIST-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-CPIHIST-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.039,
+   "retries": 0
+  },
+  "PY-CPIHIST-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-CPIHIST-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.023,
+   "retries": 0,
+   "examples": {
+    "elstat_cpi07_2011_el.xls-None": "passed",
+    "elstat_cpi07_2026.xlsx-can't read the file": "passed",
+    "elstat_hbs_t103_2018.xls-no sheet named INDICES or \\u0394\\u0395\\u0399\\u039a\\u03a4\\u0395\\u03a3": "passed"
+   }
+  },
+  "PY-CPIHIST-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-CPIHIST-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.04,
+   "retries": 0
+  },
+  "PY-CPIHIST-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ELSTAT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.027,
+   "retries": 0
+  },
+  "PY-ELSTAT-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.062,
+   "retries": 0
+  },
+  "PY-ELSTAT-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.024,
+   "retries": 0
+  },
+  "PY-ELSTAT-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.028,
+   "retries": 0
+  },
+  "PY-ELSTAT-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ELSTAT-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.1,
+   "retries": 0
+  },
+  "PY-ELSTAT-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.119,
+   "retries": 0
+  },
+  "PY-ELSTAT-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ENG-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-018": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-ENG-019": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-EUROSTAT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.294,
+   "retries": 0,
+   "examples": {
+    "eurostat:ilc_di01": "passed",
+    "eurostat:prc_hicp_fp": "passed",
+    "eurostat:prc_hicp_fpd": "passed",
+    "eurostat:prc_hicp_inw": "passed",
+    "eurostat:prc_hicp_iw": "passed",
+    "eurostat:prc_hicp_midx": "passed",
+    "eurostat:prc_hicp_minr": "passed"
+   }
+  },
+  "PY-EUROSTAT-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.023,
+   "retries": 0
+  },
+  "PY-EUROSTAT-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.064,
+   "retries": 0
+  },
+  "PY-EUROSTAT-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.02,
+   "retries": 0
+  },
+  "PY-EUROSTAT-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.06,
+   "retries": 0
+  },
+  "PY-EUROSTAT-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.067,
+   "retries": 0
+  },
+  "PY-EUROSTAT-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-EUROSTAT-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.056,
+   "retries": 0,
+   "examples": {
+    "A,CP01,IW,EL\\t1.0 \\t2.0 zz\\n-unknown observation flags": "passed",
+    "A,CP01,IW,EL\\t1.0 \\tabc \\n-aren't numbers": "passed",
+    "A,CP01,IW,ZZZ\\t1.0 \\t2.0 \\n-unknown country codes": "passed",
+    "A,CP01,IW,EL\\t1.0 \\t2.0 \\nA,CP01,IW,EL\\t1.0 \\t2.0 \\n-appear twice": "passed"
+   }
+  },
+  "PY-EUROSTAT-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-EXPORT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.852,
+   "retries": 0
+  },
+  "PY-FIXT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-GROUPS-001": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.012,
+   "retries": 0
+  },
+  "PY-GROUPS-002": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-GROUPS-003": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-GROUPS-004": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-GROUPS-005": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-GROUPS-006": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.037,
+   "retries": 0
+  },
+  "PY-GROUPS-007": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-GROUPS-008": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.089,
+   "retries": 0
+  },
+  "PY-GROUPS-009": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.055,
+   "retries": 0
+  },
+  "PY-GROUPS-010": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0,
+   "examples": {
+    "19-suppressed": "passed",
+    "20-flagged": "passed",
+    "49-flagged": "passed",
+    "50-normal": "passed"
+   }
+  },
+  "PY-GROUPS-011": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-GROUPS-012": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.012,
+   "retries": 0
+  },
+  "PY-GROUPS-013": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-GROUPS-014": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-GROUPS-015": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.059,
+   "retries": 0
+  },
+  "PY-GROUPS-016": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-GROUPS-017": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.101,
+   "retries": 0
+  },
+  "PY-GROUPS-018": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-GROUPS-019": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-GROUPS-020": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-GROUPS-021": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-GROUPS-022": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.019,
+   "retries": 0
+  },
+  "PY-GROUPS-023": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-GROUPS-024": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.037,
+   "retries": 0
+  },
+  "PY-GROUPS-025": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.039,
+   "retries": 0
+  },
+  "PY-GROUPS-026": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0
+  },
+  "PY-GROUPS-027": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.037,
+   "retries": 0
+  },
+  "PY-GROUPS-028": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.036,
+   "retries": 0
+  },
+  "PY-GROUPS-029": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.039,
+   "retries": 0
+  },
+  "PY-HBEAT-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.517,
+   "retries": 0
+  },
+  "PY-HBEAT-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-HBEAT-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.508,
+   "retries": 0
+  },
+  "PY-HBEAT-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-HBEAT-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-HBEAT-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-HBEAT-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-HBEAT-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-HBEAT-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-HBS-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.175,
+   "retries": 0
+  },
+  "PY-HBS-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.395,
+   "retries": 0
+  },
+  "PY-HBS-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.355,
+   "retries": 0
+  },
+  "PY-HBS-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-HBS-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-HBS-006": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0
+  },
+  "PY-HBS-007": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.054,
+   "retries": 0
+  },
+  "PY-HBS-008": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.027,
+   "retries": 0
+  },
+  "PY-HBS-009": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-HOSP-001": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.038,
+   "retries": 0
+  },
+  "PY-HOSP-002": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.147,
+   "retries": 0
+  },
+  "PY-HOSP-003": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 1.034,
+   "retries": 0
+  },
+  "PY-HTTP-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.024,
+   "retries": 0
+  },
+  "PY-HTTP-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "PY-HTTP-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.044,
+   "retries": 0,
+   "examples": {
+    "404-True": "passed",
+    "500-False": "passed"
+   }
+  },
+  "PY-HTTP-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-HTTP-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.046,
+   "retries": 0,
+   "examples": {
+    "503": "passed",
+    "429": "passed"
+   }
+  },
+  "PY-HTTP-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "PY-HTTP-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.023,
+   "retries": 0
+  },
+  "PY-HTTP-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "PY-HTTP-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0,
+   "examples": {
+    "headers0-.xlsx": "passed",
+    "headers1-.html": "passed",
+    "headers2-.json": "passed",
+    "headers3-.gz": "passed",
+    "headers4-": "passed",
+    "headers5-": "passed"
+   }
+  },
+  "PY-HTTP-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-HTTP-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.033,
+   "retries": 0
+  },
+  "PY-INDEX-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-INDEX-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-INDEX-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "PY-INDEX-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-JOB-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-JOB-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0,
+   "examples": {
+    "12:59": "passed",
+    "13:00": "passed"
+   }
+  },
+  "PY-JOB-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-JOB-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-JOB-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-JOB-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.067,
+   "retries": 0
+  },
+  "PY-JOB-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.065,
+   "retries": 0
+  },
+  "PY-JOB-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.075,
+   "retries": 0
+  },
+  "PY-JOB-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.045,
+   "retries": 0
+  },
+  "PY-JOB-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-JOB-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.045,
+   "retries": 0
+  },
+  "PY-JOB-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.045,
+   "retries": 0
+  },
+  "PY-JOB-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.048,
+   "retries": 0
+  },
+  "PY-JOB-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.043,
+   "retries": 0
+  },
+  "PY-JOB-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-JOB-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-JOB-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0,
+   "examples": {
+    "2026-11-10-0": "passed",
+    "2026-11-07-1": "passed",
+    "None-1": "passed"
+   }
+  },
+  "PY-JOB-018": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-JOB-019": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.065,
+   "retries": 0
+  },
+  "PY-JOB-020": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.044,
+   "retries": 0
+  },
+  "PY-LABELS-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-LABELS-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.028,
+   "retries": 0
+  },
+  "PY-LABELS-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.03,
+   "retries": 0,
+   "examples": {
+    "only in capitals": "passed",
+    "no name": "passed"
+   }
+  },
+  "PY-LOCAL-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0,
+   "examples": {
+    "puf-hbs-2024": "passed",
+    "puf-lfs-puf-2025a-gr": "passed",
+    "puf-statistics-on-income-and-living-conditions-silc-2025": "passed"
+   }
+  },
+  "PY-LOCAL-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0,
+   "examples": {
+    "elstat-puf-catalogue": "passed",
+    "elstat-doc-585819": "passed",
+    "eurostat-prc_hicp_minr": "passed"
+   }
+  },
+  "PY-LOCAL-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-LOCAL-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-LOCK-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MAP-001": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-MAP-002": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.012,
+   "retries": 0
+  },
+  "PY-MAP-003": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-MAP-004": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MAP-005": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.015,
+   "retries": 0
+  },
+  "PY-MAP-006": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-MAP-007": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.125,
+   "retries": 0,
+   "examples": {
+    "2016-columns0": "passed",
+    "2010-columns1": "passed"
+   }
+  },
+  "PY-MAP-008": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "PY-MAP-009": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-MAP-010": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.016,
+   "retries": 0
+  },
+  "PY-MAP-011": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.021,
+   "retries": 0
+  },
+  "PY-MAP-012": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MAP-013": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.206,
+   "retries": 0
+  },
+  "PY-MAP-014": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.294,
+   "retries": 0
+  },
+  "PY-MAP-015": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 1.692,
+   "retries": 0
+  },
+  "PY-MAP-016": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.467,
+   "retries": 0
+  },
+  "PY-MAP-017": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 3.288,
+   "retries": 0
+  },
+  "PY-MAP-018": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-MCHK-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.27,
+   "retries": 0
+  },
+  "PY-MCHK-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.274,
+   "retries": 0
+  },
+  "PY-MCHK-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.612,
+   "retries": 0
+  },
+  "PY-MCHK-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MCHK-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-MIGRATE-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0,
+   "examples": {
+    "linux-XDG_CONFIG_HOME-xdg": "passed",
+    "win32-APPDATA-appdata": "passed"
+   }
+  },
+  "PY-MIGRATE-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0,
+   "examples": {
+    "True": "passed",
+    "False": "passed"
+   }
+  },
+  "PY-NOTIFY-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-NOTIFY-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-NOTIFY-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-NOTIFY-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.045,
+   "retries": 0,
+   "examples": {
+    "starttls-FakeSMTP-True": "passed",
+    "ssl-FakeSMTP_SSL-False": "passed"
+   }
+  },
+  "PY-NOTIFY-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.014,
+   "retries": 0
+  },
+  "PY-NOTIFY-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-NOTIFY-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-OBS-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.271,
+   "retries": 0
+  },
+  "PY-OBS-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.134,
+   "retries": 0
+  },
+  "PY-OBS-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.511,
+   "retries": 0
+  },
+  "PY-OBS-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 18.133,
+   "retries": 0
+  },
+  "PY-OBS-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 3.002,
+   "retries": 0
+  },
+  "PY-OBS-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.338,
+   "retries": 0
+  },
+  "PY-OBS-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.214,
+   "retries": 0
+  },
+  "PY-OBS-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.127,
+   "retries": 0
+  },
+  "PY-OBS-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.267,
+   "retries": 0
+  },
+  "PY-OBS-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-OETLOCAL-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-OETLOCAL-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-OETLOCAL-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-OETLOCAL-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.148,
+   "retries": 0
+  },
+  "PY-OETLOCAL-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-OETLOCAL-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-OETLOCAL-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-OETLOCAL-008": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.788,
+   "retries": 0
+  },
+  "PY-OETLOCAL-009": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.103,
+   "retries": 0
+  },
+  "PY-OETLOCAL-010": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.056,
+   "retries": 0
+  },
+  "PY-ORIG-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ORIG-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ORIG-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-ORIG-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-ORIG-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0
+  },
+  "PY-ORIG-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-ORIG-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.054,
+   "retries": 0
+  },
+  "PY-ORIG-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.018,
+   "retries": 0
+  },
+  "PY-ORIG-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-ORIG-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0,
+   "examples": {
+    "\\u03a0\\u0399\\u039d\\u0391\\u039a\\u0391\\u03a3 VII. \\u0394\\u03a4\\u039a \\u03ad\\u03c4\\u03bf\\u03c5\\u03c2 2009-rows0-no base year in the title": "passed",
+    "\\u0394\\u03a4\\u039a \\u03ad\\u03c4\\u03bf\\u03c5\\u03c2 2009 (2009=100)-rows1-no overall index row": "passed",
+    "\\u0394\\u03a4\\u039a \\u03ad\\u03c4\\u03bf\\u03c5\\u03c2 2009 (2009=100)-rows2-only 11 rows": "passed"
+   }
+  },
+  "PY-PARSE-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-PARSE-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-PARSE-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-PARSE-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PARSE-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PARSE-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PARSE-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-PRICES-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.113,
+   "retries": 0
+  },
+  "PY-PRICES-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.076,
+   "retries": 0
+  },
+  "PY-PRICES-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-PRICES-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-PRICES-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.083,
+   "retries": 0
+  },
+  "PY-PRICES-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PRICES-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-PUF-001": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.194,
+   "retries": 0,
+   "examples": {
+    "2016-2016-7z-MA04 = household + person number": "passed",
+    "2020-2020-zip-MA04 is the household": "passed",
+    "2023-2023-zip-cluster - household number in MA04": "passed",
+    "2024-2024-zip-cluster + 2 digits of MA04": "passed"
+   }
+  },
+  "PY-PUF-002": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.054,
+   "retries": 0
+  },
+  "PY-PUF-003": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.048,
+   "retries": 0
+  },
+  "PY-PUF-004": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-PUF-005": {
+   "suite": "pytest-local",
+   "result": "passed",
+   "duration": 0.05,
+   "retries": 0
+  },
+  "PY-REFS-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-REFS-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-REFS-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "PY-REFS-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-REL-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-REL-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "PY-REL-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-REL-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-REL-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-REL-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.031,
+   "retries": 0
+  },
+  "PY-REL-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.037,
+   "retries": 0
+  },
+  "PY-REL-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "PY-REL-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.013,
+   "retries": 0
+  },
+  "PY-REL-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-REL-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.041,
+   "retries": 0
+  },
+  "PY-REL-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-REL-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-REL-014": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-REL-015": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.015,
+   "retries": 0
+  },
+  "PY-REL-016": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.017,
+   "retries": 0
+  },
+  "PY-REL-017": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.019,
+   "retries": 0
+  },
+  "PY-REL-018": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-REL-019": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-REL-020": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-REL-021": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-REL-022": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.014,
+   "retries": 0
+  },
+  "PY-REL-023": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.012,
+   "retries": 0
+  },
+  "PY-REL-024": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-SCHED-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SCHED-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SCHED-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-SCHED-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SCHED-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-SCHED-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SCHED-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SCHED-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.03,
+   "retries": 0
+  },
+  "PY-SCHED-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-SITEDATA-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 180.661,
+   "retries": 0
+  },
+  "PY-SITEDATA-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-SITEDATA-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.012,
+   "retries": 0
+  },
+  "PY-SITEEXP-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.111,
+   "retries": 0
+  },
+  "PY-SITEEXP-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.093,
+   "retries": 0
+  },
+  "PY-SITEEXP-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.104,
+   "retries": 0
+  },
+  "PY-SITEEXP-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.361,
+   "retries": 0
+  },
+  "PY-SITEEXP-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.316,
+   "retries": 0
+  },
+  "PY-SITEEXP-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SITEEXP-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SITEEXP-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SITEEXP-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SITEEXP-010": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-SITEEXP-011": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.011,
+   "retries": 0
+  },
+  "PY-SITEEXP-012": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0,
+   "examples": {
+    "ratios differ": "passed",
+    "different quintiles": "passed"
+   }
+  },
+  "PY-SITEEXP-013": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.294,
+   "retries": 0
+  },
+  "PY-TFIVE-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.026,
+   "retries": 0
+  },
+  "PY-TFIVE-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.026,
+   "retries": 0
+  },
+  "PY-TFIVE-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "PY-TFIVE-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.051,
+   "retries": 0,
+   "examples": {
+    "change0": "passed",
+    "change1": "passed",
+    "change2": "passed",
+    "change3": "passed",
+    "change4": "passed"
+   }
+  },
+  "PY-TRES-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0,
+   "examples": {
+    "no ref": "passed",
+    "packed only": "passed",
+    "loose wins": "passed",
+    "detached": "passed"
+   }
+  },
+  "PY-TRES-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "PY-TRES-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-TRES-004": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-TRES-005": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-TRES-006": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0
+  },
+  "PY-TRES-007": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.008,
+   "retries": 0
+  },
+  "PY-TRES-008": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "PY-TRES-009": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.006,
+   "retries": 0,
+   "examples": {
+    "refused": "passed",
+    "unknown commit": "passed",
+    "not ending in /o/": "passed",
+    "not https": "passed",
+    "broken off": "passed",
+    "error quotes the address": "passed"
+   }
+  },
+  "PY-VONE-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.438,
+   "retries": 0
+  },
+  "PY-VONE-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.373,
+   "retries": 0
+  },
+  "PY-WIKI-001": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PY-WIKI-002": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.021,
+   "retries": 0,
+   "examples": {
+    "Adding-a-source-or-country.md": "passed",
+    "Architecture.md": "passed",
+    "Design-principles.md": "passed",
+    "Future.md": "passed",
+    "Home.md": "passed",
+    "Test-management-as-code.md": "passed",
+    "Test-strategy.md": "passed",
+    "_Sidebar.md": "passed"
+   }
+  },
+  "PY-WIKI-003": {
+   "suite": "pytest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0,
+   "examples": {
+    "Adding-a-source-or-country.md": "passed",
+    "Architecture.md": "passed",
+    "Design-principles.md": "passed",
+    "Future.md": "passed",
+    "Home.md": "passed",
+    "Test-management-as-code.md": "passed",
+    "Test-strategy.md": "passed",
+    "_Sidebar.md": "passed"
+   }
+  },
+  "SEL-A11Y-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 54.587,
+   "retries": 0,
+   "examples": {
+    "-en-light": "passed",
+    "gr/inflation-by-group/calculator/-en-light": "passed",
+    "data/gr/-el-light": "passed",
+    "-en-dark": "passed",
+    "gr/inflation-by-group/calculator/-en-dark": "passed",
+    "data/gr/-el-dark": "passed",
+    "-el-light": "passed",
+    "-el-dark": "passed",
+    "gr/inflation-by-group/calculator/-el-light": "passed",
+    "inflation-by-group/-en-light": "passed",
+    "about/-en-light": "passed",
+    "inflation-by-group/-en-dark": "passed",
+    "gr/inflation-by-group/calculator/-el-dark": "passed",
+    "about/-en-dark": "passed",
+    "inflation-by-group/-el-light": "passed",
+    "about/-el-light": "passed",
+    "inflation-by-group/-el-dark": "passed",
+    "about/-el-dark": "passed",
+    "gr/-en-light": "passed",
+    "countries/-en-light": "passed",
+    "gr/-en-dark": "passed",
+    "countries/-en-dark": "passed",
+    "gr/-el-light": "passed",
+    "gr/-el-dark": "passed",
+    "countries/-el-light": "passed",
+    "gr/inflation-by-group/-en-light": "passed",
+    "countries/-el-dark": "passed",
+    "topics/-en-light": "passed",
+    "gr/inflation-by-group/-en-dark": "passed",
+    "gr/inflation-by-group/-el-light": "passed",
+    "topics/-en-dark": "passed",
+    "topics/-el-light": "passed",
+    "gr/inflation-by-group/-el-dark": "passed",
+    "topics/-el-dark": "passed",
+    "gr/inflation-by-group/method/-en-light": "passed",
+    "glossary/-en-light": "passed",
+    "gr/inflation-by-group/method/-en-dark": "passed",
+    "glossary/-en-dark": "passed",
+    "gr/inflation-by-group/method/-el-light": "passed",
+    "glossary/-el-light": "passed",
+    "gr/inflation-by-group/method/-el-dark": "passed",
+    "glossary/-el-dark": "passed",
+    "glossary/quintile/-en-light": "passed",
+    "gr/inflation-by-group/method/weights-timing/-en-light": "passed",
+    "gr/inflation-by-group/method/weights-timing/-en-dark": "passed",
+    "glossary/quintile/-en-dark": "passed",
+    "glossary/quintile/-el-light": "passed",
+    "gr/inflation-by-group/method/weights-timing/-el-light": "passed",
+    "glossary/quintile/-el-dark": "passed",
+    "gr/inflation-by-group/method/weights-timing/-el-dark": "passed",
+    "data/-en-light": "passed",
+    "gr/inflation-by-group/groups/-en-light": "passed",
+    "data/-en-dark": "passed",
+    "gr/inflation-by-group/groups/-en-dark": "passed",
+    "data/-el-light": "passed",
+    "data/-el-dark": "passed",
+    "gr/inflation-by-group/groups/-el-light": "passed",
+    "data/gr/-en-light": "passed",
+    "gr/inflation-by-group/groups/-el-dark": "passed",
+    "data/gr/-en-dark": "passed",
+    "gr/inflation-by-group/explore/-en-light": "passed",
+    "gr/inflation-by-group/explore/-en-dark": "passed",
+    "gr/inflation-by-group/explore/-el-light": "passed",
+    "gr/inflation-by-group/explore/-el-dark": "passed"
+   }
+  },
+  "SEL-A11Y-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 51.696,
+   "retries": 0,
+   "examples": {
+    "data/-el-light": "passed",
+    "data/-el-dark": "passed",
+    "data/gr/-en-light": "passed",
+    "data/gr/-en-dark": "passed",
+    "data/gr/-el-light": "passed",
+    "data/gr/-el-dark": "passed",
+    "-en-light": "passed",
+    "inflation-by-group/-en-light": "passed",
+    "-en-dark": "passed",
+    "inflation-by-group/-en-dark": "passed",
+    "-el-light": "passed",
+    "inflation-by-group/-el-light": "passed",
+    "-el-dark": "passed",
+    "inflation-by-group/-el-dark": "passed",
+    "about/-en-light": "passed",
+    "gr/-en-light": "passed",
+    "about/-en-dark": "passed",
+    "gr/-en-dark": "passed",
+    "about/-el-light": "passed",
+    "gr/-el-light": "passed",
+    "about/-el-dark": "passed",
+    "gr/-el-dark": "passed",
+    "countries/-en-light": "passed",
+    "gr/inflation-by-group/-en-light": "passed",
+    "countries/-en-dark": "passed",
+    "gr/inflation-by-group/-en-dark": "passed",
+    "countries/-el-light": "passed",
+    "gr/inflation-by-group/-el-light": "passed",
+    "countries/-el-dark": "passed",
+    "gr/inflation-by-group/-el-dark": "passed",
+    "topics/-en-light": "passed",
+    "gr/inflation-by-group/method/-en-light": "passed",
+    "topics/-en-dark": "passed",
+    "topics/-el-light": "passed",
+    "gr/inflation-by-group/method/-en-dark": "passed",
+    "topics/-el-dark": "passed",
+    "gr/inflation-by-group/method/-el-light": "passed",
+    "glossary/-en-light": "passed",
+    "gr/inflation-by-group/method/-el-dark": "passed",
+    "glossary/-en-dark": "passed",
+    "gr/inflation-by-group/method/weights-timing/-en-light": "passed",
+    "glossary/-el-light": "passed",
+    "gr/inflation-by-group/method/weights-timing/-en-dark": "passed",
+    "gr/inflation-by-group/method/weights-timing/-el-light": "passed",
+    "glossary/-el-dark": "passed",
+    "gr/inflation-by-group/method/weights-timing/-el-dark": "passed",
+    "glossary/quintile/-en-light": "passed",
+    "glossary/quintile/-en-dark": "passed",
+    "gr/inflation-by-group/groups/-en-light": "passed",
+    "glossary/quintile/-el-light": "passed",
+    "gr/inflation-by-group/groups/-en-dark": "passed",
+    "glossary/quintile/-el-dark": "passed",
+    "data/-en-light": "passed",
+    "gr/inflation-by-group/groups/-el-light": "passed",
+    "data/-en-dark": "passed",
+    "gr/inflation-by-group/explore/-en-light": "passed",
+    "gr/inflation-by-group/groups/-el-dark": "passed",
+    "gr/inflation-by-group/explore/-en-dark": "passed",
+    "gr/inflation-by-group/explore/-el-light": "passed",
+    "gr/inflation-by-group/explore/-el-dark": "passed",
+    "gr/inflation-by-group/calculator/-en-light": "passed",
+    "gr/inflation-by-group/calculator/-en-dark": "passed",
+    "gr/inflation-by-group/calculator/-el-light": "passed",
+    "gr/inflation-by-group/calculator/-el-dark": "passed"
+   }
+  },
+  "SEL-A11Y-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 5.374,
+   "retries": 0,
+   "examples": {
+    "#settings-menu-light": "passed",
+    "#settings-menu-dark": "passed",
+    "#topic-menu-light": "passed",
+    "#topic-menu-dark": "passed",
+    "#country-menu-light": "passed",
+    "#country-menu-dark": "passed"
+   }
+  },
+  "SEL-A11Y-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.702,
+   "retries": 0,
+   "examples": {
+    "light": "passed",
+    "dark": "passed"
+   }
+  },
+  "SEL-CALC-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.968,
+   "retries": 0,
+   "examples": {
+    "en": "passed",
+    "el": "passed"
+   }
+  },
+  "SEL-CALC-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 8.645,
+   "retries": 0,
+   "examples": {
+    "all/all": "passed",
+    "B/Q1": "passed",
+    "B/Q2": "passed",
+    "B/Q3": "passed",
+    "B/Q4": "passed",
+    "B/Q5": "passed",
+    "tenure/renter": "passed",
+    "tenure/owner": "passed",
+    "tenure/rent_free": "passed",
+    "pensioners/pensioners": "passed",
+    "pensioners/other": "passed",
+    "hhtype/A1": "passed",
+    "hhtype/A1_DCH": "passed",
+    "hhtype/A2": "passed",
+    "hhtype/A2_DCH": "passed",
+    "hhtype/A_GE3": "passed",
+    "hhtype/A_GE3_DCH": "passed"
+   }
+  },
+  "SEL-CALC-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.479,
+   "retries": 0
+  },
+  "SEL-CALC-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.378,
+   "retries": 0
+  },
+  "SEL-CALC-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.822,
+   "retries": 0
+  },
+  "SEL-CALC-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.961,
+   "retries": 0
+  },
+  "SEL-CALC-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.13,
+   "retries": 0
+  },
+  "SEL-CALC-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.216,
+   "retries": 0
+  },
+  "SEL-CALC-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.196,
+   "retries": 0
+  },
+  "SEL-CALC-010": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.788,
+   "retries": 0
+  },
+  "SEL-CALC-011": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.342,
+   "retries": 0
+  },
+  "SEL-EXPL-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.441,
+   "retries": 0,
+   "examples": {
+    "el": "passed",
+    "en": "passed"
+   }
+  },
+  "SEL-EXPL-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.071,
+   "retries": 0
+  },
+  "SEL-EXPL-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 5.409,
+   "retries": 0,
+   "examples": {
+    "spending": "passed",
+    "imputed_rent": "passed",
+    "price_source": "passed",
+    "weights_timing": "passed",
+    "tutoring": "passed",
+    "grouping": "passed"
+   }
+  },
+  "SEL-EXPL-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.087,
+   "retries": 0
+  },
+  "SEL-EXPL-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.801,
+   "retries": 0
+  },
+  "SEL-EXPL-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.88,
+   "retries": 0
+  },
+  "SEL-EXPL-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.943,
+   "retries": 0
+  },
+  "SEL-EXPL-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.638,
+   "retries": 0
+  },
+  "SEL-EXPL-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.16,
+   "retries": 0
+  },
+  "SEL-EXPL-010": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.39,
+   "retries": 0
+  },
+  "SEL-EXPL-011": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.524,
+   "retries": 0
+  },
+  "SEL-EXPL-012": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.166,
+   "retries": 0
+  },
+  "SEL-EXPL-013": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.691,
+   "retries": 0
+  },
+  "SEL-EXPL-014": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.462,
+   "retries": 0
+  },
+  "SEL-EXPL-015": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.697,
+   "retries": 0
+  },
+  "SEL-EXPL-016": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.54,
+   "retries": 0
+  },
+  "SEL-EXPL-017": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.493,
+   "retries": 0
+  },
+  "SEL-EXPL-018": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.645,
+   "retries": 0
+  },
+  "SEL-EXPL-019": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.562,
+   "retries": 0
+  },
+  "SEL-EXPL-020": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.367,
+   "retries": 0
+  },
+  "SEL-EXPL-021": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.634,
+   "retries": 0
+  },
+  "SEL-EXPL-022": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.477,
+   "retries": 0
+  },
+  "SEL-GRP-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.397,
+   "retries": 0
+  },
+  "SEL-GRP-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 9.283,
+   "retries": 0,
+   "examples": {
+    "1-0-9000-9000-year-en": "passed",
+    "1-0-9000-9000-year-el": "passed",
+    "2-1-1500-1500-month-en": "passed",
+    "2-1-1500-1500-month-el": "passed",
+    "2-2-45000-45000-year-en": "passed",
+    "2-2-45000-45000-year-el": "passed",
+    "3-0-2.000-2000-month-en": "passed",
+    "3-0-2.000-2000-month-el": "passed"
+   }
+  },
+  "SEL-GRP-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.802,
+   "retries": 0
+  },
+  "SEL-GRP-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.328,
+   "retries": 0
+  },
+  "SEL-GRP-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.733,
+   "retries": 0
+  },
+  "SEL-GRP-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 3.463,
+   "retries": 0,
+   "examples": {
+    "abc": "passed",
+    "1,50,0": "passed",
+    "-5": "passed",
+    "0": "passed"
+   }
+  },
+  "SEL-GRP-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.819,
+   "retries": 0
+  },
+  "SEL-GRP-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 10.325,
+   "retries": 0,
+   "examples": {
+    "one-1-0-en": "passed",
+    "one-1-0-el": "passed",
+    "two-2-0-en": "passed",
+    "two-2-0-el": "passed",
+    "two_child-2-1-en": "passed",
+    "two_child-2-1-el": "passed",
+    "two_children-2-2-en": "passed",
+    "two_children-2-2-el": "passed",
+    "one_child-1-1-en": "passed",
+    "one_child-1-1-el": "passed",
+    "three-3-0-en": "passed",
+    "three-3-0-el": "passed"
+   }
+  },
+  "SEL-GRP-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.98,
+   "retries": 0
+  },
+  "SEL-GRP-010": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.763,
+   "retries": 0
+  },
+  "SEL-GRP-011": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 2.837,
+   "retries": 0,
+   "examples": {
+    "3-0-0": "passed",
+    "3-0-1": "passed",
+    "1-1-0": "passed"
+   }
+  },
+  "SEL-GRP-012": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.827,
+   "retries": 0
+  },
+  "SEL-GRP-013": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.855,
+   "retries": 0
+  },
+  "SEL-GRP-014": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.67,
+   "retries": 0
+  },
+  "SEL-HOST-001": {
+   "suite": "selenium",
+   "result": "skipped",
+   "duration": 0.007,
+   "retries": 0,
+   "examples": {
+    "/en/": "skipped",
+    "/en/gr/inflation-by-group/explore/": "skipped",
+    "/en/data/gr/": "skipped"
+   }
+  },
+  "SEL-HOST-002": {
+   "suite": "selenium",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "SEL-HOST-003": {
+   "suite": "selenium",
+   "result": "skipped",
+   "duration": 0.013,
+   "retries": 0,
+   "examples": {
+    "/en/glossary/": "skipped",
+    "/en/glossary/actual-rent/": "skipped",
+    "/en/glossary/annual-average/": "skipped",
+    "/en/glossary/annual-rate/": "skipped",
+    "/en/glossary/bootstrap/": "skipped",
+    "/en/glossary/chain-linking/": "skipped",
+    "/en/glossary/coicop/": "skipped",
+    "/en/glossary/consumer-price-index/": "skipped",
+    "/en/glossary/contribution/": "skipped",
+    "/en/glossary/democratic-weighting/": "skipped",
+    "/en/glossary/dependent-child/": "skipped",
+    "/en/glossary/equivalence-scale/": "skipped",
+    "/en/glossary/equivalised-income/": "skipped",
+    "/en/glossary/gap/": "skipped",
+    "/en/glossary/hicp/": "skipped",
+    "/en/glossary/household-budget-survey/": "skipped",
+    "/en/glossary/imputed-rent/": "skipped",
+    "/en/glossary/inflation/": "skipped",
+    "/en/glossary/laspeyres-index/": "skipped",
+    "/en/glossary/microdata/": "skipped",
+    "/en/glossary/monthly-rate/": "skipped",
+    "/en/glossary/pensioner-household/": "skipped",
+    "/en/glossary/percentage-point/": "skipped",
+    "/en/glossary/plutocratic-weighting/": "skipped",
+    "/en/glossary/price-index/": "skipped",
+    "/en/glossary/price-updating/": "skipped",
+    "/en/glossary/purchasing-power-standard/": "skipped",
+    "/en/glossary/quintile/": "skipped",
+    "/en/glossary/reliability/": "skipped",
+    "/en/glossary/spending-concept/": "skipped",
+    "/en/glossary/standard-error/": "skipped",
+    "/en/glossary/tenure/": "skipped",
+    "/en/glossary/tutoring/": "skipped",
+    "/en/glossary/weights-timing/": "skipped",
+    "/en/glossary/weights/": "skipped",
+    "/en/gr/": "skipped",
+    "/en/gr/inflation-by-group/": "skipped",
+    "/en/gr/inflation-by-group/calculator/": "skipped",
+    "/en/gr/inflation-by-group/explore/": "skipped",
+    "/en/gr/inflation-by-group/groups/": "skipped",
+    "/en/gr/inflation-by-group/method/": "skipped",
+    "/en/gr/inflation-by-group/method/grouping/": "skipped",
+    "/en/gr/inflation-by-group/method/imputed-rent/": "skipped",
+    "/en/gr/inflation-by-group/method/price-source/": "skipped",
+    "/en/gr/inflation-by-group/method/spending/": "skipped",
+    "/en/gr/inflation-by-group/method/tutoring/": "skipped",
+    "/en/gr/inflation-by-group/method/weights-timing/": "skipped",
+    "/en/inflation-by-group/": "skipped",
+    "/en/topics/": "skipped",
+    "/en/": "skipped",
+    "/en/about/": "skipped",
+    "/en/countries/": "skipped",
+    "/en/data/": "skipped",
+    "/en/data/gr/": "skipped"
+   }
+  },
+  "SEL-HOST-004": {
+   "suite": "selenium",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "SEL-LINK-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 40.355,
+   "retries": 0,
+   "examples": {
+    "/en/": "passed",
+    "/en/about/": "passed",
+    "/en/countries/": "passed",
+    "/en/data/": "passed",
+    "/en/data/gr/": "passed",
+    "/en/glossary/": "passed",
+    "/en/glossary/actual-rent/": "passed",
+    "/en/glossary/annual-average/": "passed",
+    "/en/glossary/annual-rate/": "passed",
+    "/en/glossary/bootstrap/": "passed",
+    "/en/glossary/chain-linking/": "passed",
+    "/en/glossary/coicop/": "passed",
+    "/en/glossary/consumer-price-index/": "passed",
+    "/en/glossary/contribution/": "passed",
+    "/en/glossary/democratic-weighting/": "passed",
+    "/en/glossary/dependent-child/": "passed",
+    "/en/glossary/equivalence-scale/": "passed",
+    "/en/glossary/equivalised-income/": "passed",
+    "/en/glossary/gap/": "passed",
+    "/en/glossary/hicp/": "passed",
+    "/en/glossary/household-budget-survey/": "passed",
+    "/en/glossary/imputed-rent/": "passed",
+    "/en/glossary/inflation/": "passed",
+    "/en/glossary/laspeyres-index/": "passed",
+    "/en/glossary/microdata/": "passed",
+    "/en/glossary/monthly-rate/": "passed",
+    "/en/glossary/pensioner-household/": "passed",
+    "/en/glossary/percentage-point/": "passed",
+    "/en/glossary/plutocratic-weighting/": "passed",
+    "/en/glossary/price-index/": "passed",
+    "/en/glossary/price-updating/": "passed",
+    "/en/glossary/purchasing-power-standard/": "passed",
+    "/en/glossary/quintile/": "passed",
+    "/en/glossary/reliability/": "passed",
+    "/en/glossary/spending-concept/": "passed",
+    "/en/glossary/standard-error/": "passed",
+    "/en/glossary/tenure/": "passed",
+    "/en/glossary/tutoring/": "passed",
+    "/en/glossary/weights-timing/": "passed",
+    "/en/glossary/weights/": "passed",
+    "/en/gr/": "passed",
+    "/en/gr/inflation-by-group/": "passed",
+    "/en/gr/inflation-by-group/calculator/": "passed",
+    "/en/gr/inflation-by-group/explore/": "passed",
+    "/en/gr/inflation-by-group/groups/": "passed",
+    "/en/gr/inflation-by-group/method/": "passed",
+    "/en/gr/inflation-by-group/method/grouping/": "passed",
+    "/en/gr/inflation-by-group/method/imputed-rent/": "passed",
+    "/en/gr/inflation-by-group/method/price-source/": "passed",
+    "/en/gr/inflation-by-group/method/spending/": "passed",
+    "/en/gr/inflation-by-group/method/tutoring/": "passed",
+    "/en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "/en/inflation-by-group/": "passed",
+    "/en/topics/": "passed",
+    "/el/": "passed",
+    "/el/about/": "passed",
+    "/el/glossary/annual-rate/": "passed",
+    "/el/countries/": "passed",
+    "/el/glossary/bootstrap/": "passed",
+    "/el/glossary/chain-linking/": "passed",
+    "/el/data/": "passed",
+    "/el/glossary/coicop/": "passed",
+    "/el/data/gr/": "passed",
+    "/el/glossary/consumer-price-index/": "passed",
+    "/el/glossary/": "passed",
+    "/el/glossary/contribution/": "passed",
+    "/el/glossary/actual-rent/": "passed",
+    "/el/glossary/democratic-weighting/": "passed",
+    "/el/glossary/annual-average/": "passed",
+    "/el/glossary/dependent-child/": "passed",
+    "/el/glossary/gap/": "passed",
+    "/el/glossary/equivalence-scale/": "passed",
+    "/el/glossary/hicp/": "passed",
+    "/el/glossary/equivalised-income/": "passed",
+    "/el/glossary/household-budget-survey/": "passed",
+    "/el/glossary/reliability/": "passed",
+    "/el/glossary/imputed-rent/": "passed",
+    "/el/glossary/spending-concept/": "passed",
+    "/el/glossary/inflation/": "passed",
+    "/el/glossary/standard-error/": "passed",
+    "/el/glossary/laspeyres-index/": "passed",
+    "/el/glossary/tenure/": "passed",
+    "/el/glossary/microdata/": "passed",
+    "/el/glossary/tutoring/": "passed",
+    "/el/glossary/monthly-rate/": "passed",
+    "/el/glossary/weights-timing/": "passed",
+    "/el/glossary/pensioner-household/": "passed",
+    "/el/glossary/weights/": "passed",
+    "/el/glossary/percentage-point/": "passed",
+    "/el/gr/": "passed",
+    "/el/glossary/plutocratic-weighting/": "passed",
+    "/el/gr/inflation-by-group/": "passed",
+    "/el/glossary/price-index/": "passed",
+    "/el/gr/inflation-by-group/calculator/": "passed",
+    "/el/glossary/price-updating/": "passed",
+    "/el/gr/inflation-by-group/explore/": "passed",
+    "/el/glossary/purchasing-power-standard/": "passed",
+    "/el/gr/inflation-by-group/groups/": "passed",
+    "/el/glossary/quintile/": "passed",
+    "/el/gr/inflation-by-group/method/": "passed",
+    "/el/gr/inflation-by-group/method/grouping/": "passed",
+    "/el/gr/inflation-by-group/method/imputed-rent/": "passed",
+    "/el/gr/inflation-by-group/method/price-source/": "passed",
+    "/el/gr/inflation-by-group/method/spending/": "passed",
+    "/el/gr/inflation-by-group/method/tutoring/": "passed",
+    "/el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "/el/inflation-by-group/": "passed",
+    "/el/topics/": "passed"
+   }
+  },
+  "SEL-LINK-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "SEL-LINK-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 2.472,
+   "retries": 0
+  },
+  "SEL-LINK-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.659,
+   "retries": 0
+  },
+  "SEL-LINK-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "SEL-NAV-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 2.494,
+   "retries": 0,
+   "examples": {
+    "topics-#topic-menu-inflation-by-group-en": "passed",
+    "topics-#topic-menu-inflation-by-group-el": "passed",
+    "countries-#country-menu-gr-en": "passed",
+    "countries-#country-menu-gr-el": "passed"
+   }
+  },
+  "SEL-NAV-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.487,
+   "retries": 0
+  },
+  "SEL-NAV-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.477,
+   "retries": 0
+  },
+  "SEL-NAV-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.18,
+   "retries": 0
+  },
+  "SEL-NAV-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.385,
+   "retries": 0
+  },
+  "SEL-NAV-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.781,
+   "retries": 0
+  },
+  "SEL-NAV-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.867,
+   "retries": 0
+  },
+  "SEL-NAV-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.344,
+   "retries": 0,
+   "examples": {
+    "home": "passed",
+    "about": "passed",
+    "explore": "passed"
+   }
+  },
+  "SEL-NAV-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.562,
+   "retries": 0
+  },
+  "SEL-NAV-010": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.463,
+   "retries": 0
+  },
+  "SEL-NAV-011": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.433,
+   "retries": 0,
+   "examples": {
+    "/en/glossary/-trail0": "passed",
+    "/en/data/gr/-trail1": "passed"
+   }
+  },
+  "SEL-NAV-012": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.034,
+   "retries": 0
+  },
+  "SEL-NAV-013": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.603,
+   "retries": 0
+  },
+  "SEL-NAV-014": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.185,
+   "retries": 0,
+   "examples": {
+    "el-GR": "passed",
+    "en-US": "passed",
+    "de-DE": "passed"
+   }
+  },
+  "SEL-NAV-015": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.321,
+   "retries": 0
+  },
+  "SEL-NOJS-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.948,
+   "retries": 0
+  },
+  "SEL-NOJS-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.501,
+   "retries": 0
+  },
+  "SEL-NOJS-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.536,
+   "retries": 0
+  },
+  "SEL-NOJS-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.294,
+   "retries": 0
+  },
+  "SEL-NOJS-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.329,
+   "retries": 0
+  },
+  "SEL-NOJS-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.408,
+   "retries": 0
+  },
+  "SEL-NOJS-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.275,
+   "retries": 0
+  },
+  "SEL-NOJS-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.537,
+   "retries": 0
+  },
+  "SEL-PRIV-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.211,
+   "retries": 0
+  },
+  "SEL-PRIV-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.105,
+   "retries": 0
+  },
+  "SEL-PRIV-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.676,
+   "retries": 0
+  },
+  "SEL-PRIV-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.337,
+   "retries": 0
+  },
+  "SEL-PRIV-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.245,
+   "retries": 0,
+   "examples": {
+    "topic page": "passed",
+    "data page": "passed",
+    "glossary": "passed"
+   }
+  },
+  "SEL-SMOKE-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 14.285,
+   "retries": 0,
+   "examples": {
+    "-en": "passed",
+    "-el": "passed",
+    "about/-en": "passed",
+    "countries/-el": "passed",
+    "about/-el": "passed",
+    "topics/-en": "passed",
+    "topics/-el": "passed",
+    "countries/-en": "passed",
+    "data/-en": "passed",
+    "glossary/-en": "passed",
+    "inflation-by-group/-en": "passed",
+    "data/-el": "passed",
+    "glossary/-el": "passed",
+    "inflation-by-group/-el": "passed",
+    "data/gr/-en": "passed",
+    "gr/inflation-by-group/method/-en": "passed",
+    "gr/-en": "passed",
+    "data/gr/-el": "passed",
+    "gr/-el": "passed",
+    "gr/inflation-by-group/method/-el": "passed",
+    "gr/inflation-by-group/groups/-el": "passed",
+    "gr/inflation-by-group/-en": "passed",
+    "gr/inflation-by-group/groups/-en": "passed",
+    "gr/inflation-by-group/explore/-el": "passed",
+    "gr/inflation-by-group/explore/-en": "passed",
+    "gr/inflation-by-group/-el": "passed",
+    "gr/inflation-by-group/calculator/-el": "passed",
+    "gr/inflation-by-group/calculator/-en": "passed"
+   }
+  },
+  "SEL-SMOKE-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.353,
+   "retries": 0
+  },
+  "SEL-TERM-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.998,
+   "retries": 0
+  },
+  "SEL-TERM-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.014,
+   "retries": 0
+  },
+  "SEL-TERM-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.653,
+   "retries": 0
+  },
+  "SEL-TERM-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.175,
+   "retries": 0,
+   "examples": {
+    "escape": "passed",
+    "enter": "passed"
+   }
+  },
+  "SEL-TERM-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.771,
+   "retries": 0
+  },
+  "SEL-TERM-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.168,
+   "retries": 0
+  },
+  "SEL-TERM-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.418,
+   "retries": 0
+  },
+  "SEL-TERM-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.526,
+   "retries": 0
+  },
+  "SEL-TERM-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.47,
+   "retries": 0
+  },
+  "SEL-THEME-001": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.385,
+   "retries": 0
+  },
+  "SEL-THEME-002": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 2.605,
+   "retries": 0,
+   "examples": {
+    "light-el": "passed",
+    "dark-en": "passed",
+    "light-en": "passed",
+    "dark-el": "passed"
+   }
+  },
+  "SEL-THEME-003": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.828,
+   "retries": 0
+  },
+  "SEL-THEME-004": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.662,
+   "retries": 0
+  },
+  "SEL-THEME-005": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.657,
+   "retries": 0
+  },
+  "SEL-THEME-006": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.495,
+   "retries": 0
+  },
+  "SEL-THEME-007": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.295,
+   "retries": 0
+  },
+  "SEL-THEME-008": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 1.342,
+   "retries": 0
+  },
+  "SEL-THEME-009": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.768,
+   "retries": 0
+  },
+  "SEL-THEME-010": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.952,
+   "retries": 0
+  },
+  "SEL-THEME-011": {
+   "suite": "selenium",
+   "result": "passed",
+   "duration": 0.917,
+   "retries": 0
+  },
+  "VT-CALCENG-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-CALCENG-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-CALCENG-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "VT-CALCENG-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.005,
+   "retries": 0
+  },
+  "VT-CALCENG-005": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-DATA-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-DATA-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-DATA-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-DATA-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-DATA-005": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-DATA-006": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "VT-DATA-007": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.01,
+   "retries": 0
+  },
+  "VT-DATA-008": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.007,
+   "retries": 0
+  },
+  "VT-DATA-009": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-DATA-010": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "VT-DATA-011": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "VT-DATA-012": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "VT-DATA-013": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-DATA-014": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-FMT-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.016,
+   "retries": 0
+  },
+  "VT-FMT-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-GLOSS-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.022,
+   "retries": 0
+  },
+  "VT-GLOSS-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-GLOSS-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-GLOSS-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-GLOSS-005": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-GLOSS-006": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-GLOSS-007": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.039,
+   "retries": 0
+  },
+  "VT-I18N-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-I18N-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-I18N-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-I18N-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-I18N-005": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-I18N-006": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-I18N-007": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-INCOME-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-INCOME-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-INCOME-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-INCOME-005": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-006": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-007": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-INCOME-008": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-INCOME-009": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-010": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-011": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-INCOME-012": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-INCOME-013": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-014": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-INCOME-015": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-PARITY-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-PARITY-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.114,
+   "retries": 0,
+   "examples": {
+    "calculator parity with the published series › all/all: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › B/Q1: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › B/Q2: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › B/Q3: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › B/Q4: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › B/Q5: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › tenure/renter: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › tenure/owner: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › tenure/rent_free: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › pensioners/pensioners: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › pensioners/other: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › hhtype/A1: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › hhtype/A1_DCH: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › hhtype/A2: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › hhtype/A2_DCH: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › hhtype/A_GE3: index, annual, monthly and annual-average rates match": "passed",
+    "calculator parity with the published series › hhtype/A_GE3_DCH: index, annual, monthly and annual-average rates match": "passed"
+   }
+  },
+  "VT-STRUCT-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-STRUCT-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-STRUCT-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-STRUCT-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-TOKENS-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-TOPICS-001": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.004,
+   "retries": 0
+  },
+  "VT-TOPICS-002": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-TOPICS-003": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-TOPICS-004": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-TOPICS-005": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.003,
+   "retries": 0
+  },
+  "VT-TOPICS-006": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.002,
+   "retries": 0
+  },
+  "VT-TOPICS-007": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-TOPICS-008": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-TOPICS-009": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-TOPICS-010": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-TOPICS-011": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "VT-TOPICS-012": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.001,
+   "retries": 0
+  },
+  "VT-TOPICS-013": {
+   "suite": "vitest",
+   "result": "passed",
+   "duration": 0.0,
+   "retries": 0
+  }
+ },
+ "report": "https://github.com/agardelakos/traceconomics/actions/runs/42413188705"
+}
