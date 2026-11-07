@@ -683,4 +683,5 @@ def _dispatch(args, cfg) -> int:
         else:
             print(schedule.show())
         return 0
-    return 2
+    # argparse admits only the commands handled above, so no command reaches this line.
+    return 2  # pragma: no cover

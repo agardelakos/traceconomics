@@ -147,9 +147,10 @@ tenth; the parts share it by largest remainder.
   tool) and the release checks on real data.
 
 Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
-fails its build below 90%. The Python figure aims at the same 90% but was first measured at 73.9%,
-so its run fails below a **ratchet** instead (`RATCHET` in `tests/coverage/overview.py`): set from
-that baseline, raised as tests are added, never lowered to pass a run, until it reaches 90%.
+fails its build below 90%. The Python figure was first measured at 73.9%, so its run failed below a
+**ratchet** instead (`RATCHET` in `tests/coverage/overview.py`): set from that baseline, raised as
+tests were added, never lowered to pass a run. It reached the 90% floor on 2026-11-07 (measured at
+97.4%), so the Python run now fails below 90%, as the site's does.
 
 CI's `coverage` job writes the split on the run's page and keeps the Python HTML report (artifact
 `python-coverage`, each line showing the layers that ran it; the site's is `site-coverage`); on
@@ -162,7 +163,7 @@ CI's `coverage` job writes the split on the run's page and keeps the Python HTML
 |---|---|---|
 | Required checks `python`, `site`, code scanning | pull requests to `main` | merging |
 | Coverage of the site's own code (Vitest and Playwright merged) | `site` job | fails below 90%, or if any file of the site's code is loaded by no test |
-| Coverage of the Python package | `coverage` job | fails below a ratchet that only rises (73% from the first measurement, 73.9%) towards the site's 90% floor; fails if a covered line has a wrong or missing layer |
+| Coverage of the Python package | `coverage` job | fails below 90% (the ratchet, which rose from the first measurement's 73.9% to the site's floor); fails if a covered line has a wrong or missing layer |
 | Every test has a layer | pytest collection | the run |
 | Lock files agree with pins | `python` job | merging |
 | Release checks (`check-v1`, `check-v1-cpi`, `check-combos`, `site-check`) | release build | the build |

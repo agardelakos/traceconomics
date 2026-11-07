@@ -1,7 +1,11 @@
 """ELSTAT's original 2008-2010 CPI tables carried to COICOP 2018, on made-up tables."""
 
+from datetime import UTC, datetime
+
 import pytest
 
+from traceconomics.archive.store import Archive
+from traceconomics.checks import FormatError
 from traceconomics.module1 import originals
 from traceconomics.sources.elstat.original07 import TOTAL, Original07
 
@@ -83,3 +87,47 @@ def test_old_item_numbers_are_never_matched_to_subclasses():
     assert block["07222"]["2010-06"] == pytest.approx(130.0)       # COICOP 2018 07222 (petrol): the class
     assert block["0722"]["2009-12"] == 100.0
     assert "07222" in [c for c in block if len(c) == 5]
+
+
+def _archive_originals(tmp_path, years):
+    archive = Archive(tmp_path)
+    for y in years:
+        archive.store_bytes("elstat", f"cpi07-original-{y}", f"table {y}".encode(), url=None,
+                            retrieved_at=datetime(2026, 10, 1, tzinfo=UTC), ext=".xls")
+    return archive
+
+
+def test_the_three_original_years_become_linked_blocks(tmp_path, monkeypatch):
+    """PY-ORIG-005: the archived 2008-2010 original tables become three linked blocks in COICOP 2018
+
+    Given archived original tables for 2008 (2009 base), 2009 (2005 base) and 2010 (2009 base)
+    And car fuels (class 07.2.2) flat in 2008 and 2009 and 20% higher through 2010
+    When the original blocks are built
+    Then each file is read for its own year
+    And 2009's block is flat at 100 on December 2008
+    And 2010's petrol (07222) is 120 on December 2009, which is 100
+    And no subclass under car fuels is left unpriced
+    """
+    tables = {2008: table(2008, "2009", {"0722": (40, [100.0] * 12)}),
+              2009: table(2009, "2005", {"0722": (40, [110.0] * 12)}),
+              2010: table(2010, "2009", {"0722": (40, [120.0] * 12)})}
+    read = []
+    monkeypatch.setattr(originals, "parse", lambda path, year: read.append((path.read_bytes(), year)) or tables[year])
+    out, lost = originals.blocks(_archive_originals(tmp_path, originals.YEARS))
+    assert read == [(f"table {y}".encode(), y) for y in originals.YEARS]
+    assert sorted(out) == [2008, 2009, 2010]
+    assert out[2009]["07222"]["2009-06"] == pytest.approx(100.0)
+    assert out[2010]["07222"]["2010-06"] == pytest.approx(120.0) and out[2010]["07222"]["2009-12"] == 100.0
+    assert not any(code.startswith("0722") for year in lost for code in lost[year])
+
+
+def test_a_missing_original_year_is_named(tmp_path, monkeypatch):
+    """PY-ORIG-006: a missing original table is named
+
+    Given archived original tables for 2008 and 2010 only
+    When the original tables are read
+    Then a FormatError names the missing 2009 table and its dataset
+    """
+    monkeypatch.setattr(originals, "parse", lambda path, year: table(year, "2009", {}))
+    with pytest.raises(FormatError, match=r"no archived original table 07 for 2009 \(elstat/cpi07-original-2009\)"):
+        originals.read(_archive_originals(tmp_path, (2008, 2010)))

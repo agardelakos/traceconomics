@@ -105,3 +105,109 @@ def test_import_manual_download(tmp_path):
     r = import_file(archive, f, source="elstat", dataset=None, url=None, downloaded=date(2026, 4, 2), note=None)
     assert r.status == "stored" and r.dataset == "puf-hbs-2025" and f.exists()
     assert archive.manifest(archive.latest("elstat", "puf-hbs-2025"))["kind"] == "manual"
+
+
+def test_other_pages_of_the_publishers_get_their_own_datasets():
+    """PY-BACKFILL-005: publishers' pages that aren't data files get datasets named after their paths
+
+    Given an ELSTAT page without a document ID, a Eurostat dataflow definition and another Eurostat page
+    When the dataset for each URL is worked out
+    Then the ELSTAT page is named by its path in slug form
+    And the dataflow is "<code>-dataflow"
+    And the other Eurostat page is named by its path in slug form, without "/eurostat"
+    """
+    assert dataset_for_url("https://www.statistics.gr/en/statistics/-/publication/DKT87") == \
+        ("elstat", "en-statistics-publication-dkt87")
+    assert dataset_for_url("https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/PRC_HICP_MINR/1.0") == \
+        ("eurostat", "prc_hicp_minr-dataflow")
+    assert dataset_for_url("https://ec.europa.eu/eurostat/web/hicp/database") == ("eurostat", "web-hicp-database")
+
+
+def _hdr(folder, doc, name, body, *, status=200, length=None, date_line=True):
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / f"{doc}__{name}").write_bytes(body)
+    lines = [f"HTTP/1.1 {status} OK", f"Content-Length: {len(body) if length is None else length}",
+             "Content-Type: application/vnd.ms-excel", "Set-Cookie: session=1"]
+    if date_line:
+        lines.append("Date: Tue, 14 Oct 2026 10:30:00 GMT")
+    (folder / f"{doc}.hdr").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def test_seed_takes_elstat_files_saved_with_their_response_headers(tmp_path):
+    """PY-BACKFILL-006: seeding takes ELSTAT files saved with their HTTP response headers
+
+    Given a research folder "downloads_el" holding "585819__Table_GR.xls" and its 585819.hdr: status 200, a Date, a matching length and a cookie
+    And files whose .hdr says 404, has no Date, gives another length, or is not named by a document ID
+    And a document ID with two saved files
+    When the archive is seeded from it
+    Then only document 585819 is stored, as the Greek dataset elstat/doc-585819-el
+    And its snapshot is retrieved at the Date header's time and its URL asks for the Greek page
+    And its manifest keeps the content type and length, not the cookie
+    And the files whose headers don't vouch for them are left out
+    And the .hdr files themselves are never counted as unrecorded files
+    """
+    folder = tmp_path / "research" / "downloads_el"
+    _hdr(folder, "585819", "Table_GR.xls", b"table")
+    _hdr(folder, "1", "a.xls", b"a", status=404)
+    _hdr(folder, "2", "b.xls", b"b", date_line=False)
+    _hdr(folder, "3", "c.xls", b"c", length=99)
+    _hdr(folder, "notes", "d.xls", b"d")
+    _hdr(folder, "4", "e.xls", b"e")
+    (folder / "4__e-copy.xls").write_bytes(b"e2")
+    archive = Archive(tmp_path / "archive")
+    rep = seed(archive, tmp_path / "research")
+    assert rep.stored == ["elstat/doc-585819-el"]
+    snap = archive.latest("elstat", "doc-585819-el")
+    assert snap["retrieved_at"] == "2026-10-14T10:30:00Z"
+    m = archive.manifest(snap)
+    assert "_documentID=585819" in m["url"] and "locale=el" in m["url"]
+    assert m["http"]["headers"] == {"content-length": "5", "content-type": "application/vnd.ms-excel",
+                                    "date": "Tue, 14 Oct 2026 10:30:00 GMT"}
+    assert rep.unrecorded == 6     # the five files the headers don't vouch for, and the extra copy
+
+
+def test_seed_takes_hand_downloaded_microdata_from_their_checksum_list(tmp_path):
+    """PY-BACKFILL-007: seeding takes hand-downloaded microdata listed in their checksum file
+
+    Given a folder elstat-puf/hbs/archives with HBS_2019.zip, a SHA256SUMS line for it and one for a file that isn't there
+    When the archive is seeded from it
+    Then HBS_2019.zip is stored as elstat/puf-hbs-2019, of kind "manual" and with no URL
+    And the missing file is ignored
+    """
+    folder = tmp_path / "research" / "elstat-puf" / "hbs" / "archives"
+    folder.mkdir(parents=True)
+    (folder / "HBS_2019.zip").write_bytes(b"zip")
+    (folder / "SHA256SUMS").write_text(f"{_sha(b'zip')}  HBS_2019.zip\n{_sha(b'x')}  HBS_2020.zip\n", encoding="utf-8")
+    archive = Archive(tmp_path / "archive")
+    assert seed(archive, tmp_path / "research").stored == ["elstat/puf-hbs-2019"]
+    m = archive.manifest(archive.latest("elstat", "puf-hbs-2019"))
+    assert m["kind"] == "manual" and m.get("url") is None
+
+
+def test_seed_skips_rows_it_cant_vouch_for_and_files_listed_twice(tmp_path):
+    """PY-BACKFILL-008: seeding reports rows it can't vouch for, and copies a file listed twice only once
+
+    Given a research folder without a date in its name, whose MANIFEST.md and README.md both list one good file with its date and checksum
+    And a manifest row for a file that isn't there, a row with no date, and a row without a URL
+    And a notes file that is neither a manifest nor a README
+    When the archive is seeded from it as a dry run
+    Then the good file is listed once
+    And the missing file and the undated row are reported as skipped
+    And the row without a URL and the notes file are ignored
+    """
+    folder = tmp_path / "research" / "pass"
+    folder.mkdir(parents=True)
+    (folder / "good.xlsx").write_bytes(b"good")
+    (folder / "undated.xlsx").write_bytes(b"u")
+    row = f"| good.xlsx | {ELSTAT_DOC.format(1)} | 2026-10-17 | {_sha(b'good')} |\n"
+    head = "| File | Source URL | Downloaded | SHA-256 |\n|---|---|---|---|\n"
+    (folder / "MANIFEST.md").write_text(
+        head + row + f"| missing.xlsx | {ELSTAT_DOC.format(2)} | 2026-10-17 | {_sha(b'm')} |\n"
+        f"| undated.xlsx | {ELSTAT_DOC.format(3)} | unknown | {_sha(b'u')} |\n"
+        "| local.xlsx | (none) | 2026-10-17 | |\n", encoding="utf-8")
+    (folder / "README.md").write_text(head + row, encoding="utf-8")
+    (folder / "notes.md").write_text(head + f"| notes.xlsx | {ELSTAT_DOC.format(4)} | 2026-10-17 | {_sha(b'n')} |\n",
+                                     encoding="utf-8")
+    rep = seed(Archive(tmp_path / "archive"), tmp_path / "research", dry_run=True)
+    assert rep.stored == ["elstat/doc-1 <- good.xlsx (2026-10-17)"]
+    assert sorted(s.split(": ")[0].rsplit("/", 1)[1] for s in rep.skipped) == ["missing.xlsx", "undated.xlsx"]
