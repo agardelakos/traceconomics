@@ -68,16 +68,23 @@ test("no page breaks the Content Security Policy", { ...smoke, ...gwt({
   expect(found).toEqual([]);
 });
 
-test("Explore redraws for other options within the policy", { ...smoke, ...gwt({
-  id: "PW-HOST-004",
-  given: "a deployed copy of the site",
-  when: ["Explore opens", "it is opened with other options (another price source, weights timing, groups and measure)", "it is opened with the parts view"],
-  then: ["the parts view's title is drawn", "the browser reports no Content Security Policy violation"],
-}) }, async ({ page }) => {
-  const violations = await watch(page);
-  await page.goto(m1("en", "explore/"), { waitUntil: "networkidle" });
-  await page.goto(`${m1("en", "explore/")}?price_source=hicp&weights_timing=U&groups=Q1,Q5,tenure/renter&m=index`, { waitUntil: "networkidle" });
-  await page.goto(`${m1("en", "explore/")}?groups=Q1,Q5&view=parts`, { waitUntil: "networkidle" });
-  await expect(page.locator('#explore [data-role="contrib-title"]')).not.toBeEmpty();
-  expect(await violations()).toEqual([]);
-});
+// One page load per test: `watch` starts its list afresh on every new document, so a test that
+// opened three addresses in a row would only ever see the last one's violations.
+for (const [name, query, drawn] of [
+  ["its default view", "", "summary"],
+  ["other options", "?price_source=hicp&weights_timing=U&groups=Q1,Q5,tenure/renter&m=index", "summary"],
+  ["the parts view", "?groups=Q1,Q5&view=parts", "contrib-title"],
+] as const) {
+  test(`Explore with ${name} draws within the policy`, { ...smoke, ...gwt({
+    id: "PW-HOST-004",
+    title: "Explore redraws for other options within the policy",
+    given: "a deployed copy of the site",
+    when: "Explore is opened at its default view, with other options (another price source, weights timing, groups and measure), or with the parts view",
+    then: ["it is drawn: its summary, or for the parts view the parts title", "the browser reports no Content Security Policy violation"],
+  }) }, async ({ page }) => {
+    const violations = await watch(page);
+    await page.goto(`${m1("en", "explore/")}${query}`, { waitUntil: "networkidle" });
+    await expect(page.locator(`#explore [data-role="${drawn}"]`)).not.toBeEmpty();
+    expect(await violations()).toEqual([]);
+  });
+}

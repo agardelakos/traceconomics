@@ -54,23 +54,33 @@ test("opening one quick list closes the other", gwt({
   await expect(page.locator("#topic-menu")).toBeHidden();
 });
 
-for (const [path, key, value] of [
-  ["/en/glossary/", "nav.glossary", "page"],
-  ["/en/topics/", "nav.topics", "page"],
-  [m1("en"), "nav.countries", "true"],   // a country's page is inside Countries
+for (const [path, key] of [
+  ["/en/glossary/", "nav.glossary"],
+  ["/en/topics/", "nav.topics"],
 ] as const) {
-  test(`${t("en", key)} is marked current on ${path}`, gwt({
+  test(`${t("en", key)} is marked as the current page on ${path}`, gwt({
     id: "PW-NAV-004",
-    title: "the header marks the section the reader is in",
-    given: "a page that is a section of the navigation (Glossary, Topics), or a page inside one (a country's page, inside Countries)",
+    title: "on a section's own page, the header marks its link as the current page",
+    given: "a page that is a section of the navigation (Glossary, Topics)",
     when: "it opens",
-    then: "that section's link in the navigation is marked current: as the current page on the section's own page, as the current section on a page inside it",
+    then: "that section's link in the navigation is marked as the current page (aria-current=\"page\")",
   }), async ({ page }) => {
     await page.goto(path);
     const nav = page.getByRole("navigation", { name: t("en", "nav.label") });
-    await expect(nav.getByRole("link", { name: t("en", key), exact: true })).toHaveAttribute("aria-current", value);
+    await expect(nav.getByRole("link", { name: t("en", key), exact: true })).toHaveAttribute("aria-current", "page");
   });
 }
+
+test("on a page inside a section, the header marks the section as current", gwt({
+  id: "PW-NAV-010",
+  given: "a country's page, which is inside Countries",
+  when: "it opens",
+  then: "the Countries link in the navigation is marked as the current section (aria-current=\"true\"), not as the current page",
+}), async ({ page }) => {
+  await page.goto(m1("en"));
+  const nav = page.getByRole("navigation", { name: t("en", "nav.label") });
+  await expect(nav.getByRole("link", { name: t("en", "nav.countries"), exact: true })).toHaveAttribute("aria-current", "true");
+});
 
 test("the breadcrumb leads back home", gwt({
   id: "PW-NAV-005",

@@ -114,17 +114,25 @@ def test_theme_is_the_only_thing_stored(site):
 
     Given the English home page
     When the dark theme is picked
-    And the About page, Explore and the calculator are opened in turn
-    Then the only thing stored is the theme, dark
-    And no cookie is set
-    And none of the pages talked to another site
+    And the About page, Explore and the calculator are opened in turn, each left to load its data
+    Then on each page the only thing stored is the theme, dark, and no cookie is set
+    And no page talked to another site, each page's own requests checked apart so a failure names the page
     """
     site.open("/en/")
     site.find(".settings[data-role=theme] button").click()
     site.find('#settings-menu input[value="dark"]').find_element("xpath", "./ancestor::label").click()
     site.wait(lambda _: site.storage() == {"theme": "dark"})
-    for page in ("about/", "gr/inflation-by-group/explore/", "gr/inflation-by-group/calculator/"):
+    base = urlsplit(site.base).netloc
+    # What each page shows once its own data requests are done, so they are in the log.
+    pages = {"about/": "main h1", "gr/inflation-by-group/explore/": "#explore [data-role=chart] svg",
+             "gr/inflation-by-group/calculator/": "[data-role=result]"}
+    for page, ready in pages.items():
+        before = len(site.requests())
         site.open(f"/en/{page}")
-    assert site.storage() == {"theme": "dark"}
-    assert not site.driver.get_cookies()
-    assert not _foreign(site)
+        site.visible(ready)
+        mine = site.requests()[before:]
+        foreign = [r["url"] for r in mine
+                   if urlsplit(r["url"]).scheme in ("http", "https") and urlsplit(r["url"]).netloc != base]
+        assert not foreign, f"/en/{page} talked to another site: {foreign}"
+        assert site.storage() == {"theme": "dark"}, f"/en/{page} stored {site.storage()}"
+        assert not site.driver.get_cookies(), f"/en/{page} set a cookie"

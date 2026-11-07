@@ -88,18 +88,28 @@ test("a household type is a starting group too", gwt({
   await expect(role(page, "preset").locator(`optgroup[label="${t("en", "family.household")}"] option`)).toHaveCount(6);
 });
 
-test("the group finder's link starts from its group; an unknown one from the default", gwt({
+test("the group finder's link starts from its group", gwt({
   id: "PW-CALC-004",
   given: "an address naming a starting group, as the group finder links",
-  when: ["the calculator opens", "it opens again with an unknown group"],
-  then: ["the named group is the starting group, with its published rate", "an unknown group falls back to the default, the poorest fifth"],
+  when: "the calculator opens",
+  then: "the named group is the starting group, with its published rate",
 }), async ({ page, request }) => {
   const pens = await publishedRate(request, "pensioners/pensioners");
   await page.goto(`${m1("en", "calculator/")}?from=pensioners/pensioners`);
   await expect(role(page, "preset")).toHaveValue("pensioners/pensioners");
   await expect(role(page, "yours")).toHaveText(pct("en", pens.value));
+});
+
+test("an unknown starting group falls back to the default", gwt({
+  id: "PW-CALC-008",
+  given: "an address naming a starting group that doesn't exist",
+  when: "the calculator opens",
+  then: ["the starting group is the default, the poorest fifth, with its published rate"],
+}), async ({ page, request }) => {
+  const q1 = await publishedRate(request, "B/Q1");
   await page.goto(`${m1("en", "calculator/")}?from=nope`);
   await expect(role(page, "preset")).toHaveValue("B/Q1");
+  await expect(role(page, "yours")).toHaveText(pct("en", q1.value));
 });
 
 test("moving a slider gives the engine's rate, adjusts the others, and Reset undoes it", gwt({

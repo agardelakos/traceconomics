@@ -115,21 +115,41 @@ def test_glossary_search_filters(site):
 
     Given the English glossary, every term shown
     When "quintile" is typed in the search
-    And letters that match nothing are added
-    And the search is cleared
     Then fewer terms show, each one containing "quintile"
-    And then no term shows, and no empty category stays
-    And then every term is back
+    """
+    site.open("/en/glossary/")
+    every = _shown(site)
+    site.find("#glossary-search").send_keys("quintile")
+    site.wait(lambda _: 0 < len(_shown(site)) < len(every), "the search did not filter")
+    assert all("quintile" in text for text in _shown(site))
+
+
+def test_glossary_search_with_no_match_hides_every_category(site):
+    """SEL-TERM-008: a search that matches nothing hides every term and category
+
+    Given the English glossary
+    When letters that match no term are typed in the search
+    Then no term shows
+    And no empty category stays
+    """
+    site.open("/en/glossary/")
+    site.find("#glossary-search").send_keys("quintilezzzz")
+    site.wait(lambda _: _shown(site) == [], "terms still show")
+    assert not any(g.is_displayed() for g in site.all("#glossary-list > .glossary-group")), "an empty category stayed"
+
+
+def test_clearing_the_glossary_search_brings_every_term_back(site):
+    """SEL-TERM-009: clearing the glossary's search brings every term back
+
+    Given the English glossary, filtered by "quintile"
+    When the search is cleared
+    Then every term is back
     """
     site.open("/en/glossary/")
     every = _shown(site)
     box = site.find("#glossary-search")
     box.send_keys("quintile")
-    site.wait(lambda _: 0 < len(_shown(site)) < len(every), "the search did not filter")
-    assert all("quintile" in text for text in _shown(site))
-    box.send_keys("zzzz")
-    site.wait(lambda _: _shown(site) == [])
-    assert not any(g.is_displayed() for g in site.all("#glossary-list > .glossary-group")), "an empty category stayed"
+    site.wait(lambda _: len(_shown(site)) < len(every), "the search did not filter")
     box.clear()
     box.send_keys(" ")
     box.send_keys(Keys.BACKSPACE)

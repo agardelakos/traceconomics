@@ -61,12 +61,16 @@ def test_country_list_keeps_the_page_the_reader_is_on(site):
     """SEL-NAV-003: the country list keeps the page the reader is on
 
     Given the calculator for Greece
-    When the countries' quick list is read
-    Then the current country's entry links to this same calculator page
+    When the countries' quick list is opened
+    Then the current country's entry shows
+    And it links to this same calculator page
     """
     site.open("/en/gr/inflation-by-group/calculator/")
-    hrefs = [a.get_attribute("href") for a in site.all("#country-menu a[aria-current]")]
-    assert hrefs and hrefs[0].endswith("/en/gr/inflation-by-group/calculator/")
+    arrow = _arrow(site, "en", "countries")
+    arrow.click()
+    site.wait(lambda _: site.popover_open(site.find("#country-menu")), "the countries' quick list did not open")
+    current = site.visible('#country-menu a[aria-current="true"]')
+    assert current.get_attribute("href").endswith("/en/gr/inflation-by-group/calculator/")
 
 
 def test_section_is_marked_current(site):
@@ -138,15 +142,16 @@ def test_phone_menu_link_navigates(phone):
     phone.wait(lambda _: phone.path == "/en/glossary/")
 
 
-def test_language_switch_on_english_pages(site):
+@pytest.mark.parametrize("path", ["/en/", "/en/about/", TOPIC_PAGE.format(lang="en")], ids=["home", "about", "explore"])
+def test_language_switch_on_english_pages(site, path):
     """SEL-NAV-008: the language switch on an English page
 
-    Given the English About page
+    Given an English page: the home page, About or Explore
     When the language switch is read
     Then English is linked and marked current
     And Greek is shown but not linked, as it isn't offered
     """
-    site.open("/en/about/")
+    site.open(path)
     box = site.find(f'.lang-switch[role=group][aria-label="{t("en", "lang.switch")}"]')
     en = site.find('a[lang="en"]', box)
     assert en.get_attribute("aria-current") == "true"

@@ -1,7 +1,7 @@
 """Explore: groups, options, measure, gap and view live in the address (defaults left out) and come
-back on a reload; greyed options can't be picked and say why; the summary and the data table show
-the setting's published series; the files link and the citation follow the setting; the
-breakdown view; full screen."""
+back on a reload; controls a view can't use are greyed and say why, and months an option leaves out
+are noted with the reason; the summary and the data table show the setting's published series; the
+files link and the citation follow the setting; the breakdown view; full screen."""
 
 import pytest
 
@@ -194,16 +194,13 @@ def test_files_link_leads_to_the_settings_files(site):
     assert box.find_elements("css selector", "a[download]")
 
 
-def test_groups_measure_gap_and_view_in_the_address(site):
-    """SEL-EXPL-006: groups, measure, gap and view go into the address
+def test_the_groups_go_into_the_address(site):
+    """SEL-EXPL-006: the groups go into the address
 
     Given Explore with nothing changed
     When the richest fifth is removed and renters are added
-    And the gap is turned off
-    And the monthly rate is picked as the measure
-    And the breakdown view is picked
-    Then the address follows each step: the groups, the gap off, the measure, then the view
-    And the summary gives the three groups' monthly rates from the published series
+    Then after the removal the address carries the two groups left
+    And after the addition it carries renters last
     """
     site.open(PAGE.format(lang="en"))
     _ready(site)
@@ -211,14 +208,47 @@ def test_groups_measure_gap_and_view_in_the_address(site):
     site.url_has(groups="Q1,all/all")
     _chip(site, "tenure/renter").click()
     site.url_has(groups="Q1,all/all,tenure/renter")
+
+
+def test_the_gap_off_goes_into_the_address(site):
+    """SEL-EXPL-016: the gap turned off goes into the address
+
+    Given Explore with nothing changed
+    When the gap is turned off
+    Then the address carries gap=0
+    """
+    site.open(PAGE.format(lang="en"))
+    _ready(site)
     site.find("#explore [data-role=gap-toggle]").click()
     site.url_has(gap="0")
-    measure = site.find("#explore select[data-role=measure]")
-    measure.find_element("css selector", 'option[value="rch_m"]').click()
+
+
+def test_the_measure_goes_into_the_address_and_the_summary(site):
+    """SEL-EXPL-017: the measure goes into the address and the summary
+
+    Given Explore with nothing changed
+    When the monthly rate is picked as the measure
+    Then the address carries m=rch_m
+    And the summary gives the three default groups' monthly rates from the published series
+    """
+    site.open(PAGE.format(lang="en"))
+    _ready(site)
+    site.find('#explore select[data-role=measure] option[value="rch_m"]').click()
     site.url_has(m="rch_m")
-    site.text("#explore [data-role=summary]", _summary("en", data(f"series/{default_slug()}.json"), ["Q1", "all/all", "tenure/renter"], measure="rch_m"))
+    site.text("#explore [data-role=summary]", _summary("en", data(f"series/{default_slug()}.json"), DEFAULT_GROUPS, measure="rch_m"))
+
+
+def test_the_view_goes_into_the_address(site):
+    """SEL-EXPL-018: the view goes into the address
+
+    Given Explore with nothing changed
+    When the breakdown view is picked
+    Then the address carries view=parts
+    """
+    site.open(PAGE.format(lang="en"))
+    _ready(site)
     site.find('#explore [data-view="parts"]').click()
-    site.url_has(view="parts", m="rch_m", gap="0")
+    site.url_has(view="parts")
 
 
 def test_reload_restores_the_state(site):
@@ -254,26 +284,30 @@ def test_unknown_values_fall_back_to_defaults(site):
     When Explore opens
     Then all households is the only group picked
     And the default spending option is picked
+    And the measure is the annual rate, and the chart over time shows, not the breakdown
+    And the summary gives all households' latest annual rate from the default setting's series
     And the address keeps only the known group, and drops the spending, measure and view
     """
     site.open(PAGE.format(lang="en") + "?spending=nonsense&groups=Q9,all/all&m=yearly&view=sideways")
     _ready(site)
     assert _pressed(site) == ["all/all"]
     assert site.find(f'input[name="spending"][value="{_defaults()["spending"]}"]').is_selected()
+    assert site.js("return document.querySelector('[data-role=measure]').value") == "rch_a"
+    site.visible("#explore [data-role=view-time]")
+    site.hidden("#explore [data-role=view-parts]")
+    site.text("#explore [data-role=summary]", _summary("en", data(f"series/{default_slug()}.json"), ["all/all"]))
     site.url_has(spending=None, m=None, view=None, groups="all/all")
 
 
 # --- limits and greyed options ------------------------------------------------------------------
 
-def test_at_most_six_groups_and_at_least_one(site):
-    """SEL-EXPL-009: at most six groups, and at least one
+def test_at_most_six_groups(site):
+    """SEL-EXPL-009: at most six groups
 
     Given Explore with its three default groups
     When three more fifths are added
-    And every group but the poorest fifth is removed
-    And the poorest fifth is pressed too
-    Then the count says 6 of at most 6, and no other group can be picked
-    And the poorest fifth stays picked: the last group can't be removed
+    Then the count says 6 of at most 6
+    And no other group can be picked
     """
     site.open(PAGE.format(lang="en"))
     _ready(site)
@@ -282,9 +316,18 @@ def test_at_most_six_groups_and_at_least_one(site):
     site.text("#explore [data-role=group-count]", t("en", "explore.groups_max", n=6, max=6))
     free = [b for b in site.all("#explore button.chip[data-group]") if b.get_attribute("aria-pressed") == "false"]
     assert free and all(not b.is_enabled() for b in free), "a seventh group can be picked"
-    for g in ["Q2", "Q3", "Q4", "Q5", "all/all"]:
-        _chip(site, g).click()
-    site.wait(lambda _: _pressed(site) == ["Q1"])
+
+
+def test_the_last_group_cant_be_removed(site):
+    """SEL-EXPL-019: the last group can't be removed
+
+    Given Explore opened with the poorest fifth as its only group
+    When the poorest fifth is pressed
+    Then it stays picked
+    """
+    site.open(PAGE.format(lang="en") + "?groups=Q1")
+    _ready(site)
+    assert _pressed(site) == ["Q1"]
     _chip(site, "Q1").click()
     assert _pressed(site) == ["Q1"], "the last group could be removed"
 
@@ -324,6 +367,27 @@ def test_gap_only_for_the_annual_rate(site):
     site.wait(lambda _: not site.find("#explore [data-role=gap-toggle]").is_enabled())
     site.text("#explore [data-role=gap-reason]", t("en", "explore.gap_annual_only"))
     site.hidden("#explore [data-role=gap-title]")
+
+
+def test_months_an_option_leaves_out_are_noted_with_the_reason(site):
+    """SEL-EXPL-015: months an option leaves out are noted, with the reason
+
+    Given Explore with nothing changed, and weights timing rule F, which leaves out months before its first survey
+    When rule F is picked
+    Then a notice above the chart gives the reason, as the availability file names it
+    And the option's own note gives the same reason
+    """
+    greyed = data("availability.json")["options"]["weights_timing"]["F"]["greyed"]
+    reasons = [t("en", f"reason.{g['reason']}") for g in greyed]
+    assert reasons, "the data have no months rule F leaves out: nothing to check"
+    site.open(PAGE.format(lang="en"))
+    _ready(site)
+    site.hidden("#explore [data-role=notice]")
+    _pick(site, "weights_timing", "F")
+    site.visible("#explore [data-role=notice]")
+    site.text("#explore [data-role=notice] span", " ".join(reasons))
+    note = site.find('fieldset[data-option="weights_timing"] [data-role=note]').text
+    assert all(r in note for r in reasons), note
 
 
 # --- the breakdown view and full screen ---------------------------------------------------------
