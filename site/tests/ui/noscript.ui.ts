@@ -81,3 +81,13 @@ for (const [page_, key, box] of [["explore/", "explore.noscript", "#explore"], [
     if (box === "#explore") await expect(page.locator(`${box} [data-role="view-time"]`)).toBeHidden();
   });
 }
+
+test("the topic page still shows its figures", gwt({
+  id: "PW-NOJS-006",
+  given: "a browser with scripts turned off",
+  when: "the inflation-by-group page for Greece opens",
+  then: "its content shows figures in percent",
+}), async ({ page }) => {
+  await page.goto(m1("en"));
+  await expect(page.locator("main")).toContainText("%");
+});

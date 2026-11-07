@@ -222,3 +222,37 @@ test.describe("when the calculator's file can't be loaded", () => {
     await expect(role(page, "result")).toBeHidden();
   });
 });
+
+test("a new starting group resets the sliders", gwt({
+  id: "PW-CALC-009",
+  given: "the calculator at the poorest fifth's basket, with one category's share moved to 40%",
+  when: "renters are picked as the starting group",
+  then: ["your rate is the renters' published rate", "Reset is gone: nothing is changed any more"],
+}), async ({ page, request }) => {
+  const renters = await publishedRate(request, "tenure/renter");
+  await page.goto(m1("en", "calculator/"));
+  await expect(role(page, "result")).toBeVisible();
+  const cfg = await config(page);
+  const first = Object.keys(cfg.divisions).sort()[0];
+  await root(page).getByLabel(cfg.divisions[first], { exact: true }).fill("40");
+  await expect(role(page, "reset")).toBeVisible();
+  await role(page, "preset").selectOption("tenure/renter");
+  await expect(role(page, "yours")).toHaveText(pct("en", renters.value));
+  await expect(role(page, "reset")).toBeHidden();
+});
+
+test("the chart's label names the starting group, then your basket", gwt({
+  id: "PW-CALC-010",
+  given: "the calculator drawn at the poorest fifth's basket",
+  when: "one category's share is moved",
+  then: ["before the move, the chart's label names the starting group alone", "after it, the label names the group and your basket"],
+}), async ({ page }) => {
+  await page.goto(m1("en", "calculator/"));
+  await expect(role(page, "result")).toBeVisible();
+  const cfg = await config(page);
+  const name = cfg.presets.find((p: any) => p.key === "B/Q1").name;
+  await expect(role(page, "chart")).toHaveAttribute("aria-label", `${t("en", "calc.over_time")}: ${name}`);
+  const first = Object.keys(cfg.divisions).sort()[0];
+  await root(page).getByLabel(cfg.divisions[first], { exact: true }).fill("40");
+  await expect(role(page, "chart")).toHaveAttribute("aria-label", `${t("en", "calc.over_time")}: ${name}, ${t("en", "calc.title")}`);
+});

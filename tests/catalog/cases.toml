@@ -35,8 +35,8 @@ selenium = ["SEL-CALC-005", "SEL-CALC-006"]
 
 [TC-CALC-005]
 title = "a new starting group resets the sliders"
+playwright = ["PW-CALC-009"]
 selenium = ["SEL-CALC-007"]
-why = "a coverage gap in Playwright: it checks that euro amounts survive a group change (PW-CALC-006), not that the sliders reset"
 
 [TC-CALC-006]
 title = "spending in euros: shares, total and result follow; a wrong amount is flagged; back to shares"
@@ -45,8 +45,8 @@ selenium = ["SEL-CALC-008", "SEL-CALC-009"]
 
 [TC-CALC-007]
 title = "the chart's label names the starting group, then your basket"
+playwright = ["PW-CALC-010"]
 selenium = ["SEL-CALC-010"]
-why = "Playwright checks the chart's label only after a change, inside PW-CALC-005"
 
 [TC-CALC-008]
 title = "data that fails to load says so, with no result"
@@ -80,8 +80,8 @@ selenium = ["SEL-EXPL-004"]
 
 [TC-EXPL-006]
 title = "following the files link opens the data page with the setting's box open"
+playwright = ["PW-EXPL-019"]
 selenium = ["SEL-EXPL-005"]
-why = "a coverage gap in Playwright: PW-EXPL-012 checks the link's address but never follows it to the data page"
 
 [TC-EXPL-007]
 title = "an address restores the view (options, groups, measure, gap); unknown values fall back to the defaults"
@@ -125,8 +125,8 @@ selenium = ["SEL-EXPL-013"]
 
 [TC-EXPL-015]
 title = "months an option leaves out are noted, with the reason, above the chart and on the option"
+playwright = ["PW-EXPL-020"]
 selenium = ["SEL-EXPL-015"]
-why = "a coverage gap in Playwright: PW-EXPL-005 sees the notice but never reads its reason"
 
 [TC-GRP-001]
 title = "with scripts, the finder's form shows and asks for an income first"
@@ -160,8 +160,8 @@ selenium = ["SEL-GRP-014"]
 
 [TC-GRP-007]
 title = "an entry that isn't a positive income is ignored"
+playwright = ["PW-GRP-019"]
 selenium = ["SEL-GRP-006"]
-why = "a coverage gap in Playwright: it never types text, zero or a negative amount as the income"
 
 [TC-GRP-008]
 title = "out-of-range household numbers are kept within bounds for the sums"
@@ -200,8 +200,8 @@ selenium = ["SEL-LINK-005"]
 
 [TC-LINK-002]
 title = "the sitemap lists only pages in offered languages"
+playwright = ["PW-LINK-004"]
 selenium = ["SEL-LINK-002"]
-why = "a coverage gap in Playwright: PW-LINK-001 counts the sitemap's pages but never checks their language"
 
 [TC-LINK-003]
 title = "every listed page and its Greek twin loads with its content and logs no error"
@@ -215,8 +215,8 @@ selenium = ["SEL-LINK-003"]
 
 [TC-LINK-005]
 title = "each page has exactly one canonical link, to its own address"
+playwright = ["PW-LINK-005"]
 selenium = ["SEL-LINK-004"]
-why = "a coverage gap in Playwright: PW-LINK-003 follows canonical and language links but never checks there is one canonical pointing at the page itself"
 
 [TC-NOJS-001]
 title = "without scripts, the theme setting stays hidden"
@@ -245,8 +245,8 @@ selenium = ["SEL-NOJS-002", "SEL-NOJS-003"]
 
 [TC-NOJS-006]
 title = "without scripts, the topic page still shows its figures"
+playwright = ["PW-NOJS-006"]
 selenium = ["SEL-NOJS-005"]
-why = "a coverage gap in Playwright: it has no no-script case for the topic page"
 
 [TC-NOJS-007]
 title = "without scripts, the root address offers a link to each offered language"
@@ -295,8 +295,8 @@ selenium = ["SEL-NAV-003"]
 
 [TC-NAV-003]
 title = "picking a quick-list entry goes to its page"
+playwright = ["PW-NAV-011"]
 selenium = ["SEL-NAV-002"]
-why = "a coverage gap in Playwright: PW-NAV-002 checks the entries' link targets but never follows one"
 
 [TC-NAV-004]
 title = "opening one quick list closes the other"
@@ -330,13 +330,13 @@ selenium = ["SEL-NAV-006", "SEL-NAV-007"]
 
 [TC-NAV-010]
 title = "on a desktop the navigation shows as a row, with no menu button"
+playwright = ["PW-NAV-012"]
 selenium = ["SEL-NAV-005"]
-why = "a coverage gap in Playwright: it has no case for the desktop layout of the navigation"
 
 [TC-NAV-011]
 title = "the skip link takes the keyboard to the main content"
+playwright = ["PW-NAV-013"]
 selenium = ["SEL-NAV-010"]
-why = "a coverage gap in Playwright: it has no case for the skip link"
 
 [TC-TERM-001]
 title = "pointing at a term opens its explanation; moving away closes it"
@@ -365,13 +365,13 @@ selenium = ["SEL-TERM-005"]
 
 [TC-TERM-006]
 title = "the glossary's search filters the terms and clears back to all"
+playwright = ["PW-TERM-006", "PW-TERM-007", "PW-TERM-008"]
 selenium = ["SEL-TERM-006", "SEL-TERM-008", "SEL-TERM-009"]
-why = "a coverage gap in Playwright: it has no case for the glossary's search"
 
 [TC-TERM-007]
 title = "the glossary's search ignores Greek accents"
+playwright = ["PW-TERM-009"]
 selenium = ["SEL-TERM-007"]
-why = "a coverage gap in Playwright: it has no case for the glossary's search"
 
 [TC-SMOKE-001]
 title = "each main page loads with its heading and logs no error"
@@ -410,8 +410,8 @@ selenium = ["SEL-PRIV-005"]
 
 [TC-THEME-001]
 title = "on a first visit the theme control starts on the device setting, with nothing stored"
+playwright = ["PW-THEME-009"]
 selenium = ["SEL-THEME-001"]
-why = "a coverage gap in Playwright: it never checks the control's starting state"
 
 [TC-THEME-002]
 title = "a chosen theme applies and is kept in this browser"
@@ -440,8 +440,8 @@ selenium = ["SEL-THEME-005"]
 
 [TC-THEME-007]
 title = "the device setting follows the system's light or dark; a choice overrides it"
+playwright = ["PW-THEME-010", "PW-THEME-011"]
 selenium = ["SEL-THEME-006", "SEL-THEME-009"]
-why = "a coverage gap in Playwright: it never switches the emulated colour scheme"
 
 [TC-THEME-008]
 title = "an unknown stored value means the device setting"

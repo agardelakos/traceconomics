@@ -92,3 +92,62 @@ test.describe("on a touch screen", () => {
     await expect(pop).toBeHidden();
   });
 });
+
+test.describe("the glossary's search", () => {
+  const shown = (page: Page) => page.locator("#glossary-list li[data-text]:visible");
+  const texts = (page: Page) => shown(page).evaluateAll((els) => els.map((e) => e.getAttribute("data-text")!));
+
+  test("filters the terms", gwt({
+    id: "PW-TERM-006",
+    given: "the English glossary, every term shown",
+    when: "\"quintile\" is typed in the search",
+    then: "fewer terms show, each one containing \"quintile\"",
+  }), async ({ page }) => {
+    await page.goto("/en/glossary/");
+    const every = await shown(page).count();
+    await page.locator("#glossary-search").fill("quintile");
+    await expect.poll(async () => { const n = await shown(page).count(); return n > 0 && n < every; }).toBe(true);
+    for (const text of await texts(page)) expect(text).toContain("quintile");
+  });
+
+  test("with no match, hides every term and category", gwt({
+    id: "PW-TERM-007",
+    given: "the English glossary",
+    when: "letters that match no term are typed in the search",
+    then: ["no term shows", "no empty category stays"],
+  }), async ({ page }) => {
+    await page.goto("/en/glossary/");
+    await page.locator("#glossary-search").fill("quintilezzzz");
+    await expect(shown(page)).toHaveCount(0);
+    await expect(page.locator("#glossary-list > .glossary-group:visible")).toHaveCount(0);
+  });
+
+  test("cleared, brings every term back", gwt({
+    id: "PW-TERM-008",
+    given: "the English glossary, filtered by \"quintile\"",
+    when: "the search is cleared",
+    then: "every term is back",
+  }), async ({ page }) => {
+    await page.goto("/en/glossary/");
+    const every = await shown(page).count();
+    const search = page.locator("#glossary-search");
+    await search.fill("quintile");
+    await expect.poll(() => shown(page).count()).toBeLessThan(every);
+    await search.fill("");
+    await expect(shown(page)).toHaveCount(every);
+  });
+
+  test("ignores Greek accents", gwt({
+    id: "PW-TERM-009",
+    given: "the Greek glossary",
+    when: "the Greek word for inflation is typed without its accent",
+    then: "the accented term still shows, among fewer terms than before",
+  }), async ({ page }) => {
+    await page.goto("/el/glossary/");
+    const before = await texts(page);
+    const accented = before.find((text) => text.includes("πληθωρισμός"))!;
+    expect(accented).toBeTruthy();
+    await page.locator("#glossary-search").fill("πληθωρισμος");
+    await expect.poll(async () => { const now = await texts(page); return now.includes(accented) && now.length < before.length; }).toBe(true);
+  });
+});

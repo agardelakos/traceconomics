@@ -413,3 +413,40 @@ test("full screen shows the chart alone, and the button says how to leave", gwt(
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
   await expect(button).toHaveAttribute("aria-label", t("en", "chart.fullscreen"));
 });
+
+test("following the files link opens the data page with the setting's box open", gwt({
+  id: "PW-EXPL-019",
+  given: "Explore at its default view",
+  when: "the link to this view's files is unfolded and followed",
+  then: ["the browser goes to the data page for Greece, at the default setting's box", "that box is open, with files to download"],
+}), async ({ page, request, coverage }) => {
+  const s = await settings(request);
+  await page.goto(m1("en", "explore/"));
+  await root(page).locator('details:has([data-role="files-this"]) > summary').click();
+  await coverage.flush();
+  await root(page).locator('[data-role="files-this"]').click();
+  await expect(page).toHaveURL(new RegExp(`/en/data/gr/#setting-${s.default}$`));
+  const box = page.locator(`details#setting-${s.default}`);
+  await expect(box).toHaveAttribute("open", "");
+  expect(await box.locator("a[download]").count()).toBeGreaterThan(0);
+});
+
+test("months an option leaves out are noted, with the reason", gwt({
+  id: "PW-EXPL-020",
+  given: "Explore at its default view, and weights timing rule F, which leaves out months before its first survey",
+  when: "rule F is chosen",
+  then: ["a notice above the chart gives the reason, as the availability file names it", "the option's own note gives the same reason"],
+}), async ({ page, request }) => {
+  const greyed: { reason: string }[] = (await json(request, `${DATA}/availability.json`)).options.weights_timing.F.greyed;
+  const reasons = greyed.map((g) => t("en", `reason.${g.reason}`));
+  expect(reasons.length, "the data have no months rule F leaves out: nothing to check").toBeGreaterThan(0);
+  await page.goto(m1("en", "explore/"));
+  const notice = root(page).locator('[data-role="notice"]');
+  await expect(notice).toBeHidden();
+  await openOptions(page);
+  await radio(page, "weights_timing", "F").check();
+  await expect(notice).toBeVisible();
+  await expect(notice.locator("span")).toHaveText(reasons.join(" "));
+  const note = root(page).locator('fieldset[data-option="weights_timing"] [data-role="note"]');
+  for (const r of reasons) await expect(note).toContainText(r);
+});

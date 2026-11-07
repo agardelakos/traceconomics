@@ -41,6 +41,46 @@ test("the Countries quick list ticks the current country and links to the same p
   await expect(list.getByRole("link", { name: new RegExp(t("en", "topic.all_countries")) })).toHaveAttribute("href", /\/en\/countries\/?$/);
 });
 
+test("picking a quick-list entry goes to its page", gwt({
+  id: "PW-NAV-011",
+  given: "the About page",
+  when: "the Countries quick list is opened and Greece is picked",
+  then: "the browser goes to the Greece page",
+}), async ({ page, coverage }) => {
+  await page.goto("/en/about/");
+  await page.getByRole("button", { name: quick("nav.countries") }).click();
+  await coverage.flush();
+  await page.locator("#country-menu").getByRole("link", { name: t("en", "country.gr") }).click();
+  await expect(page).toHaveURL(/\/en\/gr\/$/);
+});
+
+test("on a desktop the navigation shows as a row, with no menu button", gwt({
+  id: "PW-NAV-012",
+  given: "a desktop-sized window",
+  when: "the home page opens",
+  then: ["the navigation and the theme setting's button are shown", "the phone's menu button is not"],
+}), async ({ page }) => {
+  await page.goto("/en/");
+  await expect(page.getByRole("navigation", { name: t("en", "nav.label") })).toBeVisible();
+  await expect(page.getByRole("button", { name: t("en", "settings.label") })).toBeVisible();
+  await expect(page.getByRole("button", { name: t("en", "nav.menu") })).toBeHidden();
+});
+
+test("the skip link takes the keyboard to the main content", gwt({
+  id: "PW-NAV-013",
+  given: "the About page",
+  when: ["Tab is pressed once", "Enter is pressed"],
+  then: ["the skip link has the focus and shows", "the address moves to the main content (#content)"],
+}), async ({ page }) => {
+  await page.goto("/en/about/");
+  await page.keyboard.press("Tab");
+  const skip = page.locator("a.skip-link");
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#content$/);
+});
+
 test("opening one quick list closes the other", gwt({
   id: "PW-NAV-003",
   given: "the home page, with the Topics quick list open",

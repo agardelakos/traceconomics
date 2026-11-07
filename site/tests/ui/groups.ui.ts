@@ -167,6 +167,22 @@ test.describe("the group finder", () => {
     await expect(f.locator('[data-find="starts"] a')).toHaveCount(3);
   });
 
+  for (const typed of ["abc", "1,50,0", "-5", "0"]) {
+    test(`"${typed}" is not an income, and is ignored`, gwt({
+      id: "PW-GRP-019",
+      title: "an entry that isn't a positive income is ignored",
+      given: "the group finder",
+      when: "something that isn't a positive income is typed as the income: text, a malformed number, a negative amount or zero",
+      then: ["it still asks for an income", "no income group is shown"],
+    }), async ({ page }) => {
+      await page.goto(PAGE);
+      const f = finder(page);
+      await f.getByLabel(t("en", "find.income")).fill(typed);
+      await expect(f.getByText(t("en", "find.empty"))).toBeVisible();
+      await expect(f.locator('[data-find="income-row"]')).toBeHidden();
+    });
+  }
+
   test("out-of-range household numbers are kept within bounds for the sums", gwt({
     id: "PW-GRP-008",
     given: "the group finder",
