@@ -3,12 +3,12 @@ times each on the same build and the same number of workers, and writes a Markdo
 wall time, tests run, failures, flaky tests (failed in some runs, passed in others), the slowest
 files, and lines of test code.
 
-The Playwright suite is run as a black box through its own npm script and JSON reporter, with its
-own `--fully-parallel` flag: pytest-xdist spreads single tests over the workers, and the flag makes
-Playwright do the same, so the times compare like for like. (Without it, as its config stands,
-Playwright runs the tests of one file one after another in one worker.) `--per-file` adds that mode
-for both tools: Playwright as configured, and Selenium with pytest-xdist's `--dist loadfile`, which
-sends all the tests of one file to the same worker.
+The Playwright suite is run as a black box through its own npm script and JSON reporter. Its config
+spreads single tests over the workers (`fullyParallel`), as pytest-xdist does, so the times compare
+like for like; the `--fully-parallel` flag is passed as well, to say so. `--per-file` adds the other
+mode for both tools: Playwright with `UI_PER_FILE=on`, which runs the tests of one file one after
+another in one worker, and Selenium with pytest-xdist's `--dist loadfile`, which sends all the tests
+of one file to the same worker.
 `--sequential` adds both suites run one test at a time (Playwright `--workers=1`, pytest `-n 0`).
 
     python -I tests/compare/compare.py --runs 5 [--workers 8] [--per-file] [--sequential] [--out comparison.md]
@@ -67,6 +67,8 @@ def run_playwright(workers: int, out: Path, fully_parallel: bool = False) -> tup
     path = out / "playwright.json"
     env = {**os.environ, "PLAYWRIGHT_JSON_OUTPUT_FILE": str(path)}
     env.pop("TRACECONOMICS_COVERAGE", None)    # a plain build, as the Selenium suite gets
+    if not fully_parallel:
+        env["UI_PER_FILE"] = "on"                # the config spreads single tests unless told otherwise
     npm = shutil.which("npm") or "npm"
     args = [npm, "run", "test:ui", "--", "--reporter=json", f"--workers={workers}"] + (["--fully-parallel"] if fully_parallel else [])
     start = time.monotonic()
@@ -174,8 +176,8 @@ def explanations(workers: int) -> list[str]:
         f"- **Playwright parallel ({workers} workers)**: the Playwright suite with its `--fully-parallel` flag, so "
         "single tests are spread over the workers, as pytest-xdist does for Selenium. This and Selenium are the "
         f"like-for-like pair. Docs: [fullyParallel]({DOCS['playwright']}), [the --fully-parallel flag]({DOCS['playwright_cli']}).",
-        f"- **Playwright parallel by file ({workers} workers)** (only with `--per-file`): Playwright as its config "
-        f"stands. Up to {workers} files run at once, but the tests of one file run one after another in a single "
+        f"- **Playwright parallel by file ({workers} workers)** (only with `--per-file`): Playwright with "
+        f"`UI_PER_FILE=on`, Playwright's own default. Up to {workers} files run at once, but the tests of one file run one after another in a single "
         f"worker, so the longest file sets the time. Docs: [Playwright's default]({DOCS['playwright_by_file']}).",
         f"- **Selenium parallel ({workers} workers)**: the Python suite (tests/selenium), single tests spread over "
         f"the workers by pytest-xdist (`--dist load`, its default). Docs: [distribution modes]({DOCS['xdist']}).",

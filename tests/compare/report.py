@@ -142,8 +142,8 @@ def compare_section(pw: Results | None, se: Results | None) -> str:
         slow = sorted(r.files.items(), key=lambda kv: -kv[1]["seconds"])[:3]
         lines += ["", f"{name}, slowest files: " + ", ".join(f"{f} ({c['seconds']:.0f} s)" for f, c in slow)]
     lines += ["", "Not like for like: each suite ran in its own job on its own runner. Playwright ran the coverage "
-              "build and runs a file's tests one after another; Selenium spreads single tests over the workers. "
-              "For a fair comparison (several runs, the same machine and workers, Playwright with `--fully-parallel`), "
+              "build, and the runners may differ in CPUs and therefore in workers. "
+              "For a fair comparison (several runs, the same machine, the same build and workers), "
               "run the `compare` workflow."]
     lines += ["", "<details><summary>What the rows mean</summary>", "",
               "- **Passed, Failed, Skipped**: the tests with each result in this run. Failed counts errors too. "
