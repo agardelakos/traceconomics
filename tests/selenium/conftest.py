@@ -26,10 +26,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 
 import chrome
-from helpers import DIST, REPORT, Site
+from helpers import BLOCKED, DIST, REPORT, Site
 from server import StaticServer
 
-BLOCKED = ["*cloudflareinsights.com*"]
 DESKTOP = (1280, 900)
 # Pixel 7, as Chrome's device list has it.
 PHONE = {"deviceMetrics": {"width": 412, "height": 915, "pixelRatio": 2.625, "touch": True, "mobile": True},

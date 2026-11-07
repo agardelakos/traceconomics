@@ -244,24 +244,37 @@ def test_income_bands_include_their_top_after_rounding_to_the_euro():
     assert all(r.passed and r.matched == 1 for r in results)
 
 
-def test_size_bands_and_a_wrong_band_figure_fails():
-    """PY-GROUPS-012: size bands, and a wrong band figure fails
-
-    Given made-up households of 1, 2 and 4 members and a table whose figure for "3 members and over" is wrong
-    When the households are placed in size bands
-    And the last band is compared with the table
-    And all households are compared with it
-    Then each household is in its own band
-    And the last band fails with one mismatch: published 99.0 against our 30.0 for 0111
-    And the comparison of all households passes
-    """
+def _size_bands():
+    """Made-up households of 1, 2 and 4 members, and a table whose "3 members and over" figure is wrong."""
     s = survey([("a", 1, 1, "1", {"0111": 120}), ("b", 1, 1, "1", {"0111": 240}), ("c", 1, 1, "1", {"0111": 360})],
                [("a", 40), ("b", 40), ("b", 8), ("c", 40), ("c", 39), ("c", 5), ("c", 1)])
     groups = ["1 member", "2 members", "3 members and over"]
     table = banded_table(2013, groups, {ALL: 3, groups[0]: 1, groups[1]: 1, groups[2]: 1},
                          {ALL: 20.0, groups[0]: 10.0, groups[1]: 20.0, groups[2]: 99.0})
+    return s, groups, table
+
+
+def test_households_are_placed_in_size_bands():
+    """PY-GROUPS-012: households are placed in size bands
+
+    Given made-up households of 1, 2 and 4 members, and a table with size bands
+    When the households are placed in size bands
+    Then each household is in its own band: "1 member", "2 members", "3 members and over"
+    """
+    s, groups, table = _size_bands()
+    assert v2.bands(s, table, "size").tolist() == groups
+
+
+def test_a_wrong_band_figure_fails_that_band_only():
+    """PY-GROUPS-026: a wrong band figure fails that band only
+
+    Given made-up households of 1, 2 and 4 members, and a table whose figure for "3 members and over" is wrong
+    When the last band is compared with the table, and all households are compared with it
+    Then the last band fails with one mismatch: published 99.0 against our 30.0 for 0111
+    And the comparison of all households passes
+    """
+    s, groups, table = _size_bands()
     band = v2.bands(s, table, "size")
-    assert band.tolist() == groups
     last = v2.compare(s, table, {}, group=groups[2], members=band == groups[2])
     assert not last.passed and last.mismatches == [("0111", "Bread and cereals", 99.0, 30.0)]
     assert v2.compare(s, table, {}).passed
@@ -364,21 +377,27 @@ def test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_mode
     assert pick(a, 2, "042") == pytest.approx(1400 / 4500)
 
 
-def test_deciles_and_household_rankings():
-    """PY-GROUPS-018: deciles, and ranking households instead of persons
+def test_deciles_hold_equal_parts_in_order():
+    """PY-GROUPS-018: deciles hold equal parts, in order
 
     Given twenty values of equal weight
-    And ten made-up households, the three poorest with three children each
     When the values are ranked into ten parts
-    And the households' groups are assigned
     Then the deciles hold two values each, in order
-    And ranking households puts 2 in Q1 (BH) while ranking persons puts 1 (B)
-    And B10 uses only labels D1 to D10, and exactly one household is in BH10's D10
     """
     from traceconomics.local.groups import quintile_matrix
     import numpy as np
     q = quintile_matrix(pd.Series(range(20), dtype=float), np.ones(20), pd.Series(range(20)), parts=10)[:, 0]
     assert q.tolist() == [k // 2 + 1 for k in range(20)]
+
+
+def test_ranking_households_instead_of_persons():
+    """PY-GROUPS-027: ranking households instead of persons
+
+    Given ten made-up households, the three poorest with three children each
+    When the households' groups are assigned
+    Then ranking households puts 2 in Q1 (BH) while ranking persons puts 1 (B)
+    And B10 uses only labels D1 to D10, and exactly one household is in BH10's D10
+    """
     rows = [(f"h{i}", 1, 1000 * (i + 1), "1", {"0111": 100}) for i in range(10)]
     # Big households at the bottom: ranking people puts fewer households in Q1 than ranking households.
     persons = [(f"h{i}", 40) for i in range(10)] + [(f"h{i}", 10) for i in range(3) for _ in range(3)]
@@ -498,29 +517,54 @@ def test_household_types_are_a_grouping_and_unplaced_households_are_left_out():
     assert g.hhtype.tolist()[:2] == ["A1", "A1_DCH"] and pd.isna(g.hhtype.iloc[2])
 
 
-def test_types_table_compares_with_elstats_type_and_stops_when_far_apart():
-    """PY-GROUPS-025: the types table compares with ELSTAT's type and stops when far apart
-
-    Given ten made-up single adults, with ELSTAT's type agreeing for nine of them
-    When the household types table is made for 2015
-    And made again with ELSTAT's type agreeing for none
-    And made for 2023
-    Then the first table's A1 shows "<20" households, a household share of 1.0 and ELSTAT's share of 0.9
-    And agreement is 0.9 and every row is "compared"
-    And the second raises a FormatError saying they "agree with ELSTAT's on 0.0%"
-    And in the 2023 table the ELSTAT status starts with "unusable"
-    """
-    from traceconomics.checks import FormatError
-    from traceconomics.local import weights
+def _single_adults(agreeing):
+    """Ten made-up single adults; ELSTAT's own type agrees with ours for the first `agreeing`."""
     rows = [(f"h{i}", 1, 1000, "1", {}) for i in range(10)]
     s = survey(rows, adults([r[0] for r in rows]))
     g = assign(s)
-    s.households["elstat_type"] = ["1"] * 9 + ["2"]                   # one of ten disagrees: 90%
+    s.households["elstat_type"] = ["1"] * agreeing + ["2"] * (10 - agreeing)
+    return s, g
+
+
+def test_types_table_compares_with_elstats_type():
+    """PY-GROUPS-025: the types table compares with ELSTAT's type
+
+    Given ten made-up single adults, with ELSTAT's type agreeing for nine of them
+    When the household types table is made for 2015
+    Then its A1 row shows "<20" households, a household share of 1.0 and ELSTAT's share of 0.9
+    And agreement is 0.9 and every row is "compared"
+    """
+    from traceconomics.local import weights
+    s, g = _single_adults(9)
     t = weights.types_table(s, g, 2015, "v")
     a1 = t.set_index("group").loc["A1"]
     assert a1.n_households == "<20" and a1.share_households == 1.0 and a1.elstat_share_households == 0.9
     assert t.agreement.iloc[0] == 0.9 and (t.elstat_status == "compared").all()
-    s.households["elstat_type"] = ["2"] * 10
+
+
+def test_types_table_stops_when_far_from_elstats_type():
+    """PY-GROUPS-028: the types table stops when far from ELSTAT's type
+
+    Given ten made-up single adults, with ELSTAT's type agreeing for none of them
+    When the household types table is made for 2015
+    Then a FormatError says they "agree with ELSTAT's on 0.0%"
+    """
+    from traceconomics.checks import FormatError
+    from traceconomics.local import weights
+    s, g = _single_adults(0)
     with pytest.raises(FormatError, match="agree with ELSTAT's on 0.0%"):
         weights.types_table(s, g, 2015, "v")
+
+
+def test_types_table_marks_elstats_2023_type_unusable():
+    """PY-GROUPS-029: in 2023, ELSTAT's type is marked unusable, not compared
+
+    Given ten made-up single adults, with ELSTAT's type agreeing for none of them
+    When the household types table is made for 2023
+    Then no error is raised, and the ELSTAT status starts with "unusable"
+
+    ELSTAT's own household-type variable is broken in the 2023 survey, so it isn't held against ours.
+    """
+    from traceconomics.local import weights
+    s, g = _single_adults(0)
     assert weights.types_table(s, g, 2023, "v").elstat_status.iloc[0].startswith("unusable")

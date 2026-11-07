@@ -140,3 +140,13 @@ def test_canonical_and_alternates_point_to_built_pages(base_url, crawl):
             if status != 200:
                 wrong.append(f"{page}: {rel} {href} answers {status}")
     assert not wrong, "\n".join(wrong)
+
+
+def test_sitemap_lists_the_pages():
+    """SEL-LINK-005: the sitemap lists more than 20 pages
+
+    Given a built site
+    When its sitemap is read
+    Then it lists more than 20 pages
+    """
+    assert len(sitemap_paths()) > 20

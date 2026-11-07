@@ -26,6 +26,8 @@ DIST = SITE / "dist"
 REPORT = SITE / "selenium-report"
 M1 = "data/v1/gr/m1/latest"
 WAIT = 10  # seconds; a page of this site that takes longer than this is broken
+# Addresses every test blocks: the visit counter, only in release builds, must never be reached.
+BLOCKED = ["*cloudflareinsights.com*"]
 NNBSP = "\u202f"  # narrow no-break space: the site's thousands mark in both languages
 
 

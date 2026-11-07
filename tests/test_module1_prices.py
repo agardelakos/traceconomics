@@ -75,16 +75,30 @@ def test_price_update_is_chained_through_each_december():
 
     Given blocks where 2021 averages 110 and ends at 220, and 2022 and 2023 each rise 10% December to December
     When a subclass priced through division 01 is updated from survey 2021 to index year 2024
-    And the year ratio for 2022 and the update from 2021 to 2022 are taken
     Then the factor is 220/110 × 1.1 × 1.1, priced through 01 at each step
-    And the 2022 year ratio is 1.1
-    And the update to 2022 (final weights: one year only) is 2.0
     """
-    b = blocks_for_updating()
-    f, path = update_factor(b, "01111", 2021, 2024)   # priced through its ancestor 01
+    f, path = update_factor(blocks_for_updating(), "01111", 2021, 2024)   # priced through its ancestor 01
     assert f == pytest.approx(220 / 110 * 1.1 * 1.1) and path == ["01", "01", "01"]
-    assert year_ratio(b, "01", 2022)[0] == pytest.approx(1.1)
-    assert update_factor(b, "01", 2021, 2022)[0] == pytest.approx(2.0)   # final weights: one year only
+
+
+def test_a_years_ratio_is_its_december_rise():
+    """PY-PRICES-013: a year's ratio is its December-to-December rise
+
+    Given blocks where 2022 rises 10% December to December
+    When the year ratio for 2022 is taken for division 01
+    Then it is 1.1
+    """
+    assert year_ratio(blocks_for_updating(), "01", 2022)[0] == pytest.approx(1.1)
+
+
+def test_final_weights_are_updated_one_year_only():
+    """PY-PRICES-014: final weights are updated over one year only
+
+    Given blocks where 2021 averages 110 and ends at 220
+    When division 01 is updated from survey 2021 to index year 2022
+    Then the factor is 2.0: December 2021 over 2021's average, with no year after it
+    """
+    assert update_factor(blocks_for_updating(), "01", 2021, 2022)[0] == pytest.approx(2.0)
 
 
 def test_pricing_map_rules():
@@ -171,11 +185,9 @@ def test_tutoring_exclusion_with_an_older_survey_uses_the_groups_split():
 
     Given education leaves totalling 0.10, with a tutoring split of 0.5
     When tutoring is excluded
-    And it is excluded again with a split of 0.1
     Then all of 10501 goes and 0.03 more comes from 10.1 and 10.2, 0.05 in all
     And 10.1's and 10.2's leaves shrink in proportion
     And food is untouched
-    And with a split of 0.1, 10.5 alone covers it and 10200 keeps 0.04
     """
     from traceconomics.module1.weights_used import exclude_tutoring
     leaves = {"10101": 0.01, "10102": 0.03, "10200": 0.04, "10501": 0.02, "01": 0.90}
@@ -186,6 +198,17 @@ def test_tutoring_exclusion_with_an_older_survey_uses_the_groups_split():
     assert out["10200"] == pytest.approx(0.04 * (1 - 0.03 / 0.08))
     assert out["10101"] / out["10102"] == pytest.approx(1 / 3)                 # in proportion
     assert out["01"] == 0.90
+
+
+def test_a_small_tutoring_split_is_covered_by_tutoring_alone():
+    """PY-PRICES-015: a small tutoring split is covered by tutoring's own leaf alone
+
+    Given education leaves totalling 0.10, with a tutoring split of 0.1
+    When tutoring is excluded
+    Then 10.5 alone covers it, and 10200 keeps its 0.04
+    """
+    from traceconomics.module1.weights_used import exclude_tutoring
+    leaves = {"10101": 0.01, "10102": 0.03, "10200": 0.04, "10501": 0.02, "01": 0.90}
     assert exclude_tutoring(leaves, 0.1)[0]["10200"] == 0.04                    # 10.5 alone covers it
 
 
@@ -220,10 +243,8 @@ def test_weights_used_leaves_tutoring_out_only_from_2026():
 
     Given a basket with tutoring and the option tutoring "excluded"
     When the weights are worked out for 2025 and for 2026 from same-year surveys
-    And for 2026 from survey 2023
     Then 2025 keeps tutoring
     And 2026 drops it (0.1), leaving food at 1.0
-    And 2026 from survey 2023 raises a FormatError about the "tutoring split"
     """
     b = blocks_for_updating()
     for y in (2021, 2022, 2023, 2024, 2025, 2026):
@@ -234,6 +255,19 @@ def test_weights_used_leaves_tutoring_out_only_from_2026():
     later = Entry(2026, 2026, FINAL, "2026-01", "test")
     u = weights_used(basket, later, b, tutoring="excluded")
     assert u.weights == {"01": 1.0} and u.dropped == {"10501": 0.1}
+
+
+def test_leaving_tutoring_out_of_an_older_survey_needs_its_split():
+    """PY-PRICES-016: leaving tutoring out of an older survey needs its split
+
+    Given a basket with tutoring and the option tutoring "excluded"
+    When the weights for 2026 are worked out from survey 2023, with no tutoring split given
+    Then a FormatError says the "tutoring split" is needed
+    """
+    b = blocks_for_updating()
+    for y in (2021, 2022, 2023, 2024, 2025, 2026):
+        b.setdefault(y, {})
+    basket = Basket({"01": 0.9, "10501": 0.1}, {"01": "normal", "10501": "normal"})
     with pytest.raises(FormatError, match="tutoring split"):
         weights_used(basket, Entry(2026, 2023, FIRST, "2026-01", "test"), b, tutoring="excluded")
 

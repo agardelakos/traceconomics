@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -39,33 +40,40 @@ def test_first_run_is_due(tmp_path):
     assert job.check_due({}, cfg(tmp_path), at(2026, 10, 18, 9)).due
 
 
-def test_release_day_due_only_after_run_time(tmp_path):
+@pytest.mark.parametrize("hh, mm, due", [(12, 59, False), (13, 0, True)], ids=["12:59", "13:00"])
+def test_release_day_due_only_after_run_time(tmp_path, hh, mm, due):
     """PY-JOB-002: on a release day the run is due only from the run time
 
     Given a known release day after the last good run
-    When the scheduled job checks at 12:59 Greek time that day
-    And it checks again at 13:00
+    When the scheduled job checks that day, at 12:59 or at 13:00 Greek time
     Then at 12:59 no run is due
     And at 13:00 a run is due for that release day, with no missed days
     """
     s = state_with([date(2026, 11, 10)], "2026-10-18")
-    c = cfg(tmp_path)
-    assert not job.check_due(s, c, at(2026, 11, 10, 12, 59)).due
-    d = job.check_due(s, c, at(2026, 11, 10, 13, 0))
-    assert d.due and d.release_days == [date(2026, 11, 10)] and d.missed == []
+    d = job.check_due(s, cfg(tmp_path), at(2026, 11, 10, hh, mm))
+    assert d.due is due
+    if due:
+        assert d.release_days == [date(2026, 11, 10)] and d.missed == []
 
 
 def test_missed_release_day_is_caught_up_and_reported(tmp_path):
-    """PY-JOB-003: a missed release day is caught up and listed as missed
+    """PY-JOB-003: a missed release day is caught up and reported as missed
 
     Given a release day that passed with no run since the last good run
     When the scheduled job checks two days later, before the run time
+    And the run's report is written
     Then a run is due
     And that release day is listed as missed
+    And the report has a MISSED line naming that day
     """
     s = state_with([date(2026, 11, 10)], "2026-10-18")
-    d = job.check_due(s, cfg(tmp_path), at(2026, 11, 12, 8))
+    c = cfg(tmp_path)
+    now = at(2026, 11, 12, 8)
+    d = job.check_due(s, c, now)
     assert d.due and d.missed == [date(2026, 11, 10)]
+    ctx = SimpleNamespace(alerts=[], failures=[])
+    report = job.render_report(c, now, d, False, [], [], ctx, [])
+    assert "MISSED (no run on the day): 2026-11-10" in report.splitlines()
 
 
 def test_not_due_without_release(tmp_path):
@@ -258,19 +266,8 @@ def test_backup_mark(tmp_path, fake_http):
     assert Archive(c.archive_dir).stored_since(mark) == []
 
 
-def test_heartbeat_backup_and_release_follow_a_run_with_new_data(tmp_path, fake_http, monkeypatch):
-    """PY-JOB-013: the heartbeat, backup and release build follow a run with new data
-
-    Given release builds turned on, and stand-ins for the heartbeat, the backup and the release build
-    When the scheduled job runs and stores new files
-    And a forced run the same day stores nothing new
-    And the next day's run is not due
-    Then after the first run the heartbeat is sent, the backup is ok and the release build's id is recorded
-    And that release build's reason names the Eurostat HICP dataset
-    And the forced run has no release and no backup
-    And the next day's result is "not-due" and its heartbeat is still sent
-    And there was one release build, and three heartbeats: ok, ok, not-due
-    """
+def _follow_ups(tmp_path, monkeypatch):
+    """Release builds on, with stand-ins for the heartbeat, the backup and the release build."""
     from traceconomics import release
     from traceconomics.config import ReleaseConfig
 
@@ -279,16 +276,60 @@ def test_heartbeat_backup_and_release_follow_a_run_with_new_data(tmp_path, fake_
     monkeypatch.setattr(job.backup, "sync", lambda root: {"result": "ok", "sent": 1})
     monkeypatch.setattr(release, "build", lambda config, reason: builds.append(reason) or {"id": "R1"})
     on = ReleaseConfig(enabled=True, releases_dir=tmp_path / "rel", site_dir=tmp_path / "site")
+    return cfg(tmp_path, release=on), beats, builds
 
-    first = job.run(cfg(tmp_path, release=on), now=at(2026, 10, 18, 14))
+
+def test_heartbeat_backup_and_release_follow_a_run_with_new_data(tmp_path, fake_http, monkeypatch):
+    """PY-JOB-013: the heartbeat, backup and release build follow a run with new data
+
+    Given release builds turned on, and stand-ins for the heartbeat, the backup and the release build
+    When the scheduled job runs and stores new files
+    Then the heartbeat is sent, the backup is ok and the release build's id is recorded
+    And there was one release build, and its reason names the Eurostat HICP dataset
+    And one heartbeat, for an ok run
+    """
+    c, beats, builds = _follow_ups(tmp_path, monkeypatch)
+    first = job.run(c, now=at(2026, 10, 18, 14))
     assert first["heartbeat"] == "sent" and first["backup"]["result"] == "ok" and first["release"] == "R1"
-    assert "eurostat/prc_hicp_minr" in builds[0]
-    # Nothing new: no release; a day without a release still sends its heartbeat.
-    again = job.run(cfg(tmp_path, release=on), now=at(2026, 10, 18, 15), force=True)
+    assert len(builds) == 1 and "eurostat/prc_hicp_minr" in builds[0]
+    assert beats == ["ok"]
+
+
+def test_a_run_with_nothing_new_has_no_release_and_no_backup(tmp_path, fake_http, monkeypatch):
+    """PY-JOB-019: a run with nothing new has no release and no backup
+
+    Given release builds turned on, stand-ins for the follow-ups, and an archive filled by a run
+    When a forced run the same day stores nothing new
+    Then its record has no release and no backup
+    And no release build started after the first run's
+    And its heartbeat is sent, for an ok run
+    """
+    c, beats, builds = _follow_ups(tmp_path, monkeypatch)
+    job.run(c, now=at(2026, 10, 18, 14))
+    again = job.run(c, now=at(2026, 10, 18, 15), force=True)
+    assert again["stored"] == 0
     assert "release" not in again and "backup" not in again
-    quiet = job.run(cfg(tmp_path, release=on), now=at(2026, 10, 19, 14))
+    assert len(builds) == 1
+    assert beats == ["ok", "ok"]
+
+
+def test_a_day_with_no_run_due_still_sends_its_heartbeat(tmp_path, fake_http, monkeypatch):
+    """PY-JOB-020: a day with no run due still sends its heartbeat
+
+    Given release builds turned on, stand-ins for the follow-ups, and an archive filled by a run
+    When the next day's job finds no run due
+    Then its result is "not-due" and its heartbeat is sent, for a not-due day
+    And no release build started after the first run's
+
+    The heartbeat goes out every day, due or not, so the watchdog can tell a quiet day from a dead
+    machine.
+    """
+    c, beats, builds = _follow_ups(tmp_path, monkeypatch)
+    job.run(c, now=at(2026, 10, 18, 14))
+    quiet = job.run(c, now=at(2026, 10, 19, 14))
     assert quiet["result"] == "not-due" and quiet["heartbeat"] == "sent"
-    assert len(builds) == 1 and beats == ["ok", "ok", "not-due"]
+    assert len(builds) == 1
+    assert beats == ["ok", "not-due"]
 
 
 def test_release_is_off_by_default(tmp_path, fake_http, monkeypatch):

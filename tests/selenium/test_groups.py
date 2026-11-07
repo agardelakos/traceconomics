@@ -297,25 +297,40 @@ def test_income_panel_starts_from_our_limits_and_says_how_they_are_made(site):
 
 # --- household types ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("older,children,dependents", [(3, 0, 0), (3, 0, 1), (1, 1, 0), (2, 0, 2)])
-def test_finder_names_the_household_type(site, older, children, dependents):
-    """SEL-GRP-011: the finder names the household type
-
-    Given the group finder
-    When people aged 14 or over, children and dependants among the older ones are entered
-    Then the household's type is named
-    And if nobody counts as an adult, no household type is shown
-    """
+def _household(site, older, children, dependents):
     site.open(PAGE.format(lang="en"))
     site.visible("[data-find=form]")
     _set_number(site, "[data-find=older]", older)
     _set_number(site, "[data-find=children]", children)
     _set_number(site, "[data-find=dependents]", dependents)
+
+
+@pytest.mark.parametrize("older,children,dependents", [(3, 0, 0), (3, 0, 1), (1, 1, 0)])
+def test_finder_names_the_household_type(site, older, children, dependents):
+    """SEL-GRP-011: the finder names the household type
+
+    Given the group finder
+    When people aged 14 or over, children and dependants among the older ones are entered, with at least one adult
+    Then the household's type is named
+    """
     kind = household_type(older, children, dependents)
-    if kind is None:            # nobody counts as an adult: the survey has no such type
-        site.wait(lambda _: not site.find("[data-find=type-row]").is_displayed())
-    else:
-        site.text("[data-find=type-value]", t("en", f"group.hhtype/{kind}"))
+    assert kind is not None, "each example here has an adult"
+    _household(site, older, children, dependents)
+    site.text("[data-find=type-value]", t("en", f"group.hhtype/{kind}"))
+
+
+def test_finder_shows_no_type_when_nobody_is_an_adult(site):
+    """SEL-GRP-013: the finder shows no household type when nobody counts as an adult
+
+    Given the group finder
+    When two people aged 14 or over are entered, both dependants, and no children
+    Then no household type is shown
+
+    The survey has no type for a household without an adult, so the finder names none.
+    """
+    assert household_type(2, 0, 2) is None
+    _household(site, 2, 0, 2)
+    site.wait(lambda _: not site.find("[data-find=type-row]").is_displayed(), "a household type is shown")
 
 
 def test_household_section_shows_each_types_share(site):
@@ -333,3 +348,19 @@ def test_household_section_shows_each_types_share(site):
         site.text(f'#household [data-household-n="{k}"]', v["households"])
     href = site.find("#household [data-household-compare]").get_attribute("href")
     assert href.split("groups=")[1].replace("%2F", "/").replace("%2C", ",").split(",") == list(types["groups"])
+
+
+def test_finder_without_an_income(site):
+    """SEL-GRP-014: without an income, the finder shows no income group and offers three start links
+
+    Given the group finder, with no income entered
+    When owning the home is picked, and a pension is not the main income
+    Then no income group is shown
+    And it offers three links to start from
+    """
+    site.open(PAGE.format(lang="en"))
+    site.visible("[data-find=form]")
+    _choose(site, "home", "owner")
+    _choose(site, "pension", "no")
+    site.wait(lambda _: len(site.all("[data-find=starts] a")) == 3, "the finder doesn't offer three start links")
+    assert not site.find("[data-find=income-row]").is_displayed()

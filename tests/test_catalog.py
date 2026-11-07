@@ -268,27 +268,57 @@ def test_missing_steps():
     assert rules(cat(case(then=[])), strict={"all": True}) == {("missing-steps", True)}
 
 
-def test_mapping():
-    """PY-CAT-011: the cross-suite mapping of browser cases is checked
-
-    Given a Playwright case and a Selenium case
-    When they are mapped to one shared case
-    And they are not mapped, first as the backfill allows, then with the mapping required to be complete
-    And the mapping lists a case under the wrong suite or names an unknown case
-    And each is mapped to a shared case of its own, one with a reason and one without
-    Then mapped together, there is no finding
-    And unmapped, they are a warning, and an error once the mapping must be complete
-    And a wrong suite or an unknown case is a mapping error
-    And of the two single-suite entries only the one without a reason is reported, asking why it is in one suite only
-    """
+def _browser_pair():
     pw = case(id="PW-CALC-001", suite="playwright", file="site/tests/ui/c.ui.ts")
     sel = case(id="SEL-CALC-001", suite="selenium", file="tests/selenium/test_c.py")
+    return pw, sel
+
+
+def test_mapping():
+    """PY-CAT-011: browser cases mapped to one shared case pass
+
+    Given a Playwright case and a Selenium case
+    When they are mapped to one shared case and the catalog is validated
+    Then there is no finding
+    """
+    pw, sel = _browser_pair()
     ok = {"TC-CALC-001": {"title": "t", "playwright": ["PW-CALC-001"], "selenium": ["SEL-CALC-001"]}}
     assert rules(cat(pw, sel), mapping=ok) == set()
+
+
+def test_unmapped_browser_cases_warn_until_the_mapping_must_be_complete():
+    """PY-CAT-027: unmapped browser cases are a warning, then an error once the mapping must be complete
+
+    Given a Playwright case and a Selenium case that no shared case lists
+    When the catalog is validated as the backfill allows, and again with the mapping required to be complete
+    Then as the backfill allows, they are an "unmapped" warning
+    And with the mapping required to be complete, they are an "unmapped" error
+    """
+    pw, sel = _browser_pair()
     assert ("unmapped", False) in rules(cat(pw, sel))
     assert ("unmapped", True) in rules(cat(pw, sel), strict={"mapping_complete": True})
+
+
+def test_a_mapping_under_the_wrong_suite_or_to_an_unknown_case_is_an_error():
+    """PY-CAT-028: a mapping under the wrong suite, or naming an unknown case, is an error
+
+    Given a Playwright case and a Selenium case
+    When the shared case lists the Selenium case under Playwright, and an unknown case under Selenium
+    Then the catalog has a mapping error
+    """
+    pw, sel = _browser_pair()
     wrong = {"TC-CALC-001": {"title": "t", "playwright": ["SEL-CALC-001"], "selenium": ["SEL-CALC-009"]}}
     assert ("mapping", True) in rules(cat(pw, sel), mapping=wrong)
+
+
+def test_a_shared_case_in_one_suite_only_needs_a_reason():
+    """PY-CAT-029: a shared case in one suite only needs a reason
+
+    Given a Playwright case and a Selenium case
+    When each is mapped to a shared case of its own, one with a reason (`why`) and one without
+    Then only the one without a reason is reported, asking why it is in one suite only
+    """
+    pw, sel = _browser_pair()
     single = {"TC-CALC-001": {"title": "t", "playwright": ["PW-CALC-001"]},
               "TC-CALC-002": {"title": "t", "selenium": ["SEL-CALC-001"], "why": "Selenium only"}}
     found = validate.check(cat(pw, sel), {}, single, set(), False)
@@ -418,29 +448,44 @@ def test_describe_titles_keep_examples_apart():
     assert run.cases["PW-CALC-001"]["examples"] == {"on a phone › same title": "failed", "on a desktop › same title": "passed"}
 
 
-def test_the_catalog_never_loses_ids_to_an_incomplete_run_and_a_revert_is_welcome(tmp_path):
-    """PY-CAT-017: the catalog never loses IDs to an incomplete run, and a revert is welcome
+def _stored(store, name):
+    return json.loads((store / name).read_text(encoding="utf-8"))
+
+
+def test_the_catalog_never_loses_ids_to_an_incomplete_run(tmp_path):
+    """PY-CAT-017: the catalog never loses IDs to an incomplete run
 
     Given a stored catalog with a pytest and a Playwright case
     When a catalog where Playwright was not collected is stored
-    And then one where the Playwright case's test is really removed
-    And then one where the test comes back
-    Then after the incomplete catalog no ID is obsolete and both cases are kept
-    And after the removal its ID is obsolete
-    And after it comes back no ID is obsolete
+    Then no ID is obsolete
+    And both cases are kept
     """
     store = tmp_path / "store"
     store.mkdir()
     pw = case(id="PW-CALC-001", suite="playwright", file="site/tests/ui/c.ui.ts")
     history.update_catalog(store, cat(case(), pw))
     history.update_catalog(store, cat(case(), missing=["playwright"]))  # Playwright not collected
-    obsolete = json.loads((store / "obsolete.json").read_text(encoding="utf-8"))
-    stored = json.loads((store / "catalog.json").read_text(encoding="utf-8"))
-    assert obsolete == {} and {c["id"] for c in stored["cases"]} == {"PY-ENG-001", "PW-CALC-001"}
+    assert _stored(store, "obsolete.json") == {}
+    assert {c["id"] for c in _stored(store, "catalog.json")["cases"]} == {"PY-ENG-001", "PW-CALC-001"}
+
+
+def test_a_removed_tests_id_becomes_obsolete_and_a_revert_takes_it_off(tmp_path):
+    """PY-CAT-030: a removed test's ID becomes obsolete, and a revert takes it off the list
+
+    Given a stored catalog with a pytest and a Playwright case
+    When a complete catalog without the Playwright case is stored
+    And then one where the test comes back
+    Then after the removal its ID is obsolete
+    And after it comes back no ID is obsolete
+    """
+    store = tmp_path / "store"
+    store.mkdir()
+    pw = case(id="PW-CALC-001", suite="playwright", file="site/tests/ui/c.ui.ts")
+    history.update_catalog(store, cat(case(), pw))
     history.update_catalog(store, cat(case()))                         # its test really removed
-    assert "PW-CALC-001" in json.loads((store / "obsolete.json").read_text(encoding="utf-8"))
+    assert "PW-CALC-001" in _stored(store, "obsolete.json")
     history.update_catalog(store, cat(case(), pw))                     # reverted
-    assert json.loads((store / "obsolete.json").read_text(encoding="utf-8")) == {}
+    assert _stored(store, "obsolete.json") == {}
 
 
 def test_a_bad_record_is_refused(tmp_path):
@@ -608,16 +653,13 @@ def test_meta_is_checked(change, problem):
     assert problem in vm_pull.check_meta(m, "20261107T120000Z", "ui-test")
 
 
-def test_bad_objects_and_outages_never_stop_the_pull(tmp_path):
-    """PY-CAT-024: bad objects and outages never stop the pull
+def test_bad_objects_never_stop_the_pull(tmp_path):
+    """PY-CAT-024: bad objects never stop the pull
 
     Given a bucket with a malformed results file, a meta file that is not an object and one nested too deep
     When the release runs are pulled
-    And they are pulled from a bucket that can't be reached
-    And a listing's next-page token repeats
-    Then from the bad objects nothing is written and three problems are reported
-    And from the unreachable bucket nothing is written and the listing's OSError is the one problem
-    And the repeating listing ends, with no objects
+    Then nothing is written
+    And each bad object is reported as a problem, three in all
     """
     folder = "results/20261107T120000Z/ui-test-20261107T120500Z/"
     files = {folder + "meta.json": meta(), folder + "playwright.json": b'{"suites": [1]}',
@@ -626,10 +668,27 @@ def test_bad_objects_and_outages_never_stop_the_pull(tmp_path):
     written, problems = vm_pull.pull("https://bucket/o/", tmp_path / "store", tmp_path / "out", bucket(files))
     assert written == [] and len(problems) == 3                      # each reported, none fatal
 
+
+def test_an_unreachable_bucket_is_one_problem(tmp_path):
+    """PY-CAT-031: an unreachable bucket is one problem, not a crash
+
+    Given a bucket that can't be reached
+    When the release runs are pulled
+    Then nothing is written
+    And the listing's OSError is the one problem
+    """
     def down(url, limit=0):
         raise OSError("connection refused")
     assert vm_pull.pull("https://bucket/o/", tmp_path / "store", tmp_path / "out", down) == ([], ["the listing: OSError"])
 
+
+def test_a_repeated_page_token_ends_the_listing():
+    """PY-CAT-032: a repeated next-page token ends the listing
+
+    Given a bucket listing whose next-page token repeats on every page
+    When the bucket is listed
+    Then the listing ends, with no objects
+    """
     pages = iter([b'{"objects": [], "nextStartWith": "a"}'] * 3)
     assert vm_pull.listing("https://bucket/o/", lambda url, limit=0: next(pages)) == []   # a repeated token ends it
 

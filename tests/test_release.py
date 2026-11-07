@@ -147,21 +147,32 @@ def test_release_builds_carry_the_visit_count_beacon(monkeypatch):
 
 
 def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path):
-    """PY-REL-005: only a good build can be promoted, and it becomes the baseline
+    """PY-REL-005: a failed build can't be promoted
 
-    Given a build that failed at the series step, and a good build
-    When the failed build is promoted to staging
-    And the good build is promoted to staging
-    Then the failed build's promote is refused
-    And the good build's promote records staging and its preview alias address
-    And the last command uploads that build's own files as a version
-    And that build is the baseline for the next build
+    Given a build that failed at the series step
+    When it is promoted to staging
+    Then the promote is refused
+    And no promote record is written
     """
     cfg = config(tmp_path)
     bad = release.build(cfg, now=datetime(2026, 11, 4, tzinfo=UTC),
                         runner=FakeSteps(cfg.release.site_dir, fail="series"))
     with pytest.raises(SystemExit):
         release.promote(cfg, bad["id"], "staging", runner=FakeSteps(cfg.release.site_dir))
+    assert not (cfg.release.releases_dir / release.PROMOTED).exists()
+
+
+def test_a_promoted_good_build_becomes_the_baseline(tmp_path):
+    """PY-REL-023: a promoted good build uploads its own files and becomes the baseline
+
+    Given a build that failed at the series step, then a good build
+    When the good build is promoted to staging
+    Then the promote records staging and its preview alias address
+    And the last command uploads that build's own files as a version
+    And that build, not the failed one, is the baseline for the next build
+    """
+    cfg = config(tmp_path)
+    release.build(cfg, now=datetime(2026, 11, 4, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="series"))
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     fake = FakeSteps(cfg.release.site_dir)
     done = release.promote(cfg, good["id"], "staging", runner=fake)
@@ -227,21 +238,26 @@ def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
     assert release.feeds_store(None, results) == ["eurostat/prc_hicp_minr"]
 
 
-def test_promoting_to_production_publishes_on_the_public_address(tmp_path):
-    """PY-REL-009: a promote to production deploys the build
+def test_promoting_to_production_publishes_on_the_public_address(tmp_path, host):
+    """PY-REL-009: a promote to production deploys the build and checks it on the public address
 
-    Given a good build
+    Given a good build, and a configuration whose public address is https://example.org
     When it is promoted to production
-    Then the last command is wrangler's deploy through npx without installing
+    Then the last command is wrangler's deploy through npx without installing, not a preview upload
+    And the promote is checked on the public address, and recorded with it
     """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     fake = FakeSteps(cfg.release.site_dir)
-    release.promote(cfg, good["id"], "production", runner=fake)
+    done = release.promote(cfg, good["id"], "production", runner=fake)
     assert fake.argvs[-1][:4] == ("npx", "--no-install", "wrangler", "deploy")
+    assert "--preview-alias" not in fake.argvs[-1]
+    assert host[-1] == f"https://example.org/{release.METADATA}?promote={good['id']}"
+    assert done["url"] == "https://example.org" and "confirmed" in done
+    assert release.promoted(cfg.release.releases_dir)["production"]["url"] == "https://example.org"
 
 
-def test_the_target_is_chosen_on_each_promote(tmp_path):
+def test_a_promote_to_an_unknown_target_is_refused(tmp_path):
     """PY-REL-010: a promote to an unknown target is refused
 
     Given a good build
@@ -409,16 +425,12 @@ def test_a_retest_refuses_what_a_retest_cant_fix(tmp_path):
 
 
 def test_a_promote_is_confirmed_only_when_the_target_serves_the_build(tmp_path, host):
-    """PY-REL-018: a promote is confirmed only when the target serves the build
+    """PY-REL-018: a promote is confirmed when the target serves the build
 
     Given a good build and a host that serves each promoted build's files
     When it is promoted to production
-    And it is promoted to staging while the host serves another build
-    Then the production promote's address is the public address and it is confirmed
+    Then the promote's address is the public address and it is confirmed
     And the only address checked was the public address's build metadata for that build
-    And the staging promote is refused, saying the target doesn't serve it
-    And it waited the confirm interval for the whole confirm time between checks
-    And the staging record is unconfirmed while production stays confirmed
     """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
@@ -426,6 +438,19 @@ def test_a_promote_is_confirmed_only_when_the_target_serves_the_build(tmp_path, 
     assert done["url"] == "https://example.org" and "confirmed" in done
     assert host == [f"https://example.org/{release.METADATA}?promote={good['id']}"]
 
+
+def test_a_promote_is_refused_while_the_target_serves_another_build(tmp_path, host):
+    """PY-REL-024: a promote is refused while the target serves another build
+
+    Given a good build, already promoted to production and confirmed there
+    When it is promoted to staging while the host serves another build
+    Then the promote is refused, saying the target doesn't serve it
+    And it waited the confirm interval for the whole confirm time between checks
+    And the staging record is unconfirmed while production stays confirmed
+    """
+    cfg = config(tmp_path)
+    good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
+    release.promote(cfg, good["id"], "production", runner=FakeSteps(cfg.release.site_dir))
     naps = []
     with pytest.raises(SystemExit, match="doesn't serve it"):
         release.promote(cfg, good["id"], "staging", runner=FakeSteps(cfg.release.site_dir),

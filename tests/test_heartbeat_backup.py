@@ -52,16 +52,23 @@ def test_heartbeat_sends_counts_not_details(server):
 
 
 def test_heartbeat_is_off_without_an_address_and_reports_failures(monkeypatch):
-    """PY-HBEAT-002: the heartbeat is off without an address and reports a failed upload
+    """PY-HBEAT-002: the heartbeat is off without an address
 
     Given a heartbeat to send
     When it is sent with no heartbeat address in the environment
-    And it is sent to an address that refuses connections
-    Then without an address the result is "off"
-    And to the refusing address the result starts with "failed:"
+    Then the result is "off"
     """
     monkeypatch.delenv(heartbeat.URL_ENV, raising=False)
     assert heartbeat.send({"result": "ok"}) == "off"
+
+
+def test_a_heartbeat_that_cant_be_sent_is_reported_as_failed():
+    """PY-HBEAT-009: a heartbeat that can't be sent is reported as failed
+
+    Given a heartbeat to send
+    When it is sent to an address that refuses connections
+    Then the result starts with "failed:", and nothing is raised
+    """
     assert heartbeat.send({"result": "ok"}, url="http://127.0.0.1:9/x", timeout=2).startswith("failed:")
 
 

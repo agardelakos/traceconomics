@@ -108,3 +108,21 @@ def test_root_offers_the_languages(noscript):
     assert noscript.path == "/", "the root redirected without a script"
     links = [a.get_attribute("href") for a in noscript.all("main a[lang], a.button[lang]") if a.is_displayed()]
     assert any(h.endswith("/en/") for h in links)
+
+
+def test_a_terms_explanation_opens_without_scripts(noscript):
+    """SEL-NOJS-008: without scripts, a term's explanation still opens, with its link
+
+    Given a browser with scripts turned off, on the method page
+    When the first explained term is pressed
+    Then its explanation opens
+    And the explanation shows its link
+
+    The explanation is a popover the browser opens itself, so it needs no script.
+    """
+    noscript.open("/en/gr/inflation-by-group/method/")
+    button = noscript.visible(".term-wrap button.term")
+    pop = noscript.find(f'[id="{button.get_attribute("popovertarget")}"]')
+    button.click()
+    noscript.wait(lambda _: noscript.popover_open(pop), "the explanation did not open")
+    assert pop.find_element("css selector", "a").is_displayed(), "the explanation shows no link"

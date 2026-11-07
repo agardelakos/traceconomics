@@ -68,7 +68,7 @@ describe("ldJson", () => {
 });
 
 describe("sitemapXml", () => {
-  it("lists each page in an offered language once, in order, with full addresses", { meta: {
+  it("lists each page in an offered language once, sorted, with full addresses", { meta: {
     id: "VT-STRUCT-004",
     given: [
       "page paths in English and Greek, with and without slashes, one listed twice",

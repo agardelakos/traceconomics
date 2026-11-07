@@ -48,20 +48,24 @@ describe("the data files", () => {
     expect(axis).toHaveLength(file.groups["B/Q1"].index.length);
   });
 
+  it("list every month across a year boundary", { meta: {
+    id: "VT-DATA-014",
+    given: "a start and an end month across a year boundary",
+    when: "the month axis is built",
+    then: "the axis lists every month from start to end",
+  } }, () => {
+    expect(months({ start: "2025-11", end: "2026-02" })).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
+  });
+
   it("find the last month with a value", { meta: {
     id: "VT-DATA-004",
-    given: [
-      "a start and an end month across a year boundary",
-      "lists of values, some missing, with their months",
-    ],
-    when: "the month axis is built and the last value is looked up",
+    given: "lists of values, some missing, with their months",
+    when: "the last value is looked up",
     then: [
-      "the axis lists every month from start to end",
       "the last value that isn't missing is returned with its month",
       "a list with no values gives null",
     ],
   } }, () => {
-    expect(months({ start: "2025-11", end: "2026-02" })).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
     expect(latest([1, 2, null], ["a", "b", "c"])).toEqual({ period: "b", value: 2 });
     expect(latest([null, null], ["a", "b"])).toBeNull();
   });
@@ -91,10 +95,6 @@ describe("the home page's figures", () => {
     then: [
       "its baskets are the poorest fifth's (Q1) and the richest fifth's (Q5), in that order",
       "each basket costs the base amount times its index in the latest month over its index in the base month (to 9 decimals)",
-      "the peak year is the year of the peak month",
-      "the poorest fifth's average rate is above the richest fifth's",
-      "both fifths' food shares are above zero",
-      "the calculator's presets include B/Q1",
     ],
   } }, () => {
     const h = headline("gr");
@@ -105,9 +105,44 @@ describe("the home page's figures", () => {
       const idx = s.groups[`B/${b.group}`].index;
       expect(b.cost).toBeCloseTo((BASE_AMOUNT * idx[axis.indexOf(h.latestMonth)]!) / idx[axis.indexOf(BASE_MONTH)]!, 9);
     }
+  });
+
+  it("name the peak's year from the peak month", { meta: {
+    id: "VT-DATA-010",
+    given: "Greece's headline",
+    when: "its peak is read",
+    then: "the peak year is the year of the peak month",
+  } }, () => {
+    const h = headline("gr");
     expect(h.peakYear).toBe(h.peak.period.slice(0, 4));
+  });
+
+  it("show the poorest fifth's average rate above the richest fifth's", { meta: {
+    id: "VT-DATA-011",
+    given: "Greece's headline",
+    when: "the two fifths' average rates are read",
+    then: "the poorest fifth's average rate is above the richest fifth's",
+  } }, () => {
+    const h = headline("gr");
     expect(h.avgQ1).toBeGreaterThan(h.avgQ5);
+  });
+
+  it("give both fifths a food share above zero", { meta: {
+    id: "VT-DATA-012",
+    given: "Greece's headline",
+    when: "the two fifths' food shares are read",
+    then: "both fifths' food shares are above zero",
+  } }, () => {
+    const h = headline("gr");
     for (const share of [h.foodQ1, h.foodQ5]) expect(share).toBeGreaterThan(0);
+  });
+
+  it("offer the poorest fifth as a calculator preset", { meta: {
+    id: "VT-DATA-013",
+    given: "Greece's calculator file",
+    when: "its presets are read",
+    then: "the presets include B/Q1",
+  } }, () => {
     expect(Object.keys(calculator("gr").presets)).toContain("B/Q1");
   });
 
