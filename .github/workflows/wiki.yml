@@ -55,6 +55,7 @@ jobs:
         env:
           TESTRESULTS_READ_URL: ${{ secrets.TESTRESULTS_READ_URL }}
         run: |
+          set -o pipefail      # the script's exit code, not tee's
           python -I tests/catalog/vm_pull.py --store "$RUNNER_TEMP/store" --out "$RUNNER_TEMP/release-runs" \
             | tee -a "$GITHUB_STEP_SUMMARY"
 

@@ -233,7 +233,8 @@ jobs:
   # check that each is well formed. A ratchet: the files tests/catalog/strict.toml lists must be
   # complete, the rest only warn until their turn; IDs that clash or were used before always fail.
   # Collecting needs every suite's tooling (the Selenium lock is a superset of the dev one), the
-  # made-up data (Playwright's specs read it while they are listed) and Vitest's results file.
+  # made-up data (Playwright's specs read it while they are listed), a built site (some Selenium
+  # tests are parametrized from its sitemap) and Vitest's results file.
   catalog:
     needs: [site]
     if: ${{ !cancelled() }}
@@ -261,6 +262,10 @@ jobs:
       # Listing loads the specs without starting a browser or the server.
       - run: npx playwright test --list --reporter=json > "$RUNNER_TEMP/playwright-list.json"
         working-directory: site
+      # Some Selenium tests are parametrized from the built site (its sitemap), so collecting them
+      # needs a build. A plain one: nothing here is published.
+      - run: npm run build
+        working-directory: site
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: vitest-results
@@ -280,6 +285,7 @@ jobs:
       # history: a removed test's ID can never come back.
       - name: Check the cases
         run: |
+          set -o pipefail      # the validator's exit code, not tee's
           git fetch -q --depth 1 origin test-history 2>/dev/null \
             && git show FETCH_HEAD:obsolete.json > "$RUNNER_TEMP/obsolete.json" || echo '{}' > "$RUNNER_TEMP/obsolete.json"
           python -I tests/catalog/validate.py "$RUNNER_TEMP/catalog/catalog.json" --require-all --quiet \
@@ -320,16 +326,26 @@ jobs:
           [ -f "$R/selenium-report/junit.xml" ] && args+=(--junit "selenium=$R/selenium-report/junit.xml")
           [ -f "$R/playwright-results/playwright.json" ] && args+=(--playwright "$R/playwright-results/playwright.json")
           [ -f "$R/vitest-results/vitest.json" ] && args+=(--vitest "$R/vitest-results/vitest.json")
-          python -I tests/catalog/history.py record --catalog "$R/catalog/catalog.json" --out "$R/record.json" \
+          # Without the catalog (its job failed) the run is still recorded: Playwright's and Vitest's
+          # results carry their own IDs; pytest's and Selenium's count as tests without a case.
+          catalog="$R/catalog/catalog.json"
+          if [ ! -f "$catalog" ]; then
+            echo "::warning::No catalog from this run: pytest and Selenium results are recorded without their cases."
+            catalog="$RUNNER_TEMP/empty-catalog.json"; echo '{"cases": []}' > "$catalog"
+          fi
+          python -I tests/catalog/history.py record --catalog "$catalog" --out "$R/record.json" \
             --trigger push --commit "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
             --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             --env platform=linux-x86_64 --env runner=ubuntu-24.04 --env data=made-up "${args[@]}"
       - name: Push the record to the branch test-history
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}"
-          "$RUNNER_TEMP/results/record.json" --catalog "$RUNNER_TEMP/results/catalog/catalog.json"
+        run: |
+          # The stored catalog is replaced only by a real one, never by nothing.
+          catalog=()
+          [ -f "$RUNNER_TEMP/results/catalog/catalog.json" ] && catalog=(--catalog "$RUNNER_TEMP/results/catalog/catalog.json")
+          .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}" \
+            "$RUNNER_TEMP/results/record.json" "${catalog[@]}"
 
   # The README's coverage badge, after a push to main whose tests passed. The badge is the only
   # file on the branch `badges`, kept as a single commit (force-pushed), so its history never grows.
