@@ -1,8 +1,10 @@
 # TracEconomics
 
 [![pipeline](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/agardelakos/traceconomics/actions/workflows/tests.yml)
-[![back-end coverage](https://raw.githubusercontent.com/agardelakos/traceconomics/badges/coverage-back-end.svg)](https://github.com/agardelakos/traceconomics/wiki/Test-strategy#coverage)
+
 [![front-end coverage](https://raw.githubusercontent.com/agardelakos/traceconomics/badges/coverage-front-end.svg)](https://github.com/agardelakos/traceconomics/wiki/Test-strategy#coverage)
+
+[![back-end coverage](https://raw.githubusercontent.com/agardelakos/traceconomics/badges/coverage-back-end.svg)](https://github.com/agardelakos/traceconomics/wiki/Test-strategy#coverage)
 
 An open, transparent tracker of the economy, built only on public data. Greece first, designed for many countries.
 
