@@ -21,6 +21,15 @@ export default defineConfig({
   testMatch: "**/*.ui.ts",
   // Coverage, in a coverage build only: cleared before the run, written after it.
   globalSetup: "./tests/ui/coverage-global.ts",
+  // Single tests are spread over the workers, not whole files: one file holds 150 accessibility
+  // checks, and run in one worker it alone set the suite's length (about 190 s of a 193 s CI run).
+  // Safe because no test shares state with another (no beforeAll, no serial groups); a file that
+  // ever needs its tests in order says so with test.describe.configure({ mode: "serial" }).
+  // UI_PER_FILE=on keeps a file's tests in one worker: tests/compare/compare.py --per-file.
+  fullyParallel: process.env.UI_PER_FILE !== "on",
+  // One worker per CPU, as pytest-xdist's `-n auto` gives the Selenium suite. Playwright's default
+  // is half the CPUs: two workers on a four-CPU CI runner.
+  workers: "100%",
   retries: 0,
   forbidOnly: true,
   outputDir: process.env.UI_OUTPUT ?? "test-results",
