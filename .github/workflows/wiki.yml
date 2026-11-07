@@ -1,5 +1,5 @@
-# The wiki, kept up to date by itself: after every test run on main, once a day after the release
-# window, and by hand (for something extraordinary).
+# The wiki, kept up to date by itself: as the last job of every test run on main (tests.yml calls
+# this workflow), once a day after the release window, and by hand (for something extraordinary).
 #
 #  1. Release runs: the browser tests a release build ran on real data, uploaded to the
 #     test-results bucket (tests/catalog/vm_pull.py), checked and appended to the branch
@@ -9,16 +9,14 @@
 #     pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
 #     version back.
 #
-# Runs only the default branch's code: nothing from a pull request, and no artifact from another run.
+# Runs only the default branch's code (tests.yml calls it for pushes to main only): nothing from a
+# pull request, and no artifact from another run.
 # Actions are pinned to a full commit (the tag is in the comment).
 
 name: wiki
 
 on:
-  workflow_run:
-    workflows: [tests]
-    types: [completed]
-    branches: [main]
+  workflow_call:
   # 13:30 UTC: after the daily release window (13:00 Greek time is 10:00 or 11:00 UTC) and its
   # browser steps, so a day's release runs reach the wiki the same day.
   schedule:
@@ -26,17 +24,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write     # the branch test-history, and the wiki
-
-concurrency:
-  group: wiki
-  cancel-in-progress: false
+  contents: read
 
 jobs:
   wiki:
-    # After a test run, only one started by a push to main (never a pull request's).
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write     # the branch test-history, and the wiki
+    # One update at a time. A newer waiting update replaces an older waiting one: harmless, since
+    # each regenerates every page and pulls whatever the bucket holds.
+    concurrency:
+      group: wiki
+      cancel-in-progress: false
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

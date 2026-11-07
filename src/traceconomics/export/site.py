@@ -276,13 +276,19 @@ def income_limits_file(store_con) -> dict:
     for year, group, text in _latest(store_con, "oet-local:hbs_groups", "ref_period, \"group\", value_text",
                                      "grouping = 'B' AND geo = 'GR' AND measure = 'n_households'"):
         counts.setdefault(int(year), {})[group] = text
+    # Checked before the query below: the store's view only has ilc_di01's columns (quant_inc,
+    # statinfo) once some of its rows are in, so without them that query fails on a column name.
+    missing_silc = ("no Eurostat income limits in the store (eurostat:ilc_di01): the job fetches them "
+                    "on a due run, or now with `traceconomics archive --force`")
+    require(store_con.execute("SELECT count(*) FROM observations WHERE dataset = 'eurostat:ilc_di01'").fetchone()[0],
+            missing_silc)
     silc: dict[int, dict] = {}
     for year, quant, unit, value in _latest(store_con, "eurostat:ilc_di01", "ref_period, quant_inc, unit, value",
                                             "geo = 'GR' AND statinfo = 'TC' AND unit IN ('EUR', 'PPS') "
                                             "AND quant_inc IN ('QU1', 'QU2', 'QU3', 'QU4') AND value IS NOT NULL"):
         silc.setdefault(int(year), {}).setdefault(unit, {})["Q" + quant[-1]] = value
     silc = {y: v for y, v in silc.items() if len(v.get("EUR", {})) == 4 and len(v.get("PPS", {})) == 4}
-    require(silc, "no Eurostat income limits in the store (eurostat:ilc_di01)")
+    require(silc, missing_silc)
 
     def whole(x):
         return None if x is None else int(round(x))

@@ -3,7 +3,7 @@
     python -I tests/catalog/history.py record --catalog catalog.json --out record.json
         --trigger push --commit SHA [--build ID] [--run-id N] [--run-url URL]
         [--env platform=… --env browser=… --env data=made-up]
-        [--junit pytest=tests.xml] [--junit selenium=junit.xml]
+        [--junit pytest=tests.xml] [--junit pytest-local=local.xml] [--junit selenium=junit.xml]
         [--playwright playwright.json] [--vitest vitest.json]
 
     python -I tests/catalog/history.py append --store DIR record.json [--catalog catalog.json] [--keep 200]
@@ -91,7 +91,8 @@ def junit_index(catalog: dict, suite: str) -> dict[tuple[str, str], str]:
 
 
 def read_junit(run: Run, path: Path, suite: str, catalog: dict):
-    index = junit_index(catalog, suite)
+    # `pytest-local` (the microdata tests, run in their own job) are pytest cases in the catalog.
+    index = junit_index(catalog, suite.split("-", 1)[0])
     for tc in ElementTree.parse(path).getroot().iter("testcase"):
         name = tc.get("name", "")
         base, _, param = name.partition("[")

@@ -5,8 +5,8 @@ Eurostat's "last data update" time has changed since our last copy. Eurostat
 keeps flash and first-final values itself (prc_hicp_fpd), so our copies mainly
 add later revisions. The ECOICOP v1 datasets are frozen since 2025-12 and are
 copied once, in case they are removed. `ilc_di01` (income by fifths and tenths, in euros and in
-purchasing power standards) is checked daily like the HICP: the check is one small request, and
-the file changes a few times a year.
+purchasing power standards) is checked like the HICP, on every run the job makes (a due day, or
+one forced by hand): the check is one small request, and the file changes a few times a year.
 """
 
 from __future__ import annotations

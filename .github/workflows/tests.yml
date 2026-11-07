@@ -1,4 +1,6 @@
-# The tests, on every push and pull request.
+# The tests, on every push and pull request: one run per push, reading as one pipeline. The suites
+# (python, python-local, site, selenium) and the code scan (codeql) run side by side; then the test
+# catalog's check, the run's record on the branch test-history, and the wiki, which follows from both.
 #
 # The website's build, its calculator parity test and its browser tests need the published data
 # files, which are generated from the raw archive and are not in the repository. Here the site
@@ -16,13 +18,17 @@ on:
   push:
     branches: [main]      # other branches are tested through their pull request
   pull_request:
+  # Weekly, so the code scan sees new CodeQL queries even in a quiet week (the tests run too).
+  schedule:
+    - cron: "17 4 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: tests-${{ github.ref }}
+  # Per event too: the weekly run must never cancel a push's run (and lose its record).
+  group: tests-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
@@ -48,6 +54,37 @@ jobs:
         with:
           name: pytest-results
           path: ${{ runner.temp }}/pytest.xml
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # The microdata code's tests (groups, bands, bootstrap, mapping, the survey reader), on synthetic
+  # surveys: they need the optional `local` extra (pandas, py7zr), which the python job leaves out
+  # on purpose. Two jobs, two proofs: python shows the package outside local/ runs without pandas;
+  # this one runs every test file that would skip itself without it. Never real microdata.
+  python-local:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # The dev lock (pytest), then the local one (pandas, py7zr); the two pin the same versions where
+      # they overlap.
+      - run: python -m pip install --require-hashes --no-deps -r requirements-dev.txt
+      - run: python -m pip install --require-hashes --no-deps -r requirements-local.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      # Every file with a test that needs the extra, found here rather than listed, so a new one is
+      # never left out.
+      - run: python -I -m pytest -ra --junitxml=${{ runner.temp }}/pytest-local.xml $(grep -l importorskip tests/*.py)
+      - name: Upload the results file
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pytest-local-results
+          path: ${{ runner.temp }}/pytest-local.xml
           retention-days: 7
           if-no-files-found: ignore
 
@@ -300,7 +337,7 @@ jobs:
   # runs whatever the tests did. Pull requests are never recorded. The only other job that writes
   # to the repository, and only to that branch, which it appends to and never force-pushes.
   test-history:
-    needs: [python, site, selenium, catalog]
+    needs: [python, python-local, site, selenium, catalog]
     if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -319,7 +356,7 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         continue-on-error: true
         with:
-          pattern: "{pytest-results,vitest-results,playwright-results,selenium-report,catalog}"
+          pattern: "{pytest-results,pytest-local-results,vitest-results,playwright-results,selenium-report,catalog}"
           path: ${{ runner.temp }}/results
       - name: The run's record
         env:
@@ -327,6 +364,7 @@ jobs:
         run: |
           args=()
           [ -f "$R/pytest-results/pytest.xml" ] && args+=(--junit "pytest=$R/pytest-results/pytest.xml")
+          [ -f "$R/pytest-local-results/pytest-local.xml" ] && args+=(--junit "pytest-local=$R/pytest-local-results/pytest-local.xml")
           [ -f "$R/selenium-report/junit.xml" ] && args+=(--junit "selenium=$R/selenium-report/junit.xml")
           [ -f "$R/playwright-results/playwright.json" ] && args+=(--playwright "$R/playwright-results/playwright.json")
           [ -f "$R/vitest-results/vitest.json" ] && args+=(--vitest "$R/vitest-results/vitest.json")
@@ -350,6 +388,42 @@ jobs:
           [ -f "$RUNNER_TEMP/results/catalog/catalog.json" ] && catalog=(--catalog "$RUNNER_TEMP/results/catalog/catalog.json")
           .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}" \
             "$RUNNER_TEMP/results/record.json" "${catalog[@]}"
+
+  # Code scanning (CodeQL), one job per language, the same languages and categories as GitHub's
+  # default setup used before (so earlier alerts and their dismissals carry over). Nothing to build:
+  # Python, TypeScript and the workflow files are analysed from source. Its results are a required
+  # check of the main branch's ruleset.
+  codeql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}
+
+  # The wiki (wiki.yml): the hand-written pages from wiki/ and the generated Tests pages, after this
+  # run's record is stored. wiki.yml also runs daily on its own, for the release builds' runs.
+  wiki:
+    needs: [test-history]
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/wiki.yml
+    secrets: inherit
 
   # The README's coverage badge, after a push to main whose tests passed. The badge is the only
   # file on the branch `badges`, kept as a single commit (force-pushed), so its history never grows.

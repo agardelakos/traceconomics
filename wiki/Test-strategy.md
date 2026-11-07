@@ -19,6 +19,7 @@ in [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONT
 | Layer | Tooling | Runs on | Proves |
 |---|---|---|---|
 | Unit and integration | pytest | every push and pull request | parsers, archive, store, engine, method code, export, release logic behave as specified |
+| Microdata code | pytest with the optional `local` extra (separate job) | every push and pull request | groups, income bands, bootstrap standard errors, code mapping and the survey reader, on synthetic surveys |
 | Fixture integrity | pytest (`tests/test_fixtures.py`) | every push and pull request | untouched publisher files are byte-identical to what was served |
 | Dependency integrity | pytest (`tests/test_lock_files.py`) | every push and pull request | every hashed lock file agrees with the pins in `pyproject.toml` |
 | Site unit tests | Vitest | every push and pull request; release builds | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series |
@@ -39,9 +40,10 @@ checked against their published SHA-256, so they stay evidence of what the publi
 local approximation of it.
 
 Microdata code is tested on **synthetic surveys** built in the test, never on real microdata. Those
-tests need the optional `local` extra and skip themselves without it (`pytest.importorskip`); CI
-deliberately installs neither pandas nor numpy, which also enforces that code outside `local/`
-doesn't depend on them. The local-only rule has its own tests: every publishing or syncing step
+tests need the optional `local` extra and skip themselves without it (`pytest.importorskip`). CI
+runs them in a job of their own, with the extra installed, while the main pytest job deliberately
+installs neither pandas nor numpy: one job proves the microdata code works, the other that code
+outside `local/` doesn't depend on them. The local-only rule has its own tests: every publishing or syncing step
 must refuse microdata datasets.
 
 ### Vitest

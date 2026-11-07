@@ -212,6 +212,14 @@ def test_record_gives_each_result_to_its_case(tmp_path):
     assert history.check_record(rec) == []
 
 
+def test_the_microdata_job_counts_as_its_own_suite_but_feeds_pytest_cases(tmp_path):
+    (tmp_path / "local.xml").write_text(JUNIT, encoding="utf-8")
+    run = history.Run()
+    history.read_junit(run, tmp_path / "local.xml", "pytest-local", cat(case()))
+    run.finish()
+    assert set(run.suites) == {"pytest-local"} and run.cases["PY-ENG-001"]["suite"] == "pytest-local"
+
+
 def test_append_keeps_the_newest_and_never_forgets_an_obsolete_id(tmp_path):
     store = tmp_path / "store"
     for i in range(4):

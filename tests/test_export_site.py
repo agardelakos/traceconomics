@@ -150,6 +150,20 @@ def test_pps_factor_is_one_for_the_whole_year_and_least_bent_by_rounding():
     assert all(abs(eur[q] - f * pps[q]) <= 1 for q in eur)
 
 
+def test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_eurostat_limits():
+    # The store's view is the union of the datasets it holds, so with no ilc_di01 rows its
+    # columns (quant_inc, statinfo) don't exist: the export must say which dataset is missing,
+    # not fail on an unknown column.
+    con = duckdb.connect()
+    con.execute("""CREATE TABLE observations AS SELECT * FROM (VALUES
+        ('oet-local:hbs_limits', 'k1', '2024', TIMESTAMP '2026-11-07 09:31:00', TIMESTAMP '2026-11-07 09:31:00',
+         'new', 'B', 'GR', 'Q1', 'limit', NULL, 8000.0)
+    ) AS t(dataset, key, ref_period, published_at, retrieved_at, status, grouping, geo, "group", measure,
+           value_text, value)""")
+    with pytest.raises(FormatError, match=r"eurostat:ilc_di01"):
+        site.income_limits_file(con)
+
+
 def test_pps_factor_refuses_limits_that_dont_share_one():
     with pytest.raises(FormatError, match="one factor"):
         site.pps_factor({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000})
