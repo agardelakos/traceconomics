@@ -65,7 +65,7 @@ selenium = ["SEL-EXPL-002"]
 
 [TC-EXPL-003]
 title = "groups toggle on and off, at most six and never none, and go in the address"
-playwright = ["PW-EXPL-003"]
+playwright = ["PW-EXPL-003", "PW-EXPL-021"]
 selenium = ["SEL-EXPL-006", "SEL-EXPL-009", "SEL-EXPL-019"]
 
 [TC-EXPL-004]
@@ -100,7 +100,7 @@ selenium = ["SEL-EXPL-011", "SEL-EXPL-016", "SEL-EXPL-017"]
 
 [TC-EXPL-010]
 title = "the six household types are offered and drawn from the published series"
-playwright = ["PW-EXPL-008"]
+playwright = ["PW-EXPL-008", "PW-EXPL-022"]
 selenium = ["SEL-EXPL-014"]
 
 [TC-EXPL-011]
@@ -306,7 +306,7 @@ selenium = ["SEL-NAV-013"]
 [TC-NAV-005]
 title = "the navigation marks the current section or page"
 playwright = ["PW-NAV-004", "PW-NAV-010"]
-selenium = ["SEL-NAV-004"]
+selenium = ["SEL-NAV-004", "SEL-NAV-015"]
 
 [TC-NAV-006]
 title = "the breadcrumb shows the trail and leads back home"

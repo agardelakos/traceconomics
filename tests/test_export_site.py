@@ -104,14 +104,12 @@ def write_outputs(tmp_path):
 def test_series_file_holds_published_values_on_one_month_axis(tmp_path):
     """PY-SITEEXP-004: a setting's series file holds the published values on one month axis
 
-    Given module 1 outputs written for three groups under the default setting and with weights timing "U"
+    Given module 1 outputs written for three groups under the default setting
     And a standard error for the B Q1-Q5 annual gap in 2015-06
     When the series file is made for the default setting
-    And for weights timing "U"
     Then group B/Q1's annual rate at 2022-12 on the shared month axis is the series' rate rounded to 1 decimal
     And the gap's standard error sits at 2015-06 on that axis
     And the first flag is "less certain", with annual rates flagged up to 2011-12
-    And the "U" file ends in 2024-12 with unit "I24"
     And the file serialises to plain JSON
     """
     con, series = write_outputs(tmp_path)
@@ -124,9 +122,19 @@ def test_series_file_holds_published_values_on_one_month_axis(tmp_path):
     assert q1["rch_a"][i] == round(expect, 1)
     assert f["gaps"]["B"]["se_a"][site._months(f["start"], f["end"]).index("2015-06")] == 0.123
     assert f["flags"][0]["code"] == "less certain" and f["flags"][0]["rch_a_to"] == "2011-12"
-    u = site.series_file(con, {**default, "weights_timing": "U"}, {}, {})
-    assert u["end"] == "2024-12" and u["groups"]["B/Q1"]["unit"] == "I24"
     assert json.dumps(f)                                                       # plain JSON, no NaN
+
+
+def test_a_rule_u_series_file_ends_with_its_surveys(tmp_path):
+    """PY-SITEEXP-013: a weights timing "U" series file ends with its surveys
+
+    Given module 1 outputs written with weights timing "U"
+    When the series file is made for that setting
+    Then it ends in 2024-12, with unit "I24"
+    """
+    con, _ = write_outputs(tmp_path)
+    u = site.series_file(con, {**combinations.DEFAULT, "weights_timing": "U"}, {}, {})
+    assert u["end"] == "2024-12" and u["groups"]["B/Q1"]["unit"] == "I24"
 
 
 def test_downloads_add_a_csv_of_every_table_only_for_the_default_setting(tmp_path):
@@ -257,16 +265,16 @@ def test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_euro
         site.income_limits_file(con)
 
 
-def test_pps_factor_refuses_limits_that_dont_share_one():
+@pytest.mark.parametrize("eur, pps, message", [
+    ({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000}, "one factor"),
+    ({"Q1": 7110}, {"Q2": 8272}, "don't match"),
+], ids=["ratios differ", "different quintiles"])
+def test_pps_factor_refuses_limits_that_dont_share_one(eur, pps, message):
     """PY-SITEEXP-012: the PPS factor refuses limits that don't share one
 
-    Given euro and PPS limits whose ratios differ by more than rounding allows
+    Given euro and PPS limits whose ratios differ by more than rounding allows, or limits of different quintiles
     When the PPS factor is worked out
-    And it is worked out for euro and PPS limits of different quintiles
-    Then the first raises a FormatError saying there is no "one factor"
-    And the second raises a FormatError saying they "don't match"
+    Then a FormatError says why: there is no "one factor", or the quintiles "don't match"
     """
-    with pytest.raises(FormatError, match="one factor"):
-        site.pps_factor({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000})
-    with pytest.raises(FormatError, match="don't match"):
-        site.pps_factor({"Q1": 7110}, {"Q2": 8272})
+    with pytest.raises(FormatError, match=message):
+        site.pps_factor(eur, pps)

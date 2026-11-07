@@ -108,11 +108,9 @@ test("the data table lists every month, newest first, with the file's values", g
 test("groups toggle on and off, up to six, never none, and go in the address", gwt({
   id: "PW-EXPL-003",
   given: "Explore at its default view",
-  when: ["the middle fifth is picked, then the richest fifth is unpicked", "three more groups are picked, making six",
-    "Explore opens with one group only, and that group is pressed"],
+  when: ["the middle fifth is picked, then the richest fifth is unpicked", "three more groups are picked, making six"],
   then: ["the middle fifth shows as pressed and is added at the end of the address's list of groups",
-    "the richest fifth leaves that list", "with six groups the count says 6 of 6 and the other groups can't be picked",
-    "the last group stays picked"],
+    "the richest fifth leaves that list", "with six groups the count says 6 of 6 and the other groups can't be picked"],
 }), async ({ page }) => {
   await page.goto(m1("en", "explore/"));
   await chip(page, "en", "Q3").click();
@@ -124,9 +122,17 @@ test("groups toggle on and off, up to six, never none, and go in the address", g
   for (const g of ["Q2", "Q4", "tenure/renter"]) await chip(page, "en", g).click();
   await expect(root(page).locator('[data-role="group-count"]')).toHaveText(t("en", "explore.groups_max", { n: 6, max: 6 }));
   await expect(chip(page, "en", "tenure/owner")).toBeDisabled();
+});
 
+test("the last group can't be unpicked", gwt({
+  id: "PW-EXPL-021",
+  given: "Explore opened with one group only, the second fifth",
+  when: "that group is pressed",
+  then: "it stays picked",
+}), async ({ page }) => {
   await page.goto(`${m1("en", "explore/")}?groups=Q2`);
-  await chip(page, "en", "Q2").click();                          // the last one stays
+  await expect(chip(page, "en", "Q2")).toHaveAttribute("aria-pressed", "true");
+  await chip(page, "en", "Q2").click();
   await expect(chip(page, "en", "Q2")).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -267,19 +273,27 @@ test("with the gap off, the address says so and the gap panel is hidden", gwt({
   await expect(root(page).locator('[data-role="gap-title"]')).toBeHidden();
 });
 
+test("each of the six household types is offered as a group", gwt({
+  id: "PW-EXPL-022",
+  given: "Explore at its default view",
+  when: "its groups are read",
+  then: "a button is shown for each of the six household types",
+}), async ({ page }) => {
+  await page.goto(m1("en", "explore/"));
+  for (const g of ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"]) {
+    await expect(chip(page, "en", g)).toBeVisible();
+  }
+});
+
 test("household types are a family of their own: each draws its line from the file", gwt({
   id: "PW-EXPL-008",
-  given: "Explore",
-  when: ["its groups are read", "it opens from an address picking two household types"],
-  then: ["a button is shown for each of the six household types",
-    "the summary gives those two household types' latest annual rates from the published file",
+  given: "an address picking two household types",
+  when: "Explore opens from it",
+  then: ["the summary gives those two household types' latest annual rates from the published file",
     "the second one is shown as picked"],
 }), async ({ page, request }) => {
   const s = await settings(request);
   const file = await series(request, s.default);
-  const types = ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"];
-  await page.goto(m1("en", "explore/"));
-  for (const g of types) await expect(chip(page, "en", g)).toBeVisible();
   await page.goto(`${m1("en", "explore/")}?groups=${encodeURIComponent("hhtype/A1,hhtype/A2_DCH")}`);
   await expect(summary(page)).toHaveText(summaryOf("en", file, ["hhtype/A1", "hhtype/A2_DCH"], "rch_a"));
   await expect(chip(page, "en", "hhtype/A2_DCH")).toHaveAttribute("aria-pressed", "true");

@@ -206,11 +206,9 @@ def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas()
     Given a small and a large made-up stratified survey
     When the standard errors of the income limits are computed with 200 replicates
     And the small survey's are computed again
-    And a survey without areas is given
     Then the small survey's design is "full", with 4 positive errors
     And the large survey's errors are smaller on average
     And the second computation gives the same errors
-    And the survey without areas gives no errors (None)
     """
     from traceconomics.local.bootstrap import limit_errors
     small, big = sample(strata=4, areas=3, households=6), sample(strata=16, areas=8, households=6)
@@ -219,4 +217,14 @@ def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas()
     assert d.status == "full" and len(se_small) == 4 and (se_small > 0).all()
     assert se_big.mean() < se_small.mean()
     assert (limit_errors(small, replicates=200)[1] == se_small).all()     # same seed, same errors
+
+
+def test_without_areas_the_income_limits_have_no_errors():
+    """PY-BOOT-010: without areas, the income limits have no standard errors
+
+    Given a made-up survey without areas
+    When the standard errors of the income limits are computed
+    Then there are none (None)
+    """
+    from traceconomics.local.bootstrap import limit_errors
     assert limit_errors(sample(design="no-clusters"), replicates=50)[1] is None

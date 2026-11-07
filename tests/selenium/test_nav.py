@@ -78,17 +78,24 @@ def test_country_list_keeps_the_page_the_reader_is_on(site):
 
 
 def test_section_is_marked_current(site):
-    """SEL-NAV-004: the current section is marked in the header
+    """SEL-NAV-004: on a section's own page, its link alone is marked as the current page
 
     Given the glossary
     When its header's navigation is read
-    And the topic page for Greece is opened
-    Then on the glossary the Glossary link alone is marked as the current page
-    And on the topic page the Countries link is marked current
+    Then the Glossary link alone is marked as the current page
     """
     site.open("/en/glossary/")
     current = site.all('nav#site-menu a[aria-current="page"]')
     assert [a.text for a in current] == [t("en", "nav.glossary")]
+
+
+def test_a_page_inside_a_section_marks_the_section(site):
+    """SEL-NAV-015: on a page inside a section, the section is marked current
+
+    Given the topic page for Greece, which is inside Countries
+    When its header's navigation is read
+    Then the Countries link is marked as the current section ("true")
+    """
     site.open("/en/gr/inflation-by-group/")
     countries = site.find(f'nav#site-menu a[href="/en/countries/"]')
     assert countries.get_attribute("aria-current") == "true"
