@@ -300,6 +300,7 @@ JUNIT = """<?xml version="1.0"?><testsuites><testsuite>
 <testcase classname="tests.test_x" name="test_a[two]" time="0.5"><failure message="boom"/></testcase>
 <testcase classname="tests.test_x" name="test_b" time="0.1"><skipped/></testcase>
 <testcase classname="tests.test_x" name="test_c" time="0.1"/>
+<testcase classname="tests.test_local_x" name="" time="0"><skipped message="could not import 'pandas'"/></testcase>
 </testsuite></testsuites>"""
 
 PLAYWRIGHT = {"suites": [{"specs": [{"title": "en: untouched", "tests": [

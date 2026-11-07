@@ -179,6 +179,8 @@ python -I -m pytest
 
 The tests use small saved extracts of real pages (`tests/fixtures/`) and never touch the network.
 
+Every test carries its test case: a stable ID and Given/When/Then, written on the test itself, so a case can't drift from its code. CI checks every case, records each run on `main` and each release's browser tests against their commit or build, and publishes the result on the wiki: [the test cases and their runs](https://github.com/agardelakos/traceconomics/wiki/Tests). How it works, and how it compares with a test-management tool: [Test management as code](https://github.com/agardelakos/traceconomics/wiki/Test-management-as-code). The full test strategy: [Test strategy](https://github.com/agardelakos/traceconomics/wiki/Test-strategy). Commands for every suite: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Contributing
 
 Ideas, questions, corrections and bug reports are welcome as [issues](https://github.com/agardelakos/traceconomics/issues). A number that looks wrong is worth an issue even if you're not sure: say which page, which series and month, and what you expected.

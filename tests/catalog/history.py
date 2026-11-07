@@ -98,6 +98,10 @@ def read_junit(run: Run, path: Path, suite: str, catalog: dict):
     index = junit_index(catalog, suite.split("-", 1)[0])
     for tc in ElementTree.parse(path).getroot().iter("testcase"):
         name = tc.get("name", "")
+        if not name:
+            # A module that skipped itself whole (`pytest.importorskip` at its top) appears as one
+            # nameless entry: not a test. Its tests run, and are recorded, where the skip doesn't apply.
+            continue
         base, _, param = name.partition("[")
         param = param.removesuffix("]")
         if tc.find("failure") is not None or tc.find("error") is not None:
