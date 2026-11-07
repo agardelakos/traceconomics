@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "700536f4701bbcec820fe7c37ebfb0600bb6f41e",
- "generated": "2026-11-07T14:23:22Z",
+ "commit": "f6afc31a01f4d8c1b43c3481c9b621eb2e400e09",
+ "generated": "2026-11-07T14:40:04Z",
  "missing": [],
  "cases": [
   {
@@ -3075,7 +3075,7 @@
    "suite": "pytest",
    "title": "a run record gives each test result to its case",
    "file": "tests/test_catalog.py",
-   "line": 326,
+   "line": 327,
    "node": "tests/test_catalog.py::test_record_gives_each_result_to_its_case",
    "given": [
     "a catalog of two pytest cases, and JUnit, Playwright and Vitest result files"
@@ -3104,7 +3104,7 @@
    "suite": "pytest",
    "title": "the microdata job counts as its own suite but feeds pytest cases",
    "file": "tests/test_catalog.py",
-   "line": 350,
+   "line": 351,
    "node": "tests/test_catalog.py::test_the_microdata_job_counts_as_its_own_suite_but_feeds_pytest_cases",
    "given": [
     "JUnit results from the CI job that runs the tests with the microdata extra"
@@ -3128,7 +3128,7 @@
    "suite": "pytest",
    "title": "the history keeps the newest runs and never forgets an obsolete ID",
    "file": "tests/test_catalog.py",
-   "line": 365,
+   "line": 366,
    "node": "tests/test_catalog.py::test_append_keeps_the_newest_and_never_forgets_an_obsolete_id",
    "given": [
     "a run history that keeps three runs per trigger"
@@ -3153,7 +3153,7 @@
    "suite": "pytest",
    "title": "the worse result of an example stands",
    "file": "tests/test_catalog.py",
-   "line": 387,
+   "line": 388,
    "node": "tests/test_catalog.py::test_the_worse_result_of_an_example_stands",
    "given": [
     "the same example run in both pytest jobs, failed in one and passed in the other"
@@ -3176,7 +3176,7 @@
    "suite": "pytest",
    "title": "Playwright describe titles keep examples apart",
    "file": "tests/test_catalog.py",
-   "line": 401,
+   "line": 402,
    "node": "tests/test_catalog.py::test_describe_titles_keep_examples_apart",
    "given": [
     "one case with the same test title in two describe blocks, failing in one and passing in the other"
@@ -3199,7 +3199,7 @@
    "suite": "pytest",
    "title": "the catalog never loses IDs to an incomplete run, and a revert is welcome",
    "file": "tests/test_catalog.py",
-   "line": 418,
+   "line": 419,
    "node": "tests/test_catalog.py::test_the_catalog_never_loses_ids_to_an_incomplete_run_and_a_revert_is_welcome",
    "given": [
     "a stored catalog with a pytest and a Playwright case"
@@ -3226,7 +3226,7 @@
    "suite": "pytest",
    "title": "a run record with an unknown trigger is refused",
    "file": "tests/test_catalog.py",
-   "line": 443,
+   "line": 444,
    "node": "tests/test_catalog.py::test_a_bad_record_is_refused",
    "given": [
     "a run record whose trigger is not a known one"
@@ -3250,7 +3250,7 @@
    "suite": "pytest",
    "title": "a case's flakiness is its share of result changes",
    "file": "tests/test_catalog.py",
-   "line": 460,
+   "line": 461,
    "node": "tests/test_catalog.py::test_flakiness",
    "given": [
     "a case's recent results"
@@ -3277,7 +3277,7 @@
    "suite": "pytest",
    "title": "the generated wiki pages replace the old ones and leave hand-written pages alone",
    "file": "tests/test_catalog.py",
-   "line": 478,
+   "line": 479,
    "node": "tests/test_catalog.py::test_pages",
    "given": [
     "a run history with one run, and a wiki with a stale generated page, a sidebar with a generated block and a hand-written home page"
@@ -3305,7 +3305,7 @@
    "suite": "pytest",
    "title": "the validator runs from the command line and fails on an error",
    "file": "tests/test_catalog.py",
-   "line": 508,
+   "line": 509,
    "node": "tests/test_catalog.py::test_scripts_run_from_the_command_line",
    "given": [
     "a catalog with a malformed ID"
@@ -3329,7 +3329,7 @@
    "suite": "pytest",
    "title": "release test runs are pulled from the bucket, checked and stored once",
    "file": "tests/test_catalog.py",
-   "line": 552,
+   "line": 553,
    "node": "tests/test_catalog.py::test_release_runs_are_pulled_checked_and_stored_once",
    "given": [
     "a bucket listed in pages of two, holding a ui-test run, a failed promote check, a smoke run with a bad commit, a smoke run still uploading and the link check's object"
@@ -3358,7 +3358,7 @@
    "suite": "pytest",
    "title": "a release run's meta file is checked",
    "file": "tests/test_catalog.py",
-   "line": 592,
+   "line": 593,
    "node": "tests/test_catalog.py::test_meta_is_checked",
    "given": [
     "a meta file whose build differs from its folder, whose result is unknown, or whose environment has an unexpected key"
@@ -3385,7 +3385,7 @@
    "suite": "pytest",
    "title": "bad objects and outages never stop the pull",
    "file": "tests/test_catalog.py",
-   "line": 608,
+   "line": 609,
    "node": "tests/test_catalog.py::test_bad_objects_and_outages_never_stop_the_pull",
    "given": [
     "a bucket with a malformed results file, a meta file that is not an object and one nested too deep"
@@ -3412,7 +3412,7 @@
    "suite": "pytest",
    "title": "runs pruned from the history are not fetched again",
    "file": "tests/test_catalog.py",
-   "line": 634,
+   "line": 635,
    "node": "tests/test_catalog.py::test_runs_pruned_from_the_history_are_not_fetched_again",
    "given": [
     "a history that keeps one ui-test run and holds one newer than the bucket's"
