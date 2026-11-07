@@ -20,12 +20,28 @@ def table(year, base, rows):
 
 
 def test_the_2005_based_file_is_put_on_the_2009_base():
+    """PY-ORIG-001: the 2005-based file is put on the 2009 base
+
+    Given a made-up 2009 original table on the 2005 base
+    When it is put on the 2009 base
+    Then a class's monthly levels average 100 over 2009
+    """
     t = table(2009, "2005", {"0111": (1, [110.0] * 11 + [121.0])})
     levels = originals.on_base_2009({2009: t})[2009]["0111"]
     assert sum(levels.values()) / 12 == pytest.approx(100.0)
 
 
 def test_a_subclass_takes_its_class_row_else_group_else_division():
+    """PY-ORIG-002: a subclass takes its class's row, else its group's, else its division's
+
+    Given a made-up 2010 original table with a class, a group and a division row
+    And earlier levels with a December 2009 for the group only
+    When the row for each COICOP 2018 subclass is chosen
+    And chosen again where a December 2009 level is needed
+    Then subclasses take their class's, group's or division's row in that order
+    And needing December 2009, the subclass under the group still gets the group's row
+    And the subclass whose class, group and division have no December 2009 gets none
+    """
     t = table(2010, "2009", {"0722": (40, [100.0] * 12), "022": (20, [100.0] * 12), "10": (30, [100.0] * 12)})
     assert originals._row_for("07222", t) == "0722"
     assert originals._row_for("02201", t) == "022"
@@ -38,6 +54,17 @@ def test_a_subclass_takes_its_class_row_else_group_else_division():
 def test_old_item_numbers_are_never_matched_to_subclasses():
     # In the old list 07222 is "lubricants" (flat) while the class (car fuels) rose 30%: every v1
     # subclass of 07.2.2, petrol included, must take the class's movement, not the item's.
+    """PY-ORIG-003: old item numbers are never matched to subclasses
+
+    Given a made-up 2010 table where old item 07222 (lubricants) is flat while its class (car fuels) rises 30%
+    When the table is carried to COICOP 2018
+    Then COICOP 2018's 07222 (petrol) follows the class: 130.0 in 2010-06
+    And the class keeps its December 2009 level of 100.0
+    And 07222 is among the five-digit codes
+
+    In the old list 07222 is "lubricants" (flat) while the class (car fuels) rose 30%: every v1
+    subclass of 07.2.2, petrol included, must take the class's movement, not the item's.
+    """
     t = table(2010, "2009", {"0722": (40, [130.0] * 12), "07222": (1, [100.0] * 12), "07221": (39, [131.0] * 12)})
     levels = {c: {f"2010-{m:02d}": v[0] for m in range(1, 13)} for c, v in
               (("0722", [130.0]), ("07222", [100.0]), ("07221", [131.0]))}

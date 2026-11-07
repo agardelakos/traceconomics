@@ -29,6 +29,14 @@ def baskets():
 
 
 def test_contributions_add_up_to_the_annual_rate_every_month():
+    """PY-CONTRIB-001: Ribe contributions add up to the annual rate every month
+
+    Given made-up prices and B/Q1 baskets whose weights change from year to year
+    When the series is built and its Ribe contributions computed
+    Then in every month with an annual rate the contributions sum to it, within 1e-9
+    And more than 150 months are checked, including 2011-12
+    And in 2022-06 food contributes more than transport
+    """
     b = blocks()
     s = index.build(None, "B", "Q1", blocks=b, baskets=baskets())
     c = ribe(s, b)

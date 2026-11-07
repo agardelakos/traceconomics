@@ -69,6 +69,17 @@ def no_email(monkeypatch):
 
 
 def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_email):
+    """PY-REL-001: a good release build keeps its files and reports the preview
+
+    Given a configuration with release builds on and steps that all succeed
+    When a release build runs
+    Then it is ok, with an id from the build's UTC time
+    And the steps run in order: store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, export, npm-ci, site-check, ui-test, upload, smoke
+    And the preview address is the build's alias address
+    And the build folder's SHA256SUMS lists the site files and the outputs
+    And its release.json records the result ok
+    And the email says the build is ready for review and gives the promote command for it
+    """
     cfg = config(tmp_path)
     fake = FakeSteps(cfg.release.site_dir)
     rec = release.build(cfg, now=datetime(2026, 11, 10, 11, 30, tzinfo=UTC), runner=fake)
@@ -85,6 +96,15 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
 
 
 def test_a_failed_step_stops_the_build_and_raises_an_alert(tmp_path, no_email):
+    """PY-REL-002: a failed step stops the release build and raises an alert
+
+    Given steps where check-v1 fails
+    When a release build runs
+    Then it fails at check-v1
+    And no step runs after it, so nothing is uploaded
+    And the record keeps the tail of the step's log
+    And an alert email names the failed step
+    """
     cfg = config(tmp_path)
     fake = FakeSteps(cfg.release.site_dir, fail="check-v1")
     rec = release.build(cfg, now=datetime(2026, 11, 10, 11, 30, tzinfo=UTC), runner=fake)
@@ -95,6 +115,15 @@ def test_a_failed_step_stops_the_build_and_raises_an_alert(tmp_path, no_email):
 
 
 def test_upload_is_a_preview_version_named_from_the_config(tmp_path):
+    """PY-REL-003: the upload is a preview version named from the configuration
+
+    Given a release configuration
+    When the steps of a build are listed
+    Then the upload step runs wrangler's "versions upload" through npx without installing
+    And its preview alias is the lower-cased build id with a "build-" prefix
+    And it uploads to the worker named traceconomics
+    And it uploads the site's built files
+    """
     cfg = config(tmp_path)
     up = next(s for s in release.steps(cfg, tmp_path / "r", "20261110T113000Z") if s.name == "upload")
     assert up.argv[:5] == ("npx", "--no-install", "wrangler", "versions", "upload")
@@ -105,11 +134,27 @@ def test_upload_is_a_preview_version_named_from_the_config(tmp_path):
 
 def test_release_builds_carry_the_visit_count_beacon(monkeypatch):
     # The site's build adds the beacon only when this is set: never in local builds or tests.
+    """PY-REL-004: release builds turn on the visit-count beacon
+
+    Given no analytics setting in the environment
+    When a release step's environment is made
+    Then TRACECONOMICS_ANALYTICS is "on"
+    """
     monkeypatch.delenv("TRACECONOMICS_ANALYTICS", raising=False)
     assert release._env(None)["TRACECONOMICS_ANALYTICS"] == "on"
 
 
 def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path):
+    """PY-REL-005: only a good build can be promoted, and it becomes the baseline
+
+    Given a build that failed at the series step, and a good build
+    When the failed build is promoted to staging
+    And the good build is promoted to staging
+    Then the failed build's promote is refused
+    And the good build's promote records staging and its preview alias address
+    And the last command uploads that build's own files as a version
+    And that build is the baseline for the next build
+    """
     cfg = config(tmp_path)
     bad = release.build(cfg, now=datetime(2026, 11, 4, tzinfo=UTC),
                         runner=FakeSteps(cfg.release.site_dir, fail="series"))
@@ -124,6 +169,13 @@ def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path)
 
 
 def test_pruning_keeps_the_newest_and_the_promoted_build(tmp_path):
+    """PY-REL-006: pruning keeps the newest builds and the promoted one
+
+    Given a configuration that keeps two builds
+    And a promoted build followed by three more
+    When the builds are pruned after each build
+    Then the promoted build and the two newest are left
+    """
     cfg = config(tmp_path)
     ids = [release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))["id"]
            for d in (1, 2)]
@@ -135,6 +187,13 @@ def test_pruning_keeps_the_newest_and_the_promoted_build(tmp_path):
 
 
 def test_changes_since_the_last_release(tmp_path):
+    """PY-REL-007: the changes since the last release are counted
+
+    Given an old and a new set of rate outputs, where the new one revises one month by 0.1 points and adds a month
+    When the changes are computed
+    Then the latest period is the added month, listed as the one new period, with one new value
+    And one value was revised, by 0.1 points at most
+    """
     duckdb = pytest.importorskip("duckdb")
     cols = "geo, grouping, \"group\", spending, imputed_rent, price_source, weights_timing, tutoring, coicop18, unit, ref_period, value_text"
     def write(folder, rows):
@@ -150,6 +209,12 @@ def test_changes_since_the_last_release(tmp_path):
 
 
 def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
+    """PY-REL-008: only newly stored files that feed the store trigger a release
+
+    Given a run that stored a HICP file and a calendar page, and found another HICP file unchanged
+    When the files that feed the store are picked
+    Then only the stored HICP dataset is listed
+    """
     def stored(source, dataset, name=None):
         folder = tmp_path / source / dataset
         folder.mkdir(parents=True)
@@ -161,6 +226,12 @@ def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
 
 
 def test_promoting_to_production_publishes_on_the_public_address(tmp_path):
+    """PY-REL-009: a promote to production deploys the build
+
+    Given a good build
+    When it is promoted to production
+    Then the last command is wrangler's deploy through npx without installing
+    """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     fake = FakeSteps(cfg.release.site_dir)
@@ -169,6 +240,13 @@ def test_promoting_to_production_publishes_on_the_public_address(tmp_path):
 
 
 def test_the_target_is_chosen_on_each_promote(tmp_path):
+    """PY-REL-010: a promote to an unknown target is refused
+
+    Given a good build
+    When it is promoted to "preview", which is not a target
+    Then the promote is refused
+    And no promote record is written
+    """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     with pytest.raises(SystemExit):
@@ -177,6 +255,15 @@ def test_the_target_is_chosen_on_each_promote(tmp_path):
 
 
 def test_staging_and_production_serve_their_own_builds(tmp_path):
+    """PY-REL-011: staging and production serve their own builds
+
+    Given two good builds, the first promoted to production and the second to staging
+    When the promote records are read
+    Then production shows the first build and staging the second
+    And the baseline for the next build is the production build
+    And the status lists each build with the target it is on
+    And after three more builds and pruning, both promoted builds are still kept
+    """
     cfg, keep = config(tmp_path), FakeSteps(tmp_path / "site")
     ids = [release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=keep)["id"] for d in (1, 2)]
     release.promote(cfg, ids[0], "production", runner=keep)
@@ -194,6 +281,13 @@ def test_staging_and_production_serve_their_own_builds(tmp_path):
 
 
 def test_a_promote_record_from_before_targets_reads_as_staging(tmp_path):
+    """PY-REL-012: a promote record from before targets reads as staging
+
+    Given an old single promote record
+    When the promote records are read
+    Then it shows as the staging build
+    And it is the baseline
+    """
     folder = tmp_path / "releases"
     folder.mkdir()
     (folder / release.PROMOTED).write_text(json.dumps({"id": "20261028T155928Z", "to": "staging"}), encoding="utf-8")
@@ -202,6 +296,16 @@ def test_a_promote_record_from_before_targets_reads_as_staging(tmp_path):
 
 
 def test_the_browser_tests_run_before_upload_and_again_on_the_preview(tmp_path):
+    """PY-REL-013: the browser tests run before the upload and again on the preview
+
+    Given steps that all succeed
+    When a release build runs
+    Then the ui-test step has no BASE_URL, so it tests the built files on a local server
+    And it runs the full suite, with no --grep
+    And the smoke step runs only the tests tagged @smoke
+    And it runs against the build's preview address
+    And it writes its report into the build's folder
+    """
     cfg = config(tmp_path)
     fake = FakeSteps(cfg.release.site_dir)
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=fake)
@@ -215,6 +319,15 @@ def test_the_browser_tests_run_before_upload_and_again_on_the_preview(tmp_path):
 
 
 def test_a_build_held_back_by_its_browser_tests_publishes_nothing_and_keeps_its_files(tmp_path, no_email):
+    """PY-REL-014: a build held back by its browser tests publishes nothing and keeps its files
+
+    Given steps where ui-test fails
+    When a release build runs
+    Then it fails at ui-test and nothing is uploaded
+    And the build folder keeps its site files
+    And the email says it failed at ui-test, that nothing was published, and points to release retest
+    And a promote of the build is refused
+    """
     cfg = config(tmp_path)
     fake = FakeSteps(cfg.release.site_dir, fail="ui-test")
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=fake)
@@ -227,6 +340,17 @@ def test_a_build_held_back_by_its_browser_tests_publishes_nothing_and_keeps_its_
 
 
 def test_a_retest_runs_the_rest_on_the_files_the_build_made(tmp_path, no_email):
+    """PY-REL-015: a retest runs the remaining steps on the build's own files
+
+    Given a build held back at ui-test
+    And a later build's files left in the site folder
+    When the build is retested
+    Then ui-test, upload and smoke run, and ui-test sees the held-back build's files
+    And the build is now ok, with no failed step and a passing retest recorded
+    And its preview address is the build's alias address
+    And the email says it passed its retest
+    And it can then be promoted to staging
+    """
     cfg = config(tmp_path)
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="ui-test"))
     # A later build left other files in the site folder; the retest must test this build's.
@@ -243,6 +367,12 @@ def test_a_retest_runs_the_rest_on_the_files_the_build_made(tmp_path, no_email):
 
 
 def test_a_retest_after_the_upload_tests_the_version_already_uploaded(tmp_path):
+    """PY-REL-016: a retest after the upload tests the version already uploaded
+
+    Given a build that failed at smoke, after its upload
+    When it is retested
+    Then only ui-test and smoke run, with no new upload
+    """
     cfg = config(tmp_path)
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="smoke"))
     fake = FakeSteps(cfg.release.site_dir)
@@ -251,6 +381,16 @@ def test_a_retest_after_the_upload_tests_the_version_already_uploaded(tmp_path):
 
 
 def test_a_retest_refuses_what_a_retest_cant_fix(tmp_path):
+    """PY-REL-017: a retest refuses what a retest can't fix
+
+    Given a good build, a build that failed at check-v1, an unknown build id
+    And a build held back at ui-test whose browser tests have changed since
+    When each is retested
+    Then the good build is refused as already passed
+    And the check-v1 failure is refused with advice to build again
+    And the unknown id is refused as no release
+    And the held-back build is refused because the tests are not the ones it ran
+    """
     cfg = config(tmp_path)
     for day, fail, why in ((1, None, "already passed"), (2, "check-v1", "build again")):
         rec = release.build(cfg, now=datetime(2026, 11, day, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail=fail))
@@ -267,6 +407,17 @@ def test_a_retest_refuses_what_a_retest_cant_fix(tmp_path):
 
 
 def test_a_promote_is_confirmed_only_when_the_target_serves_the_build(tmp_path, host):
+    """PY-REL-018: a promote is confirmed only when the target serves the build
+
+    Given a good build and a host that serves each promoted build's files
+    When it is promoted to production
+    And it is promoted to staging while the host serves another build
+    Then the production promote's address is the public address and it is confirmed
+    And the only address checked was the public address's build metadata for that build
+    And the staging promote is refused, saying the target doesn't serve it
+    And it waited the confirm interval for the whole confirm time between checks
+    And the staging record is unconfirmed while production stays confirmed
+    """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     done = release.promote(cfg, good["id"], "production", runner=FakeSteps(cfg.release.site_dir))
@@ -283,6 +434,13 @@ def test_a_promote_is_confirmed_only_when_the_target_serves_the_build(tmp_path, 
 
 
 def test_a_promote_to_production_needs_the_public_address(tmp_path):
+    """PY-REL-019: a promote to production needs the public address
+
+    Given a good build and a release configuration with no production address
+    When it is promoted to production
+    Then the promote is refused, naming production_url
+    And no step ran, so nothing was uploaded
+    """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
     bare = Config(archive_dir=cfg.archive_dir, user_agent="test",
@@ -294,6 +452,13 @@ def test_a_promote_to_production_needs_the_public_address(tmp_path):
 
 
 def test_the_public_address_is_read_from_the_config_without_a_trailing_slash(tmp_path):
+    """PY-REL-020: the public address is read from the configuration without a trailing slash
+
+    Given a configuration whose production address ends in a slash
+    When it is parsed
+    Then the production address has no trailing slash
+    And a configuration with no release section has no production address
+    """
     from traceconomics.config import parse
 
     base = {"archive": {"dir": str(tmp_path)}, "fetch": {"user_agent": "test"}}
@@ -314,6 +479,14 @@ PLAYWRIGHT_RESULTS = {
 
 
 def test_the_failing_browser_tests_are_named_from_their_results_file(tmp_path):
+    """PY-REL-021: the failing browser tests are named from their results file
+
+    Given a Playwright results file with a passing test, a failing nested test and an error outside the tests
+    When the failures are read
+    Then the failing test is named by its file, suite and title, with its error's first line free of colour codes
+    And the error outside the tests is listed as such
+    And a missing results file gives no failures
+    """
     results = tmp_path / "results.json"
     results.write_text(json.dumps(PLAYWRIGHT_RESULTS), encoding="utf-8")
     assert release.ui_failures(results) == [
@@ -324,6 +497,14 @@ def test_the_failing_browser_tests_are_named_from_their_results_file(tmp_path):
 
 
 def test_a_browser_test_failure_email_names_the_tests_and_the_report(tmp_path, no_email):
+    """PY-REL-022: a browser-test failure email names the tests and the report
+
+    Given steps where ui-test fails and writes a results file
+    When a release build runs
+    Then the record points to the HTML report in the build's folder
+    And the alert email lists the failing browser tests and the report's path
+    And after a retest that passes, the record no longer has failures or a report
+    """
     cfg = config(tmp_path)
 
     class WritesResults(FakeSteps):

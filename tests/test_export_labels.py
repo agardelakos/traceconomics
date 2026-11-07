@@ -10,6 +10,14 @@ from traceconomics.export import labels
 
 
 def test_clean_takes_off_the_notation_and_keeps_the_kind():
+    """PY-LABELS-001: a label loses its notation and keeps its kind
+
+    Given category labels in English and Greek with a leading code and an optional kind marker
+    When each label is cleaned
+    Then the code and the marker are taken off the name
+    And the marker becomes its kind ("(ND)" non-durable, "(Υ)" service)
+    And a label without a marker has no kind
+    """
     assert labels.clean("01.1.1.1 Cereals (ND)") == ("Cereals", "non-durable")
     assert labels.clean("12.2.1 Υπηρεσίες χρηματοπιστωτικής διαμεσολάβησης (Υ)") == \
         ("Υπηρεσίες χρηματοπιστωτικής διαμεσολάβησης", "service")
@@ -35,6 +43,14 @@ def write_hbs(path, rows):
 
 
 def test_eu_names_first_then_elstat_with_capitals_replaced_by_the_single_child(tmp_path):
+    """PY-LABELS-002: EU vocabulary names come first, and ELSTAT capitals take the single child's name
+
+    Given an EU vocabulary name for one code
+    And ELSTAT HBS tables in English and Greek where another code's name is all capitals and its single child has the same words
+    When the labels are built for both codes
+    Then the first code has the EU vocabulary's names, its kind and source "eu-vocabularies"
+    And the second code has its child's Greek name, with source "elstat-hbs"
+    """
     write_eu(tmp_path / "eu.csv", [("011", "01.1 Food (ND)", "01.1 Τρόφιμα (ΜΔΑ)")])
     write_hbs(tmp_path / "en.xlsx", [("013", "SERVICES FOR PROCESSING"), ("0130", "Services for processing (S)")])
     write_hbs(tmp_path / "el.xlsx", [("013", "ΥΠΗΡΕΣΙΕΣ ΜΕΤΑΠΟΙΗΣΗΣ"), ("0130", "Υπηρεσίες μεταποίησης (Υ)")])
@@ -44,6 +60,14 @@ def test_eu_names_first_then_elstat_with_capitals_replaced_by_the_single_child(t
 
 
 def test_a_name_only_in_capitals_or_missing_stops_the_export(tmp_path):
+    """PY-LABELS-003: a name only in capitals, or a missing name, stops the export
+
+    Given a code whose ELSTAT name is all capitals and whose single child has different words
+    When its labels are built
+    And labels are built for a code with no name anywhere
+    Then a FormatError naming the first code is raised
+    And the code with no name raises a FormatError naming it too
+    """
     write_eu(tmp_path / "eu.csv", [])
     write_hbs(tmp_path / "en.xlsx", [("014", "SOMETHING"), ("0141", "Other words")])
     write_hbs(tmp_path / "el.xlsx", [("014", "ΚΑΤΙ"), ("0141", "Άλλες λέξεις")])

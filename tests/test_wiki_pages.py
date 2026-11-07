@@ -37,17 +37,35 @@ def exists(token: str) -> bool:
 
 
 def test_there_are_pages():
+    """PY-WIKI-001: the wiki has its home page and sidebar
+
+    Given the hand-written wiki pages in wiki/
+    When their names are listed
+    Then they include Home and _Sidebar
+    """
     assert {p.stem for p in PAGES} >= {"Home", "_Sidebar"}
 
 
 @pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
 def test_named_paths_exist(page):
+    """PY-WIKI-002: every path a wiki page names exists in the repository
+
+    Given a hand-written wiki page
+    When the backticked file and folder names in it are collected (with a slash or a known extension, no placeholders)
+    Then each one exists: a bare file name anywhere in the repository outside skipped folders, a path under the root, the package, its sources or the site
+    """
     missing = [t for t in names(page) if not exists(t)]
     assert missing == [], f"{page.name} names paths that don't exist: {missing}"
 
 
 @pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
 def test_wiki_links_have_a_page(page):
+    """PY-WIKI-003: every link to another wiki page has a page behind it
+
+    Given a hand-written wiki page
+    When its links to other wiki pages are collected (not URLs, absolute paths, relative files or anchors)
+    Then each one has a page in wiki/, or is one of the generated Tests pages
+    """
     links = re.findall(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", page.read_text(encoding="utf-8"))
     local = [x for x in links if not re.match(r"^[a-z]+:|^/|\.", x) and "/" not in x]
     missing = [x for x in local if not (WIKI / f"{x}.md").is_file() and not GENERATED.match(x)]

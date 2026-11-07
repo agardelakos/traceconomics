@@ -17,6 +17,13 @@ def listed() -> dict[str, str]:
 
 
 def test_untouched_fixtures_match_their_published_hashes():
+    """PY-FIXT-001: the untouched fixtures match their listed hashes
+
+    Given the fixtures README, which lists the SHA-256 of each untouched fixture
+    When each listed file is hashed
+    Then exactly 8 files are listed
+    And every file's SHA-256 matches the one listed
+    """
     hashes = listed()
     assert len(hashes) == 8
     for name, expected in hashes.items():

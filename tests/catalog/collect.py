@@ -91,7 +91,7 @@ def from_playwright(listing: dict) -> list[Case]:
                 d = from_annotations(test.get("annotations", []))
                 path = _rel(root / (spec.get("file") or file))
                 out.append(Case(
-                    id=d["id"], suite="playwright", title=spec["title"], file=path,
+                    id=d["id"], suite="playwright", title=d["title"] or spec["title"], named=bool(d["title"]), file=path,
                     line=spec.get("line", 0), node=" › ".join([path, *titles, spec["title"]]),
                     given=d["given"], when=d["when"], then=d["then"], defects=d["defects"],
                     tags=sorted(t.lstrip("@") for t in spec.get("tags", [])), problems=d["problems"]))
@@ -111,7 +111,8 @@ def from_vitest(report: dict) -> list[Case]:
             d = from_meta(a.get("meta"))
             loc = a.get("location") or {}
             out.append(Case(
-                id=d["id"], suite="vitest", title=a.get("title", ""), file=path, line=loc.get("line", 0),
+                id=d["id"], suite="vitest", title=d["title"] or a.get("title", ""), named=bool(d["title"]),
+                file=path, line=loc.get("line", 0),
                 node=" › ".join([path, *a.get("ancestorTitles", []), a.get("title", "")]),
                 given=d["given"], when=d["when"], then=d["then"],
                 tags=list(a.get("tags") or []), problems=d["problems"]))
@@ -119,8 +120,11 @@ def from_vitest(report: dict) -> list[Case]:
 
 
 def merge_outlines(cases: list[Case]) -> list[Case]:
-    """Tests in one file that share an ID are one outline: their titles become its examples.
-    Different steps under one ID are a problem the validator reports."""
+    """Playwright and Vitest tests in one file that share an ID and its steps are one outline (a
+    loop over languages, `test.each`): their titles become its examples. Anything else under one ID
+    stays apart, so the validator reports it as a duplicate: two pytest or Selenium functions (a
+    parametrize is already one outline there), or examples whose steps differ (a copied test whose
+    ID was left as it was)."""
     merged: dict[tuple, Case] = {}
     out: list[Case] = []
     for c in cases:
@@ -129,19 +133,18 @@ def merge_outlines(cases: list[Case]) -> list[Case]:
             continue
         key = (c.suite, c.id, c.file)
         first = merged.get(key)
-        if first is None:
-            merged[key] = c
+        if first is None or c.suite in ("pytest", "selenium") \
+                or (c.given, c.when, c.then) != (first.given, first.when, first.then):
+            merged.setdefault(key, c)
             out.append(c)
             continue
         if not first.examples:
-            first.examples.append(first.title)
-        first.examples += c.examples or [c.title]
-        if (c.given, c.when, c.then) != (first.given, first.when, first.then):
-            first.problems.append(f"examples of {c.id} carry different steps ({c.title!r})")
+            first.examples.append(first.node.rsplit(" › ", 1)[-1])
+        first.examples += c.examples or [c.node.rsplit(" › ", 1)[-1]]
         first.defects = sorted(set(first.defects) | set(c.defects))
         first.tags = sorted(set(first.tags) | set(c.tags))
     for c in out:
-        if c.id and len(c.examples) > 1 and c.suite in ("playwright", "vitest"):
+        if c.id and len(c.examples) > 1 and c.suite in ("playwright", "vitest") and not c.named:
             c.title = shared_title(c.examples) or c.title
     return out
 

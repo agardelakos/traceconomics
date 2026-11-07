@@ -50,7 +50,9 @@ jobs:
           git clone -q --depth 1 --branch test-history "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/store" \
             || mkdir -p "$RUNNER_TEMP/store"
 
+      # A problem here (the bucket down, a bad link) is reported but never stops the wiki update.
       - name: Release runs from the bucket
+        continue-on-error: true
         env:
           TESTRESULTS_READ_URL: ${{ secrets.TESTRESULTS_READ_URL }}
         run: |

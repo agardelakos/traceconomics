@@ -11,6 +11,16 @@ FIX = Path(__file__).parent / "fixtures"
 
 
 def test_old_layout_2018():
+    """PY-HBS-001: HBS table 1.03 in the old layout (2018)
+
+    Given ELSTAT's published HBS table 1.03 for 2018, in the old .xls layout
+    When it is parsed for 2018
+    Then it gives 4,085,310 households for all households
+    And total purchases (the row with a blank code) of 1442.35 a month
+    And a positive figure and a label for 01111, its leading zero kept
+    And codes in division 10, which the file stores as numbers
+    And 9 groups, the second starting "up 750"
+    """
     t = parse(FIX / "elstat_hbs_t103_2018.xls", 2018)
     assert t.households[ALL] == pytest.approx(4_085_310)
     assert t.purchases["00"][ALL] == pytest.approx(1442.35)             # the blank-coded "TOTAL PURCHASES" row
@@ -20,6 +30,14 @@ def test_old_layout_2018():
 
 
 def test_new_layout_2024():
+    """PY-HBS-002: HBS table 1.03 in the new layout (2024)
+
+    Given ELSTAT's published HBS table 1.03 for 2024, in the new .xlsx layout
+    When it is parsed for 2024
+    Then it gives 4,298,999 households for all households
+    And total purchases of 1724.54 and 17.81 for 07242
+    And no anomalies are reported
+    """
     t = parse(FIX / "elstat_hbs_t103_2024.xlsx", 2024)
     assert t.households[ALL] == pytest.approx(4_298_999)
     assert t.purchases["00"][ALL] == pytest.approx(1724.54)
@@ -28,11 +46,28 @@ def test_new_layout_2024():
 
 
 def test_year_must_match_what_the_table_says():
+    """PY-HBS-003: the year asked for must match the table's own year
+
+    Given the 2024 table
+    When it is parsed as 2023
+    Then a FormatError saying the table "says 2024" is raised
+    """
     with pytest.raises(FormatError, match="says 2024"):
         parse(FIX / "elstat_hbs_t103_2024.xlsx", 2023)
 
 
 def test_v2_logic_on_a_tiny_survey():
+    """PY-HBS-004: the V2 comparison excuses only what a known missing item explains
+
+    Given a made-up two-household survey with annual purchases, and a published table with monthly means per household
+    And item 07242 published but absent from the survey, so 07, 072 and the total come out short
+    When the survey is compared with the table, with 07242 listed as missing for that year
+    And compared again with 07242 listed as missing only for another year
+    Then the first comparison has one code matched, the total, 07, 072 and 07242 excused, and passes
+    And the second fails, with those four codes as mismatches
+
+    Needs pandas (skipped without the local extra).
+    """
     pd = pytest.importorskip("pandas")
     from traceconomics.local import v2
     from traceconomics.local.puf import Survey

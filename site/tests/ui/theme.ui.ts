@@ -1,7 +1,7 @@
 // The header's theme setting: device setting, light or dark. A choice of light or dark is kept in
 // this browser (one localStorage value) so it holds from page to page and applies before the page
 // is drawn; "device setting" forgets it. The control says so next to the options.
-import { expect, t, test } from "./helpers";
+import { expect, gwt, t, test } from "./helpers";
 import type { Page } from "@playwright/test";
 
 const SETTINGS = t("en", "settings.label");
@@ -17,7 +17,13 @@ const stored = (page: Page) => page.evaluate(() => localStorage.getItem("theme")
 const html = (page: Page) => page.locator("html");
 
 for (const theme of ["dark", "light"] as const) {
-  test(`choosing ${theme} applies it and keeps it in this browser`, async ({ page }) => {
+  test(`choosing ${theme} applies it and keeps it in this browser`, gwt({
+    id: "PW-THEME-001",
+    title: "choosing a theme applies it and keeps it in this browser",
+    given: "the home page",
+    when: "a theme, light or dark, is chosen in the header's settings",
+    then: ["the page takes that theme", "the choice is kept in this browser's storage"],
+  }), async ({ page }) => {
     await page.goto("/en/");
     await choose(page, theme);
     await expect(html(page)).toHaveAttribute("data-theme", theme);
@@ -25,13 +31,23 @@ for (const theme of ["dark", "light"] as const) {
   });
 }
 
-test("the menu says the choice stays in this browser", async ({ page }) => {
+test("the menu says the choice stays in this browser", gwt({
+  id: "PW-THEME-002",
+  given: "the home page",
+  when: "the header's settings menu is opened",
+  then: "it says the choice is kept in this browser",
+}), async ({ page }) => {
   await page.goto("/en/");
   await page.getByRole("button", { name: SETTINGS }).click();
   await expect(page.locator("#settings-menu").getByText(t("en", "theme.stored"))).toBeVisible();
 });
 
-test("the choice holds on the next page, ticked in the menu", async ({ page }) => {
+test("the choice holds on the next page, ticked in the menu", gwt({
+  id: "PW-THEME-003",
+  given: "the dark theme, chosen on the home page",
+  when: ["another page (About) opens", "the settings menu is opened there"],
+  then: ["that page is dark too", "dark is the option ticked in the menu"],
+}), async ({ page }) => {
   await page.goto("/en/");
   await choose(page, "dark");
   await page.goto("/en/about/");
@@ -40,7 +56,12 @@ test("the choice holds on the next page, ticked in the menu", async ({ page }) =
   await expect(page.getByRole("radio", { name: t("en", "theme.dark") })).toBeChecked();
 });
 
-test("device setting forgets the choice", async ({ page }) => {
+test("device setting forgets the choice", gwt({
+  id: "PW-THEME-004",
+  given: "the dark theme, chosen on the home page",
+  when: "the device setting is chosen",
+  then: ["the page no longer sets a theme of its own", "nothing is kept in this browser's storage for the theme"],
+}), async ({ page }) => {
   await page.goto("/en/");
   await choose(page, "dark");
   await expect(html(page)).toHaveAttribute("data-theme", "dark");
@@ -49,7 +70,12 @@ test("device setting forgets the choice", async ({ page }) => {
   expect(await stored(page)).toBeNull();
 });
 
-test("a stored choice applies before the page's scripts run", async ({ page }) => {
+test("a stored choice applies before the page's scripts run", gwt({
+  id: "PW-THEME-005",
+  given: "a dark theme kept in this browser's storage",
+  when: "a page opens, and its content is read but its scripts haven't run yet",
+  then: "the page is already dark",
+}), async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("theme", "dark"));
   // Only the head's small script (public/theme.js) sets the attribute from storage; the header's
   // script just ticks the matching option. So if it's there at DOMContentLoaded, it came first.
@@ -57,7 +83,12 @@ test("a stored choice applies before the page's scripts run", async ({ page }) =
   expect(await html(page).getAttribute("data-theme")).toBe("dark");
 });
 
-test("an unknown stored value means the device setting", async ({ page }) => {
+test("an unknown stored value means the device setting", gwt({
+  id: "PW-THEME-006",
+  given: "a theme kept in this browser's storage that the site doesn't know",
+  when: ["a page opens", "the settings menu is opened"],
+  then: ["the page sets no theme of its own", "the device setting is the option ticked"],
+}), async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("theme", "purple"));
   await page.goto("/en/");
   await expect(html(page)).not.toHaveAttribute("data-theme");
@@ -65,7 +96,12 @@ test("an unknown stored value means the device setting", async ({ page }) => {
   await expect(page.getByRole("radio", { name: t("en", "theme.system") })).toBeChecked();
 });
 
-test("with storage blocked, the choice still applies to this page, without errors", async ({ page }) => {
+test("with storage blocked, the choice still applies to this page, without errors", gwt({
+  id: "PW-THEME-007",
+  given: "a browser that refuses the site any storage",
+  when: "the dark theme is chosen on the home page",
+  then: ["the page turns dark", "the browser logs no error"],
+}), async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(window, "localStorage", { get() { throw new DOMException("blocked", "SecurityError"); } });
   });
@@ -77,7 +113,13 @@ test("with storage blocked, the choice still applies to this page, without error
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
-  test("the menu's copy of the setting works and matches the other", async ({ page }) => {
+  test("the menu's copy of the setting works and matches the other", gwt({
+    id: "PW-THEME-008",
+    given: "the home page on a phone",
+    when: ["the menu is opened", "light is chosen in the menu's copy of the theme setting"],
+    then: ["the page takes the light theme", "the choice is kept in this browser's storage",
+      "the settings button's copy of the setting (hidden at this width) has light ticked too"],
+  }), async ({ page }) => {
     await page.goto("/en/");
     await page.getByRole("button", { name: t("en", "nav.menu") }).click();
     const menu = page.getByRole("navigation", { name: t("en", "nav.label") });

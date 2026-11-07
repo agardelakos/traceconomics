@@ -39,19 +39,28 @@ def source_commit(repo: Path) -> str | None:
     image has no git. None when it can't be told (no checkout, a detached state we can't read)."""
     git = repo / ".git"
     try:
+        if git.is_file():                                   # a worktree: `.git` names the real folder
+            line = git.read_text(encoding="utf-8").strip()
+            if not line.startswith("gitdir:"):
+                return None
+            git = (repo / line.removeprefix("gitdir:").strip()).resolve()
+            common = git / "commondir"
+            refs = (git / common.read_text(encoding="utf-8").strip()).resolve() if common.is_file() else git
+        else:
+            refs = git
         head = (git / "HEAD").read_text(encoding="utf-8").strip()
         if COMMIT.match(head):
             return head
         ref = head.removeprefix("ref: ").strip()
-        loose = git / ref
+        loose = refs / ref
         if loose.is_file():
             value = loose.read_text(encoding="utf-8").strip()
             return value if COMMIT.match(value) else None
-        for line in (git / "packed-refs").read_text(encoding="utf-8").splitlines():
+        for line in (refs / "packed-refs").read_text(encoding="utf-8").splitlines():
             parts = line.split()
             if len(parts) == 2 and parts[1] == ref and COMMIT.match(parts[0]):
                 return parts[0]
-    except OSError:
+    except (OSError, ValueError):                       # unreadable, or not text
         return None
     return None
 
@@ -74,8 +83,8 @@ def send(*, build: str, commit: str | None, step: str, started: datetime, result
     url = (url if url is not None else os.environ.get(URL_ENV, "")).strip()
     if not url:
         return {"result": "off"}
-    if not url.endswith("/o/"):
-        return {"result": "failed", "error": f"{URL_ENV} should end in /o/"}
+    if not (url.startswith("https://") and url.endswith("/o/")):
+        return {"result": "failed", "error": f"{URL_ENV} should start with https:// and end in /o/"}
     if step not in STEPS or result not in ("passed", "failed"):
         return {"result": "failed", "error": f"unknown step or result: {step} {result}"}
     if not commit:
@@ -90,7 +99,14 @@ def send(*, build: str, commit: str | None, step: str, started: datetime, result
                 return {"result": "failed", "error": "no results file"}
             put(url + folder + "playwright.json", results.read_bytes(), timeout)
         put(url + folder + "meta.json", json.dumps(meta, indent=1).encode("utf-8"), timeout)
-    except (urllib.error.URLError, OSError, ValueError) as exc:
-        # The message names the object, never the link (which works like a password).
-        return {"result": "failed", "error": f"{folder}: {type(exc).__name__}: {getattr(exc, 'reason', exc)}"}
+    except Exception as exc:                                # noqa: BLE001 (a report, never a reason to stop)
+        # The message names the object and the kind of failure, never the link (it works like a
+        # password, and some errors quote the address they were given).
+        if isinstance(exc, urllib.error.HTTPError):
+            detail = f"HTTP {exc.code}"
+        elif isinstance(exc, urllib.error.URLError):
+            detail = str(exc.reason).replace(url, "<link>")
+        else:
+            detail = type(exc).__name__
+        return {"result": "failed", "error": f"{folder}: {type(exc).__name__}: {detail}"}
     return {"result": "ok", "folder": folder}

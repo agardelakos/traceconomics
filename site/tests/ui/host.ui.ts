@@ -7,7 +7,7 @@
 // demand could need what the page's first load didn't).
 import { existsSync, readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
-import { expect, m1, REMOTE, test } from "./helpers";
+import { expect, gwt, m1, REMOTE, test } from "./helpers";
 
 const smoke = { tag: "@smoke" };
 const SITEMAP = new URL("../../dist/sitemap.xml", import.meta.url);
@@ -24,7 +24,13 @@ async function watch(page: Page): Promise<() => Promise<string[]>> {
   return () => page.evaluate(() => (window as any).__csp as string[]);
 }
 
-test("pages carry the security headers", smoke, async ({ request }) => {
+test("pages carry the security headers", { ...smoke, ...gwt({
+  id: "PW-HOST-001",
+  given: "a deployed copy of the site",
+  when: "the English home page is requested",
+  then: ["its Content Security Policy allows only the site itself by default", "it tells browsers not to guess content types (nosniff)",
+    "its referrer policy is same-origin", "it sets a permissions policy"],
+}) }, async ({ request }) => {
   const headers = (await request.get("/en/")).headers();
   expect(headers["content-security-policy"]).toContain("default-src 'self'");
   expect(headers["x-content-type-options"]).toBe("nosniff");
@@ -32,13 +38,23 @@ test("pages carry the security headers", smoke, async ({ request }) => {
   expect(headers["permissions-policy"]).toBeTruthy();
 });
 
-test("data files can be read from other sites", smoke, async ({ request }) => {
+test("data files can be read from other sites", { ...smoke, ...gwt({
+  id: "PW-HOST-002",
+  given: "a deployed copy of the site",
+  when: "a published data file is requested",
+  then: ["it is served", "it allows any site to read it (CORS: *)"],
+}) }, async ({ request }) => {
   const response = await request.get("/data/v1/gr/m1/latest/metadata.json");
   expect(response.status()).toBe(200);
   expect(response.headers()["access-control-allow-origin"]).toBe("*");
 });
 
-test("no page breaks the Content Security Policy", smoke, async ({ page }) => {
+test("no page breaks the Content Security Policy", { ...smoke, ...gwt({
+  id: "PW-HOST-003",
+  given: ["a deployed copy of the site", "the build's sitemap"],
+  when: "every page in the sitemap, and the Greek twin of every English one, is opened in turn",
+  then: "the browser reports no Content Security Policy violation on any of them",
+}) }, async ({ page }) => {
   test.skip(!existsSync(SITEMAP), "needs the build's dist/sitemap.xml for the page list");
   test.setTimeout(300_000);
   const paths = [...readFileSync(SITEMAP, "utf-8").matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
@@ -52,7 +68,12 @@ test("no page breaks the Content Security Policy", smoke, async ({ page }) => {
   expect(found).toEqual([]);
 });
 
-test("Explore redraws for other options within the policy", smoke, async ({ page }) => {
+test("Explore redraws for other options within the policy", { ...smoke, ...gwt({
+  id: "PW-HOST-004",
+  given: "a deployed copy of the site",
+  when: ["Explore opens", "it is opened with other options (another price source, weights timing, groups and measure)", "it is opened with the parts view"],
+  then: ["the parts view's title is drawn", "the browser reports no Content Security Policy violation"],
+}) }, async ({ page }) => {
   const violations = await watch(page);
   await page.goto(m1("en", "explore/"), { waitUntil: "networkidle" });
   await page.goto(`${m1("en", "explore/")}?price_source=hicp&weights_timing=U&groups=Q1,Q5,tenure/renter&m=index`, { waitUntil: "networkidle" });

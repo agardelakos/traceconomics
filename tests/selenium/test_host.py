@@ -38,6 +38,12 @@ def _csp_violations(site):
 @pytest.mark.smoke
 @pytest.mark.parametrize("path", ["/en/", "/en/gr/inflation-by-group/explore/", "/en/data/gr/"])
 def test_pages_carry_the_security_headers(host_url, path):
+    """SEL-HOST-001: pages carry the security headers
+
+    Given a page served by a host that applies the site's headers file
+    When it is fetched
+    Then every header the file sets for all pages comes back with the file's value
+    """
     got = _headers(host_url + path)
     for name, value in _rules()["/*"].items():
         assert got.get(name) == value, f"{path}: {name} is {got.get(name)!r}"
@@ -46,6 +52,13 @@ def test_pages_carry_the_security_headers(host_url, path):
 @pytest.mark.host
 @pytest.mark.smoke
 def test_data_files_are_open_to_other_sites(host_url):
+    """SEL-HOST-002: data files are open to other sites
+
+    Given the default setting's series file, served by the host
+    When it is fetched
+    Then any site may read it (open CORS)
+    And the browser is told not to guess its type
+    """
     got = _headers(f"{host_url}/data/v1/gr/m1/latest/series/{default_slug()}.json")
     assert got.get("access-control-allow-origin") == "*"
     assert got.get("x-content-type-options") == "nosniff"
@@ -55,6 +68,12 @@ def test_data_files_are_open_to_other_sites(host_url):
 @pytest.mark.smoke
 @pytest.mark.parametrize("path", sitemap_paths())
 def test_no_policy_violation(host_url, site, path):
+    """SEL-HOST-003: no page breaks the Content Security Policy
+
+    Given a page the sitemap lists, served by the host
+    When it opens in the browser
+    Then the console reports no Content Security Policy violation
+    """
     site.open(path)
     assert not _csp_violations(site), "\n".join(_csp_violations(site))
 
@@ -62,6 +81,14 @@ def test_no_policy_violation(host_url, site, path):
 @pytest.mark.host
 @pytest.mark.smoke
 def test_no_policy_violation_on_explore_after_changes(host_url, site):
+    """SEL-HOST-004: Explore breaks no policy after changes
+
+    Given Explore, served by the host
+    When renters are added, the breakdown view is shown and then the view over time
+    And the data table is unfolded
+    Then the address carries the groups
+    And the console reports no Content Security Policy violation
+    """
     site.open("/en/gr/inflation-by-group/explore/")
     site.visible("#explore [data-role=summary]")
     site.find('#explore button.chip[data-group="tenure/renter"]').click()

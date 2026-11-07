@@ -11,7 +11,8 @@ Rules (the code in brackets is what a finding is listed under):
                    the examples of one outline);
 - [missing-steps]  a case without Given, When or Then;
 - [text]           steps out of order, a line that isn't a step, examples with different steps;
-- [reused-id]      an ID that once belonged to a test now removed: IDs are never reused;
+- [reused-id]      an ID that once belonged to a test now removed: IDs are never reused (a test
+                   that comes back in the same suite, file and title, a revert, may keep it);
 - [mapping]        cases.toml names an unknown ID, the wrong suite, or an ID twice;
 - [unmapped]       a Playwright or Selenium case that cases.toml doesn't list;
 - [incomplete]     a suite missing from the catalog (with --require-all).
@@ -69,7 +70,7 @@ def strict_for(strict: dict):
     return lambda file: every or any(fnmatch.fnmatch(file, p) for p in patterns)
 
 
-def check(catalog: dict, strict: dict, mapping: dict, obsolete: set[str], require_all: bool) -> list[Finding]:
+def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, require_all: bool) -> list[Finding]:
     is_strict = strict_for(strict)
     cases = [Case.from_json(c) for c in catalog["cases"]]
     out: list[Finding] = []
@@ -98,7 +99,8 @@ def check(catalog: dict, strict: dict, mapping: dict, obsolete: set[str], requir
             elif m.group(1) != SUITES[c.suite]:
                 add("bad-id", c, f"{c.id} in the {c.suite} suite should start with {SUITES[c.suite]}-")
             seen[c.id].append(c)
-            if c.id in obsolete:
+            o = obsolete.get(c.id) if isinstance(obsolete, dict) else ({} if c.id in obsolete else None)
+            if o is not None and (o.get("suite"), o.get("file"), o.get("title")) != (c.suite, c.file, c.title):
                 add("reused-id", c, f"{c.id} belonged to a test that was removed; take a new number")
         if c.id is not None:
             gaps = missing_steps(c)
@@ -166,7 +168,7 @@ def main(argv=None) -> int:
     ap.add_argument("--quiet", action="store_true", help="list errors only")
     a = ap.parse_args(argv)
     catalog = json.loads(a.catalog.read_text(encoding="utf-8"))
-    obsolete = set(json.loads(a.obsolete.read_text(encoding="utf-8"))) if a.obsolete and a.obsolete.is_file() else set()
+    obsolete = json.loads(a.obsolete.read_text(encoding="utf-8")) if a.obsolete and a.obsolete.is_file() else {}
     findings = check(catalog, load_toml(a.strict), load_toml(a.mapping), obsolete, a.require_all)
     for f in sorted(findings, key=lambda f: (not f.error, f.where)):
         if f.error or not a.quiet:

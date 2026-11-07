@@ -19,6 +19,14 @@ def data(tmp_path_factory):
 
 
 def test_every_setting_gets_its_files_and_the_shared_ones_are_there(data):
+    """PY-SITEDATA-001: every setting gets its files, and the shared ones are there
+
+    Given the made-up site data generated through the real export
+    When its files are listed
+    Then every setting has a series file and a contributions file
+    And the calculator, availability, official, settings and metadata files and SHA256SUMS are there
+    And the COICOP labels and the references file are there
+    """
     for s in combinations.settings():
         slug = site.slug(s)
         assert (data / "series" / f"{slug}.json").is_file() and (data / "contributions" / f"{slug}.json").is_file()
@@ -28,11 +36,25 @@ def test_every_setting_gets_its_files_and_the_shared_ones_are_there(data):
 
 
 def test_the_country_card_rates_come_from_one_index_so_they_agree(data):
+    """PY-SITEDATA-002: the country card's two rates agree
+
+    Given the made-up site data
+    When its official rate file is read
+    Then the comparison says our rate and the published one agree
+    """
     official = json.loads((data / "official.json").read_text(encoding="utf-8"))
     assert official["comparison"]["agree"] is True
 
 
 def test_made_up_baskets_take_the_special_paths(data):
+    """PY-SITEDATA-003: the made-up baskets take the special paths
+
+    Given the made-up site data's weights-used downloads
+    When they are read for three settings
+    Then a small cell is published in a "_REST" row
+    And with imputed rent, 0421 is priced with actual rents (0411)
+    And tutoring (1050), with no index of its own, is priced with secondary education (1020)
+    """
     con = duckdb.connect()
 
     def used(setting, where):

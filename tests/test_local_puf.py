@@ -79,6 +79,22 @@ def archived(tmp_path, year: int, era: str, fmt: str, hh_text=None, p_text=None)
     (2024, "2024", "zip", "cluster + 2 digits of MA04"),
 ])
 def test_each_era_reads_the_same(tmp_path, year, era, fmt, link):
+    """PY-PUF-001: every era's PUF layout reads the same
+
+    Given a synthetic HBS PUF of 120 households of two persons, written in one era's layout and archive format
+    When the year is read from the archive
+    Then the person link is the one that era uses
+    And every household and both persons of each are read, with no household left without persons
+    And a decimal comma is read as a decimal (weight 1001.0)
+    And division 01 is 150.0 in all modes and 120.0 in purchases
+    And 12704 is derived as a total, 6.0 for the first household
+    And the design is "full"
+    And the persons' relation and activity are read, 2020's codes taken as the older ones where they mean the same
+    And every household has ELSTAT's household type "4"
+    And the classification is "coicop2018" from 2024 and "ecoicop1" before
+
+    The outline runs 2016 (7z), 2020, 2023 and 2024 (zip).
+    """
     s = puf.read(archived(tmp_path, year, era, fmt), year)
     assert s.person_link == link
     assert len(s.households) == N and len(s.persons) == 2 * N and not s.households_without_persons
@@ -94,6 +110,12 @@ def test_each_era_reads_the_same(tmp_path, year, era, fmt, link):
 
 
 def test_total_that_isnt_purchases_plus_non_monetary_is_refused(tmp_path):
+    """PY-PUF-002: a total that isn't purchases plus non-monetary spending is refused
+
+    Given a synthetic 2016 PUF where one household's division 01 total is off by 1
+    When it is read
+    Then a FormatError saying the total "isn't purchases" plus the rest is raised
+    """
     hh, pp = households("2016")
     hh = hh.replace(";150,00;", ";151,00;", 1)
     with pytest.raises(FormatError, match="isn't purchases"):
@@ -101,6 +123,12 @@ def test_total_that_isnt_purchases_plus_non_monetary_is_refused(tmp_path):
 
 
 def test_person_without_a_household_is_refused(tmp_path):
+    """PY-PUF-003: a person without a household is refused
+
+    Given a synthetic 2016 PUF with a person whose household doesn't exist
+    When it is read
+    Then a FormatError about the person link is raised
+    """
     hh, pp = households("2016")
     pp += "99999901;30;1;1\n"
     with pytest.raises(FormatError, match="person-link"):
@@ -108,11 +136,23 @@ def test_person_without_a_household_is_refused(tmp_path):
 
 
 def test_missing_year_says_how_to_add_it(tmp_path):
+    """PY-PUF-004: a year not in the archive says how to add it
+
+    Given an empty archive
+    When the 2030 survey is read
+    Then a FormatError pointing to "traceconomics import" is raised
+    """
     with pytest.raises(FormatError, match="traceconomics import"):
         puf.read(Archive(tmp_path / "a"), 2030)
 
 
 def test_unknown_activity_code_is_refused(tmp_path):
+    """PY-PUF-005: an activity code unknown to that year is refused
+
+    Given a synthetic 2016 PUF with a 2020-style activity code
+    When it is read
+    Then a FormatError about the ME01 codes is raised
+    """
     hh, pp = households("2016")
     pp = pp.replace(";45;1;1\n", ";45;1;Z1\n", 1)                  # a 2020 code in an older file
     with pytest.raises(FormatError, match="ME01 codes"):

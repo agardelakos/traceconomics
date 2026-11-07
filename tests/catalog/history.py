@@ -66,7 +66,10 @@ class Run:
             return
         c = self.cases.setdefault(case_id, {"suite": suite, "result": "skipped", "duration": 0.0,
                                             "retries": 0, "examples": {}})
-        c["examples"][example] = result
+        # The same example twice (a file run by both pytest jobs, a repeated title): the worse result
+        # stands, so a failure is never hidden by a later pass.
+        before = c["examples"].get(example)
+        c["examples"][example] = result if before is None else max(before, result, key=RANK.get)
         c["duration"] = round(c["duration"] + seconds, 3)
         c["retries"] += retries
 
@@ -108,18 +111,22 @@ def read_junit(run: Run, path: Path, suite: str, catalog: dict):
 
 
 def read_playwright(run: Run, data: dict):
-    def walk(suite):
+    def walk(suite, titles=()):
+        if suite.get("title") and suite["title"] != suite.get("file"):     # a describe block, not the file
+            titles = (*titles, suite["title"])
         for spec in suite.get("specs", []):
             for test in spec.get("tests", []):
                 d = from_annotations(test.get("annotations", []))
                 results = test.get("results", [])
                 status = test.get("status")
                 result = {"expected": "passed", "skipped": "skipped", "flaky": "flaky"}.get(status, "failed")
-                example = spec["title"] + (f" [{test['projectName']}]" if test.get("projectName") not in (None, "", "chromium") else "")
+                # The describe titles too: the same test title can sit in two describe blocks.
+                example = " › ".join([*titles, spec["title"]]) + (
+                    f" [{test['projectName']}]" if test.get("projectName") not in (None, "", "chromium") else "")
                 run.add("playwright", d["id"], example, result,
                         sum(r.get("duration", 0) for r in results) / 1000, max(len(results) - 1, 0))
         for child in suite.get("suites", []):
-            walk(child)
+            walk(child, titles)
     for s in data.get("suites", []):
         walk(s)
 
@@ -129,7 +136,8 @@ def read_vitest(run: Run, data: dict):
         for a in f.get("assertionResults", []):
             status = a.get("status")
             result = "passed" if status == "passed" else "failed" if status == "failed" else "skipped"
-            run.add("vitest", from_meta(a.get("meta"))["id"], a.get("title", ""), result,
+            example = " › ".join([*a.get("ancestorTitles", []), a.get("title", "")])
+            run.add("vitest", from_meta(a.get("meta"))["id"], example, result,
                     (a.get("duration") or 0) / 1000)
 
 
@@ -178,6 +186,9 @@ def check_record(r: dict) -> list[str]:
         problems.append("no results")
     else:
         for cid, c in r["cases"].items():
+            if not isinstance(c, dict) or c.get("result") not in RANK:
+                problems.append(f"{cid}: not a case result")
+                break
             if c.get("result") not in RANK:
                 problems.append(f"{cid}: unknown result {c.get('result')!r}")
                 break
@@ -201,16 +212,30 @@ def append(store: Path, rec: dict, catalog: dict | None, keep: int) -> Path:
 
 
 def update_catalog(store: Path, new: dict):
-    """The newest catalog replaces the stored one; IDs that disappeared become obsolete for good."""
+    """The newer catalog replaces the stored one; IDs that disappeared become obsolete.
+
+    The caller passes a catalog only from a run whose catalog check passed, and only when its commit
+    descends from the stored one (test_history_push.sh): an old run re-run never rolls the catalog
+    back. A suite the new catalog says it couldn't collect (`missing`) keeps its stored cases, so
+    its IDs are not taken for removed. A case that comes back in the same suite, file and title (a
+    revert) is taken off the obsolete list; anything else under an old ID is a reuse, which the
+    validator refuses."""
     old_path, obs_path = store / "catalog.json", store / "obsolete.json"
     obsolete = json.loads(obs_path.read_text(encoding="utf-8")) if obs_path.is_file() else {}
+    missing = set(new.get("missing", []))
     if old_path.is_file():
         old = json.loads(old_path.read_text(encoding="utf-8"))
+        kept = [c for c in old["cases"] if c["suite"] in missing]
+        new = {**new, "cases": new["cases"] + kept}
         now_ids = {c["id"] for c in new["cases"] if c["id"]}
         for c in old["cases"]:
             if c["id"] and c["id"] not in now_ids and c["id"] not in obsolete:
                 obsolete[c["id"]] = {"suite": c["suite"], "title": c["title"], "file": c["file"],
                                      "last_commit": old.get("commit"), "removed_in": new.get("commit")}
+    for c in new["cases"]:
+        o = obsolete.get(c["id"])
+        if o and (o["suite"], o["file"], o["title"]) == (c["suite"], c["file"], c["title"]):
+            del obsolete[c["id"]]
     write(old_path, new)
     write(obs_path, dict(sorted(obsolete.items())))
 

@@ -78,6 +78,16 @@ def _pressed(site):
 
 @pytest.mark.parametrize("lang", ["en", "el"])
 def test_default_view_shows_the_published_series(site, lang):
+    """SEL-EXPL-001: the default view shows the published series
+
+    Given Explore, opened with nothing changed
+    When it has loaded
+    Then the summary gives the latest annual rates of the poorest fifth, the richest fifth and all households, for their month, from the default setting's published series
+    And the chart is drawn, its label the same sentence
+    And those three groups are picked, and the count says 3 of at most 6
+    And it says every option is at its default
+    And the address carries only the groups
+    """
     site.open(PAGE.format(lang=lang))
     _ready(site)
     assert not site.find("#explore [data-role=noscript]").is_displayed()
@@ -93,6 +103,14 @@ def test_default_view_shows_the_published_series(site, lang):
 
 
 def test_table_rows_match_the_series(site):
+    """SEL-EXPL-002: the data table matches the published series
+
+    Given Explore with nothing changed
+    When the data table is unfolded
+    Then its columns are the month, each of the three groups and the gap
+    And it has one row per month from the first month with a value
+    And its first row (the latest month) and last row (the earliest) hold the published rates and gap, a dash where there is none
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     site.find("#explore [data-role=table-fold] summary").click()
@@ -117,6 +135,14 @@ def test_table_rows_match_the_series(site):
 
 @pytest.mark.parametrize("option", SETTING_KEYS + ["grouping"])
 def test_each_option_changes_the_address_and_back(site, option):
+    """SEL-EXPL-003: each option goes into the address and out again
+
+    Given Explore with nothing changed
+    When an option is set to a value other than its default
+    And then back to its default
+    Then the address carries the option's value, and it says one option is changed
+    And at its default the option leaves the address, and it says every option is at its default
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     defaults = _defaults()
@@ -131,6 +157,14 @@ def test_each_option_changes_the_address_and_back(site, option):
 
 
 def test_option_loads_its_setting_and_follows_in_files_and_citation(site):
+    """SEL-EXPL-004: an option loads its setting; the files link and citation follow
+
+    Given Explore with nothing changed
+    When the spending option is set to all spending
+    Then the summary comes from that setting's published series
+    And the files link points to that setting's files on the data page
+    And the citation names the option and carries the page's address
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     options = {**_defaults(), "spending": "all"}
@@ -144,6 +178,13 @@ def test_option_loads_its_setting_and_follows_in_files_and_citation(site):
 
 
 def test_files_link_leads_to_the_settings_files(site):
+    """SEL-EXPL-005: the files link leads to the setting's files
+
+    Given Explore with nothing changed
+    When the link to this setting's files is unfolded and followed
+    Then the browser goes to the data page for Greece
+    And the default setting's box is open, with files to download
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     _unfold(site, "files-this").click()
@@ -154,6 +195,16 @@ def test_files_link_leads_to_the_settings_files(site):
 
 
 def test_groups_measure_gap_and_view_in_the_address(site):
+    """SEL-EXPL-006: groups, measure, gap and view go into the address
+
+    Given Explore with nothing changed
+    When the richest fifth is removed and renters are added
+    And the gap is turned off
+    And the monthly rate is picked as the measure
+    And the breakdown view is picked
+    Then the address follows each step: the groups, the gap off, the measure, then the view
+    And the summary gives the three groups' monthly rates from the published series
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     _chip(site, "Q5").click()
@@ -171,6 +222,15 @@ def test_groups_measure_gap_and_view_in_the_address(site):
 
 
 def test_reload_restores_the_state(site):
+    """SEL-EXPL-007: a reload restores the state
+
+    Given an address asking for all spending, tutoring excluded, three groups, the index as measure and no gap
+    When Explore opens
+    And the page is reloaded
+    Then those groups, the measure, the gap off and both options are picked
+    And the summary gives the three groups' index values from that setting's published series
+    And after the reload the summary is the same and the address still carries the state
+    """
     site.open(PAGE.format(lang="en") + "?spending=all&tutoring=excluded&groups=Q2,Q3,pensioners/other&m=index&gap=0")
     _ready(site)
     assert _pressed(site) == ["Q2", "Q3", "pensioners/other"]
@@ -188,6 +248,14 @@ def test_reload_restores_the_state(site):
 
 
 def test_unknown_values_fall_back_to_defaults(site):
+    """SEL-EXPL-008: unknown values in the address fall back to defaults
+
+    Given an address with an unknown spending option, an unknown group beside all households, and an unknown measure and view
+    When Explore opens
+    Then all households is the only group picked
+    And the default spending option is picked
+    And the address keeps only the known group, and drops the spending, measure and view
+    """
     site.open(PAGE.format(lang="en") + "?spending=nonsense&groups=Q9,all/all&m=yearly&view=sideways")
     _ready(site)
     assert _pressed(site) == ["all/all"]
@@ -198,6 +266,15 @@ def test_unknown_values_fall_back_to_defaults(site):
 # --- limits and greyed options ------------------------------------------------------------------
 
 def test_at_most_six_groups_and_at_least_one(site):
+    """SEL-EXPL-009: at most six groups, and at least one
+
+    Given Explore with its three default groups
+    When three more fifths are added
+    And every group but the poorest fifth is removed
+    And the poorest fifth is pressed too
+    Then the count says 6 of at most 6, and no other group can be picked
+    And the poorest fifth stays picked: the last group can't be removed
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     for g in ["Q2", "Q3", "Q4"]:
@@ -213,6 +290,13 @@ def test_at_most_six_groups_and_at_least_one(site):
 
 
 def test_option_greece_cant_have_is_not_offered(site):
+    """SEL-EXPL-010: an option Greece can't have is not offered
+
+    Given Explore with its options unfolded
+    When an old link asking for imputed rent by user cost is opened
+    Then imputed rent by user cost was not among the choices
+    And the address drops it
+    """
     # Imputed rent by user cost needs a price index Greece doesn't publish: the method page explains
     # it, Explore doesn't offer it, and an old link asking for it falls back to the default.
     site.open(PAGE.format(lang="en"))
@@ -225,6 +309,14 @@ def test_option_greece_cant_have_is_not_offered(site):
 
 
 def test_gap_only_for_the_annual_rate(site):
+    """SEL-EXPL-011: the gap is only for the annual rate
+
+    Given Explore with nothing changed
+    When the index is picked as the measure
+    Then the gap's title showed at first
+    And the gap can no longer be turned on, with the reason that it is for the annual rate only
+    And the gap's title is hidden
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     assert site.find("#explore [data-role=gap-title]").is_displayed()
@@ -237,6 +329,16 @@ def test_gap_only_for_the_annual_rate(site):
 # --- the breakdown view and full screen ---------------------------------------------------------
 
 def test_breakdown_view(site):
+    """SEL-EXPL-012: the breakdown view
+
+    Given Explore with the poorest and richest fifths
+    When the breakdown view is picked
+    Then it shows instead of the chart over time
+    And the measure can't be changed, with its reason
+    And the title is the one for several groups
+    And with more than five categories, five show and a button shows the rest
+    And the bars explain the difference
+    """
     site.open(PAGE.format(lang="en") + "?groups=Q1,Q5")
     _ready(site)
     site.find('#explore [data-view="parts"]').click()
@@ -257,6 +359,14 @@ def test_breakdown_view(site):
 
 
 def test_full_screen(site):
+    """SEL-EXPL-013: full screen
+
+    Given Explore with nothing changed
+    When the full screen button is pressed
+    And pressed again
+    Then the chart's figure fills the screen, and the button offers to leave full screen
+    And full screen ends, and the button offers full screen again
+    """
     site.open(PAGE.format(lang="en"))
     _ready(site)
     button = site.visible("#explore [data-role=fullscreen]")
@@ -269,6 +379,13 @@ def test_full_screen(site):
 
 
 def test_household_types_are_offered_and_drawn_from_the_file(site):
+    """SEL-EXPL-014: household types are offered and drawn from the series
+
+    Given an address asking for single adults and two adults with dependent children
+    When Explore opens
+    Then all six household types are offered as groups
+    And the summary gives the two groups' latest annual rates from the published series
+    """
     types = ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"]
     site.open(PAGE.format(lang="en") + "?groups=hhtype/A1,hhtype/A2_DCH")
     _ready(site)

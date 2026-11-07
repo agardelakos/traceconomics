@@ -24,11 +24,13 @@ const STRINGS: Record<Lang, Record<string, string>> = { el: strings("el"), en: s
  * written on the test it describes. The test catalog reads them from `playwright test --list`, and
  * they show in the HTML report. Pass it as the test's details: `test(title, gwt({ … }), body)`, or
  * spread it next to other details: `{ tag: "@smoke", ...gwt({ … }) }`. A loop that makes the same
- * test per language passes the same case: one ID, the languages are its examples.
+ * test per language passes the same case: one ID, the languages are its examples. Give the case a
+ * `title` when the test's own title is the loop's value (a page's address): the case needs a name.
  */
-export function gwt(c: { id: string; given: string | string[]; when: string | string[]; then: string | string[] }) {
+export function gwt(c: { id: string; title?: string; given: string | string[]; when: string | string[]; then: string | string[] }) {
   const steps = (type: string, v: string | string[]) => [v].flat().map((description) => ({ type, description }));
-  return { annotation: [{ type: "id", description: c.id }, ...steps("given", c.given), ...steps("when", c.when), ...steps("then", c.then)] };
+  const title = c.title ? [{ type: "title", description: c.title }] : [];
+  return { annotation: [{ type: "id", description: c.id }, ...title, ...steps("given", c.given), ...steps("when", c.when), ...steps("then", c.then)] };
 }
 
 export const LANGS: Lang[] = ["el", "en"];

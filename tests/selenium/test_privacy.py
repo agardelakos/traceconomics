@@ -36,6 +36,16 @@ def _stored_and_cookies(site):
 
 
 def test_finder_keeps_the_income_in_the_page(site):
+    """SEL-PRIV-001: the finder keeps the income in the page
+
+    Given the group finder
+    When an income is typed and renting is chosen
+    And the link to compare the groups in Explore is followed
+    Then no link the finder offers carries the income
+    And neither Explore's address nor any request the pages sent carries it
+    And the pages talked only to their own site
+    And nothing but the theme is stored, and no cookie is set
+    """
     site.open(GR + "groups/")
     site.visible("[data-find=form]")
     site.find("[data-find=income]").send_keys(INCOME)
@@ -54,6 +64,15 @@ def test_finder_keeps_the_income_in_the_page(site):
 
 
 def test_calculator_keeps_the_euros_in_the_page(site):
+    """SEL-PRIV-002: the calculator keeps the euros in the page
+
+    Given the calculator, switched to euros a month
+    When two amounts are typed and totalled
+    Then the address carries nothing but the starting group, and neither amount
+    And no request the page sent carries either amount
+    And the page talked only to its own site
+    And nothing but the theme is stored, and no cookie is set
+    """
     site.open(GR + "calculator/")
     site.visible("[data-role=result]")
     site.find("[data-mode=euros]").click()
@@ -70,6 +89,14 @@ def test_calculator_keeps_the_euros_in_the_page(site):
 
 
 def test_calculator_sliders_stay_in_the_page(site):
+    """SEL-PRIV-003: the calculator's sliders stay in the page
+
+    Given the calculator
+    When the first slider moves
+    Then the address doesn't carry its new value
+    And the page sent nothing but GET requests
+    And nothing is stored
+    """
     site.open(GR + "calculator/")
     site.visible("[data-role=result]")
     slider = site.find("#div-01")
@@ -83,6 +110,15 @@ def test_calculator_sliders_stay_in_the_page(site):
 
 
 def test_theme_is_the_only_thing_stored(site):
+    """SEL-PRIV-004: the theme is the only thing stored
+
+    Given the English home page
+    When the dark theme is picked
+    And the About page, Explore and the calculator are opened in turn
+    Then the only thing stored is the theme, dark
+    And no cookie is set
+    And none of the pages talked to another site
+    """
     site.open("/en/")
     site.find(".settings[data-role=theme] button").click()
     site.find('#settings-menu input[value="dark"]').find_element("xpath", "./ancestor::label").click()

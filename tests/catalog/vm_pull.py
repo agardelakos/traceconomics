@@ -50,20 +50,26 @@ def fetch(url: str, limit: int = MAX_BYTES) -> bytes:
 
 
 def listing(base: str, get=fetch) -> list[dict]:
-    """Every object under results/, following the listing's pages."""
-    out, start = [], None
+    """Every object under results/, following the listing's pages (and stopping if a page token
+    repeats, rather than asking forever)."""
+    out, start, seen = [], None, set()
     while True:
         q = {"prefix": "results/", "fields": "name,size"}
         if start:
             q["start"] = start
         page = json.loads(get(f"{base}?{urllib.parse.urlencode(q)}", 5_000_000))
-        out += page.get("objects", [])
+        if not isinstance(page, dict) or not isinstance(page.get("objects", []), list):
+            raise ValueError("the listing is not what the bucket sends")
+        out += [o for o in page.get("objects", []) if isinstance(o, dict)]
         start = page.get("nextStartWith")
-        if not start:
+        if not start or start in seen:
             return out
+        seen.add(start)
 
 
-def check_meta(meta: dict, build: str, step: str) -> list[str]:
+def check_meta(meta, build: str, step: str) -> list[str]:
+    if not isinstance(meta, dict):
+        return ["not a JSON object"]
     problems = []
     if meta.get("schema") != 1:
         problems.append("unknown schema")
@@ -79,10 +85,16 @@ def check_meta(meta: dict, build: str, step: str) -> list[str]:
     return problems
 
 
-def pull(base: str, store: Path, out: Path, get=fetch) -> tuple[list[Path], list[str]]:
+def pull(base: str, store: Path, out: Path, get=fetch, keep: int = 200) -> tuple[list[Path], list[str]]:
+    """Never raises for anything the bucket holds or answers: each problem is returned, and the wiki
+    is updated with whatever could be read."""
     catalog_path = store / "catalog.json"
     folders: dict[tuple[str, str, str], dict[str, int]] = {}
-    for o in listing(base, get):
+    try:
+        objects = listing(base, get)
+    except Exception as e:                                       # noqa: BLE001 (the bucket, down or odd)
+        return [], [f"the listing: {type(e).__name__}"]
+    for o in objects:
         m = FOLDER.match(o.get("name", ""))
         if m:
             folders.setdefault(m.groups()[:3], {})[m.group(4)] = int(o.get("size") or 0)
@@ -94,8 +106,11 @@ def pull(base: str, store: Path, out: Path, get=fetch) -> tuple[list[Path], list
     for (build, step, started), files in sorted(folders.items()):
         run_id = f"{build}-{step}-{started}"
         where = f"results/{build}/{step}-{started}/"
-        if any((store / "runs" / step).glob(f"*_{run_id}.json")):
+        stored = sorted((store / "runs" / step).glob("*.json"))
+        if any(p.name.endswith(f"_{run_id}.json") for p in stored):
             continue                                            # stored already
+        if len(stored) >= keep and _iso(started).replace(":", "-") < stored[0].name[:20]:
+            continue                                            # older than what's kept: pruned before
         if "meta" not in files:
             continue                                            # still uploading, or abandoned
         pw_file = None
@@ -104,7 +119,7 @@ def pull(base: str, store: Path, out: Path, get=fetch) -> tuple[list[Path], list
             bad = check_meta(meta, build, step)
             if bad:
                 raise ValueError(", ".join(bad))
-            iso = f"{started[:4]}-{started[4:6]}-{started[6:8]}T{started[9:11]}:{started[11:13]}:{started[13:15]}Z"
+            iso = _iso(started)
             env = [f"{k}={v}" for k, v in sorted(meta["environment"].items())]
             if step != "promote":
                 if "playwright" not in files:
@@ -126,12 +141,17 @@ def pull(base: str, store: Path, out: Path, get=fetch) -> tuple[list[Path], list
             path = out / f"{run_id}.json"
             history.write(path, rec)
             written.append(path)
-        except (ValueError, OSError, KeyError, TypeError) as e:
-            problems.append(f"{where}: {e}")
+        except Exception as e:                                   # noqa: BLE001 (anything a bad object causes)
+            # Never the link itself (it works like a password), should a message ever quote it.
+            problems.append(f"{where}: {type(e).__name__}: {str(e).replace(base, '<link>')[:200]}")
         finally:
             if pw_file is not None and pw_file.exists():
                 pw_file.unlink()                                # the record holds what's needed
     return written, problems
+
+
+def _iso(compact: str) -> str:
+    return f"{compact[:4]}-{compact[4:6]}-{compact[6:8]}T{compact[9:11]}:{compact[11:13]}:{compact[13:15]}Z"
 
 
 def main(argv=None) -> int:
@@ -143,8 +163,8 @@ def main(argv=None) -> int:
     if not base:
         print("no read link (TESTRESULTS_READ_URL): release runs not pulled")
         return 0
-    if not base.endswith("/o/"):
-        print("the read link should end in /o/")
+    if not (base.startswith("https://") and base.endswith("/o/")):
+        print("the read link should start with https:// and end in /o/")
         return 1
     written, problems = pull(base, a.store, a.out)
     for p in problems:

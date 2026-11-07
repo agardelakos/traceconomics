@@ -30,7 +30,12 @@ function axis(start: string, n: number): string[] {
 }
 
 describe("calculator parity with the published series", () => {
-  it("has the exported files", () => {
+  it("has the exported files", { meta: {
+    id: "VT-PARITY-001",
+    given: "the site's data folder",
+    when: "it is checked for the exported files",
+    then: "the calculator file and the default setting's series file both exist",
+  } }, () => {
     expect(existsSync(calcPath) && existsSync(seriesPath),
       `missing ${calcPath} or ${seriesPath}: run "python -m traceconomics export site --out site/public/data" first`).toBe(true);
   });
@@ -41,7 +46,17 @@ describe("calculator parity with the published series", () => {
   const from = `${data.first_year}-01`;
 
   for (const preset of Object.keys(data.presets)) {
-    it(`${preset}: index, annual, monthly and annual-average rates match`, () => {
+    it(`${preset}: index, annual, monthly and annual-average rates match`, { meta: {
+      id: "VT-PARITY-002",
+      given: "a preset in the exported calculator file and its group in the published series",
+      when: "the calculator chains the preset with nothing changed and rounds as published",
+      then: [
+        "every published index from the calculator's first year matches exactly",
+        "the annual and monthly rates, to one decimal, match wherever both exist",
+        "more than 80 months are compared",
+        "every annual average rate, to one decimal, matches wherever the calculator gives one",
+      ],
+    } }, () => {
       const g = series.groups[preset];
       expect(g, `no ${preset} in the series file`).toBeDefined();
       const ours = published(chain(data, preset));

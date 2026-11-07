@@ -34,6 +34,13 @@ def server():
 
 
 def test_heartbeat_sends_counts_not_details(server):
+    """PY-HBEAT-001: the heartbeat sends counts, not details
+
+    Given a local storage stand-in and a run record with its failures list, report channel and release days
+    When the heartbeat is sent to it
+    Then the result is "sent"
+    And the uploaded heartbeat holds only the start time, the result, the stored count and the number of failures
+    """
     url, received = server
     record = {"started": "2026-11-10T11:00:02Z", "result": "ok", "stored": 3, "failures": [],
               "report": "email", "release_days": ["2026-11-10"]}
@@ -43,6 +50,14 @@ def test_heartbeat_sends_counts_not_details(server):
 
 
 def test_heartbeat_is_off_without_an_address_and_reports_failures(monkeypatch):
+    """PY-HBEAT-002: the heartbeat is off without an address and reports a failed upload
+
+    Given a heartbeat to send
+    When it is sent with no heartbeat address in the environment
+    And it is sent to an address that refuses connections
+    Then without an address the result is "off"
+    And to the refusing address the result starts with "failed:"
+    """
     monkeypatch.delenv(heartbeat.URL_ENV, raising=False)
     assert heartbeat.send({"result": "ok"}) == "off"
     assert heartbeat.send({"result": "ok"}, url="http://127.0.0.1:9/x", timeout=2).startswith("failed:")
@@ -61,6 +76,17 @@ def archive_with_microdata(root: Path) -> None:
 
 
 def test_backup_sends_the_archive_but_never_microdata(tmp_path, server):
+    """PY-HBEAT-003: the backup sends the archive, never microdata, and only what changed
+
+    Given a local storage stand-in and an archive holding prices, HBS microdata, the microdata catalogue page and an outbox report
+    When the archive is backed up
+    Then the result is ok with 4 files sent
+    And no microdata file was sent
+    And the catalogue page (not microdata) was sent
+    And nothing from the outbox was sent
+    And a second backup sends nothing
+    And after the index changes, a backup sends just that one file
+    """
     url, received = server
     archive_with_microdata(tmp_path)
     result = backup.sync(tmp_path, url=url)
@@ -76,6 +102,13 @@ def test_backup_sends_the_archive_but_never_microdata(tmp_path, server):
 
 
 def test_backup_guard_refuses_microdata_even_if_the_filter_misses_it(tmp_path, monkeypatch):
+    """PY-HBEAT-004: the backup's guard refuses microdata even if the filter misses it
+
+    Given an archive holding HBS microdata
+    And a broken filter that marks nothing as local-only
+    When the backup is planned
+    Then a LocalOnlyError is raised
+    """
     archive_with_microdata(tmp_path)
     monkeypatch.setattr(backup, "is_local_only", lambda source, dataset: False)   # a broken filter
     with pytest.raises(LocalOnlyError):
@@ -83,6 +116,17 @@ def test_backup_guard_refuses_microdata_even_if_the_filter_misses_it(tmp_path, m
 
 
 def test_systemd_units_run_daily_in_athens_time_inside_the_pinned_image():
+    """PY-HBEAT-005: the Linux timer runs the job daily at 13:00 Athens time inside the pinned image
+
+    Given a configuration with the run at 13:00 and the VM's user, folders and env file
+    When the systemd units are written
+    Then the timer fires daily at 13:00 Europe/Athens and catches up missed runs (Persistent=true)
+    And the service is a oneshot
+    And it runs the pinned image, which is pinned by digest
+    And it runs as the given user and group, with the home folder mounted
+    And it loads the env file
+    And its command ends with the venv's Python running the archive job in isolated mode
+    """
     cfg = Config(archive_dir=Path("/home/u/traceconomics-archive"), user_agent="t", run_after=time(13, 0))
     units = schedule.systemd_units(cfg, uid=1001, gid=1001, home=Path("/home/u"), repo=Path("/home/u/traceconomics"),
                                    venv=Path("/home/u/traceconomics-venv"), node=Path("/home/u/traceconomics-node"),
@@ -108,6 +152,16 @@ def load_watchdog():
 
 
 def test_watchdog_rule():
+    """PY-HBEAT-006: the watchdog's verdict on a heartbeat
+
+    Given the watchdog at 13:00 UTC
+    When it judges a heartbeat
+    Then a fresh heartbeat with result ok passes
+    And a fresh heartbeat with result not-due passes
+    And one 26 hours old fails, saying "26 hours"
+    And a fresh one reporting failures fails, saying "failures"
+    And one with no time fails with "the heartbeat has no time"
+    """
     from datetime import UTC, datetime
 
     w = load_watchdog()
@@ -121,6 +175,14 @@ def test_watchdog_rule():
 
 
 def test_the_shell_command_runs_the_same_container_as_the_timer():
+    """PY-HBEAT-007: the VM's shell command runs the same container as the timer
+
+    Given the VM's user, folders and env file
+    When the shell command script and the systemd units are written
+    Then the script is a POSIX shell script with LF line endings
+    And its last line runs docker and passes its arguments to the traceconomics module
+    And that command matches the timer's command, less its "archive" argument
+    """
     where = dict(uid=1001, gid=1001, home=Path("/home/u"), repo=Path("/home/u/traceconomics"),
                  venv=Path("/home/u/traceconomics-venv"), node=Path("/home/u/traceconomics-node"),
                  env_file=Path("/home/u/.config/traceconomics/env"))
@@ -135,6 +197,13 @@ def test_the_shell_command_runs_the_same_container_as_the_timer():
 
 
 def test_units_and_shell_command_run_the_configured_image_else_the_pinned_one(tmp_path):
+    """PY-HBEAT-008: the units and the shell command run the configured image, else the pinned one
+
+    Given a configuration with a browser image, and one with no image
+    When the units and the shell command are written for each
+    Then the service and the command both run the configured image when one is set
+    And both run the pinned image when none is set
+    """
     browser = "sha256:" + "ab" * 32
     for image, expect in ((browser, browser), (None, schedule.IMAGE)):
         out = tmp_path / str(image is None)

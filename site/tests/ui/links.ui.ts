@@ -4,7 +4,7 @@
 // followed (the tests never touch the network beyond the site under test).
 import { existsSync, readFileSync } from "node:fs";
 import type { APIRequestContext } from "@playwright/test";
-import { expect, test } from "./helpers";
+import { expect, gwt, test } from "./helpers";
 
 const SITE = "https://traceconomics.com";
 const SITEMAP = new URL("../../dist/sitemap.xml", import.meta.url);
@@ -13,13 +13,24 @@ const offered = existsSync(SITEMAP)
   : [];
 const greek = offered.filter((p) => p.startsWith("/en/")).map((p) => p.replace(/^\/en\//, "/el/"));
 
-test("the sitemap lists the pages", () => {
+test("the sitemap lists the pages", gwt({
+  id: "PW-LINK-001",
+  given: "a built site",
+  when: "its sitemap is read",
+  then: "it lists more than 20 pages",
+}), () => {
   test.skip(!existsSync(SITEMAP), "needs a build (dist/sitemap.xml)");
   expect(offered.length).toBeGreaterThan(20);
 });
 
 for (const path of [...offered, ...greek]) {
-  test(`${path} loads, with a heading, and logs no error`, async ({ page }) => {
+  test(`${path} loads, with a heading, and logs no error`, gwt({
+    id: "PW-LINK-002",
+    title: "every page in the sitemap loads, with a heading, and logs no error",
+    given: "a page listed in the sitemap, or the Greek twin of an English one",
+    when: "it is opened and has finished loading its data",
+    then: ["it answers with success (200)", "its first main heading is not empty", "the browser logs no error"],
+  }), async ({ page }) => {
     const response = await page.goto(path, { waitUntil: "networkidle" });
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 }).first()).not.toBeEmpty();
@@ -40,7 +51,13 @@ async function htmlOf(request: APIRequestContext, cache: Map<string, string>, pa
   return cache.get(path)!;
 }
 
-test("every link to this site answers, and every #spot exists on its page", async ({ request }) => {
+test("every link to this site answers, and every #spot exists on its page", gwt({
+  id: "PW-LINK-003",
+  given: "every page in the sitemap, and the Greek twin of every English one",
+  when: "every link on them to this site (page links, and the page's own canonical, language and other links) is followed",
+  then: ["more addresses are found than there are pages in the sitemap, and at least one link to a spot on a page",
+    "every linked address answers with success (200)", "every linked spot exists on its page"],
+}), async ({ request }) => {
   test.skip(!offered.length, "needs a build (dist/sitemap.xml)");
   test.setTimeout(180_000);
   const pages = new Map<string, string>();

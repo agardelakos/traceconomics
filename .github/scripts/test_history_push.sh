@@ -20,6 +20,7 @@ done
 ((${#records[@]})) || { echo "no record to append"; exit 0; }
 
 history_py=$(realpath tests/catalog/history.py)
+code=$(pwd)
 url=${TEST_HISTORY_REMOTE:-"https://github.com/${GITHUB_REPOSITORY}.git"}   # the override is for testing the script
 auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
 git_() { git -c http.extraheader="AUTHORIZATION: basic ${auth}" "$@"; }
@@ -33,8 +34,21 @@ for attempt in 1 2 3 4 5; do
   if git_ fetch -q --depth 1 "$url" test-history 2>/dev/null; then
     git reset -q --hard FETCH_HEAD
   fi
+  # The catalog moves forward only: its commit must descend from the stored catalog's. Checked
+  # against the code's history (the checkout running this script, which must be a full clone);
+  # when it can't be told, the stored catalog stays as it is.
+  use=("${catalog[@]}")
+  if ((${#catalog[@]})) && [ -f catalog.json ]; then
+    stored=$(python -I -c 'import json; print(json.load(open("catalog.json")).get("commit") or "")')
+    new=$(python -I -c 'import json, sys; print(json.load(open(sys.argv[1])).get("commit") or "")' "${catalog[1]}")
+    if [ -n "$stored" ] && [ "$stored" != "$new" ] \
+        && ! git -C "$code" merge-base --is-ancestor "$stored" "$new" 2>/dev/null; then
+      echo "the stored catalog (${stored::7}) is not an ancestor of ${new::7}: kept as it is"
+      use=()
+    fi
+  fi
   for r in "${records[@]}"; do
-    python -I "$history_py" append --store . "$r" "${catalog[@]}"
+    python -I "$history_py" append --store . "$r" "${use[@]}"
   done
   git add -A
   if git diff --cached --quiet; then echo "nothing new to record"; exit 0; fi

@@ -17,6 +17,17 @@ FIX = Path(__file__).parent / "fixtures"
 
 
 def test_skeleton_export_from_a_store(tmp_path):
+    """PY-EXPORT-001: the first series is exported from the store with its metadata
+
+    Given an archive holding the Eurostat HICP monthly rates and item weights for Greece
+    And a store updated from those two datasets
+    When the skeleton series is exported
+    Then the CSV runs from 2015-01 to 2026-09
+    And at least 100 months have both our annual rate and the official one, and no gap between them exceeds 0.1 points
+    And the metadata gives the CC BY 4.0 licence and attributes Eurostat
+    And every source it lists is in the bibliography
+    And it states the data as published by Eurostat, in UTC (2026-10-16T21:00Z)
+    """
     archive = Archive(tmp_path / "archive")
     when = datetime(2026, 10, 18, 10, 0, tzinfo=UTC)
     for name in ("minr", "iw"):

@@ -62,6 +62,18 @@ def rows(con, store_root, sql):
 
 
 def test_first_load_then_a_revision_and_a_withdrawal(tmp_path, con):
+    """PY-OBS-001: a first load, then a revision and a withdrawal
+
+    Given an archive with one snapshot of Eurostat's HICP monthly indices
+    When the store is updated
+    And a second snapshot is archived with Greece's 2026-08 all-items index revised and Cyprus's food series withdrawn
+    And the store is updated again, queried as of 2026-10-01 and as of now, and then updated once more with nothing new
+    Then the first update reads 1 snapshot, adds more than 1000 rows and withdraws none
+    And the second reads 1 snapshot, adds 1 row and withdraws every Cyprus food observation (half the rows stored under its key)
+    And as of 2026-10-01 Greece's 2026-08 value is "104.12", and as of now "104.20"
+    And the withdrawn series is missing as of now but present as of 2026-10-01
+    And the last update reads no snapshot
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
     first = update(archive, store, con, only=[MINR])[0]
@@ -87,6 +99,13 @@ def test_first_load_then_a_revision_and_a_withdrawal(tmp_path, con):
 
 
 def test_vintage_dates_and_status(tmp_path, con):
+    """PY-OBS-002: observations carry their publication time, its quality and their status
+
+    Given an archive with one HICP snapshot whose Eurostat update time is 2026-09-16 23:00 +02:00
+    When the store is updated
+    Then Greece's all-items rows are published at 2026-09-16 21:00 UTC, with quality "dataset"
+    And 2025-12 is "backcast" and 2026-01 "final"
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
     update(archive, store, con, only=[MINR])
@@ -100,6 +119,13 @@ def test_vintage_dates_and_status(tmp_path, con):
 
 
 def test_incremental_equals_full_rebuild(tmp_path, con):
+    """PY-OBS-003: an incremental store equals a full rebuild
+
+    Given an archive with two HICP snapshots
+    When one store is updated after each snapshot
+    And another is rebuilt in full from both
+    Then both hold the same observations, publication time aside
+    """
     archive = Archive(tmp_path / "a")
     inc, full = Store(tmp_path / "inc"), Store(tmp_path / "full")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
@@ -112,6 +138,14 @@ def test_incremental_equals_full_rebuild(tmp_path, con):
 
 
 def test_two_files_feed_one_dataset_without_withdrawing_each_other(tmp_path, con):
+    """PY-OBS-004: two files feed one dataset without withdrawing each other
+
+    Given an archive with CPI table 07 for 2025 and for 2026, each its own archive dataset
+    When the store is updated for elstat:cpi07
+    Then it reads 2 snapshots and withdraws nothing
+    And December 2025's all-items index comes from both files (as a month of 2025 and as 2026's link month)
+    And the English label of 01111 is "CEREALS" and the Greek one is missing, since no Greek file is archived
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_cpi07(archive, "elstat_cpi07_2025.xls", "doc-554284", T1)
     put_cpi07(archive, "elstat_cpi07_2026.xlsx", "doc-585819", T2)
@@ -126,6 +160,13 @@ def test_two_files_feed_one_dataset_without_withdrawing_each_other(tmp_path, con
 
 
 def test_table05_english_file_only(tmp_path, con):
+    """PY-OBS-005: table 05 is read from the English file only
+
+    Given an archive with CPI table 05 in English and in Greek
+    When the store is updated for elstat:cpi05
+    Then it reads 1 snapshot
+    And the 2026-09 twelve-month rate is stored at full precision, as value and as text (0.05049184623573861)
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     data = (FIX / "elstat_cpi05_2026_09.xlsx").read_bytes()
     for doc, lang in (("doc-114837", "EN"), ("doc-114837-el", "GR")):
@@ -139,6 +180,13 @@ def test_table05_english_file_only(tmp_path, con):
 
 
 def test_older_snapshot_arriving_late_rebuilds(tmp_path, con):
+    """PY-OBS-006: an older snapshot arriving late rebuilds the dataset
+
+    Given a store updated from the newer HICP snapshot
+    When an older snapshot is archived and the store is updated
+    Then the dataset is rebuilt, the reason naming the "older snapshot"
+    And both snapshots are read
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, revised(minr_text()), T2, "2026-10-15T23:00:00+0200")
     update(archive, store, con, only=[MINR])
@@ -148,6 +196,13 @@ def test_older_snapshot_arriving_late_rebuilds(tmp_path, con):
 
 
 def test_parser_change_rebuilds(tmp_path, con, monkeypatch):
+    """PY-OBS-007: a parser change rebuilds the dataset
+
+    Given a store updated from one HICP snapshot
+    When the Eurostat TSV parser's version changes and the store is updated
+    Then the dataset is rebuilt, the reason naming the "parser version"
+    And 1 snapshot is read
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
     update(archive, store, con, only=[MINR])
@@ -157,6 +212,13 @@ def test_parser_change_rebuilds(tmp_path, con, monkeypatch):
 
 
 def test_part_without_a_loaded_record_is_dropped(tmp_path, con):
+    """PY-OBS-008: a store part without a loaded record is dropped
+
+    Given a store updated from one HICP snapshot
+    And an extra Parquet part with no record in loaded.jsonl, as if a crash came before logging
+    When the store is updated
+    Then the extra part is deleted
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
     update(archive, store, con, only=[MINR])
@@ -169,6 +231,15 @@ def test_part_without_a_loaded_record_is_dropped(tmp_path, con):
 
 def test_as_of_rows_come_in_a_fixed_order(tmp_path):
     # Parallel reads return rows in any order; sums over them must not depend on it.
+    """PY-OBS-009: as-of rows come in a fixed order
+
+    Given an archive with one HICP snapshot
+    When the store is updated and read as of now on a 1-thread and a 4-thread connection
+    Then both give the same keys and periods, in sorted order
+    And there are more than 1000 rows
+
+    Parallel reads return rows in any order; sums over them must not depend on it.
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
     results = []
@@ -185,6 +256,15 @@ def test_as_of_rows_come_in_a_fixed_order(tmp_path):
 def test_label_files_come_only_from_the_datasets_the_store_reads(tmp_path):
     # An old table kept elsewhere in the archive for another purpose has a name the label
     # pattern matches, but another format: it must not be read for labels.
+    """PY-OBS-010: label files come only from the datasets the store reads
+
+    Given an archive with a Greek table 07 document and an old original table whose file name the label pattern also matches
+    When the label files for elstat:cpi07 are listed
+    Then only the Greek table 07 document is listed
+
+    An old table kept elsewhere in the archive for another purpose has a name the label
+    pattern matches, but another format: it must not be read for labels.
+    """
     from traceconomics import catalog
     from traceconomics.store.registry import label_files
 

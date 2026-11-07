@@ -19,6 +19,14 @@ def _term(site):
 
 
 def test_hover_opens_and_leaving_closes(site):
+    """SEL-TERM-001: pointing opens a term's explanation; leaving closes it
+
+    Given a term with an explanation on the Groups page
+    When the mouse points at it
+    And then moves away to the heading
+    Then the explanation opens
+    And it closes again
+    """
     site.open(PAGE)
     button, pop, _ = _term(site)
     ActionChains(site.driver).move_to_element(button).perform()
@@ -28,6 +36,12 @@ def test_hover_opens_and_leaving_closes(site):
 
 
 def test_pointer_can_move_into_the_explanation(site):
+    """SEL-TERM-002: the pointer can move into the explanation
+
+    Given a term's explanation opened by pointing at the term
+    When the mouse moves into the explanation
+    Then the explanation stays open, with the pointer over it
+    """
     site.open(PAGE)
     button, pop, _ = _term(site)
     ActionChains(site.driver).move_to_element(button).perform()
@@ -39,6 +53,12 @@ def test_pointer_can_move_into_the_explanation(site):
 
 
 def test_mouse_click_follows_the_link(site):
+    """SEL-TERM-003: a mouse click goes to the term's page
+
+    Given a term with an explanation on the Groups page
+    When it is clicked with the mouse
+    Then the browser goes to the page its explanation links to
+    """
     site.open(PAGE)
     button, _, link = _term(site)
     button.click()
@@ -47,6 +67,14 @@ def test_mouse_click_follows_the_link(site):
 
 @pytest.mark.parametrize("close", ["escape", "enter"])
 def test_keyboard_opens_and_closes(site, close):
+    """SEL-TERM-004: the keyboard opens and closes the explanation
+
+    Given a term on the Groups page, focused from the keyboard
+    When Enter is pressed
+    And then a closing key is pressed
+    Then the explanation opens and the page stays where it is
+    And the closing key closes it
+    """
     site.open(PAGE)
     button, pop, _ = _term(site)
     site.js("arguments[0].focus()", button)
@@ -59,6 +87,14 @@ def test_keyboard_opens_and_closes(site, close):
 
 @pytest.mark.phone
 def test_touch_opens_and_tap_elsewhere_closes(phone):
+    """SEL-TERM-005: a tap opens the explanation; a tap elsewhere closes it
+
+    Given a term on the Groups page, on a phone
+    When the term is tapped
+    And then the heading is tapped
+    Then the explanation opens, showing its link, and the page stays where it is
+    And it closes again
+    """
     phone.open(PAGE)
     button, pop, link = _term(phone)
     phone.js("arguments[0].scrollIntoView({block: 'center'})", button)
@@ -75,6 +111,16 @@ def _shown(site):
 
 
 def test_glossary_search_filters(site):
+    """SEL-TERM-006: the glossary's search filters the terms
+
+    Given the English glossary, every term shown
+    When "quintile" is typed in the search
+    And letters that match nothing are added
+    And the search is cleared
+    Then fewer terms show, each one containing "quintile"
+    And then no term shows, and no empty category stays
+    And then every term is back
+    """
     site.open("/en/glossary/")
     every = _shown(site)
     box = site.find("#glossary-search")
@@ -91,6 +137,12 @@ def test_glossary_search_filters(site):
 
 
 def test_glossary_search_ignores_accents(site):
+    """SEL-TERM-007: the glossary's search ignores accents
+
+    Given the Greek glossary
+    When the Greek word for inflation is typed without its accent
+    Then the accented term still shows, among fewer terms than before
+    """
     site.open("/el/glossary/")
     every = _shown(site)
     accented = next(text for text in every if "πληθωρισμός" in text)

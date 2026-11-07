@@ -2,7 +2,7 @@
 // the same view; the chart's summary, its data table, the breakdown, the files link and the
 // citation follow the choice. Expected numbers come from the published files for that setting.
 import type { APIRequestContext, Locator, Page } from "@playwright/test";
-import { expect, json, LANGS, m1, month, num, t, test, type Lang } from "./helpers";
+import { expect, gwt, json, LANGS, m1, month, num, t, test, type Lang } from "./helpers";
 
 const DATA = "/data/v1/gr/m1/latest";
 const DEFAULT_GROUPS = ["Q1", "Q5", "all/all"];
@@ -58,7 +58,14 @@ function radio(page: Page, option: string, value: string): Locator {
 }
 
 for (const lang of LANGS) {
-  test(`${lang}: the default view's summary is the default setting's latest values`, async ({ page, request }) => {
+  test(`${lang}: the default view's summary is the default setting's latest values`, gwt({
+    id: "PW-EXPL-001",
+    given: "Explore, opened with nothing chosen",
+    when: "the chart is drawn",
+    then: ["its one-sentence summary gives the default setting's latest annual rates for the poorest fifth, the richest fifth and all households, for their month",
+      "those three groups are shown as picked, with a count of 3 of at most 6", "it says every option is at its default",
+      "the chart is drawn, and no no-script message is shown"],
+  }), async ({ page, request }) => {
     const s = await settings(request);
     const file = await series(request, s.default);
     await page.goto(m1(lang, "explore/"));
@@ -71,7 +78,14 @@ for (const lang of LANGS) {
   });
 }
 
-test("the data table lists every month, newest first, with the file's values", async ({ page, request }) => {
+test("the data table lists every month, newest first, with the file's values", gwt({
+  id: "PW-EXPL-002",
+  given: "Explore at its default view",
+  when: "its data table is opened",
+  then: ["the table's columns are the month, each default group and the gap",
+    "it has one row per month from the first month any group has a value to the latest",
+    "the first row is the newest month and the last row the oldest, each with the published file's values (a dash where there is none)"],
+}), async ({ page, request }) => {
   const s = await settings(request);
   const file = await series(request, s.default);
   await page.goto(m1("en", "explore/"));
@@ -91,7 +105,15 @@ test("the data table lists every month, newest first, with the file's values", a
   expect(await rows.last().locator("th, td").allTextContents()).toEqual(cells(first));
 });
 
-test("groups toggle on and off, up to six, never none, and go in the address", async ({ page }) => {
+test("groups toggle on and off, up to six, never none, and go in the address", gwt({
+  id: "PW-EXPL-003",
+  given: "Explore at its default view",
+  when: ["the middle fifth is picked, then the richest fifth is unpicked", "three more groups are picked, making six",
+    "Explore opens with one group only, and that group is pressed"],
+  then: ["the middle fifth shows as pressed and is added at the end of the address's list of groups",
+    "the richest fifth leaves that list", "with six groups the count says 6 of 6 and the other groups can't be picked",
+    "the last group stays picked"],
+}), async ({ page }) => {
   await page.goto(m1("en", "explore/"));
   await chip(page, "en", "Q3").click();
   await expect(chip(page, "en", "Q3")).toHaveAttribute("aria-pressed", "true");
@@ -108,7 +130,14 @@ test("groups toggle on and off, up to six, never none, and go in the address", a
   await expect(chip(page, "en", "Q2")).toHaveAttribute("aria-pressed", "true");
 });
 
-test("changing an option loads that setting, counts the change, and puts only that in the address", async ({ page, request }) => {
+test("changing an option loads that setting, counts the change, and puts only that in the address", gwt({
+  id: "PW-EXPL-004",
+  given: "Explore at its default view, with its options open",
+  when: ["a price source other than the default is picked", "the default price source is picked again"],
+  then: ["that setting's file is loaded and the summary gives its latest annual rates",
+    "the address carries that option and no other", "it says one option is changed",
+    "back at the default, it says every option is at its default and the option leaves the address"],
+}), async ({ page, request }) => {
   const s = await settings(request);
   const [option, value] = ["price_source", s.options.price_source.find((v: string) => v !== "cpi")];
   const slug = slugOf(s, { [option]: value });
@@ -127,7 +156,15 @@ test("changing an option loads that setting, counts the change, and puts only th
   expect(params(page).has(option)).toBe(false);
 });
 
-test("a shared address opens the same view; unknown values fall back to the defaults", async ({ page, request }) => {
+test("a shared address opens the same view; unknown values fall back to the defaults", gwt({
+  id: "PW-EXPL-005",
+  given: "an address naming a price source, a weights timing, two groups and the index as the measure",
+  when: ["Explore opens from it", "Explore opens from an address whose price source, groups and measure are unknown"],
+  then: ["the named options are chosen, the named groups are picked and no others from the defaults", "the measure is the index",
+    "the summary gives that setting's latest index values for those groups",
+    "a notice says months are left out (the timing rule's effect)",
+    "with unknown values, the default price source is chosen and the summary is the default view's"],
+}), async ({ page, request }) => {
   const s = await settings(request);
   await page.goto(`${m1("en", "explore/")}?price_source=hicp&weights_timing=U&groups=Q1,tenure/renter&m=index&gap=0`);
   await expect(radio(page, "price_source", "hicp")).toBeChecked();
@@ -145,7 +182,13 @@ test("a shared address opens the same view; unknown values fall back to the defa
   await expect(summary(page)).toHaveText(summaryOf("en", await series(request, s.default), DEFAULT_GROUPS, "rch_a"));
 });
 
-test("an option Greece can't have is not offered; an old link asking for it falls back", async ({ page }) => {
+test("an option Greece can't have is not offered; an old link asking for it falls back", gwt({
+  id: "PW-EXPL-006",
+  given: "Explore, with its options open",
+  when: ["the imputed-rent options are read", "Explore opens from an address asking for imputed rent by user cost"],
+  then: ["user cost is not offered",
+    "from the old address, imputed rent is excluded (the default), the summary is drawn, and the option leaves the address"],
+}), async ({ page }) => {
   // Imputed rent by user cost needs a price index Greece doesn't publish: the method page explains it.
   await page.goto(m1("en", "explore/"));
   await openOptions(page);
@@ -156,7 +199,14 @@ test("an option Greece can't have is not offered; an old link asking for it fall
   await expect.poll(() => params(page).get("imputed_rent")).toBeNull();
 });
 
-test("the measure changes the summary; the gap panel is for the annual rate only", async ({ page, request }) => {
+test("the measure changes the summary; the gap panel is for the annual rate only", gwt({
+  id: "PW-EXPL-007",
+  given: "Explore at its default view, with the gap panel shown",
+  when: ["the measure is set to the monthly rate, then to the index", "it is set back to the annual rate", "the gap is turned off"],
+  then: ["for each of the other measures, the summary gives that measure's latest values, the address carries the measure, and the gap switch is disabled with a reason saying it is for the annual rate only",
+    "back at the annual rate, the measure leaves the address",
+    "with the gap off, the address says so (`gap=0`) and the gap panel is hidden"],
+}), async ({ page, request }) => {
   const s = await settings(request);
   const file = await series(request, s.default);
   await page.goto(m1("en", "explore/"));
@@ -176,7 +226,14 @@ test("the measure changes the summary; the gap panel is for the annual rate only
   await expect(root(page).locator('[data-role="gap-title"]')).toBeHidden();
 });
 
-test("household types are a family of their own: each draws its line from the file", async ({ page, request }) => {
+test("household types are a family of their own: each draws its line from the file", gwt({
+  id: "PW-EXPL-008",
+  given: "Explore",
+  when: ["its groups are read", "it opens from an address picking two household types"],
+  then: ["a button is shown for each of the six household types",
+    "the summary gives those two household types' latest annual rates from the published file",
+    "the second one is shown as picked"],
+}), async ({ page, request }) => {
   const s = await settings(request);
   const file = await series(request, s.default);
   const types = ["hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"];
@@ -187,13 +244,26 @@ test("household types are a family of their own: each draws its line from the fi
   await expect(chip(page, "en", "hhtype/A2_DCH")).toHaveAttribute("aria-pressed", "true");
 });
 
-test("the gap note shows when the poorest or richest fifth isn't drawn", async ({ page }) => {
+test("the gap note shows when the poorest or richest fifth isn't drawn", gwt({
+  id: "PW-EXPL-009",
+  given: "an address picking the poorest fifth and all households, but not the richest fifth",
+  when: "Explore opens from it",
+  then: "the note about the gap is shown",
+}), async ({ page }) => {
   await page.goto(`${m1("en", "explore/")}?groups=Q1,all/all`);
   await expect(root(page).locator('[data-role="gap-note"]')).toBeVisible();
 });
 
 test.describe("the breakdown view", () => {
-  test("one group: its latest rate, split by category, with the rest folded", async ({ page, request }) => {
+  test("one group: its latest rate, split by category, with the rest folded", gwt({
+    id: "PW-EXPL-010",
+    given: "Explore with the poorest fifth alone",
+    when: ["the breakdown view is chosen", "the button to show every category is pressed (when there are more than five)"],
+    then: ["the address carries the view",
+      "the title gives the group's latest annual rate, the sum of its categories' parts in the published file",
+      "the measure can't be changed, with a reason shown, and the summary is hidden", "there is one line per category",
+      "beyond five categories, the sixth on is folded away until the button (which gives the number of categories) is pressed, and then shown"],
+  }), async ({ page, request }) => {
     const s = await settings(request);
     const c = await json(request, `${DATA}/contributions/${s.default}.json`);
     const byMonth = c.groups["B/Q1"];
@@ -221,7 +291,13 @@ test.describe("the breakdown view", () => {
     }
   });
 
-  test("two groups: a difference line per category, and the gap between them", async ({ page }) => {
+  test("two groups: a difference line per category, and the gap between them", gwt({
+    id: "PW-EXPL-011",
+    given: "an address opening Explore's breakdown view for the poorest and richest fifths",
+    when: ["it opens", "the view over time is chosen again"],
+    then: ["the breakdown view is shown as chosen, with the title for several groups", "the total row shows one difference",
+      "the note under it names the poorest fifth", "back over time, the view leaves the address and the summary is shown"],
+  }), async ({ page }) => {
     await page.goto(`${m1("en", "explore/")}?groups=Q1,Q5&view=parts`);
     await expect(root(page).getByRole("button", { name: t("en", "explore.view.parts") })).toHaveAttribute("aria-pressed", "true");
     await expect(root(page).locator('[data-role="contrib-title"]')).toHaveText(t("en", "explore.contrib_title_many"));
@@ -234,7 +310,13 @@ test.describe("the breakdown view", () => {
   });
 });
 
-test("the files link and the citation follow the setting", async ({ page, request }) => {
+test("the files link and the citation follow the setting", gwt({
+  id: "PW-EXPL-012",
+  given: "Explore at its default view",
+  when: ["its options are opened and private tutoring is excluded"],
+  then: ["the link to this view's files points first at the default setting's files, then at the new setting's",
+    "the citation holds the page's current address and names the changed option"],
+}), async ({ page, request }) => {
   const s = await settings(request);
   await page.goto(m1("en", "explore/"));
   const files = root(page).locator('[data-role="files-this"]');
@@ -251,7 +333,13 @@ test.describe("when a file can't be loaded", () => {
   // The browser itself logs the refused request; that's the point of this test.
   test.use({ allowErrors: [/Failed to load resource/] });
 
-  test("the chart says so, and Retry tries again", async ({ page }) => {
+  test("the chart says so, and Retry tries again", gwt({
+    id: "PW-EXPL-013",
+    given: "the chart's data files answer with an error",
+    when: ["Explore opens", "the files answer again and Retry is pressed"],
+    then: ["the chart shows an alert saying the data couldn't be loaded, with a Retry button",
+      "after Retry, the alert goes and the summary is drawn"],
+  }), async ({ page }) => {
     await page.route("**/series/*.json", (route) => route.fulfill({ status: 503, body: "" }));
     await page.goto(m1("en", "explore/"));
     const failed = root(page).getByRole("alert");
@@ -263,7 +351,12 @@ test.describe("when a file can't be loaded", () => {
   });
 });
 
-test("full screen shows the chart alone, and the button says how to leave", async ({ page }) => {
+test("full screen shows the chart alone, and the button says how to leave", gwt({
+  id: "PW-EXPL-014",
+  given: "Explore, in a browser that offers full screen",
+  when: ["the full-screen button is pressed", "it is pressed again"],
+  then: ["the button's name changes to say how to leave full screen", "pressed again, it goes back to its first name"],
+}), async ({ page }) => {
   await page.goto(m1("en", "explore/"));
   const button = root(page).locator('[data-role="fullscreen"]');
   test.skip(!(await page.evaluate(() => document.fullscreenEnabled)), "this browser offers no full screen");

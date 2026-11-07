@@ -20,6 +20,13 @@ def blocks():
 
 
 def test_bands_equal_the_spread_of_series_built_one_replicate_at_a_time():
+    """PY-BANDS-001: the error bands equal the spread of series built one replicate at a time
+
+    Given made-up price blocks and five replicate baskets per survey year for group B/Q1
+    And the point series built from a fixed basket
+    When the error bands of the annual rate are computed from the replicate shares
+    Then at 2012-06, 2013-12 and 2026-03 the standard error equals the sample standard deviation of the annual rates of the five series built one replicate at a time
+    """
     b = blocks()
     rng = np.random.default_rng(1)
     reps = 5
@@ -40,6 +47,14 @@ def test_bands_equal_the_spread_of_series_built_one_replicate_at_a_time():
 
 
 def test_years_without_replicates_get_no_band():
+    """PY-BANDS-002: years without replicates get no band
+
+    Given replicate shares for every survey year except 2011
+    When the error bands are computed
+    Then index year 2012, which uses survey 2011, is reported unavailable for B/Q1
+    And the annual rate has a band at 2011-12 and 2014-06
+    And no annual rate in 2012 or 2013, which reaches back into 2012, has a band
+    """
     b = blocks()
     point = {(h, "B", "Q1"): Basket({"01": 0.45, "04": 0.55}, {"01": "normal", "04": "normal"}) for h in range(2008, 2025)}
     s = index.build(None, "B", "Q1", blocks=b, baskets=point)
@@ -53,6 +68,14 @@ def test_years_without_replicates_get_no_band():
 
 
 def test_bands_for_same_year_weights_and_tutoring_left_out_match_a_plain_loop():
+    """PY-BANDS-003: bands with same-year weights and tutoring left out match a plain loop
+
+    Given made-up price blocks including division 10, and four replicate baskets per year to 2026 that include tutoring (10501)
+    And the options weights timing "U" and tutoring "excluded"
+    When the point series and the error bands are built with those options
+    Then the series' last link year is 2026 and its 2026 weights leave out 10501
+    And at 2012-06, 2025-12 and 2026-09 the standard error equals the sample standard deviation of the annual rates of the series built one replicate at a time with the same options
+    """
     b = blocks()
     for y in b:
         b[y]["10"] = {f"{y - 1}-12": 100.0, **{f"{y}-{m:02d}": 100 + m * 0.8 for m in range(1, 13)}}

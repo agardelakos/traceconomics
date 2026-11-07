@@ -84,7 +84,15 @@ def _now(d=date(2026, 10, 28)):
 
 
 def test_off_without_token(monkeypatch):
-    """When neither env var is set, export returns off and stores nothing."""
+    """PY-ANALYT-001: the analytics export is off without a token
+
+    Given no analytics token or account id in the environment, and none passed
+    When the visits export runs
+    Then the result is "off"
+    And the archive holds no dataset
+
+    When neither env var is set, export returns off and stores nothing.
+    """
     monkeypatch.delenv("TRACECONOMICS_ANALYTICS_TOKEN", raising=False)
     monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
     tmp_path = Path(tempfile.mkdtemp()) / "off"
@@ -100,7 +108,17 @@ def test_off_without_token(monkeypatch):
 
 
 def test_first_run_empty_state_stores_yesterday():
-    """With an empty state dict, only yesterday is fetched and stored."""
+    """PY-ANALYT-002: a first run with no bookmark stores yesterday only
+
+    Given an empty job state and an API that returns one row
+    When the visits export runs today
+    Then the result is ok, for yesterday alone, with one file stored
+    And the archive holds one snapshot of cloudflare/web-analytics
+    And exactly one request went to Cloudflare's GraphQL address with the token as a bearer token
+    And it asked for yesterday, the given account and both of the site's host names
+
+    With an empty state dict, only yesterday is fetched and stored.
+    """
     today = date(2026, 10, 28)
     yesterday = today - timedelta(days=1)
 
@@ -133,7 +151,16 @@ def test_first_run_empty_state_stores_yesterday():
 
 
 def test_catch_up_fetches_missing_days_in_order():
-    """State says 3 days ago; today should fetch the 2 intermediate days."""
+    """PY-ANALYT-003: a catch-up fetches the missing days in order
+
+    Given a bookmark three days ago
+    When the visits export runs today
+    Then the result is ok for the two days since the bookmark, oldest first, with two files stored
+    And the bookmark moves to yesterday
+    And the requests asked for those two days in that order
+
+    State says 3 days ago; today should fetch the 2 intermediate days.
+    """
     today = date(2026, 10, 28)
     state = {"analytics_through": (today - timedelta(days=3)).isoformat()}
 
@@ -158,7 +185,18 @@ def test_catch_up_fetches_missing_days_in_order():
 
 
 def test_empty_days_stored_and_different_days_not_unchanged():
-    """Two empty days each produce a stored file because the payload includes the date."""
+    """PY-ANALYT-004: an empty day is stored once, and two empty days are stored apart
+
+    Given an API that returns no rows
+    When the visits export runs today with no bookmark
+    And it runs again with no bookmark and the same empty answer
+    And it runs into a new archive with a bookmark three days ago and two empty answers
+    Then the first run stores one file, for yesterday
+    And the second run stores nothing new
+    And the third run stores two files, one per day
+
+    Two empty days each produce a stored file because the payload includes the date.
+    """
     today = date(2026, 10, 28)
     yesterday = today - timedelta(days=1)
 
@@ -193,7 +231,16 @@ def test_empty_days_stored_and_different_days_not_unchanged():
 
 
 def test_graphql_errors_returns_failed():
-    """A GraphQL error in the response returns 'failed' with state unchanged."""
+    """PY-ANALYT-005: a GraphQL error fails the export without moving the bookmark
+
+    Given an API whose answer carries a GraphQL error
+    When the visits export runs today with no bookmark
+    Then the result is "failed" and the error names yesterday's date
+    And no bookmark is set
+    And the archive holds no dataset
+
+    A GraphQL error in the response returns 'failed' with state unchanged.
+    """
     today = date(2026, 10, 28)
     yesterday = today - timedelta(days=1)
     err_resp = {"errors": [{"message": "Access denied", "extensions": {}}]}
@@ -215,7 +262,15 @@ def test_graphql_errors_returns_failed():
 
 
 def test_url_error_returns_failed():
-    """A urllib error stops and returns 'failed'; state unchanged."""
+    """PY-ANALYT-006: a network error fails the export after one request
+
+    Given an API that cannot be reached
+    When the visits export runs today
+    Then the result is "failed"
+    And exactly one request was tried
+
+    A urllib error stops and returns 'failed'; state unchanged.
+    """
     today = date(2026, 10, 28)
 
     tmp_path = Path(tempfile.mkdtemp())
@@ -236,7 +291,15 @@ def test_url_error_returns_failed():
 
 
 def test_page_rows_returns_failed():
-    """When the API returns PAGE or more rows, we treat it as possibly truncated."""
+    """PY-ANALYT-007: a full page of rows fails the export as possibly truncated
+
+    Given an API that returns exactly a page's limit of rows
+    When the visits export runs today
+    Then the result is "failed"
+    And the error says "possibly truncated"
+
+    When the API returns PAGE or more rows, we treat it as possibly truncated.
+    """
     from traceconomics.analytics import PAGE
 
     today = date(2026, 10, 28)
@@ -255,7 +318,14 @@ def test_page_rows_returns_failed():
 
 
 def test_different_group_order_produces_same_stored_bytes():
-    """Groups returned in a different order yield identical payload, so the second is unchanged."""
+    """PY-ANALYT-008: the same rows in another order are not stored again
+
+    Given a day's rows already stored
+    When the visits export runs again and the API returns the same rows in another order
+    Then the result is ok with nothing stored
+
+    Groups returned in a different order yield identical payload, so the second is unchanged.
+    """
     today = date(2026, 10, 28)
 
     rows_a = [_group(host="a.com"), _group(host="b.com")]
@@ -280,7 +350,15 @@ def test_different_group_order_produces_same_stored_bytes():
 
 
 def test_sampled_flag_in_manifest():
-    """A row with sampleInterval 10 produces manifest entry sampled=True."""
+    """PY-ANALYT-009: a sampled row marks the stored day as sampled
+
+    Given an API that returns one unsampled row and one with a sample interval of 10
+    When the visits export runs today
+    Then one file is stored
+    And its manifest says sampled is true
+
+    A row with sampleInterval 10 produces manifest entry sampled=True.
+    """
     today = date(2026, 10, 28)
     rows_sampled = [_group(interval=1), _group(interval=10)]
 
@@ -302,7 +380,16 @@ def test_sampled_flag_in_manifest():
 
 
 def test_export_day_stores_without_state():
-    """export_day fetches one day and stores it; any state dict passed is ignored."""
+    """PY-ANALYT-010: exporting one chosen day stores it
+
+    Given a job state with an old bookmark, and an API that returns one row
+    When yesterday alone is exported
+    Then the result is ok, with one row and status "stored"
+    And the job state is as it was
+    And the request asked for yesterday
+
+    export_day fetches one day and stores it; any state dict passed is ignored.
+    """
     today = date(2026, 10, 28)
 
     tmp_path = Path(tempfile.mkdtemp())
@@ -354,13 +441,32 @@ def _zone_response(groups=None):
 
 
 def test_downloads_off_without_zone(monkeypatch):
-    """The token alone isn't enough: the zone feed needs the zone id too."""
+    """PY-ANALYT-011: the downloads export is off without a zone id
+
+    Given a token and an account id but no zone id in the environment or passed
+    When the downloads export runs
+    Then the result is "off"
+
+    The token alone isn't enough: the zone feed needs the zone id too.
+    """
     monkeypatch.delenv("CLOUDFLARE_ZONE_ID", raising=False)
     a = Archive(Path(tempfile.mkdtemp()))
     assert export(a, {}, date(2026, 10, 28), token="tok", account="acc", feed=DOWNLOADS) == {"result": "off"}
 
 
 def test_downloads_stored_in_their_own_dataset_with_their_own_bookmark():
+    """PY-ANALYT-012: downloads are stored in their own dataset with their own bookmark
+
+    Given a visits bookmark a week ago, no downloads bookmark, and a zone answer with two data-file rows (one from a bot, one not)
+    When the downloads export runs today
+    Then the result is ok for yesterday with one file stored
+    And the downloads bookmark is set to yesterday while the visits bookmark is untouched
+    And the archive holds only cloudflare/downloads
+    And the request asked for the zone, yesterday and both host names
+    And its query reads the zone's request groups for paths under /downloads/
+    And it asks for no IP address and no full user-agent string
+    And the stored rows keep their request counts (1 and 3), byte counts and bot categories (none and "AI Crawler")
+    """
     today = date(2026, 10, 28)
     post, calls = fake_post([_zone_response([_download_group(), _download_group(bot="", requests=1)])])
     a = Archive(Path(tempfile.mkdtemp()))
@@ -383,6 +489,13 @@ def test_downloads_stored_in_their_own_dataset_with_their_own_bookmark():
 
 
 def test_downloads_rows_have_request_and_byte_counts():
+    """PY-ANALYT-013: a downloads row has request and byte counts, not page views
+
+    Given a zone answer with one row of 5 requests, 100 bytes and a sample interval of 2
+    When the day is fetched for the downloads feed
+    Then there is one row with 5 requests, 100 bytes and sample interval 2
+    And it has no page-view count
+    """
     post, _ = fake_post([_zone_response([_download_group(requests=5, bytes_=100, interval=2)])])
     rows = fetch_day(date(2026, 10, 27), token="tok", zone="z", post=post, feed=DOWNLOADS)
     assert len(rows) == 1
@@ -391,12 +504,24 @@ def test_downloads_rows_have_request_and_byte_counts():
 
 
 def test_downloads_missing_zone_in_response_fails():
+    """PY-ANALYT-014: a downloads answer without the zone fails
+
+    Given an API answer with no zone in it
+    When a day is fetched for the downloads feed
+    Then an AnalyticsError naming the zone is raised
+    """
     post, _ = fake_post([{"data": {"viewer": {"zones": []}}}])
     with pytest.raises(AnalyticsError, match="zone"):
         fetch_day(date(2026, 10, 27), token="tok", zone="z", post=post, feed=DOWNLOADS)
 
 
 def test_export_day_downloads_needs_zone(monkeypatch):
+    """PY-ANALYT-015: exporting one day of downloads needs the zone id
+
+    Given no zone id in the environment or passed
+    When one day of downloads is exported
+    Then an AnalyticsError naming CLOUDFLARE_ZONE_ID is raised
+    """
     monkeypatch.delenv("CLOUDFLARE_ZONE_ID", raising=False)
     with pytest.raises(AnalyticsError, match="CLOUDFLARE_ZONE_ID"):
         export_day(Archive(Path(tempfile.mkdtemp())), date(2026, 10, 27), token="tok", feed=DOWNLOADS)

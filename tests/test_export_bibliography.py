@@ -22,6 +22,14 @@ SAMPLE = r"""
 
 
 def test_fields_are_read_with_nested_braces_and_latex_taken_off():
+    """PY-BIBEXP-001: fields are read through nested braces with LaTeX markup removed
+
+    Given a BibTeX sample with braced authors, escaped characters, a "--" dash and a URL with "_" and "&"
+    When it is parsed for the website
+    Then the entry type and every field are read in full
+    And the outer braces, escapes and braces around words are removed, and "--" becomes an en dash
+    And the URL is kept exactly as written
+    """
     e = bibliography.parse(SAMPLE)
     r = e["some-report"]
     assert r["entrytype"] == "report" and r["type"] == "Quality report"
@@ -33,6 +41,13 @@ def test_fields_are_read_with_nested_braces_and_latex_taken_off():
 
 
 def test_the_real_bibliography_parses_completely():
+    """PY-BIBEXP-002: the project's bibliography parses completely
+
+    Given the project's own bibliography
+    When it is parsed for the website
+    Then it yields exactly the entries the references module knows
+    And every entry has an author and a title
+    """
     e = bibliography.parse(references.text())
     assert set(e) == set(references.entries())
     for key, fields in e.items():

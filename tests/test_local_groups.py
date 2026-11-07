@@ -42,6 +42,14 @@ def adults(ids):
 # ---- groups ---------------------------------------------------------------------------------
 
 def test_modified_oecd_scale():
+    """PY-GROUPS-001: household size on the modified OECD scale
+
+    Given made-up households of one adult; two adults, a 13-year-old and a 3-year-old; and two children with no adult
+    When their sizes are worked out
+    Then the single adult counts 1 person and 1.0 adult equivalent
+    And the second household is 4 persons and 1 + 0.5 + 0.3 + 0.3 equivalents, the 13-year-old counting as a child
+    And the household of children is 2 persons and 1.3 equivalents, the first child counting 1
+    """
     s = survey([("a", 1, 1, "1", {}), ("b", 1, 1, "1", {}), ("c", 1, 1, "1", {})],
                [("a", 40), ("b", 40), ("b", 38), ("b", 13), ("b", 3), ("c", 12), ("c", 9)])
     size = household_size(s)
@@ -51,11 +59,24 @@ def test_modified_oecd_scale():
 
 
 def test_quintiles_hold_a_fifth_of_the_weight_each():
+    """PY-GROUPS-002: each quintile holds a fifth of the weight
+
+    Given ten households of equal weight with values from 10 down to 1
+    When they are put in quintiles
+    Then the two highest are in quintile 5, the next two in 4, and so on down to 1
+    """
     q = quintiles(pd.Series(range(10, 0, -1), dtype=float), pd.Series([1.0] * 10), pd.Series(list("abcdefghij")))
     assert q.tolist() == [5, 5, 4, 4, 3, 3, 2, 2, 1, 1]
 
 
 def test_quintile_ties_are_broken_by_household_id_and_a_straddler_goes_where_its_middle_is():
+    """PY-GROUPS-003: ties are broken by household id and a straddler goes where its middle is
+
+    Given four households, two with the same value, and one with double weight
+    When they are put in quintiles
+    Then the tied households are ordered by id
+    And each household falls in the quintile where the middle of its weight lies (4, 3, 2, 5)
+    """
     value = pd.Series([5.0, 5.0, 1.0, 9.0])
     q = quintiles(value, pd.Series([1.0, 1.0, 2.0, 1.0]), pd.Series(["z", "y", "x", "w"]))
     # Order x (weight 2), y, z, w over a total of 5: middles at 0.2, 0.5, 0.7, 0.9.
@@ -63,11 +84,25 @@ def test_quintile_ties_are_broken_by_household_id_and_a_straddler_goes_where_its
 
 
 def test_missing_value_or_weight_gets_no_quintile():
+    """PY-GROUPS-004: a household with no value or no weight gets no quintile
+
+    Given three households: one complete, one without a value and one with zero weight
+    When they are put in quintiles
+    Then the complete household, alone, has its middle at 50% and is in quintile 3
+    And the other two have no quintile
+    """
     q = quintiles(pd.Series([1.0, None, 3.0]), pd.Series([1.0, 1.0, 0.0]), pd.Series(["a", "b", "c"]))
     assert q.iloc[0] == 3 and q.iloc[1:].isna().all()      # alone, the household's middle is at 50%
 
 
 def test_tenure_renter_first_then_owner_then_housed_free():
+    """PY-GROUPS-005: tenure is renter first, then owner, then housed free
+
+    Given households paying rent and imputed rent, imputed rent as owners, imputed rent as housed free, and no rent of any kind
+    When their tenure is read
+    Then they are renter, owner and rent_free in that order
+    And the household with no rent has no tenure
+    """
     s = survey([
         ("a", 1, 1, "1", {"0411": 100, "0421": 50}),     # rent and imputed rent: a renter
         ("b", 1, 1, "1", {"0421": 50}),
@@ -79,6 +114,16 @@ def test_tenure_renter_first_then_owner_then_housed_free():
 
 
 def test_unplaceable_households_are_left_out_of_that_grouping_only():
+    """PY-GROUPS-006: a household that can't be placed is left out of that grouping only
+
+    Given ten complete households, four of them living mainly on pensions
+    And one more with no persons, no rent and no income source
+    When the groups are assigned
+    Then the odd household is in A's Q1, which needs only income and weight, and in "all"
+    And it has no B, C, tenure or pensioners group
+    And B's labels are Q1 to Q5 next to the missing one
+    And exactly four households are pensioners
+    """
     rows = [(f"h{i}", 1, 1000 * (i + 1), "4" if i < 4 else "1", {"0111": 100, "0421": 10}) for i in range(10)]
     rows.append(("odd", 1, 500, "", {"0111": 100}))                      # no persons, rent or income source
     g = assign(survey(rows, adults(f"h{i}" for i in range(10))))
@@ -101,10 +146,25 @@ def three_households():
 
 
 def test_leaves_are_the_finest_codes():
+    """PY-GROUPS-007: the leaves are the finest spending codes
+
+    Given a list of codes from the total down to subclasses
+    When the leaves are taken
+    Then only the codes with no child in the list remain
+    """
     assert leaves(["00", "01", "011", "0111", "04", "042", "0421", "0422", "04221"]) == ["0111", "0421", "04221"]
 
 
 def test_shares_are_plutocratic_and_add_up():
+    """PY-GROUPS-008: spending shares are plutocratic and add up
+
+    Given three made-up households with weights and spending on food, rent, imputed rent and energy
+    When the spending shares are computed
+    Then for all households, with imputed rent (option 2), food is 1300/4500 and actual plus imputed rent (042) 1400/4500
+    And without imputed rent (option 1) food is 1300/3100, and the imputed rent codes are absent
+    And in every group and option the leaves sum to 1, and so do the divisions
+    And division 04 is the sum of its groups
+    """
     t = shares(three_households())
     everyone = t[(t.grouping == "all")].set_index(["imputed_rent", "code"]).share
     # Weighted spending: food 2*300 + 200 + 500 = 1300; rent 1200; imputed 900 + 500; energy 200 + 400.
@@ -121,6 +181,14 @@ def test_shares_are_plutocratic_and_add_up():
 
 
 def test_shares_per_group_count_reporting_households():
+    """PY-GROUPS-009: shares per group count the households that report spending
+
+    Given the three made-up households, one of them pensioners with weight 2
+    When the spending shares are computed
+    Then the pensioners' rent share is 0.6, from 1 household with weighted count 2
+    And among the others, 1 household reports energy and 2 report imputed rent (042)
+    And every row is "suppressed", since there are only 3 households
+    """
     t = shares(three_households())
     pens = t[(t.grouping == "pensioners") & (t.group == "pensioners") & (t.imputed_rent == 2)].set_index("code")
     assert pens.loc["0411", "share"] == pytest.approx(0.6)
@@ -132,6 +200,12 @@ def test_shares_per_group_count_reporting_households():
 
 @pytest.mark.parametrize("n,tier", [(19, "suppressed"), (20, "flagged"), (49, "flagged"), (50, "normal")])
 def test_reliability_tiers(n, tier):
+    """PY-GROUPS-010: reliability tiers by the number of reporting households
+
+    Given a number of reporting households
+    When its reliability tier is read
+    Then under 20 is "suppressed", 20 to 49 "flagged" and 50 or more "normal"
+    """
     from traceconomics.local.shares import reliability
     assert reliability(n) == tier
 
@@ -144,6 +218,15 @@ def banded_table(year, groups, households, food):
 
 
 def test_income_bands_include_their_top_after_rounding_to_the_euro():
+    """PY-GROUPS-011: income bands include their top, after rounding to the euro
+
+    Given made-up households with monthly incomes of 500, 750, 750.52 and 2000
+    And a published table with bands up to 750, 751-1100 and 1101 and over
+    When the households are placed in income bands
+    And each band is compared with the table
+    Then 500 and 750 are in the first band, 750.52 (rounded to 751) in the second and 2000 in the third
+    And each band's food figure matches the table, with one match per band
+    """
     s = survey([
         ("a", 1, 6000, "1", {"0111": 120}),        # 500 a month
         ("b", 1, 9000, "1", {"0111": 240}),        # 750: still the first band
@@ -160,6 +243,16 @@ def test_income_bands_include_their_top_after_rounding_to_the_euro():
 
 
 def test_size_bands_and_a_wrong_band_figure_fails():
+    """PY-GROUPS-012: size bands, and a wrong band figure fails
+
+    Given made-up households of 1, 2 and 4 members and a table whose figure for "3 members and over" is wrong
+    When the households are placed in size bands
+    And the last band is compared with the table
+    And all households are compared with it
+    Then each household is in its own band
+    And the last band fails with one mismatch: published 99.0 against our 30.0 for 0111
+    And the comparison of all households passes
+    """
     s = survey([("a", 1, 1, "1", {"0111": 120}), ("b", 1, 1, "1", {"0111": 240}), ("c", 1, 1, "1", {"0111": 360})],
                [("a", 40), ("b", 40), ("b", 8), ("c", 40), ("c", 39), ("c", 5), ("c", 1)])
     groups = ["1 member", "2 members", "3 members and over"]
@@ -173,6 +266,12 @@ def test_size_bands_and_a_wrong_band_figure_fails():
 
 
 def test_band_count_that_differs_fails():
+    """PY-GROUPS-013: a band whose household count differs fails
+
+    Given a table whose household count for the top income band differs from the survey's
+    When that band is compared
+    Then it fails
+    """
     s = survey([("a", 1, 6000, "1", {"0111": 120}), ("b", 1, 24000, "1", {"0111": 120})], adults("ab"))
     groups = ["up 750 €", "751-1100 €", "1101 and over €"]
     table = banded_table(2010, groups, {ALL: 2, groups[0]: 1, groups[1]: 0, groups[2]: 3},
@@ -182,6 +281,15 @@ def test_band_count_that_differs_fails():
 
 
 def test_uncovered_share_counts_absent_items_whole_and_cut_items_in_part():
+    """PY-GROUPS-014: the uncovered share counts absent items whole and cut items in part
+
+    Given a published table with an item absent from the survey and an item cut short in it
+    And a list of missing items by year, one listed only for another year
+    When the uncovered spending is worked out for the table's year
+    Then the absent item counts its whole published figure (2.0) and the cut item the part missing (3.0)
+    And the item listed for another year is not counted
+    And the uncovered share is 5% of total spending
+    """
     s = survey([("a", 1, 1, "1", {"0111": 120}), ("b", 3, 1, "1", {"0111": 240})], adults("ab"))
     s.purchases["07242"] = [12.0, 12.0]                                # tolls, cut: 1 a month in the PUF
     table = Table103(year=2015, groups=[ALL], households={ALL: 4},
@@ -192,6 +300,13 @@ def test_uncovered_share_counts_absent_items_whole_and_cut_items_in_part():
 
 
 def test_shares_leave_unplaceable_households_out_of_that_grouping_only():
+    """PY-GROUPS-015: shares leave a household that can't be placed out of that grouping only
+
+    Given five complete households and one with no persons and no income source
+    When the spending shares are computed without imputed rent
+    Then the all-households food share includes it (1400/1650), counting 6 households
+    And the B and pensioners groupings count only 5 households
+    """
     rows = [(f"h{i}", 1, 1000 * (i + 1), "1", {"0111": 100, "0411": 50}) for i in range(5)]
     rows.append(("odd", 1, 500, "", {"0111": 900}))                  # no persons, no income source
     t = shares(survey(rows, adults(f"h{i}" for i in range(5))))
@@ -203,6 +318,13 @@ def test_shares_leave_unplaceable_households_out_of_that_grouping_only():
 
 
 def test_quintile_matrix_matches_one_column_at_a_time():
+    """PY-GROUPS-016: the quintile matrix matches quintiles taken one column at a time
+
+    Given values, one of them missing, and two columns of replicate weights
+    When quintiles are taken for all columns at once
+    Then the household with a missing value is 0 in both columns
+    And in each column every household with a quintile has the same one as quintiles taken for that column alone
+    """
     from traceconomics.local.groups import quintile_matrix
     import numpy as np
     value = pd.Series([3.0, 1.0, None, 2.0, 5.0, 4.0, 2.0])
@@ -217,6 +339,13 @@ def test_quintile_matrix_matches_one_column_at_a_time():
 
 
 def test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_modes():
+    """PY-GROUPS-017: purchases leave out own production; imputed rent comes from all modes
+
+    Given the three made-up households, one of which grew part of its food, and purchases with no imputed rent
+    When shares are computed from purchases and from all modes
+    Then without imputed rent food is 1100/2900 from purchases and 1300/3100 from all modes
+    And with imputed rent the 042 share adds the survey's imputed rent in either concept: 1400/4300 and 1400/4500
+    """
     s = three_households()
     # Household a grew a third of its food: purchases are lower than all modes there.
     s.purchases.loc[0, ["0111", "011", "01"]] = 200.0
@@ -234,6 +363,16 @@ def test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_mode
 
 
 def test_deciles_and_household_rankings():
+    """PY-GROUPS-018: deciles, and ranking households instead of persons
+
+    Given twenty values of equal weight
+    And ten made-up households, the three poorest with three children each
+    When the values are ranked into ten parts
+    And the households' groups are assigned
+    Then the deciles hold two values each, in order
+    And ranking households puts 2 in Q1 (BH) while ranking persons puts 1 (B)
+    And B10 uses only labels D1 to D10, and exactly one household is in BH10's D10
+    """
     from traceconomics.local.groups import quintile_matrix
     import numpy as np
     q = quintile_matrix(pd.Series(range(20), dtype=float), np.ones(20), pd.Series(range(20)), parts=10)[:, 0]
@@ -249,6 +388,13 @@ def test_deciles_and_household_rankings():
 # ---- income limits ---------------------------------------------------------------------------
 
 def test_cut_points_are_midpoints_between_neighbouring_households():
+    """PY-GROUPS-019: income limits are midpoints between neighbouring households
+
+    Given ten households of equal weight with values 10 to 100
+    When the quintile cut points are taken
+    Then they are 25, 45, 65 and 85
+    And none is any household's own value
+    """
     import numpy as np
     from traceconomics.local.groups import cut_points
     value = pd.Series([float(v) for v in range(10, 110, 10)])            # 10, 20, ... 100, two a fifth
@@ -260,6 +406,13 @@ def test_cut_points_are_midpoints_between_neighbouring_households():
 
 
 def test_cut_points_skip_households_without_weight_and_follow_each_column():
+    """PY-GROUPS-020: cut points skip households without weight and follow each column
+
+    Given the ten households and two weight columns, the second with one household at zero weight
+    When the cut points are taken
+    Then the first column gives 25, 45, 65 and 85
+    And the second column's first limit moves, and none of its limits is missing
+    """
     import numpy as np
     from traceconomics.local.groups import cut_points
     value = pd.Series([float(v) for v in range(10, 110, 10)])
@@ -272,6 +425,12 @@ def test_cut_points_skip_households_without_weight_and_follow_each_column():
 
 
 def test_cut_points_ignore_missing_values_and_mark_an_empty_part():
+    """PY-GROUPS-021: cut points ignore missing values and mark an empty part
+
+    Given three households, one without a value
+    When the quintile cut points are taken
+    Then at least one limit is missing, since two households can't fill five parts
+    """
     import numpy as np
     from traceconomics.local.groups import cut_points
     value = pd.Series([10.0, None, 20.0])
@@ -280,6 +439,14 @@ def test_cut_points_ignore_missing_values_and_mark_an_empty_part():
 
 
 def test_limits_table_rounds_midpoints_to_the_euro():
+    """PY-GROUPS-022: the limits table rounds the midpoints to the euro
+
+    Given twenty made-up single-adult households with incomes 1000.25 to 20000.25
+    When the income limits table is made without replicates
+    Then it has limits for Q1 to Q4 in euros per adult equivalent a year
+    And the limits are 4500, 8500, 12500 and 16500
+    And none has a standard error
+    """
     from traceconomics.local.weights import limits_table
     rows = [(f"h{i:02d}", 1, 1000 * (i + 1) + 0.25, "1", {}) for i in range(20)]
     s = survey(rows, adults([r[0] for r in rows]))
@@ -293,6 +460,13 @@ def test_limits_table_rounds_midpoints_to_the_euro():
 # ---- household types ---------------------------------------------------------------------------
 
 def test_household_types_follow_eurostats_dependent_child_rule():
+    """PY-GROUPS-023: household types follow Eurostat's dependent-child rule
+
+    Given made-up households: one adult; a parent and a child under 16; a couple with a 20-year-old student child; the same with the child working; a couple with a student nephew; a couple with a parent and a 25-year-old student child; and a child alone
+    When their household types are read
+    Then they are A1, A1_DCH, A2_DCH, A_GE3, A_GE3 and A_GE3
+    And the household with no adult has no type
+    """
     from traceconomics.local.groups import household_type
     rows = [(h, 1, 1000, "1", {}) for h in "abcdefg"]
     persons = [
@@ -310,12 +484,30 @@ def test_household_types_follow_eurostats_dependent_child_rule():
 
 
 def test_household_types_are_a_grouping_and_unplaced_households_are_left_out():
+    """PY-GROUPS-024: household types are a grouping, and households without persons are left out
+
+    Given three made-up households, the last with no person records
+    When the groups are assigned
+    Then the first two are A1 and A1_DCH under hhtype
+    And the third has no household type
+    """
     rows = [("a", 1, 1000, "1", {"0111": 10}), ("b", 1, 2000, "1", {"0111": 10}), ("c", 1, 3000, "1", {"0111": 10})]
     g = assign(survey(rows, [("a", 40), ("b", 40), ("b", 5)]))       # c has no person records
     assert g.hhtype.tolist()[:2] == ["A1", "A1_DCH"] and pd.isna(g.hhtype.iloc[2])
 
 
 def test_types_table_compares_with_elstats_type_and_stops_when_far_apart():
+    """PY-GROUPS-025: the types table compares with ELSTAT's type and stops when far apart
+
+    Given ten made-up single adults, with ELSTAT's type agreeing for nine of them
+    When the household types table is made for 2015
+    And made again with ELSTAT's type agreeing for none
+    And made for 2023
+    Then the first table's A1 shows "<20" households, a household share of 1.0 and ELSTAT's share of 0.9
+    And agreement is 0.9 and every row is "compared"
+    And the second raises a FormatError saying they "agree with ELSTAT's on 0.0%"
+    And in the 2023 table the ELSTAT status starts with "unusable"
+    """
     from traceconomics.checks import FormatError
     from traceconomics.local import weights
     rows = [(f"h{i}", 1, 1000, "1", {}) for i in range(10)]

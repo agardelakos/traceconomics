@@ -4,11 +4,11 @@
 #
 # `mapping_complete = true` makes a Playwright or Selenium case missing from cases.toml an error.
 
-all = false
-mapping_complete = false
+all = true
+mapping_complete = true
 
 files = [
     "tests/test_engine.py",
-    "site/tests/ui/calculator.ui.ts",
-    "tests/selenium/test_calculator.py",
+    "site/tests/ui/*.ui.ts",
+    "tests/selenium/test_*.py",
 ]

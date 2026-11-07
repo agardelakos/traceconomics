@@ -3,7 +3,7 @@
 // on any serious or critical problem (WCAG 2.2 AA rules); lesser ones are listed in the report.
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, test } from "./helpers";
+import { expect, gwt, test } from "./helpers";
 
 const M1 = "gr/inflation-by-group/";
 const PATHS = ["", "countries/", "topics/", "gr/", "inflation-by-group/", M1, `${M1}explore/`,
@@ -32,7 +32,13 @@ for (const scheme of ["light", "dark"] as const) {
       for (const lang of ["el", "en"]) {
         for (const p of PATHS) {
           const path = `/${lang}/${p}`;
-          test(path, async ({ page }) => {
+          test(path, gwt({
+            id: "PW-A11Y-001",
+            title: "every kind of page passes the accessibility check, in each language, width and colour scheme",
+            given: "a page of one of the site's kinds, in a language, at phone or desktop width, in light or dark mode",
+            when: ["it is opened", "everything it draws with a script is in place"],
+            then: "an accessibility check against the WCAG 2.2 AA rules finds no serious or critical problem",
+          }), async ({ page }) => {
             await page.goto(path, { waitUntil: "networkidle" });
             // Script-drawn parts (charts, the calculator's result) are in place once their busy state ends.
             await expect(page.locator('[aria-busy="true"]:visible')).toHaveCount(0);
@@ -40,7 +46,14 @@ for (const scheme of ["light", "dark"] as const) {
           });
         }
 
-        test(`/${lang}/ with each menu open`, async ({ page }) => {
+        test(`/${lang}/ with each menu open`, gwt({
+          id: "PW-A11Y-002",
+          title: "the home page passes the accessibility check with each header menu open",
+          given: "the home page, in a language, at phone or desktop width, in light or dark mode",
+          when: "each menu for that width is opened in turn (the header's quick lists on a wide screen, the whole menu on a phone)",
+          then: ["each menu opens", "an accessibility check against the WCAG 2.2 AA rules finds no serious or critical problem while it is open",
+            "Escape closes it again"],
+        }), async ({ page }) => {
           await page.goto(`/${lang}/`, { waitUntil: "networkidle" });
           for (const id of MENUS[name]) {
             await page.locator(`button[popovertarget="${id}"]`).click();

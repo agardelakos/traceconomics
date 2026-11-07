@@ -29,6 +29,16 @@ def baskets(food_q1=0.6, food_q5=0.2):
 
 
 def test_a_price_rise_in_one_item_moves_groups_by_their_share():
+    """PY-INDEX-001: a price rise in one item moves each group by its share
+
+    Given made-up prices where food rises 10% through 2022 and nothing else moves
+    And baskets for surveys 2008 to 2024 with food at 60% for Q1 and 20% for Q5
+    When the B/Q1 and B/Q5 series are built
+    Then Q1's annual rate at 2022-12 is about 6.0 and Q5's about 2.0 (within 0.05)
+    And Q1's links run from 2009 to 2026
+    And 2026's link is a "first" estimate on survey 2023, the newest out on 2026-01-01
+    And Q1's index averages 100 over 2025
+    """
     b, k = blocks(), baskets()
     q1 = index.build(None, "B", "Q1", blocks=b, baskets=k)
     q5 = index.build(None, "B", "Q5", blocks=b, baskets=k)
@@ -42,6 +52,12 @@ def test_a_price_rise_in_one_item_moves_groups_by_their_share():
 
 
 def test_an_item_with_no_index_anywhere_fails_the_run():
+    """PY-INDEX-002: an item with no index anywhere fails the run
+
+    Given baskets with an item (05) whose price index stops after 2014
+    When the series is built
+    Then a FormatError is raised
+    """
     b = blocks()
     k = {key: Basket({"01": 0.5, "05": 0.5}, {"01": "normal", "05": "normal"}) for key in baskets()}
     for y in b:                                      # 05 has an index only for price-updating years, not after
@@ -51,6 +67,12 @@ def test_an_item_with_no_index_anywhere_fails_the_run():
 
 
 def test_gap_rows_use_the_rates_as_shown():
+    """PY-INDEX-003: gap rows use the rates as shown
+
+    Given the B/Q1 and B/Q5 series
+    When their output rows are made
+    Then there is one Q1-Q5 annual-rate gap row for 2022-12, with value text "4.0"
+    """
     b, k = blocks(), baskets()
     series = [index.build(None, "B", g, blocks=b, baskets=k) for g in ("Q1", "Q5")]
     gaps = [r for r in output.rows(series)["m1_rates"] if r["unit"] == "RCH_A_GAP" and r["ref_period"] == "2022-12"]
@@ -58,6 +80,13 @@ def test_gap_rows_use_the_rates_as_shown():
 
 
 def test_values_resting_on_the_original_tables_are_flagged():
+    """PY-INDEX-004: values resting on ELSTAT's original tables are flagged
+
+    Given periods on each side of the end of the original tables
+    When the quality flag of each measure is read
+    Then the index is "less certain" up to 2010-12, the annual rate up to 2011-12, the monthly rate up to 2011-01 and the annual average for 2011
+    And each is unflagged from the next period
+    """
     q = output.quality
     assert q("I25", "2010-12") == "less certain" and q("I25", "2011-01") == ""
     assert q("RCH_A", "2011-12") == "less certain" and q("RCH_A", "2012-01") == ""

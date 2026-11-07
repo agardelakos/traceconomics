@@ -30,6 +30,16 @@ def named(rows, fmt):
 
 
 def test_rows_are_one_value_each_and_keep_text(tmp_path):
+    """PY-OETLOCAL-001: a weights table becomes one row per value, keeping its text
+
+    Given a made-up weights CSV with a spending column, including a "<20" count and an empty standard error
+    When it is read as oet-weights
+    Then a share keeps its text "0.25" and its value 0.25
+    And the "<20" count keeps its text and has no value
+    And the reliability is kept as text ("suppressed")
+    And an empty cell gives no row
+    And every row has reference period 2016 and spending "purchases"
+    """
     p = tmp_path / "w.csv"
     p.write_text(WEIGHTS.replace("group,imputed_rent", "group,spending,imputed_rent")
                  .replace(",all,all,", ",all,all,purchases,").replace(",B,Q1,", ",B,Q1,purchases,"), encoding="utf-8")
@@ -44,12 +54,26 @@ def test_rows_are_one_value_each_and_keep_text(tmp_path):
 
 
 def test_files_from_before_the_spending_dimension_read_as_all_modes(tmp_path):
+    """PY-OETLOCAL-002: files from before the spending dimension read as all modes
+
+    Given a made-up weights CSV without a spending column
+    When it is read as oet-weights
+    Then every row's spending is "all"
+    """
     p = tmp_path / "w.csv"
     p.write_text(WEIGHTS, encoding="utf-8")
     assert {r["spending"] for r in named(oet_local.rows(p, "oet-weights"), "oet-weights")} == {"all"}
 
 
 def test_duplicate_or_missing_columns_are_refused(tmp_path):
+    """PY-OETLOCAL-003: duplicate rows and missing columns are refused
+
+    Given a made-up weights CSV with a row repeated
+    And a made-up groups CSV missing the people_weighted column
+    When each is read
+    Then the weights CSV raises a FormatError about a "duplicate"
+    And the groups CSV raises a FormatError naming people_weighted
+    """
     p = tmp_path / "w.csv"
     lines = WEIGHTS.splitlines()
     p.write_text("\n".join(lines + [lines[-1]]), encoding="utf-8")
@@ -61,6 +85,14 @@ def test_duplicate_or_missing_columns_are_refused(tmp_path):
 
 
 def test_archived_tables_reach_the_store(tmp_path):
+    """PY-OETLOCAL-004: archived weights and groups tables reach the store
+
+    Given made-up weights and groups tables archived under oet-local
+    When the store is updated from them
+    Then 11 weights rows and 5 groups rows are added (one standard error is empty)
+    And the all-households share reads back as 0.25 for 01 in 2016
+    And the uncovered purchases share reads back as 0.0355
+    """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     when = datetime(2026, 10, 19, 12, tzinfo=UTC)
     for dataset, text in (("hbs-weights-gr-2016", WEIGHTS), ("hbs-groups-gr-2016", GROUPS)):
@@ -77,6 +109,15 @@ def test_archived_tables_reach_the_store(tmp_path):
 
 
 def test_csv_writes_small_counts_as_text_and_is_repeatable():
+    """PY-OETLOCAL-005: the CSV writes small counts as text and is repeatable
+
+    Given counts of 19 and 20, and a table with a missing number and a missing text
+    When the counts are formatted and the table is written twice as CSV with a header
+    Then 19 is written "<20" and 20 as "20"
+    And both writes are the same bytes, the header as a comment and missing values as empty cells
+
+    Needs pandas (skipped without the local extra).
+    """
     pd = pytest.importorskip("pandas")
     from traceconomics.local import weights
     assert weights._count(19) == "<20" and weights._count(20) == "20"
@@ -85,6 +126,14 @@ def test_csv_writes_small_counts_as_text_and_is_repeatable():
 
 
 def test_bands_file_has_many_periods_per_series(tmp_path):
+    """PY-OETLOCAL-006: a bands file has many periods per series
+
+    Given a made-up bands CSV with one series over two months
+    And one with the same month twice
+    When each is read as oet-bands
+    Then the first gives rows for 2022-01 and 2022-02
+    And the second raises a FormatError about a "duplicate"
+    """
     p = tmp_path / "b.csv"
     head = "geo,grouping,group,spending,imputed_rent,price_source,weights_timing,unit,ref_period,se\n"
     row = "GR,B,Q1,purchases,excluded,cpi,N,RCH_A,{},0.1\n"
@@ -96,6 +145,14 @@ def test_bands_file_has_many_periods_per_series(tmp_path):
 
 
 def test_limits_file_reads_one_row_per_fifth(tmp_path):
+    """PY-OETLOCAL-007: an income limits file is read per fifth
+
+    Given a made-up limits CSV for Q1 and Q2, Q2 without a standard error
+    When it is read as oet-limits
+    Then Q1's limit is a row with text "7400" and value 7400.0
+    And Q2's design "unavailable" is a row with text only
+    And Q2 has no standard error row
+    """
     p = tmp_path / "l.csv"
     p.write_text("# x\ngeo,ref_year,grouping,group,unit,limit,se,se_design,source_version\n"
                  "GR,2024,B,Q1,EUR_PER_ADULT_EQ_Y,7400,52.5,full,v\n"

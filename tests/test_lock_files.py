@@ -31,6 +31,19 @@ def locked(name: str) -> tuple[dict[str, str], str]:
 
 
 def test_lock_files_match_pyproject():
+    """PY-LOCK-001: the hashed lock files match pyproject.toml's pins
+
+    Given pyproject.toml's base dependencies and extras
+    And the dev, local and selenium lock files
+    When each lock file is read
+    Then every requirement line in it carries a SHA-256 hash
+    And every base pin and every pin of its extras is locked at the same version
+    And setuptools is locked, since the project installs without build isolation
+    And the file's header says it was compiled for each of its extras
+
+    The Selenium browser tests have a lock of their own (with the dev extra), so their
+    dependencies never enter the other two.
+    """
     with open(ROOT / "pyproject.toml", "rb") as f:
         data = tomllib.load(f)
     project = data["project"]

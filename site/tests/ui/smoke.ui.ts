@@ -2,7 +2,7 @@
 // error). It runs on every build, before upload (on dist/) and after (on the build's preview
 // address, with the host's own checks in host.ui.ts: the tests tagged @smoke), so a page that
 // builds but breaks in the browser never reaches the public site.
-import { expect, m1, test } from "./helpers";
+import { expect, gwt, m1, test } from "./helpers";
 
 const M1 = m1("en");
 const PAGES = [
@@ -14,7 +14,13 @@ const PAGES = [
 const smoke = { tag: "@smoke" };
 
 for (const path of PAGES) {
-  test(`${path} loads, shows its heading and logs no error`, smoke, async ({ page }) => {
+  test(`${path} loads, shows its heading and logs no error`, { ...smoke, ...gwt({
+    id: "PW-SMOKE-001",
+    title: "each main page loads, shows its heading and logs no error",
+    given: "a page of one of the site's kinds",
+    when: "it is opened and has finished loading its data",
+    then: ["it answers with success (200)", "its main heading is shown and is not empty", "the browser logs no error"],
+  }) }, async ({ page }) => {
     // networkidle: the charts fetch their data after the page loads, and draw when it arrives.
     const response = await page.goto(path, { waitUntil: "networkidle" });
     expect(response?.status()).toBe(200);
@@ -23,12 +29,22 @@ for (const path of PAGES) {
   });
 }
 
-test("the root address moves on to a language", smoke, async ({ page }) => {
+test("the root address moves on to a language", { ...smoke, ...gwt({
+  id: "PW-SMOKE-002",
+  given: "the site's root address, with no language in it",
+  when: "it is opened",
+  then: "the visitor ends up on the English or the Greek home page",
+}) }, async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/(en|el)\/$/);
 });
 
-test("a missing address answers 404", smoke, async ({ request }) => {
+test("a missing address answers 404", { ...smoke, ...gwt({
+  id: "PW-SMOKE-003",
+  given: "an address where the site has no page",
+  when: "it is requested",
+  then: "the site answers 404 (not found)",
+}) }, async ({ request }) => {
   const response = await request.get("/en/no-such-page/");
   expect(response.status()).toBe(404);
 });

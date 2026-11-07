@@ -14,8 +14,8 @@ DIR is the branch `test-history` (see history.py); WIKI_DIR a checkout of the wi
 and removes any other `Tests-*.md` it wrote before. Every page starts with "Generated, do not edit".
 
 Flakiness: over a case's last WINDOW results on pushes to main that weren't skipped, the share of
-consecutive pairs whose result changed (a pass followed by a fail, or the reverse), counting a
-pass that needed a retry as a change too. Shown once a case has at least 5 such results; below
+consecutive pairs whose result changed (a pass followed by a fail, or the reverse); a pass that
+needed a retry counts as one change (the way back to a clean pass doesn't count again). Shown once a case has at least 5 such results; below
 that it says so. A rate, not a verdict: a real regression and its fix show up as two changes.
 
 Standard library only.
@@ -61,7 +61,7 @@ def flakiness(results: list[str]) -> float | None:
     seq = [r for r in results if r != "skipped"]
     if len(seq) < MIN_FOR_RATE:
         return None
-    changes = sum(1 for a, b in zip(seq, seq[1:]) if a != b or b == "flaky")
+    changes = sum(1 for a, b in zip(seq, seq[1:]) if a != b and not (a == "flaky" and b == "passed"))
     return changes / (len(seq) - 1)
 
 

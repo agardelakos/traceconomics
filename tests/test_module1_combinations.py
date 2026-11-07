@@ -26,6 +26,14 @@ def baskets():
 
 
 def test_48_settings_with_the_default_first():
+    """PY-COMBO-001: 48 settings, with the default first
+
+    Given the module 1 options
+    When every setting is listed
+    Then there are 48, the first being the default
+    And each has its own label
+    And there are 27 groups: 3 groupings of five fifths, all, 3 tenures, 2 pensioner groups and 6 household types
+    """
     s = combinations.settings()
     assert len(s) == 48 and s[0] == combinations.DEFAULT
     assert len({combinations.label(x) for x in s}) == 48
@@ -33,6 +41,14 @@ def test_48_settings_with_the_default_first():
 
 
 def test_quality_flags_follow_the_price_source():
+    """PY-COMBO-002: quality flags follow the price source
+
+    Given periods on each side of the price sources' limits
+    When the quality flag of each measure is read
+    Then the index is "less certain" up to 2010-12 and unflagged from 2011-01
+    And on HICP prices the index is "coarser detail" up to 2014-12, the annual rate up to 2015-12, the monthly rate up to 2015-01 and the annual average for 2015
+    And each is unflagged after that, and shares for 2015 are never flagged
+    """
     q = output.quality
     assert q("I25", "2010-12") == "less certain" and q("I25", "2011-01") == ""
     assert q("I25", "2014-12", "hicp") == "coarser detail" and q("I25", "2015-01", "hicp") == ""
@@ -42,6 +58,14 @@ def test_quality_flags_follow_the_price_source():
 
 
 def test_small_cells_are_published_only_inside_a_rest_row():
+    """PY-COMBO-003: small cells are published only inside a rest row
+
+    Given a year's weights where two small subclasses are priced with their class
+    When the published weights are made
+    Then the two small cells appear only as one "0111_REST" row, of weight 0.3, under 0111, covering 2 cells
+    And the other subclass covers 1 cell
+    And the published weights sum to 1
+    """
     u = Used(Entry(2020, 2019, FINAL, "2020-01", "t"),
              {"01111": 0.1, "01112": 0.2, "01113": 0.3, "0112": 0.4},
              {"01111": "0111", "01112": "0111"}, small={"01111": "0111", "01112": "0111"})
@@ -53,6 +77,16 @@ def test_small_cells_are_published_only_inside_a_rest_row():
 
 
 def test_series_carry_their_options_and_rule_u_ends_with_its_surveys():
+    """PY-COMBO-004: series carry their options, and rule U ends with its surveys
+
+    Given made-up prices and baskets for B/Q1
+    When the series is built with the default options, with weights timing "U" and with weights timing "F"
+    And the default and "U" series are turned into output rows
+    Then the default series has the default options and unit I25
+    And the "U" series ends at 2024-12, with unit I24
+    And the "F" series starts at 2010-12, since its first year is 2011
+    And the index rows carry weights timing N and U, and units I25 and I24
+    """
     b, k = blocks(), baskets()
     n = index.build(None, "B", "Q1", blocks=b, baskets=k, first_year=None)
     u = index.build(None, "B", "Q1", blocks=b, baskets=k, first_year=None, options={"weights_timing": "U"})
@@ -66,6 +100,16 @@ def test_series_carry_their_options_and_rule_u_ends_with_its_surveys():
 
 
 def test_availability_greys_out_what_a_rule_cannot_cover(tmp_path):
+    """PY-COMBO-005: availability greys out what a rule can't cover
+
+    Given series for B/Q1 and B/Q5 under weights timing N, F and U
+    When the availability table is built and written
+    Then rule F is greyed with reason "rule_f_start" for annual rates from 2009-12 to 2011-11
+    And rule U is greyed with reason "rule_u_end" for the index from 2025-01 to 2026-09, its text naming 2024
+    And the default series has the hospital footnote for annual rates 2009-12 to 2016-11 and annual averages 2010 to 2016 (weights from surveys 2008-2014)
+    And the "U" series' hospital footnote ends at 2015-11 and its lockdown footnote covers index year 2020
+    And the first written file holds the fixed part and the second names "rule_u_end"
+    """
     b, k = blocks(), baskets()
     summaries = []
     for rule in ("N", "F", "U"):
@@ -89,6 +133,12 @@ def test_availability_greys_out_what_a_rule_cannot_cover(tmp_path):
 
 
 def test_a_rest_row_with_one_cell_is_flagged_low_reliability():
+    """PY-COMBO-006: a rest row with one cell is flagged low reliability
+
+    Given a series whose 2015 weights have one small cell (10501) priced with its group
+    When its weights-used rows are written
+    Then the 2015 row "105_REST" is flagged "low reliability"
+    """
     s = index.build(None, "B", "Q1", blocks=blocks(), baskets=baskets(), first_year=None)
     u = s.used[2015]
     u.small = {"10501": "105"}
@@ -99,6 +149,16 @@ def test_a_rest_row_with_one_cell_is_flagged_low_reliability():
 
 def test_code_fingerprint_ignores_line_endings(monkeypatch, tmp_path):
     # The same code checked out on Windows (CRLF) and on Linux (LF) must give the same fingerprint.
+    """PY-COMBO-007: the code fingerprint ignores line endings
+
+    Given a made-up package with one source file with LF line endings, and its fingerprint
+    When the file is rewritten with CRLF line endings
+    And then rewritten with a changed line
+    Then the CRLF file gives the same fingerprint
+    And the changed file gives a different one
+
+    The same code checked out on Windows (CRLF) and on Linux (LF) must give the same fingerprint.
+    """
     from traceconomics.module1 import output
 
     pkg = tmp_path / "fakepkg"
@@ -117,6 +177,15 @@ def test_code_fingerprint_ignores_line_endings(monkeypatch, tmp_path):
 def test_published_json_has_lf_line_endings(tmp_path):
     # Python on Windows writes CRLF unless told otherwise; published files must be byte-identical
     # whichever machine wrote them.
+    """PY-COMBO-008: the published metadata has LF line endings
+
+    Given an output folder
+    When the metadata file is written
+    Then it contains LF and no CR
+
+    Python on Windows writes CRLF unless told otherwise; published files must be byte-identical
+    whichever machine wrote them.
+    """
     from traceconomics.module1 import output
 
     path = output.write_metadata(tmp_path, first_period="2008-12", last_period="2026-09", manifest={})
@@ -128,6 +197,16 @@ def test_parquet_is_written_with_one_thread():
     # DuckDB reads a large CSV in parallel chunks and the Parquet row groups follow them: on the real
     # contributions table (2.8 million rows) 2 threads gave a different file from 1 or 16. Published
     # files must be byte-identical wherever they are built, so they are written with one thread.
+    """PY-COMBO-009: Parquet is written with one thread
+
+    Given the connection used to write Parquet
+    When its thread setting is read
+    Then it is 1
+
+    DuckDB reads a large CSV in parallel chunks and the Parquet row groups follow them: on the real
+    contributions table (2.8 million rows) 2 threads gave a different file from 1 or 16. Published
+    files must be byte-identical wherever they are built, so they are written with one thread.
+    """
     from traceconomics.module1 import output
 
     con = output.parquet_connection()

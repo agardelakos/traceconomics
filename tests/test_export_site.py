@@ -37,6 +37,15 @@ def presets():
 
 
 def test_calculator_file_rebuilds_every_preset_exactly():
+    """PY-SITEEXP-001: the calculator file rebuilds every preset exactly
+
+    Given made-up price blocks for 2008 to 2026-09 and baskets for every calculator preset
+    And the index series built for each preset
+    When the calculator file is built from 2019 with 12 digits
+    Then it starts in 2019 and holds one entry per preset
+    And the B/Q1 weights and the price ratios in the file rebuild that series' published values to 2 decimals for every month from 2019-01
+    And the 2026 ratios have at most 9 months: months not out yet are left off
+    """
     series, b = presets()
     data = calculator.build(series, b, first_year=2019, digits=12)
     assert data["first_year"] == 2019 and set(data["presets"]) == {f"{g}/{q}" for g, q in calculator.PRESETS}
@@ -50,6 +59,13 @@ def test_calculator_file_rebuilds_every_preset_exactly():
 
 
 def test_calculator_weights_are_summed_by_the_index_that_prices_them():
+    """PY-SITEEXP-002: calculator weights are summed under the index that prices them
+
+    Given a preset series whose 2020 weights price class 012 with the index of 011
+    When the preset's 2020 weights are taken for the calculator
+    Then 012 has no weight of its own
+    And 011's weight is the sum of the two classes' weights
+    """
     series, b = presets()
     s = series[0]
     s.used[2020].price_with["012"] = "011"
@@ -58,6 +74,12 @@ def test_calculator_weights_are_summed_by_the_index_that_prices_them():
 
 
 def test_calculator_refuses_inputs_that_dont_rebuild_the_series():
+    """PY-SITEEXP-003: the calculator refuses inputs that don't rebuild the series
+
+    Given preset series where one published month is changed by 0.5
+    When the calculator file is built
+    Then a FormatError saying the inputs "don't rebuild" the series is raised
+    """
     series, b = presets()
     series[0].published["2020-05"] += 0.5
     with pytest.raises(FormatError, match="don't rebuild"):
@@ -80,6 +102,18 @@ def write_outputs(tmp_path):
 
 
 def test_series_file_holds_published_values_on_one_month_axis(tmp_path):
+    """PY-SITEEXP-004: a setting's series file holds the published values on one month axis
+
+    Given module 1 outputs written for three groups under the default setting and with weights timing "U"
+    And a standard error for the B Q1-Q5 annual gap in 2015-06
+    When the series file is made for the default setting
+    And for weights timing "U"
+    Then group B/Q1's annual rate at 2022-12 on the shared month axis is the series' rate rounded to 1 decimal
+    And the gap's standard error sits at 2015-06 on that axis
+    And the first flag is "less certain", with annual rates flagged up to 2011-12
+    And the "U" file ends in 2024-12 with unit "I24"
+    And the file serialises to plain JSON
+    """
     con, series = write_outputs(tmp_path)
     default = dict(combinations.DEFAULT)
     se = {(site.slug(default), "B", "Q1-Q5", "RCH_A_GAP"): {"2015-06": 0.123}}
@@ -96,6 +130,15 @@ def test_series_file_holds_published_values_on_one_month_axis(tmp_path):
 
 
 def test_downloads_csv_only_for_core_tables_except_the_default(tmp_path):
+    """PY-SITEEXP-005: downloads add a CSV of every table only for the default setting
+
+    Given module 1 outputs written for the default setting and for weights timing "U"
+    When the download files are written for the non-default setting
+    And for the default setting, with a checksum file
+    Then the non-default downloads include the weights-used table as Parquet but not as CSV, and the rates as CSV
+    And the default downloads also have the weights-used table as CSV
+    And their checksum file lists the rates CSV and has 8 lines
+    """
     con, _ = write_outputs(tmp_path)
     other = {**combinations.DEFAULT, "weights_timing": "U"}
     names = {p.name for p in site.downloads(con, other, tmp_path / "d1")}
@@ -108,6 +151,18 @@ def test_downloads_csv_only_for_core_tables_except_the_default(tmp_path):
 
 def test_official_rate_from_the_published_levels_of_two_files():
     # Each year's file holds its own months plus the previous December; only its own months count.
+    """PY-SITEEXP-006: the official annual rate is computed from the levels in two years' files
+
+    Given two years' CPI files, each holding its own months and the previous December
+    And ELSTAT's published twelve-month rates for 2026-08 and 2026-09
+    When the official rate is compared
+    Then ours and ELSTAT's are both for 2026-09
+    And ours is computed at full precision from the 2025-09 and 2026-09 levels (5.049184623573844, not 5.0467 from rounded indices)
+    And both round to 5.0, with sources elstat:cpi07 and elstat:cpi05
+    And the comparison says they agree
+
+    Each year's file holds its own months plus the previous December; only its own months count.
+    """
     b = {2025: {"TOTAL": {"2024-12": 1.0, "2025-09": 122.06030611018821, "2025-12": 122.5}},
          2026: {"TOTAL": {"2025-12": 999.0, "2026-08": 125.6, "2026-09": 128.223356317791}}}
     out = site.official_rate(b, {"2026-08": 0.037, "2026-09": 0.05049184623573861})
@@ -121,6 +176,13 @@ def test_official_rate_from_the_published_levels_of_two_files():
 
 
 def test_official_rate_reports_a_disagreement_instead_of_hiding_it():
+    """PY-SITEEXP-007: a disagreement with the official rate is reported, not hidden
+
+    Given levels that give 5.0% and a published rate of 5.1% for the same month
+    When the official rate is compared
+    Then ours is 5.0 and ELSTAT's 5.1
+    And the comparison says they disagree, with a difference of -0.1
+    """
     b = {2025: {"TOTAL": {"2025-09": 100.0}}, 2026: {"TOTAL": {"2026-09": 105.0}}}
     out = site.official_rate(b, {"2026-09": 0.051})
     assert out["computed"]["annual_rate"] == 5.0 and out["published"]["annual_rate"] == 5.1
@@ -130,6 +192,15 @@ def test_official_rate_reports_a_disagreement_instead_of_hiding_it():
 
 def test_official_rate_keeps_each_figure_in_its_own_month():
     # ELSTAT's table 05 a month ahead of table 07 (or behind): both shown, not compared.
+    """PY-SITEEXP-008: our rate and the published one keep their own months
+
+    Given levels up to 2026-09 and published rates up to 2026-10
+    When the official rate is compared
+    Then ours is for 2026-09 and ELSTAT's for 2026-10
+    And no comparison is made
+
+    ELSTAT's table 05 can be a month ahead of table 07 (or behind): both are shown, not compared.
+    """
     b = {2025: {"TOTAL": {"2025-09": 100.0}}, 2026: {"TOTAL": {"2026-09": 105.0}}}
     out = site.official_rate(b, {"2026-09": 0.05, "2026-10": 0.06})
     assert out["computed"]["period"] == "2026-09" and out["published"]["period"] == "2026-10"
@@ -137,12 +208,25 @@ def test_official_rate_keeps_each_figure_in_its_own_month():
 
 
 def test_official_rate_refuses_a_year_without_the_one_before():
+    """PY-SITEEXP-009: the official rate refuses a year without the one before
+
+    Given CPI levels for 2026 only
+    When the official rate is compared
+    Then a FormatError is raised
+    """
     with pytest.raises(FormatError):
         site.official_rate({2026: {"TOTAL": {"2026-09": 128.2}}}, {"2026-09": 0.05})
 
 
 def test_pps_factor_is_one_for_the_whole_year_and_least_bent_by_rounding():
     # Eurostat's EU-SILC 2025 limits for Greece (ilc_di01), in euros and in PPS, each rounded to a whole unit.
+    """PY-SITEEXP-010: one EUR/PPS factor for the year, least bent by rounding
+
+    Given Eurostat's 2025 EU-SILC income limits for Greece in euros and in PPS, each rounded to a whole unit
+    When the PPS factor is worked out
+    Then it is the sum of the euro limits over the sum of the PPS limits (47619 / 55400)
+    And every limit in PPS times the factor is within 1 euro of the euro limit
+    """
     eur = {"Q1": 7110, "Q2": 10269, "Q3": 13184, "Q4": 17056}
     pps = {"Q1": 8272, "Q2": 11947, "Q3": 15338, "Q4": 19843}
     f = site.pps_factor(eur, pps)
@@ -154,6 +238,15 @@ def test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_euro
     # The store's view is the union of the datasets it holds, so with no ilc_di01 rows its
     # columns (quant_inc, statinfo) don't exist: the export must say which dataset is missing,
     # not fail on an unknown column.
+    """PY-SITEEXP-011: the income limits file names the missing Eurostat dataset
+
+    Given a store whose observations hold our own HBS limits but no eurostat:ilc_di01 rows
+    When the income limits file is made
+    Then a FormatError naming eurostat:ilc_di01 is raised, not an unknown-column error
+
+    The store's view is the union of the datasets it holds, so with no ilc_di01 rows its columns
+    (quant_inc, statinfo) don't exist.
+    """
     con = duckdb.connect()
     con.execute("""CREATE TABLE observations AS SELECT * FROM (VALUES
         ('oet-local:hbs_limits', 'k1', '2024', TIMESTAMP '2026-11-07 09:31:00', TIMESTAMP '2026-11-07 09:31:00',
@@ -165,6 +258,14 @@ def test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_euro
 
 
 def test_pps_factor_refuses_limits_that_dont_share_one():
+    """PY-SITEEXP-012: the PPS factor refuses limits that don't share one
+
+    Given euro and PPS limits whose ratios differ by more than rounding allows
+    When the PPS factor is worked out
+    And it is worked out for euro and PPS limits of different quintiles
+    Then the first raises a FormatError saying there is no "one factor"
+    And the second raises a FormatError saying they "don't match"
+    """
     with pytest.raises(FormatError, match="one factor"):
         site.pps_factor({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000})
     with pytest.raises(FormatError, match="don't match"):

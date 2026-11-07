@@ -12,12 +12,15 @@ A case is written on the test that implements it, so it can't drift from the cod
 
       Optional notes after a blank line: the reason for the rule, kept with the case.
 
-  `And` and `But` continue the step above them. A parametrized test is one Scenario Outline: one
-  ID, its parameter sets are the examples.
+  `And` and `But` continue the step above them. A test that acts more than once lists every action
+  under When and every check under Then, each check saying which action it follows ("And after the
+  reset, …"); "And when …" is refused. A parametrized test is one Scenario Outline: one ID, its
+  parameter sets are the examples.
 
-- Playwright: the test's annotations, `{ type: "id" | "given" | "when" | "then", description }`;
-  a repeated type continues the step above it.
-- Vitest: the test option `meta: { id, given, when, then }`, each a string or a list of strings.
+- Playwright: the test's annotations, `{ type: "id" | "title" | "given" | "when" | "then",
+  description }`; a repeated type continues the step above it. The title is optional: without
+  it the case takes the test's title (an outline, the part its examples' titles share).
+- Vitest: the test option `meta: { id, title?, given, when, then }`, each step a string or a list.
 
 One ID may sit on several tests only within one file, as examples of one outline (a parametrize,
 a loop over languages, `test.each`), and they must carry the same steps. An ID is never reused:
@@ -58,6 +61,7 @@ class Case:
     defects: list[int] = field(default_factory=list)    # issue numbers
     tags: list[str] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)   # what the reader found wrong in the text
+    named: bool = False                                 # the title was given with the case, not taken from the test
 
     def to_json(self) -> dict:
         return asdict(self)
@@ -92,6 +96,10 @@ def _steps(lines: list[str]) -> tuple[dict[str, list[str]], list[str]]:
             if current is None:
                 problems.append(f"{m.group(1)} before any Given/When/Then")
                 continue
+            if re.match(r"(when|given)\b", text, re.I):
+                # "And when …" files an action under Then: list every action under When instead,
+                # and let each Then line say which one it follows.
+                problems.append(f"'{m.group(1)} {text.split()[0]} …' hides a step: list every action under When")
             word = current
         elif current is not None and order[word] < order[current]:
             problems.append(f"{m.group(1)} after {current.capitalize()}: steps go Given, When, Then")
@@ -139,11 +147,13 @@ def from_docstring(doc: str | None) -> dict:
 
 def from_annotations(annotations: list[dict]) -> dict:
     """Playwright annotations → id, steps, defects, problems."""
-    out = {"id": None, "given": [], "when": [], "then": [], "defects": [], "problems": []}
+    out = {"id": None, "title": None, "given": [], "when": [], "then": [], "defects": [], "problems": []}
     current = None
     for a in annotations or []:
         kind, text = (a.get("type") or "").lower(), (a.get("description") or "").strip()
-        if kind == "id":
+        if kind == "title":
+            out["title"] = text or None
+        elif kind == "id":
             if out["id"] and out["id"] != text:
                 out["problems"].append(f"two IDs: {out['id']} and {text}")
             out["id"] = text
@@ -164,9 +174,10 @@ def from_annotations(annotations: list[dict]) -> dict:
 
 def from_meta(meta: dict | None) -> dict:
     """Vitest `meta` → id, steps, problems."""
-    out = {"id": None, "given": [], "when": [], "then": [], "problems": []}
+    out = {"id": None, "title": None, "given": [], "when": [], "then": [], "problems": []}
     meta = meta or {}
     out["id"] = meta.get("id")
+    out["title"] = meta.get("title") or None
     for k in ("given", "when", "then"):
         v = meta.get(k)
         out[k] = [v] if isinstance(v, str) else [str(x) for x in (v or [])]

@@ -27,9 +27,10 @@ permissions:
   contents: read
 
 concurrency:
-  # Per event too: the weekly run must never cancel a push's run (and lose its record).
+  # Per event too: the weekly run must never cancel a push's run. Only a pull request's runs cancel
+  # each other (a new commit makes the old run moot); pushes to main queue, so every one is recorded.
   group: tests-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   python:
@@ -346,9 +347,12 @@ jobs:
     # No concurrency group: GitHub keeps one pending job per group and cancels the older one,
     # which would drop a run's record. The push script retries on a lost race instead.
     steps:
+      # The whole history: the push script checks that this commit descends from the stored
+      # catalog's before replacing it, so a re-run of an old run never rolls the catalog back.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
@@ -382,10 +386,13 @@ jobs:
       - name: Push the record to the branch test-history
         env:
           GH_TOKEN: ${{ github.token }}
+          CATALOG_OK: ${{ needs.catalog.result == 'success' }}
         run: |
-          # The stored catalog is replaced only by a real one, never by nothing.
+          # The stored catalog (and with it the obsolete IDs) moves only on a catalog whose check
+          # passed: an incomplete or broken one would make live IDs look removed.
           catalog=()
-          [ -f "$RUNNER_TEMP/results/catalog/catalog.json" ] && catalog=(--catalog "$RUNNER_TEMP/results/catalog/catalog.json")
+          [ "$CATALOG_OK" = true ] && [ -f "$RUNNER_TEMP/results/catalog/catalog.json" ] \
+            && catalog=(--catalog "$RUNNER_TEMP/results/catalog/catalog.json")
           .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}" \
             "$RUNNER_TEMP/results/record.json" "${catalog[@]}"
 

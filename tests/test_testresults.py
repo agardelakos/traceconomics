@@ -1,6 +1,7 @@
 """Release builds' test results, sent to the test-results bucket: what is sent, in which order, and
 that a failure to send never stops a build or a promote. Fake uploads only: no network."""
 
+import http.client
 import json
 import urllib.error
 from datetime import UTC, datetime
@@ -17,6 +18,20 @@ STARTED = datetime(2026, 11, 10, 11, 5, 0, tzinfo=UTC)
 
 
 def test_the_commit_is_read_from_git_itself(tmp_path):
+    """PY-TRES-001: the build's commit is read from git's own files
+
+    Given a repository whose HEAD points to a branch
+    When the commit is read with no ref for the branch yet
+    And then with the branch in packed-refs
+    And then with a loose ref for it too
+    And then with HEAD detached
+    And from a folder with no repository
+    Then without a ref there is no commit
+    And with packed-refs alone, the packed commit is read
+    And with a loose ref too, the loose ref wins
+    And with HEAD detached, its commit is read
+    And the folder with no repository has no commit
+    """
     git = tmp_path / ".git"
     (git / "refs/heads").mkdir(parents=True)
     (git / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
@@ -31,7 +46,34 @@ def test_the_commit_is_read_from_git_itself(tmp_path):
     assert testresults.source_commit(tmp_path / "nowhere") is None
 
 
+def test_a_worktree_checkout_is_followed_to_its_repository(tmp_path):
+    """PY-TRES-002: a worktree checkout is followed to its repository
+
+    Given a worktree whose .git file points into the main repository, on a branch whose ref is kept there
+    When the worktree's commit is read
+    Then it is the branch's commit
+    """
+    main, wt = tmp_path / "main/.git", tmp_path / "main/.git/worktrees/wt"
+    (main / "refs/heads").mkdir(parents=True)
+    wt.mkdir(parents=True)
+    (main / "refs/heads/fix").write_text(SHA + "\n", encoding="utf-8")
+    (wt / "HEAD").write_text("ref: refs/heads/fix\n", encoding="utf-8")
+    (wt / "commondir").write_text("../..\n", encoding="utf-8")
+    (tmp_path / "wt").mkdir()
+    (tmp_path / "wt/.git").write_text(f"gitdir: {wt}\n", encoding="utf-8")
+    assert testresults.source_commit(tmp_path / "wt") == SHA
+
+
 def test_results_then_meta_last(tmp_path):
+    """PY-TRES-003: a browser step sends its results first and its meta file last
+
+    Given a ui-test step run with a results file and a bucket link
+    When its test results are sent
+    Then the result is ok, with the folder named by the build, the step and the step's start time
+    And the results file is sent first, as playwright.json, then meta.json
+    And the meta file holds the schema version, build, commit, step, start time, environment and result
+    And the environment says the data are real
+    """
     results = tmp_path / "results.json"
     results.write_text('{"suites": []}', encoding="utf-8")
     sent = []
@@ -47,6 +89,13 @@ def test_results_then_meta_last(tmp_path):
 
 
 def test_a_promote_check_sends_its_meta_alone():
+    """PY-TRES-004: a promote check sends its meta file alone
+
+    Given a promote check with no results file
+    When its test results are sent
+    Then the result is ok
+    And only meta.json is sent
+    """
     sent = []
     out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="failed", url=URL,
                            put=lambda u, body, t: sent.append(u))
@@ -54,6 +103,22 @@ def test_a_promote_check_sends_its_meta_alone():
 
 
 def test_off_without_a_link_and_failures_returned_not_raised(tmp_path, monkeypatch):
+    """PY-TRES-005: sending is off without a link, and failures are returned, not raised
+
+    Given a step's test results to send
+    When they are sent with no bucket link in the environment
+    And with a link the bucket refuses
+    And for a build whose commit is unknown
+    And with a link that doesn't end in /o/, or doesn't start with https://
+    And with an upload that breaks off with an error that is not an OSError
+    And with an upload whose error quotes the address
+    Then without a link the result is "off"
+    And a refused upload is "failed", and the error doesn't repeat the link's secret
+    And an unknown commit is "failed", with an error that says so
+    And a wrong link is "failed", with an error saying what it should be
+    And an upload that breaks off is "failed", and the error names the kind of error
+    And an error that quotes the address doesn't repeat the link's secret
+    """
     monkeypatch.delenv(testresults.URL_ENV, raising=False)
     assert testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed") == {"result": "off"}
 
@@ -63,8 +128,20 @@ def test_off_without_a_link_and_failures_returned_not_raised(tmp_path, monkeypat
     assert out["result"] == "failed" and "SECRET" not in out["error"]         # the link is never repeated
     assert testresults.send(build="b", commit=None, step="promote", started=STARTED, result="passed",
                             url=URL)["error"] == "the build's commit is unknown"
-    assert "should end in /o/" in testresults.send(build="b", commit=SHA, step="promote", started=STARTED,
-                                                   result="passed", url=URL + "results/")["error"]
+    assert "should start with https://" in testresults.send(build="b", commit=SHA, step="promote", started=STARTED,
+                                                            result="passed", url=URL + "results/")["error"]
+    assert "should start with https://" in testresults.send(build="b", commit=SHA, step="promote", started=STARTED,
+                                                            result="passed", url=URL.replace("https://", ""))["error"]
+
+    def torn(u, body, t):
+        raise http.client.IncompleteRead(b"x")                        # not an OSError
+    out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed", url=URL, put=torn)
+    assert out["result"] == "failed" and out["error"].endswith("IncompleteRead: IncompleteRead")
+
+    def quoting(u, body, t):
+        raise ValueError(f"unknown url type: {u}")                     # some errors quote the address
+    out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed", url=URL, put=quoting)
+    assert "SECRET" not in out["error"]
 
 
 class WithResults(FakeSteps):
@@ -91,6 +168,18 @@ def uploads(monkeypatch):
 
 
 def test_a_build_and_its_promote_send_every_browser_step(tmp_path, uploads, monkeypatch):
+    """PY-TRES-006: a release build and its promote send every browser step
+
+    Given a release build whose browser steps write results files, and uploads that succeed
+    When the release build runs
+    And the build is promoted after the repository has moved on
+    Then the build records the repository's commit
+    And its ui-test and smoke results are sent, both passed, with that commit
+    And both uploads are recorded as ok
+    And the promote check is sent as passed
+    And it carries the build's commit, not the repository's new one
+    And its upload is recorded as ok
+    """
     cfg = config(tmp_path)
     monkeypatch.setattr(testresults, "source_commit", lambda repo: SHA)
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WithResults(cfg.release.site_dir))
@@ -105,6 +194,17 @@ def test_a_build_and_its_promote_send_every_browser_step(tmp_path, uploads, monk
 
 
 def test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported(tmp_path, monkeypatch, no_email):
+    """PY-TRES-007: a failed browser step is sent too, and a failed upload is only reported
+
+    Given uploads that always fail
+    And a release build where ui-test fails
+    When the release build runs
+    And a later build's steps all pass
+    Then the first build's ui-test results are sent as failed, and nothing after it
+    And that build fails at ui-test, not at the upload
+    And its alert email says the test results were not sent to the run history, with the step and the upload's error
+    And the later build is ok despite the failed uploads
+    """
     cfg = config(tmp_path)
     monkeypatch.setattr(testresults, "source_commit", lambda repo: SHA)
     calls = []

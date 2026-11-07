@@ -31,6 +31,13 @@ def _report(problems):
 @pytest.mark.parametrize("lang", ["en", "el"])
 @pytest.mark.parametrize("path", PATHS)
 def test_desktop(site, path, lang, theme):
+    """SEL-A11Y-001: no serious accessibility problem on a desktop
+
+    Given one of the main pages, in English or Greek, with the light or dark theme chosen, on a desktop
+    And a page that draws a chart has drawn it
+    When axe checks it against WCAG 2.0 to 2.2, A and AA
+    Then it finds no serious or critical problem
+    """
     _check(site, f"/{lang}/{path}", theme)
     problems = site.axe()
     assert not problems, _report(problems)
@@ -41,6 +48,13 @@ def test_desktop(site, path, lang, theme):
 @pytest.mark.parametrize("lang", ["en", "el"])
 @pytest.mark.parametrize("path", PATHS)
 def test_phone(phone, path, lang, theme):
+    """SEL-A11Y-002: no serious accessibility problem on a phone
+
+    Given one of the main pages, in English or Greek, with the light or dark theme chosen, on a phone
+    And a page that draws a chart has drawn it
+    When axe checks it against WCAG 2.0 to 2.2, A and AA
+    Then it finds no serious or critical problem
+    """
     _check(phone, f"/{lang}/{path}", theme)
     problems = phone.axe()
     assert not problems, _report(problems)
@@ -49,6 +63,13 @@ def test_phone(phone, path, lang, theme):
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("menu", ["#settings-menu", "#topic-menu", "#country-menu"])
 def test_desktop_menus_open(site, menu, theme):
+    """SEL-A11Y-003: no serious accessibility problem with a header menu open
+
+    Given the topic page in English, with the light or dark theme chosen, on a desktop
+    When one of the header's menus (settings, topics or countries) is opened
+    And axe checks the page against WCAG 2.0 to 2.2, A and AA
+    Then it finds no serious or critical problem
+    """
     _check(site, "/en/gr/inflation-by-group/", theme)
     site.find(f'[popovertarget="{menu[1:]}"]').click()
     site.wait(lambda _: site.popover_open(site.find(menu)))
@@ -59,6 +80,13 @@ def test_desktop_menus_open(site, menu, theme):
 @pytest.mark.phone
 @pytest.mark.parametrize("theme", ["light", "dark"])
 def test_phone_menu_open(phone, theme):
+    """SEL-A11Y-004: no serious accessibility problem with the phone menu open
+
+    Given the topic page in English, with the light or dark theme chosen, on a phone
+    When the menu is opened
+    And axe checks the page against WCAG 2.0 to 2.2, A and AA
+    Then it finds no serious or critical problem
+    """
     _check(phone, "/en/gr/inflation-by-group/", theme)
     phone.find(".menu-button").click()
     phone.wait(lambda _: phone.popover_open(phone.find("#site-menu")))

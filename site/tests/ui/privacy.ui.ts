@@ -2,7 +2,7 @@
 // it), nothing is stored but the theme choice, no cookies, and no requests to other sites (release
 // builds add one, the visit counter, which the tests block).
 import type { Page, Request } from "@playwright/test";
-import { expect, m1, t, test } from "./helpers";
+import { expect, gwt, m1, t, test } from "./helpers";
 
 // Amounts unlikely to appear anywhere by chance.
 const INCOME = "23457";
@@ -20,7 +20,13 @@ async function storage(page: Page) {
   return page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }));
 }
 
-test("the group finder sends nothing it is told, and stores nothing", async ({ page, context, coverage }) => {
+test("the group finder sends nothing it is told, and stores nothing", gwt({
+  id: "PW-PRIV-001",
+  given: "the Groups page's group finder",
+  when: ["an income is typed and renting is picked", "the finder shows its answer", "the first link it offers is followed"],
+  then: ["no request made, on either page, carries the income (in its address, body or headers)",
+    "nothing is kept in the browser's local or session storage", "no cookie is set"],
+}), async ({ page, context, coverage }) => {
   const requests = record(page);
   await page.goto(m1("en", "groups/"));
   const f = page.locator("#find");
@@ -36,7 +42,13 @@ test("the group finder sends nothing it is told, and stores nothing", async ({ p
   expect(await context.cookies()).toEqual([]);
 });
 
-test("the calculator sends nothing it is told, and stores nothing", async ({ page, context }) => {
+test("the calculator sends nothing it is told, and stores nothing", gwt({
+  id: "PW-PRIV-002",
+  given: "the calculator",
+  when: ["it is switched to euros a month and an amount is typed", "it is switched back to shares and a slider is moved"],
+  then: ["no request made carries the amount (in its address, body or headers)", "the page's address holds no query",
+    "nothing is kept in the browser's local or session storage", "no cookie is set"],
+}), async ({ page, context }) => {
   const requests = record(page);
   await page.goto(m1("en", "calculator/"));
   await expect(page.locator('#calculator [data-role="result"]')).toBeVisible();
@@ -52,7 +64,12 @@ test("the calculator sends nothing it is told, and stores nothing", async ({ pag
   expect(await context.cookies()).toEqual([]);
 });
 
-test("the theme is the only thing kept, under one key", async ({ page }) => {
+test("the theme is the only thing kept, under one key", gwt({
+  id: "PW-PRIV-003",
+  given: "the home page",
+  when: ["the dark theme is chosen in the settings", "Explore is opened with two groups and shows its summary"],
+  then: "the browser's storage holds one entry, the theme, in local storage, and nothing in session storage",
+}), async ({ page }) => {
   await page.goto("/en/");
   await page.getByRole("button", { name: t("en", "settings.label") }).click();
   await page.getByRole("radio", { name: t("en", "theme.dark") }).check();
@@ -61,7 +78,12 @@ test("the theme is the only thing kept, under one key", async ({ page }) => {
   expect(await storage(page)).toEqual({ local: ["theme"], session: [] });
 });
 
-test("pages ask nothing of other sites", async ({ page, baseURL }) => {
+test("pages ask nothing of other sites", gwt({
+  id: "PW-PRIV-004",
+  given: "the home page, the inflation-by-group page for Greece, Explore, the calculator, the Groups page, the data page for Greece and the glossary",
+  when: "each is opened in turn and finishes loading",
+  then: "no request goes to another site, other than to the visit counter (in release builds only, and blocked in tests)",
+}), async ({ page, baseURL }) => {
   const requests = record(page);
   for (const path of ["/en/", m1("en"), m1("en", "explore/"), m1("en", "calculator/"), m1("en", "groups/"), "/en/data/gr/", "/en/glossary/"]) {
     await page.goto(path, { waitUntil: "networkidle" });

@@ -49,6 +49,14 @@ def sample(strata=10, areas=6, households=8, design="full", seed=1) -> Survey:
 
 
 def test_factors_keep_each_stratum_whole_and_are_reproducible():
+    """PY-BOOT-001: replicate factors keep each stratum whole and are reproducible
+
+    Given a made-up stratified survey of 10 strata with 6 areas each
+    When 50 replicate factors are drawn twice from the same seed
+    Then both draws are identical
+    And in every replicate each stratum's area factors sum to its number of areas (6)
+    And every household in an area gets the same factor
+    """
     s = sample()
     d = bootstrap.design(s)
     f1 = bootstrap.replicate_factors(d, 50, np.random.default_rng([7, 2016]))
@@ -62,6 +70,14 @@ def test_factors_keep_each_stratum_whole_and_are_reproducible():
 
 
 def test_bootstrap_agrees_with_the_linearised_variance_of_a_share():
+    """PY-BOOT-002: the bootstrap agrees with the linearised variance of a share
+
+    Given a made-up stratified survey
+    And the Taylor-linearised standard error of the food share, without imputed rent
+    When standard errors are bootstrapped with 4000 replicates
+    Then the design status is "full"
+    And the food share's standard error for all households is within 5% of the linearised one
+    """
     s = sample()
     w = s.households.weight.to_numpy()
     food = s.spending["0111"].to_numpy()
@@ -78,6 +94,17 @@ def test_bootstrap_agrees_with_the_linearised_variance_of_a_share():
 
 
 def test_errors_cover_every_share_and_flag_high_relative_errors():
+    """PY-BOOT-003: errors cover every published share and flag high relative errors
+
+    Given a made-up stratified survey, its groups and 200 bootstrap replicates
+    When the shares are joined with their errors
+    Then groupings used only for validation have no errors
+    And every published share has one: positive where the share is positive, zero where it is zero
+    And the published groupings are all, A, B, C, tenure, pensioners and hhtype
+    And a share is flagged high where its relative error is 0.25 or more, and the flag is empty where the relative error is undefined
+    And the design is "full" for every row
+    And the food share's error is larger for B/Q1 than for all households, since re-ranking adds uncertainty about who is in a quintile
+    """
     s = sample()
     g = assign(s)
     d, se = bootstrap.standard_errors(s, g, replicates=200)
@@ -95,6 +122,15 @@ def test_errors_cover_every_share_and_flag_high_relative_errors():
 
 
 def test_without_areas_there_are_no_errors_and_without_strata_the_region_stands_in():
+    """PY-BOOT-004: without areas there are no errors; without strata the region stands in
+
+    Given a made-up survey without areas
+    When standard errors are computed
+    And the design of a made-up survey without strata is read
+    Then the survey without areas has design "unavailable" and no errors
+    And its shares joined with them have no errors and design "unavailable"
+    And the survey without strata gets an "approximate" design whose strata are the regions
+    """
     s = sample(design="no-clusters")
     d, se = bootstrap.standard_errors(s, assign(s), replicates=10)
     assert d.status == "unavailable" and se.empty
@@ -105,6 +141,14 @@ def test_without_areas_there_are_no_errors_and_without_strata_the_region_stands_
 
 
 def test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata():
+    """PY-BOOT-005: the design refuses a single-area stratum and an area in two strata
+
+    Given a made-up survey where one stratum has a single area
+    When the design is read
+    And the design of a survey where one area sits in two strata is read
+    Then the first raises a FormatError about a "single area"
+    And the second raises a FormatError about "more than one stratum"
+    """
     s = sample(strata=2, areas=2, households=3)
     s.households.loc[s.households.cluster == "C0001", "stratum"] = "lonely"
     with pytest.raises(FormatError, match="single area"):
@@ -116,6 +160,14 @@ def test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata():
 
 
 def test_cv_check_passes_on_our_own_values_and_fails_far_from_them():
+    """PY-BOOT-006: the CV check passes on our own values and fails far from them
+
+    Given a made-up survey and the coefficients of variation it gives
+    When they are checked as if published
+    And a published CV twice ours for division 01 is checked
+    Then the first check passes
+    And the second fails
+    """
     s = sample()
     ours = {c: cv for c, _, cv in v2.cv_check(s, {"00": 1.0, "01": 1.0}, replicates=500).rows}
     assert v2.cv_check(s, ours, replicates=500).passed
@@ -123,6 +175,17 @@ def test_cv_check_passes_on_our_own_values_and_fails_far_from_them():
 
 
 def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas():
+    """PY-BOOT-007: income-limit errors are reproducible and shrink with more areas
+
+    Given a small and a large made-up stratified survey
+    When the standard errors of the income limits are computed with 200 replicates
+    And the small survey's are computed again
+    And a survey without areas is given
+    Then the small survey's design is "full", with 4 positive errors
+    And the large survey's errors are smaller on average
+    And the second computation gives the same errors
+    And the survey without areas gives no errors (None)
+    """
     from traceconomics.local.bootstrap import limit_errors
     small, big = sample(strata=4, areas=3, households=6), sample(strata=16, areas=8, households=6)
     d, se_small = limit_errors(small, replicates=200)

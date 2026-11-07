@@ -36,6 +36,14 @@ def setup(tmp_path):
 
 
 def test_dry_run_changes_nothing(tmp_path):
+    """PY-MIGRATE-001: a dry run changes nothing
+
+    Given a made-up home with the earlier name's archive, store, config and keyring password
+    When the migration is run as a dry run
+    Then its plan includes a rename and reports no problems
+    And the old archive is still there and no new one exists
+    And no new config folder or keyring entry is made
+    """
     home, base = setup(tmp_path)
     kr = FakeKeyring({("oet-smtp", "someone@example.org"): "secret"})
     plan = migrate.run(dry_run=True, home=home, config_base=base, keyring_module=kr, schtasks=False)
@@ -45,6 +53,17 @@ def test_dry_run_changes_nothing(tmp_path):
 
 
 def test_run_moves_folders_writes_config_and_copies_the_password(tmp_path):
+    """PY-MIGRATE-002: the migration moves the folders, writes the config and copies the password
+
+    Given a made-up home with the earlier name's archive, store, config and keyring password
+    When the migration is run
+    Then it reports no problems
+    And the archive (with its index) and the store are under the new names, and the old archive is gone
+    And the new config points to the new archive and uses the new user agent, keyring service and password variable, with no "oet" left
+    And the old config file is kept unchanged
+    And the password is copied to the new keyring service
+    And no step of the plan shows the password
+    """
     home, base = setup(tmp_path)
     kr = FakeKeyring({("oet-smtp", "someone@example.org"): "secret"})
     plan = migrate.run(dry_run=False, home=home, config_base=base, keyring_module=kr, schtasks=False)
@@ -60,6 +79,13 @@ def test_run_moves_folders_writes_config_and_copies_the_password(tmp_path):
 
 
 def test_a_taken_target_is_a_problem_not_a_merge(tmp_path):
+    """PY-MIGRATE-003: a target folder that already exists is a problem, not a merge
+
+    Given a made-up home where the new archive folder already exists
+    When the migration is run
+    Then it reports a problem
+    And the old archive is left in place
+    """
     home, base = setup(tmp_path)
     (home / "traceconomics-archive").mkdir()
     plan = migrate.run(dry_run=False, home=home, config_base=base, keyring_module=FakeKeyring({}), schtasks=False)
