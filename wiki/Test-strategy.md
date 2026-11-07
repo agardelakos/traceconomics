@@ -73,12 +73,11 @@ is a defect. A failure keeps a screenshot and a trace.
 
 ### Selenium
 
-A second browser suite (`tests/selenium/`), written independently in Python and Selenium on a
-pinned Chrome for Testing, over the same areas. It exists to compare the two tools on the same
-product and to cross-check the primary suite: a defect one suite misses and the other catches says
-something about the test, not only the code. The suites are kept **blind to each other**: neither
-references the other's code or case IDs; only a separate mapping file links them (see
-[Test management as code](Test-management-as-code)). `tests/compare/compare.py` runs both several
+A second browser suite (`tests/selenium/`), in Python and Selenium on a pinned Chrome for Testing,
+over the same areas. It exists to compare the two tools on the same product and to cross-check the
+primary suite: a defect one suite misses and the other catches says something about the test, not
+only the code. The two suites were first written independently. Each carries only its own code and
+case IDs; a separate mapping file links them (see [Test management as code](Test-management-as-code)). `tests/compare/compare.py` runs both several
 times on the same build and reports wall time, failures and flaky tests; a hand-started workflow
 does the same on CI.
 

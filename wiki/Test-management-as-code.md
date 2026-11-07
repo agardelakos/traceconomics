@@ -35,12 +35,12 @@ records and `wiki.py` writes the `Tests` pages. The check is a ratchet: files li
 
 ## Two browser suites, one mapping
 
-The site has two browser suites, Playwright and Selenium, written independently so they can be
-compared. To keep them independent, **neither suite carries the other's IDs or text**. The
-cross-suite link is a separate file, `tests/catalog/cases.toml`, mapping a shared case
-`TC-<AREA>-NNN` to the Playwright and Selenium IDs that implement it. Only that file and the catalog
-tooling know both suites. This gives traceability ("which behaviours are covered by both suites,
-which by one") without one suite being written by copying the other.
+The site has two browser suites, Playwright and Selenium, so the two tools can be compared on the
+same product. **Each suite carries only its own IDs and text.** The cross-suite link is a separate
+file, `tests/catalog/cases.toml`, mapping a shared case `TC-<AREA>-NNN` to the Playwright and
+Selenium IDs that implement it, or saying why a case is in one suite only. This gives traceability
+("which behaviours are covered by both suites, which by one") in one place, without either suite
+having to name the other.
 
 ## Run history
 

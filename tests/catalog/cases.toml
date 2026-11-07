@@ -1,7 +1,6 @@
 # The cross-suite mapping: one shared case, the Playwright and Selenium cases that implement it.
 #
-# The two browser suites are written independently and never name each other's cases, so this file
-# is the only place that knows both. Each entry: a TC-<AREA>-NNN key, a one-line title, and the IDs
+# Each browser suite names only its own cases, so this file is the one place that links them. Each entry: a TC-<AREA>-NNN key, a one-line title, and the IDs
 # per suite. A case in one suite only says why. IDs here are never reused.
 #
 # [TC-CALC-001]
