@@ -527,3 +527,8 @@ selenium = ["SEL-M5-011"]
 title = "on a phone, the bar's third row opens scrolled to the page being read"
 playwright = ["PW-M5-012"]
 selenium = ["SEL-M5-012"]
+
+[TC-M5-013]
+title = "each status's chip has its own colour, and a consistent check's chip carries a tick"
+playwright = ["PW-M5-013"]
+selenium = ["SEL-M5-013"]

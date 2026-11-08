@@ -331,3 +331,23 @@ def test_section_strip_opens_scrolled_to_the_current_page_on_a_phone(phone):
     item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
                                        phone.find('nav[data-strip] [aria-current="page"]'))
     assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
+
+
+def test_status_chips_have_their_own_colours(site):
+    """SEL-M5-013: each status's chip has its own colour, and a consistent check's chip carries a tick
+
+    Given the consistency topic's overview, with consistent, explained and unexplained checks
+    When it is opened
+    Then chips of different statuses have different background colours
+    And the Consistent chip is drawn with a tick that is not part of its text
+    """
+    site.open(M5.format(lang="en"))
+    chips = site.driver.execute_script("""
+        return [...document.querySelectorAll('[data-m5="checks"] .chip-status')].map((el) => ({
+          status: [...el.classList].find((c) => c !== 'chip-status'), background: getComputedStyle(el).backgroundColor,
+          tick: getComputedStyle(el, '::before').content }));""")
+    by_status = {c["status"]: c["background"] for c in chips}
+    assert {"agree", "explained"} <= set(by_status)
+    assert len(set(by_status.values())) == len(by_status)
+    assert "✓" in next(c for c in chips if c["status"] == "agree")["tick"]
+    assert site.find('[data-m5="checks"] .chip-status.agree').text.strip() == t("en", "m5.status.agree")

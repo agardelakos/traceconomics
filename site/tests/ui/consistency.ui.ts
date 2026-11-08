@@ -302,3 +302,21 @@ test("on a phone, the bar's third row opens scrolled to the page being read", gw
   expect(item!.x).toBeGreaterThanOrEqual(box.left - 1);
   expect(item!.x + item!.width).toBeLessThanOrEqual(box.left + box.client + 1);
 });
+
+test("each status's chip has its own colour, and a consistent check's chip carries a tick", gwt({
+  id: "PW-M5-013",
+  given: "the consistency topic's overview, with consistent, explained and unexplained checks",
+  when: "it is opened",
+  then: ["chips of different statuses have different background colours",
+    "the Consistent chip is drawn with a tick that is not part of its text"],
+}), async ({ page }) => {
+  await page.goto(M5("en"));
+  const chips = await page.locator('[data-m5="checks"] .chip-status').evaluateAll((els) => els.map((el) => ({
+    status: [...el.classList].find((c) => c !== "chip-status")!, background: getComputedStyle(el).backgroundColor,
+    tick: getComputedStyle(el, "::before").content })));
+  const byStatus = new Map(chips.map((c) => [c.status, c.background]));
+  expect([...byStatus.keys()]).toEqual(expect.arrayContaining(["agree", "explained"]));
+  expect(new Set(byStatus.values()).size).toBe(byStatus.size);
+  expect(chips.find((c) => c.status === "agree")!.tick).toContain("✓");
+  await expect(page.locator('[data-m5="checks"] .chip-status.agree').first()).toHaveText(t("en", "m5.status.agree"));
+});

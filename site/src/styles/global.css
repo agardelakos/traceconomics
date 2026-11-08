@@ -499,6 +499,10 @@ label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not
 
 /* Consistency topic: where a check stands. "Explained" and "all agree" use the accent; the other
    two are neutral on purpose: a difference with no known cause is not an accusation. */
+/* A consistent check stands apart from an explained one by lightness (solid, not a tint) and by a
+   tick, not by hue alone; the tick is decoration, so it has empty alternative text. */
+.chip-status.agree { background: var(--color-accent); color: var(--color-accent-contrast); }
+.chip-status.agree::before { content: "✓\00a0" / ""; }
 .chip-status.partly { background: var(--color-flag-less-certain); color: var(--color-text); }
 .chip-status.unknown { background: var(--color-disabled); color: var(--color-text); }
 .m5-checks td, .m5-checks th { vertical-align: top; }
