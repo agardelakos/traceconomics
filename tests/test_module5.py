@@ -261,22 +261,27 @@ def test_rent_weight_puts_every_source_in_percent_of_spending():
     assert round(v["national_accounts"]["2023"], 2) == 4.78 and round(v["hbs"]["2024"], 2) == 4.23
 
 
-def test_rent_change_compares_average_rents_year_on_year():
-    """PY-M5-011: rent change: each survey's average rent per renting household, change on the year before
+def test_rent_change_indexes_average_rents_to_2015():
+    """PY-M5-011: rent change: each survey's average rent per renting household, as an index with 2015 = 100
 
-    Given a made-up store without table 07, and the HBS and SILC rent tables for 2020 and 2021 (rent paid and renting households)
+    Given a made-up store without table 07, and the HBS and SILC rent tables for 2015, 2020 and 2021 (rent paid and renting households), and a third survey table without 2015
     When the rent-change question is built
     Then the CPI line is left out, since table 07 isn't in the store
-    And the HBS line reads +5% for 2021 (average rent 3,600 to 3,780 a year) and the SILC line +10% (3,000 to 3,300)
+    And the HBS line reads 100 in 2015 and 105 in 2021 (average rent 3,600 to 3,780 a year), the SILC line 100 and 110 (3,000 to 3,300)
+    And a line without a 2015 value gives no index
     """
     from traceconomics.module5 import questions
     rows = []
-    for ds, (r20, r21) in (("oet-local:hbs_rent", (3600.0, 3780.0)), ("oet-local:silc_tenure", (3000.0, 3300.0))):
-        for year, rent in (("2020", r20), ("2021", r21)):
+    for ds, (r15, r20, r21) in (("oet-local:hbs_rent", (3600.0, 3700.0, 3780.0)), ("oet-local:silc_tenure", (3000.0, 3100.0, 3300.0))):
+        for year, rent in (("2015", r15), ("2020", r20), ("2021", r21)):
             rows += [(ds, year, rent * 100, {"geo": "GR", "tenure": "all", "measure": "rent_paid_eur"}),
                      (ds, year, 100.0, {"geo": "GR", "tenure": "renter", "measure": "households_weighted"})]
     con = _store(rows)
     con.execute("ALTER TABLE observations ADD COLUMN archive_dataset VARCHAR")
-    s = questions.rent_change(con).summary()
-    assert [x["label"] for x in s["sources"]] == ["hbs", "silc"]
-    assert round(s["values"]["hbs"]["2021"], 6) == 5.0 and round(s["values"]["silc"]["2021"], 6) == 10.0
+    q = questions.rent_change(con)
+    s = q.summary()
+    assert q.unit == "index" and [x["label"] for x in s["sources"]] == ["hbs", "silc"]
+    v = s["values"]
+    assert round(v["hbs"]["2015"], 6) == 100.0 and round(v["hbs"]["2021"], 6) == 105.0
+    assert round(v["silc"]["2015"], 6) == 100.0 and round(v["silc"]["2021"], 6) == 110.0
+    assert questions._index({"2020": 3000.0, "2021": 3300.0}) == {}

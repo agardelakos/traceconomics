@@ -17,10 +17,14 @@ division that makes a share; AADE's figures are never changed (its terms forbid 
 - `gr-rent-weight`, percent of spending: the CPI's and the HICP's weight for actual rent, the
   national accounts' share (CP041 over all household consumption), and the household budget
   survey's share (rent in purchases, imputed rent left out, as the CPI does).
-- `gr-rent-change`, percent change on the year before: the CPI's rent index (yearly average of
-  its months, each year from its own table 07 file) against the average rent renting households
-  report paying, in the household budget survey and in EU-SILC. An average of what renters pay is
-  not a price index (it moves with who rents what as well as with rents), and the page says so.
+- `gr-rent-change`, an index with 2015 = 100: the CPI's rent index (yearly average of its months,
+  each year from its own table 07 file) against the average rent renting households report
+  paying, in the household budget survey and in EU-SILC, each divided by its own 2015 value.
+  Indices rather than yearly changes: year by year the gaps are small, while what readers ask is
+  how far rents have moved over the years, and that shows only in the cumulative path. An average
+  of what renters pay is not a price index (it moves with who rents what as well as with rents),
+  and the page says so. No other rent series is independent of the CPI: the rent figures the
+  Bank of Greece and the OECD publish are the CPI's own rent index.
 """
 
 from __future__ import annotations
@@ -141,8 +145,16 @@ def rent_weight(store_con) -> Question | None:
     ])
 
 
-def _change(series: dict[str, float]) -> dict[str, float]:
-    return {p: (series[p] / series[str(int(p) - 1)] - 1) * 100 for p in sorted(series) if str(int(p) - 1) in series}
+# 2015: a year all three sources hold, from which the CPI's rent index and the surveys part ways
+# (until 2015 all three fell together). ELSTAT's own index is 2020 = 100 in every table 07 file,
+# so the CPI line is ELSTAT's index divided by its 2015 average: the same path, another base.
+BASE = "2015"
+
+
+def _index(series: dict[str, float]) -> dict[str, float]:
+    """Each year over the base year, × 100; {} when the base year is missing (the line is left out)."""
+    base = series.get(BASE)
+    return {p: series[p] / base * 100 for p in sorted(series)} if base else {}
 
 
 def _mean_rent(store_con, dataset: str) -> dict[str, float]:
@@ -160,15 +172,18 @@ def rent_change(store_con) -> Question | None:
         months = [v for p, v in block.get("041", {}).items() if p.startswith(f"{year}-")]
         if len(months) == 12:
             yearly[str(year)] = sum(months) / 12
-    return _question("gr-rent-change", "percent", [
+    return _question("gr-rent-change", "index", [
         ({"label": "cpi", "source": "elstat:cpi07", "reference": "elstat-cpi-items",
-          "definition": "the CPI's index for actual rent, yearly average, change on the year before"}, _change(yearly)),
+          # The Bank of Greece's and the OECD's rent figures: the CPI's own index, cited so a reader
+          # sees why they aren't lines of their own.
+          "more": ["bog-fsr-2023-11", "oecd-ahd-hm1-2"],
+          "definition": "the CPI's index for actual rent, yearly average, 2015 = 100"}, _index(yearly)),
         ({"label": "hbs", "source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
-          "definition": "average rent renting households report paying, household budget survey, change on the year before"},
-         _change(_mean_rent(store_con, "oet-local:hbs_rent"))),
+          "definition": "average rent renting households report paying, household budget survey, 2015 = 100"},
+         _index(_mean_rent(store_con, "oet-local:hbs_rent"))),
         ({"label": "silc", "source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
-          "definition": "average rent renting households report paying, EU-SILC, change on the year before"},
-         _change(_mean_rent(store_con, "oet-local:silc_tenure"))),
+          "definition": "average rent renting households report paying, EU-SILC, 2015 = 100"},
+         _index(_mean_rent(store_con, "oet-local:silc_tenure"))),
     ])
 
 

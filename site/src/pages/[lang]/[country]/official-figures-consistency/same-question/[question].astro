@@ -33,7 +33,7 @@ const limitRows = limitYears.map((y) => {
 });
 
 // The other questions: every source's value by year, in the question's unit.
-const SCALE: Record<string, [number, number]> = { percent: [1, 1], EUR: [1e9, 2], persons: [1e3, 0] };
+const SCALE: Record<string, [number, number]> = { percent: [1, 1], EUR: [1e9, 2], persons: [1e3, 0], index: [1, 1] };
 const [divide, digits] = SCALE[q.unit] ?? [1, 1];
 const periods = limits ? [] : [...new Set(q.sources.flatMap((s) => Object.keys(q.values[s.label])))].sort();
 const cell = (v: number | null | undefined) => (v == null ? "–" : num(lang, v / divide, digits));
