@@ -38,6 +38,10 @@ ALL_HOUSEHOLDS = "All households"   # table 1.03's name for its first column
 # rules can place on either side of "dependent child" (gaps of 0.5-1.4 points in 2015-2024),
 # narrow enough that a type counted differently by the office shows.
 TYPE_SHARE_GAP = 1.0
+# The written account of what is known about the differences without a hand-written cause (2023's
+# variable, the 2009-2014 gaps): which rules were tried and what each scored. Every such difference
+# links to it, so none reads "reason not known yet" without saying what was looked at.
+TYPES_FINDING = "household-type-rules"
 
 
 @dataclass
@@ -79,7 +83,7 @@ def household_types(years: dict[int, dict[str, dict[str, tuple[str | None, float
                 continue
             e = explain(TYPES, str(year), explanations)
             check.comparisons.append(Comparison(period, theirs, ours, False, e.category if e else "not-known",
-                                                e.finding if e else ""))
+                                                e.finding if e else TYPES_FINDING))
     check.extra = {"agreement_by_year": agreement, "elstat_status_by_year": status}
     return check
 

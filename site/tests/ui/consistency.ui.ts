@@ -18,15 +18,23 @@ for (const lang of ["en", "el"] as const) {
     title: "the overview lists every check with how often it agrees and where it stands",
     given: "the consistency topic's overview for Greece, in English or Greek",
     when: "it is opened",
-    then: ["its heading is the topic's question", "there is one row per check in checks.json, in its order",
+    then: ["its heading is the topic's question",
+      "a summary gives the number of checks, of figures compared and agreeing, and how many checks found no inconsistency",
+      "there is one row per check in checks.json, those with differences first, each group in file order",
       "each row gives \"N of M match\" and the check's status, and links to the check's page"],
   }), async ({ page, request }) => {
     const r = await (await request.get(`${DATA}/checks.json`)).json();
     await page.goto(M5(lang));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(t(lang, "topic.official-figures-consistency.question"));
+    const sum = (k: string) => r.checks.reduce((n: number, c: any) => n + c[k], 0);
+    const clean = r.checks.filter((c: any) => c.agree === c.compared);
+    await expect(page.locator('[data-m5="summary"]')).toContainText(
+      t(lang, "m5.summary", { checks: r.checks.length, compared: num(lang, sum("compared"), 0), agree: num(lang, sum("agree"), 0) }));
+    await expect(page.locator('[data-m5="summary"]')).toContainText(t(lang, "m5.summary.consistent", { n: clean.length }));
+    const order = [...r.checks.filter((c: any) => c.agree < c.compared), ...clean];
     const rows = page.locator('[data-m5="checks"] tbody tr');
     await expect(rows).toHaveCount(r.checks.length);
-    for (const [i, c] of r.checks.entries()) {
+    for (const [i, c] of order.entries()) {
       const row = rows.nth(i);
       await expect(row.getByRole("link", { name: t(lang, `m5.check.${c.id}.title`) }))
         .toHaveAttribute("href", M5(lang, `checks/${c.id.slice(3)}/`));
@@ -40,8 +48,10 @@ test("a check's page lists each difference with its cause and offers every perio
   id: "PW-M5-002",
   given: "the page of the check of the CPI's rates against its own index",
   when: "it is opened and its download link is followed",
-  then: ["it gives the check's count", "its table has one row per difference, each with its cause",
-    "it links to the finding with its own page", "the download is the check's CSV, with a header and one row per period compared"],
+  then: ["it gives the check's count", "its table of what was compared joins the years where all agree and sums to the count",
+    "its table has one row per difference, each with its cause",
+    "it links to the finding with its own page", "it leads to the topic's section of the Data page, which lists the check's CSV",
+    "the CSV has a header and one row per period compared"],
 }), async ({ page, request }) => {
   const r = await (await request.get(`${DATA}/checks.json`)).json();
   const c = r.checks.find((x: any) => x.id === "gr-cpi-rates-own-index");
@@ -50,10 +60,17 @@ test("a check's page lists each difference with its cause and offers every perio
   const rows = page.locator('[data-m5="differences"] tbody tr');
   await expect(rows).toHaveCount(c.differences.length);
   for (const [i, d] of c.differences.entries()) await expect(rows.nth(i).locator("td").last()).toHaveText(t("en", `m5.cat.${d.explanation}`));
+  const years = Object.keys(c.by_year).sort();
+  const compared = page.locator('[data-m5="compared"] tbody tr');
+  await expect(compared.first().locator("th")).toHaveText(new RegExp(`^${years[0]}`));
+  const counts = await compared.locator("td:nth-child(2)").allTextContents();
+  expect(counts.reduce((n, x) => n + Number(x.replace(/\D/g, "")), 0)).toBe(c.compared);
   await expect(page.locator('a.card[href$="/june-2001/"]')).toBeVisible();
-  const href = await page.getByRole("link", { name: t("en", "m5.download") }).getAttribute("href");
-  expect(href).toBe(`${DATA}/downloads/gr-cpi-rates-own-index.csv`);
-  const csv = (await (await request.get(href!)).text()).trim().split("\n");
+  await expect(page.locator('[data-m5="files"] a')).toHaveAttribute("href", "/en/data/gr/#official-figures-consistency");
+  await page.goto("/en/data/gr/");
+  const href = `${DATA}/downloads/gr-cpi-rates-own-index.csv`;
+  await expect(page.locator(`[data-m5="files"] a[href="${href}"]`)).toHaveCount(1);
+  const csv = (await (await request.get(href)).text()).trim().split("\n");
   expect(csv[0]).toBe("period,published,rebuilt,difference,agree,explanation,finding");
   expect(csv.length - 1).toBe(c.compared);
 });
@@ -124,7 +141,7 @@ test("a question across several sources gives each source's value by year, its d
   given: "the rent-paid question's page for Greece",
   when: "it is opened",
   then: ["its table has one column per source and one row per year in checks.json, values in billions of euros",
-    "each source's definition is listed", "AADE's figures are also given exactly as published",
+    "pointing at each source's name in the table's header opens what it counts", "AADE's figures are also given exactly as published, one row a year",
     "the notice of each publisher whose terms ask for one (AADE, the European Commission) is shown, and no other"],
 }), async ({ page, request }) => {
   const r = await (await request.get(`${DATA}/checks.json`)).json();
@@ -139,10 +156,19 @@ test("a question across several sources gives each source's value by year, its d
   const row = table.locator("tbody tr").filter({ has: page.locator("th", { hasText: periods[0] }) });
   const v = q.values.national_accounts[periods[0]];
   await expect(row.locator("td").nth(na)).toHaveText(v == null ? "–" : num("en", v / 1e9, 2));
-  await expect(page.locator('[data-m5="definitions"] dd')).toHaveCount(q.sources.length);
+  for (const src of q.sources) {
+    const term = table.locator(`th[data-m5-source="${src.label}"] button.term`);
+    await expect(term).toHaveText(t("en", `m5.src.gr-rent-paid.${src.label}`));
+  }
+  const first = table.locator(`th[data-m5-source="${q.sources[0].label}"]`);
+  await first.locator("button.term").hover();          // with a mouse, pointing opens it (a click follows its link)
+  await expect(first.locator(".term-popover")).toBeVisible();
+  await expect(first.locator(".term-popover")).toContainText(t("en", `m5.def.gr-rent-paid.${q.sources[0].label}`));
+  await page.mouse.move(0, 0);
   const aade = Object.entries(q.values.aade).filter(([, x]) => x != null);
-  await expect(page.locator('[data-m5="as-published"] li')).toHaveCount(aade.length);
-  await expect(page.locator('[data-m5="as-published"] li').first()).toContainText(num("en", aade[0][1] as number, 2));
+  const published = page.locator('[data-m5="as-published"] tbody tr');
+  await expect(published).toHaveCount(aade.length);
+  await expect(published.first().locator("td")).toHaveText(num("en", aade[0][1] as number, 2));
   const notices = ["aade", "ec-empl"].filter((p) => q.sources.some((s: any) => s.source.startsWith(`${p}:`)));
   expect(notices).toContain("aade");
   await expect(page.locator('[data-m5="notice"]')).toHaveText(notices.map((p) => t("en", `m5.notice.${p}`)));
@@ -190,4 +216,20 @@ test("the Groups page leads from tenure and household types to their pages in th
   await types.click();
   await expect(page).toHaveURL(/\/checks\/hbs-household-types\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("en", "m5.check.gr-hbs-household-types.title"));
+});
+
+test("a check whose causes aren't all known says what is open, where it is written up, and asks for ideas", gwt({
+  id: "PW-M5-009",
+  given: "the spending table check, whose differences have no known cause and link to a finding",
+  when: "it is opened",
+  then: ["a section says how many differences have no known cause yet", "it links to the finding that says what was looked at",
+    "it invites ideas by email to the project's support address"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const c = r.checks.find((x: any) => x.id === "gr-hbs-spending");
+  await page.goto(M5("en", "checks/hbs-spending/"));
+  const open = page.locator('[data-m5="open"]');
+  await expect(open).toContainText(t("en", "m5.open.count", { n: c.differ["not-known"] }));
+  await expect(open.locator('a[href$="/checks/hbs-spending/survey-weights/"]')).toHaveCount(1);
+  await expect(open.locator('a[href="mailto:support@traceconomics.com"]')).toHaveCount(1);
 });

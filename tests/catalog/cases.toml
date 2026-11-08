@@ -497,3 +497,8 @@ selenium = ["SEL-M5-007"]
 title = "the Groups page leads from tenure and household types to their pages in the consistency topic"
 playwright = ["PW-M5-008"]
 selenium = ["SEL-M5-008"]
+
+[TC-M5-009]
+title = "a check whose causes aren't all known says what is open, where it is written up, and asks for ideas"
+playwright = ["PW-M5-009"]
+selenium = ["SEL-M5-009"]

@@ -1,9 +1,11 @@
 ---
-// One country's overview: the question, then every check with how often its two sides agree and
-// where it stands, then the ways on to the questions across sources and the rules.
+// One country's overview: the question, a line on everything checked (consistent checks count as
+// much as the rest), then every check with how often its two sides agree and where it stands, those
+// with differences first, then the ways on to the questions across sources and the rules.
 import Base from "../../../../layouts/Base.astro";
+import { num } from "../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../lib/i18n";
-import { results, slugOf, status } from "../../../../lib/m5";
+import { ordered as order, results, slugOf, status } from "../../../../lib/m5";
 import { causes } from "../../../../lib/m5-labels";
 import { countryPaths, topicHref } from "../../../../lib/topics";
 
@@ -15,7 +17,11 @@ const SLUG = "official-figures-consistency";
 const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
 const { checks } = results(country);
-const rows = checks.map((c) => ({
+const ordered = order(checks);
+const consistent = checks.length - ordered.filter((c) => c.agree < c.compared).length;
+const compared = checks.reduce((n, c) => n + c.compared, 0);
+const agreeing = checks.reduce((n, c) => n + c.agree, 0);
+const rows = ordered.map((c) => ({
   href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
   title: t(lang, `m5.check.${c.id}.title`),
   source: t(lang, `m5.check.${c.id}.source`),
@@ -29,6 +35,9 @@ const rows = checks.map((c) => ({
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <h1>{t(lang, `topic.${SLUG}.question`)}</h1>
       <p style="font-size: var(--text-lg)">{t(lang, "m5.lead")}</p>
+      <p data-m5="summary"><strong>{t(lang, "m5.summary", { checks: checks.length, compared: num(lang, compared, 0), agree: num(lang, agreeing, 0) })}</strong>
+        {consistent > 0 && <> {t(lang, "m5.summary.consistent", { n: consistent })}</>}
+        {consistent < checks.length && <> {t(lang, "m5.summary.differ", { n: checks.length - consistent })}</>}</p>
     </header>
     <div class="table-wrap">
       <table class="data-table m5-checks" data-m5="checks">

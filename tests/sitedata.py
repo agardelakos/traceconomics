@@ -368,11 +368,11 @@ def module5_outputs(outputs: Path, store_con) -> None:
                                      "silc": {"2015": 100.0, "2020": 103.2, "2021": 110.8, "2022": 117.1}}),
         ("gr-unemployment", "persons", {"lfs": {"2023": 470000.0, "2024": 400000.0}, "register": {"2023": 954795.0, "2024": 896099.0}}),
     ]
-    sources = {"aade": "aade:pit_stats", "census": "eurostat:cens_21hhct_r3", "register": "ec-empl:lmp_rjru"}
+    # Each source as the real question describes it (dataset, reference, definition): only the values are made up.
+    from traceconomics.module5.questions import SOURCES
     extra = []
     for qid, unit, values in made_up:
-        q = hbs.Question(qid, "gr", unit, [{"label": k, "source": sources.get(k, "made-up"), "reference": "elstat-hbs-puf",
-                                           "definition": "made up"} for k in values])
+        q = hbs.Question(qid, "gr", unit, [{"label": k, **SOURCES[qid][k]} for k in values])
         q.values = values
         extra.append(q)
     run.write(checks, outputs, run.all_questions(store_con) + extra)

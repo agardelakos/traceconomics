@@ -4,7 +4,8 @@
 //     each glossary term sits in the same category in both.
 //  2. Sources: every source key in the content exists in the bibliography.
 //  3. Nothing private or internal in the built pages: no decision numbers ("D45"), no links to
-//     the private notes ("docs/"), no local paths, no e-mail addresses.
+//     the private notes ("docs/"), no local paths, no e-mail addresses but the project's public
+//     support address (a forwarding alias, published on purpose for readers' ideas and reports).
 //  4. Security: no inline scripts (but JSON-LD data blocks, which browsers never run); scripts, styles, fonts and images only from this site, except the
 //     visit-count beacon in release builds: that exact file, once per page, with the site's token.
 //  5. Budgets: each page's HTML, CSS and scripts at most 300 KB compressed; any file at most
@@ -21,6 +22,9 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 import { BEACON, TOKEN } from "../src/lib/analytics.ts";
+
+// The one address a page may show (see 3. above).
+const PUBLIC_EMAIL = "support@traceconomics.com";
 
 const site = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..");
 const dist = join(site, "dist");
@@ -124,7 +128,8 @@ else {
     }
     if (beacons > 1) fail(`${name}: the beacon ${beacons} times`);
     // Nothing private or internal in the text.
-    const text = html.replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, "").replace(/data-config="[^"]*"/g, "") + ldText.join("\n");
+    const text = (html.replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, "").replace(/data-config="[^"]*"/g, "") + ldText.join("\n"))
+      .replaceAll(PUBLIC_EMAIL, "");
     for (const [re, what] of [[/\bD\d{2,3}\b/, "a decision number"], [/\bdocs\//, "a link to private notes"],
       [/[A-Za-z]:\\\\?Users|\/home\/|\/Users\//, "a local path"], [/[\w.+-]+@[\w-]+\.[\w.]+/, "an e-mail address"]]) {
       const hit = text.match(re);

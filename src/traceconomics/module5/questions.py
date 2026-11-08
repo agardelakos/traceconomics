@@ -31,6 +31,70 @@ from __future__ import annotations
 
 from traceconomics.module5.hbs import Question, _latest
 
+# Every question's sources, in the order they are shown: what each line is, where it comes from
+# (`source`: the store dataset; `reference`: its bibliography key, `more`: further keys), and what
+# it counts. The made-up site data use the same descriptions, so a review shows the real ones.
+SOURCES: dict[str, dict[str, dict]] = {
+    "gr-renters": {
+        "census": {"source": "eurostat:cens_21hhct_r3", "reference": "eurostat-cens-21hhct-r3", "more": ["eurostat-cens-11htts-r2"],
+            "definition": "households, tenants, census 2011 and 2021"},
+        "silc": {"source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
+            "definition": "households paying rent, at market or reduced rate, EU-SILC"},
+        "hbs": {"source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
+            "definition": "households paying rent for their main home, household budget survey"},
+        "silc_persons": {"source": "eurostat:ilc_lvho02", "reference": "eurostat-ilc-lvho02",
+            "definition": "persons in households paying market rent, EU-SILC (Eurostat)"},
+        "hbs_persons": {"source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
+            "definition": "persons in households paying rent, household budget survey"},
+    },
+    "gr-rent-paid": {
+        "national_accounts": {"source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",
+            "definition": "actual rentals for housing (CP041), all resident households, national accounts"},
+        "silc": {"source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
+            "definition": "rent households report paying for their main home, EU-SILC, twelve months"},
+        "hbs": {"source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
+            "definition": "rent paid for the main home, household budget survey"},
+        "aade": {"source": "aade:pit_stats", "reference": "aade-pit-stats",
+            "definition": "income from property declared on personal tax returns: all property, homes and other, as published"},
+    },
+    "gr-household-income": {
+        "national_accounts": {"source": "eurostat:nasa_10_nf_tr", "reference": "eurostat-nasa-10-nf-tr",
+            "definition": "gross disposable income of households and the non-profits serving them (B6G), national accounts"},
+        "aade": {"source": "aade:pit_stats", "reference": "aade-pit-stats",
+            "definition": "income declared on personal tax returns, before tax, as published"},
+    },
+    "gr-unemployment": {
+        "lfs": {"source": "eurostat:une_rt_a", "reference": "eurostat-une-rt-a",
+            "definition": "people without work, looking and available (ILO definition), ages 15-74, labour force survey"},
+        "register": {"source": "ec-empl:lmp_rjru", "reference": "ec-lmp-database",
+            "definition": "registered unemployed by the employment service's own rules, annual average"},
+    },
+    "gr-rent-weight": {
+        "cpi": {"source": "elstat:cpi07", "reference": "elstat-cpi-items",
+            "definition": "the CPI's weight for actual rent, per mille, from the year's table 07"},
+        "hicp": {"source": "eurostat:prc_hicp_iw", "reference": "eurostat-prc-hicp-iw",
+            "definition": "the HICP's weight for actual rent, per mille"},
+        "national_accounts": {"source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",
+            "definition": "actual rentals over all household consumption, national accounts"},
+        "hbs": {"source": "oet-local:hbs_weights", "reference": "elstat-hbs-puf",
+            "definition": "rent's share of all households' purchases, household budget survey"},
+    },
+    "gr-rent-change": {
+        # The Bank of Greece's and the OECD's rent figures are the CPI's own index, cited so a
+        # reader sees why they aren't lines of their own.
+        "cpi": {"source": "elstat:cpi07", "reference": "elstat-cpi-items", "more": ["bog-fsr-2023-11", "oecd-ahd-hm1-2"],
+            "definition": "the CPI's index for actual rent, yearly average, 2015 = 100"},
+        "hbs": {"source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
+            "definition": "average rent renting households report paying, household budget survey, 2015 = 100"},
+        "silc": {"source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
+            "definition": "average rent renting households report paying, EU-SILC, 2015 = 100"},
+    },
+}
+
+
+def _src(qid: str, label: str) -> dict:
+    return {"label": label, **SOURCES[qid][label]}
+
 
 def _series(store_con, dataset: str, where: str, scale: float = 1.0) -> dict[str, float]:
     """{period: value × scale} for one series; {} when the dataset isn't in the store."""
@@ -70,55 +134,42 @@ def renters(store_con) -> Question | None:
     hbs_p = _share(_local(store_con, "oet-local:hbs_rent", "renter", "people_weighted"),
                    _local(store_con, "oet-local:hbs_rent", "all", "people_weighted"))
     return _question("gr-renters", "percent", [
-        ({"label": "census", "source": "eurostat:cens_21hhct_r3", "reference": "eurostat-cens-21hhct-r3", "more": ["eurostat-cens-11htts-r2"],
-          "definition": "households, tenants, census 2011 and 2021"}, census),
-        ({"label": "silc", "source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
-          "definition": "households paying rent, at market or reduced rate, EU-SILC"}, silc_h),
-        ({"label": "hbs", "source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
-          "definition": "households paying rent for their main home, household budget survey"}, hbs_h),
-        ({"label": "silc_persons", "source": "eurostat:ilc_lvho02", "reference": "eurostat-ilc-lvho02",
-          "definition": "persons in households paying market rent, EU-SILC (Eurostat)"}, silc_p),
-        ({"label": "hbs_persons", "source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
-          "definition": "persons in households paying rent, household budget survey"}, hbs_p),
+        (_src("gr-renters", "census"), census),
+        (_src("gr-renters", "silc"), silc_h),
+        (_src("gr-renters", "hbs"), hbs_h),
+        (_src("gr-renters", "silc_persons"), silc_p),
+        (_src("gr-renters", "hbs_persons"), hbs_p),
     ])
 
 
 def rent_paid(store_con) -> Question | None:
     return _question("gr-rent-paid", "EUR", [
-        ({"label": "national_accounts", "source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",
-          "definition": "actual rentals for housing (CP041), all resident households, national accounts"},
+        (_src("gr-rent-paid", "national_accounts"),
          _series(store_con, "eurostat:nama_10_co3_p3", "geo = 'GR' AND unit = 'CP_MEUR' AND coicop = 'CP041'", 1e6)),
-        ({"label": "silc", "source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
-          "definition": "rent households report paying for their main home, EU-SILC, twelve months"},
+        (_src("gr-rent-paid", "silc"),
          _local(store_con, "oet-local:silc_tenure", "all", "rent_paid_eur")),
-        ({"label": "hbs", "source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
-          "definition": "rent paid for the main home, household budget survey"},
+        (_src("gr-rent-paid", "hbs"),
          _local(store_con, "oet-local:hbs_rent", "all", "rent_paid_eur")),
-        ({"label": "aade", "source": "aade:pit_stats", "reference": "aade-pit-stats",
-          "definition": "income from property declared on personal tax returns: all property, homes and other, as published"},
+        (_src("gr-rent-paid", "aade"),
          _series(store_con, "aade:pit_stats", "geo = 'GR' AND measure = 'declared_income_property' AND unit = 'EUR'")),
     ])
 
 
 def household_income(store_con) -> Question | None:
     return _question("gr-household-income", "EUR", [
-        ({"label": "national_accounts", "source": "eurostat:nasa_10_nf_tr", "reference": "eurostat-nasa-10-nf-tr",
-          "definition": "gross disposable income of households and the non-profits serving them (B6G), national accounts"},
+        (_src("gr-household-income", "national_accounts"),
          _series(store_con, "eurostat:nasa_10_nf_tr",
                  "geo = 'GR' AND unit = 'CP_MEUR' AND direct = 'RECV' AND na_item = 'B6G' AND sector = 'S14_S15'", 1e6)),
-        ({"label": "aade", "source": "aade:pit_stats", "reference": "aade-pit-stats",
-          "definition": "income declared on personal tax returns, before tax, as published"},
+        (_src("gr-household-income", "aade"),
          _series(store_con, "aade:pit_stats", "geo = 'GR' AND measure = 'declared_income' AND unit = 'EUR'")),
     ])
 
 
 def unemployment(store_con) -> Question | None:
     return _question("gr-unemployment", "persons", [
-        ({"label": "lfs", "source": "eurostat:une_rt_a", "reference": "eurostat-une-rt-a",
-          "definition": "people without work, looking and available (ILO definition), ages 15-74, labour force survey"},
+        (_src("gr-unemployment", "lfs"),
          _series(store_con, "eurostat:une_rt_a", "geo = 'GR' AND age = 'Y15-74' AND unit = 'THS_PER' AND sex = 'T'", 1e3)),
-        ({"label": "register", "source": "ec-empl:lmp_rjru", "reference": "ec-lmp-database",
-          "definition": "registered unemployed by the employment service's own rules, annual average"},
+        (_src("gr-unemployment", "register"),
          _series(store_con, "ec-empl:lmp_rjru",
                  "geo = 'GR' AND regis_es = 'REG_UNE' AND age = 'TOTAL' AND sex = 'T' AND unit = 'NR' AND stk_flow = 'STK'")),
     ])
@@ -127,18 +178,14 @@ def unemployment(store_con) -> Question | None:
 def rent_weight(store_con) -> Question | None:
     nama = "geo = 'GR' AND unit = 'CP_MEUR' AND coicop = '{}'"
     return _question("gr-rent-weight", "percent", [
-        ({"label": "cpi", "source": "elstat:cpi07", "reference": "elstat-cpi-items",
-          "definition": "the CPI's weight for actual rent, per mille, from the year's table 07"},
+        (_src("gr-rent-weight", "cpi"),
          _series(store_con, "elstat:cpi07", "unit = 'PM' AND coicop18 = '041'", 0.1)),
-        ({"label": "hicp", "source": "eurostat:prc_hicp_iw", "reference": "eurostat-prc-hicp-iw",
-          "definition": "the HICP's weight for actual rent, per mille"},
+        (_src("gr-rent-weight", "hicp"),
          _series(store_con, "eurostat:prc_hicp_iw", "geo = 'GR' AND coicop18 = '041'", 0.1)),
-        ({"label": "national_accounts", "source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",
-          "definition": "actual rentals over all household consumption, national accounts"},
+        (_src("gr-rent-weight", "national_accounts"),
          _share(_series(store_con, "eurostat:nama_10_co3_p3", nama.format("CP041")),
                 _series(store_con, "eurostat:nama_10_co3_p3", nama.format("TOTAL")))),
-        ({"label": "hbs", "source": "oet-local:hbs_weights", "reference": "elstat-hbs-puf",
-          "definition": "rent's share of all households' purchases, household budget survey"},
+        (_src("gr-rent-weight", "hbs"),
          _series(store_con, "oet-local:hbs_weights",
                  "geo = 'GR' AND grouping = 'all' AND spending = 'purchases' AND imputed_rent = 'excluded' "
                  "AND coicop18 = '041' AND measure = 'share'", 100.0)),
@@ -173,16 +220,10 @@ def rent_change(store_con) -> Question | None:
         if len(months) == 12:
             yearly[str(year)] = sum(months) / 12
     return _question("gr-rent-change", "index", [
-        ({"label": "cpi", "source": "elstat:cpi07", "reference": "elstat-cpi-items",
-          # The Bank of Greece's and the OECD's rent figures: the CPI's own index, cited so a reader
-          # sees why they aren't lines of their own.
-          "more": ["bog-fsr-2023-11", "oecd-ahd-hm1-2"],
-          "definition": "the CPI's index for actual rent, yearly average, 2015 = 100"}, _index(yearly)),
-        ({"label": "hbs", "source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
-          "definition": "average rent renting households report paying, household budget survey, 2015 = 100"},
+        (_src("gr-rent-change", "cpi"), _index(yearly)),
+        (_src("gr-rent-change", "hbs"),
          _index(_mean_rent(store_con, "oet-local:hbs_rent"))),
-        ({"label": "silc", "source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
-          "definition": "average rent renting households report paying, EU-SILC, 2015 = 100"},
+        (_src("gr-rent-change", "silc"),
          _index(_mean_rent(store_con, "oet-local:silc_tenure"))),
     ])
 

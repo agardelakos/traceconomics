@@ -28,6 +28,7 @@ export interface Check {
   last: string | null;
   compared: number;
   agree: number;
+  by_year: Record<string, { compared: number; agree: number }>;
   differ: Partial<Record<Category, number>>;
   differences: Difference[];
   extra?: Record<string, Record<string, number | string>>;
@@ -49,6 +50,29 @@ export function results(country: string): Results {
   const r = readJson<Results>(`${m5Dir(country)}/checks.json`);
   if (r.format !== "m5-v1" || r.country !== country) throw new Error(`${m5Dir(country)}/checks.json is not module5's results for ${country}`);
   return { ...r, questions: r.questions ?? [] };
+}
+
+/** Checks with differences first, so they are seen, then the consistent ones; each in file order. */
+export function ordered(checks: Check[]): Check[] {
+  return [...checks.filter((c) => c.agree < c.compared), ...checks.filter((c) => c.agree === c.compared)];
+}
+
+/**
+ * What a check compared, year by year, with runs of years where everything agrees joined into one
+ * row ("1960–2000: 492 of 492"), so a long clean history reads in a line and every year that
+ * differs stands on its own.
+ */
+export function yearRuns(byYear: Check["by_year"]): { from: string; to: string; compared: number; agree: number }[] {
+  const out: { from: string; to: string; compared: number; agree: number }[] = [];
+  for (const year of Object.keys(byYear).sort()) {
+    const { compared, agree } = byYear[year];
+    const last = out[out.length - 1];
+    const clean = agree === compared;
+    if (last && clean && last.agree === last.compared && Number(year) === Number(last.to) + 1) {
+      last.to = year; last.compared += compared; last.agree += agree;
+    } else out.push({ from: year, to: year, compared, agree });
+  }
+  return out;
 }
 
 /** A check's or question's address within the topic: its id without the country's prefix. */

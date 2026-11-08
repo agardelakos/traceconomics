@@ -22,8 +22,20 @@ ELSTAT publishes the household budget survey twice: as tables (table 1.03 gives 
 
 ## What we know, and what we don't
 
-The pattern points to the weights, not to the households' answers: the same file, weighted to the table's totals, would have to give the table's figures, as it does in every other year. So either the file or the table was weighted again after the other was made. ELSTAT hasn't said which, or which version it considers final, so the cause is marked as not known.
+The pattern points to the weights: in every year whose weights add up to the table's households, the same reading of the file gives the table's figures. The likeliest reading is that the file and the table were made with different weights, for instance one of them weighted again after the other was made. ELSTAT hasn't said so, nor which version it considers final, so the cause is marked as not known.
+
+## What we tried
+
+- **Every year's file, the same way.** The same code reads all seventeen files; fourteen match the table to the cent, so the reading itself isn't the cause.
+- **Which years differ.** The three years with differences are exactly the three whose weights add up to another number of households than the table's.
+- **Whether the totals alone explain it.** They can't: multiplying every weight by the same factor leaves every average unchanged. So the weights differ household by household, not only in their total.
+
+## What would settle it
+
+ELSTAT saying which weights are final, or a later version of either the file or the table that brings the two back together.
 
 ## What we do
 
 Our groups' spending shares use the file's weights as they are, since each file is consistent with itself. The inflation-by-group method lists this among the points ELSTAT has not confirmed. Every figure compared is in the check's download.
+
+Have an idea, or know of a document we missed? Write to [support@traceconomics.com](mailto:support@traceconomics.com).

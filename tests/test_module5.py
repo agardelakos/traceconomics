@@ -92,6 +92,7 @@ def test_results_are_written_in_a_fixed_order(tmp_path):
     When the results are written twice, once with the comparisons reversed
     Then both runs write identical checks.json and CSV files, rows in period order
     And checks.json gives the count compared, the count agreeing and the difference with its explanation
+    And it gives each year's count compared and agreeing
     """
     rows = [Comparison("2001-02", 1.0, 1.0, True), Comparison("2001-01", 2.0, 2.5, False, "not-known")]
 
@@ -109,6 +110,7 @@ def test_results_are_written_in_a_fixed_order(tmp_path):
     s = doc["checks"][0]
     assert (s["compared"], s["agree"], s["differ"]) == (2, 1, {"not-known": 1})
     assert s["differences"][0]["difference"] == 0.5
+    assert s["by_year"] == {"2001": {"compared": 2, "agree": 1}}
     lines = list(csv.reader((a / "gr" / "m5" / "gr-x.csv").open(encoding="utf-8")))
     assert [r[0] for r in lines[1:]] == ["2001-01", "2001-02"]
 
@@ -144,8 +146,9 @@ def test_household_types_compare_shares_and_keep_unusable_years():
     Then in 2022 the close type agrees and the other is "not-known"
     And both 2023 types are differences, "not-known", since ELSTAT's variable can't be compared
     And the agreement and status of each year are kept with the check
+    And every difference without a written cause links to the household-type finding
     """
-    from traceconomics.module5.hbs import household_types
+    from traceconomics.module5.hbs import TYPES_FINDING, household_types
 
     years = {**_types(2022, [("A1", 0.200, 0.205), ("A2", 0.300, 0.280)], 0.98),
              **_types(2023, [("A1", 0.25, 0.25), ("A2", 0.30, 0.30)], 0.27, "unusable: broken")}
@@ -154,6 +157,7 @@ def test_household_types_compare_shares_and_keep_unusable_years():
     assert [d["period"] for d in s["differences"]] == ["2022/A2", "2023/A1", "2023/A2"]
     assert s["extra"]["agreement_by_year"] == {"2022": 0.98, "2023": 0.27}
     assert s["extra"]["elstat_status_by_year"]["2023"].startswith("unusable")
+    assert {d["finding"] for d in s["differences"]} == {TYPES_FINDING}
 
 
 def test_income_limits_line_up_by_the_year_the_incomes_describe(tmp_path):

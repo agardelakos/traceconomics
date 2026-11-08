@@ -1,14 +1,15 @@
 ---
-// One check: what it compares, how often the two sides agree, each difference with its cause,
-// the findings that have their own page, and every period as a download.
+// One check: what it compares, how often the two sides agree and over which years (the years that
+// agree count as much as the rest), each difference with its cause, the findings that have their
+// own page, what is open where a cause isn't known, and the way to its files in the Data section.
 import { getCollection } from "astro:content";
 import SourceList from "../../../../../../components/SourceList.astro";
 import Base from "../../../../../../layouts/Base.astro";
 import { num } from "../../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../../lib/i18n";
-import { findings, m5Dir, results, slugOf, status } from "../../../../../../lib/m5";
+import { findings, results, slugOf, status, yearRuns } from "../../../../../../lib/m5";
 import { causes, diff, periodLabel, spanLabel } from "../../../../../../lib/m5-labels";
-import { countryPaths, m5Text, topicHref } from "../../../../../../lib/topics";
+import { countryPaths, dataHref, m5Text, topicHref } from "../../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
 export function getStaticPaths() {
@@ -26,7 +27,8 @@ const pages = await getCollection("findings", (e) => e.id.startsWith(m5Text(coun
 const linked = findings(c).map((f) => {
   const page = pages.find((e) => e.id === m5Text(country, lang, f.slug));
   if (!page) throw new Error(`${c.id}: no ${lang} page for finding "${f.slug}"`);
-  return { href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}/${f.slug}`), title: page.data.title, summary: page.data.summary };
+  return { href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}/${f.slug}`), title: page.data.title,
+    summary: page.data.summary, explanation: f.explanation };
 });
 const shown = c.differences.slice(0, SHOWN);
 const decimals = c.unit.startsWith("percent") ? 4 : 2;
@@ -37,6 +39,11 @@ const rowLabel = (period: string) => {
   return code !== undefined && names[code] ? `${periodLabel(lang, period)} ${names[code]}` : periodLabel(lang, period);
 };
 const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
+const runs = yearRuns(c.by_year ?? {});
+const unknown = c.differ["not-known"] ?? 0;
+// Findings whose cause isn't known: their pages say what was looked at and what is still open.
+const open = linked.filter((f) => f.explanation === "not-known");
+const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.finding).length;
 ---
 <Base lang={lang} title={t(lang, `m5.check.${c.id}.title`)} description={t(lang, `m5.check.${c.id}.text`)} topic={{ slug: SLUG, country, section: "checks" }}>
   <article class="stack-lg">
@@ -50,6 +57,20 @@ const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
       <section class="stack" style="gap: var(--space-3)" aria-labelledby="findings-h">
         <h2 id="findings-h">{t(lang, "m5.finding.read")}</h2>
         <div class="cards">{linked.map((f) => <a class="card" href={f.href}><span class="title">{f.title} →</span><span class="text">{f.summary}</span></a>)}</div>
+      </section>
+    )}
+    {runs.length > 0 && (
+      <section class="stack" style="gap: var(--space-3)" aria-labelledby="compared-h">
+        <h2 id="compared-h">{t(lang, "m5.compared.title")}</h2>
+        <div class="table-wrap">
+          <table class="data-table" data-m5="compared">
+            <thead><tr><th scope="col">{t(lang, "m5.compared.years")}</th><th scope="col">{t(lang, "m5.compared.count")}</th><th scope="col">{t(lang, "m5.compared.agree")}</th></tr></thead>
+            <tbody>{runs.map((r) => (
+              <tr class={r.agree === r.compared ? "" : "differs"}><th scope="row">{r.from === r.to ? r.from : `${r.from}–${r.to}`}</th>
+                <td>{num(lang, r.compared, 0)}</td><td>{r.agree === r.compared ? t(lang, "m5.compared.all") : num(lang, r.agree, 0)}</td></tr>
+            ))}</tbody>
+          </table>
+        </div>
       </section>
     )}
     <section class="stack" style="gap: var(--space-3)" aria-labelledby="diff-h">
@@ -69,8 +90,17 @@ const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
         </div>
       )}
       {c.differences.length > SHOWN && <p>{t(lang, "m5.diff.more", { shown: SHOWN, total: c.differences.length })}</p>}
-      <p><a href={`/data/v1/${m5Dir(country)}/downloads/${c.id}.csv`} download>{t(lang, "m5.download")}</a></p>
     </section>
+    {unknown > 0 && (
+      <section class="stack" style="gap: var(--space-2); max-width: var(--text-max)" aria-labelledby="open-h" data-m5="open">
+        <h2 id="open-h">{t(lang, "m5.open.title")}</h2>
+        <p>{t(lang, "m5.open.count", { n: unknown })}</p>
+        {open.map((f) => <p>{t(lang, "m5.open.finding")} <a href={f.href}>{f.title}</a>.</p>)}
+        {unpaged > 0 && <p>{t(lang, "m5.open.unpaged", { n: unpaged })}</p>}
+        <p>{t(lang, "m5.open.ideas")} <a href="mailto:support@traceconomics.com">support@traceconomics.com</a>.</p>
+      </section>
+    )}
+    <p data-m5="files"><a href={`${dataHref(lang, country)}#${SLUG}`}>{t(lang, "m5.files")} →</a></p>
     <details class="panel">
       <summary>{t(lang, "m5.finding.sources")}</summary>
       <div style="margin-top: var(--space-3)"><SourceList keys={sources} lang={lang} /></div>

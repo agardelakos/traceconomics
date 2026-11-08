@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { t } from "./i18n";
-import { findings, slugOf, status, type Check } from "./m5";
+import { findings, ordered, slugOf, status, yearRuns, type Check } from "./m5";
 import { bandLabel, periodLabel, spanLabel } from "./m5-labels";
 import { m5Text, topic, topicHref } from "./topics";
 
 const check = (over: Partial<Check>): Check => ({
   id: "gr-x", country: "gr", unit: "percent", tolerance: 1e-9,
   published: { source: "a", reference: "r", label: "p" }, rebuilt: { source: "b", reference: "r", label: "q" },
-  first: "2001-01", last: "2001-12", compared: 10, agree: 10, differ: {}, differences: [], ...over,
+  first: "2001-01", last: "2001-12", compared: 10, agree: 10, by_year: {}, differ: {}, differences: [], ...over,
 });
 
 describe("consistency topic", () => {
@@ -85,5 +85,27 @@ describe("consistency topic", () => {
     expect(periodLabel("en", "2022/A1")).toBe(`2022 · ${t("en", "group.hhtype/A1")}`);
     expect(spanLabel("en", "2024/all/13902")).toBe("2024");
     expect(spanLabel("en", "2022/A1")).toBe(periodLabel("en", "2022/A1"));
+  });
+
+  it("joins the years where everything agrees and puts checks with differences first", { meta: {
+    id: "VT-M5-005",
+    given: "a check's counts for 1999 to 2005 without 2004, where 2002 has a difference, and three checks, the middle one with differences",
+    when: "the years are grouped and the checks ordered",
+    then: [
+      "1999-2001 become one row with their counts added",
+      "2002 stands alone, and 2003 and 2005 aren't joined across the missing 2004",
+      "the check with differences comes first, the consistent ones keep their order",
+    ],
+  } }, () => {
+    const byYear = { "1999": { compared: 12, agree: 12 }, "2000": { compared: 12, agree: 12 }, "2001": { compared: 12, agree: 12 },
+      "2002": { compared: 12, agree: 11 }, "2003": { compared: 12, agree: 12 }, "2005": { compared: 12, agree: 12 } };
+    expect(yearRuns(byYear)).toEqual([
+      { from: "1999", to: "2001", compared: 36, agree: 36 },
+      { from: "2002", to: "2002", compared: 12, agree: 11 },
+      { from: "2003", to: "2003", compared: 12, agree: 12 },
+      { from: "2005", to: "2005", compared: 12, agree: 12 },
+    ]);
+    const a = check({ id: "gr-a" }), b = check({ id: "gr-b", agree: 9 }), c = check({ id: "gr-c" });
+    expect(ordered([a, b, c]).map((x) => x.id)).toEqual(["gr-b", "gr-a", "gr-c"]);
   });
 });

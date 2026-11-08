@@ -57,11 +57,19 @@ class Check:
             if not c.agree:
                 by[c.explanation] = by.get(c.explanation, 0) + 1
         periods = [c.period for c in self.comparisons]
+        # Each year's count compared and agreeing, so a page can show what was checked, not only
+        # what differs ("1960-2000: every month agrees").
+        years: dict[str, dict[str, int]] = {}
+        for c in self.comparisons:
+            y = years.setdefault(c.period[:4], {"compared": 0, "agree": 0})
+            y["compared"] += 1
+            y["agree"] += c.agree
         return {
             "id": self.id, "country": self.country, "unit": self.unit, "tolerance": self.tolerance,
             "published": self.published, "rebuilt": self.rebuilt,
             "first": min(periods) if periods else None, "last": max(periods) if periods else None,
             "compared": len(self.comparisons), "agree": self.agree,
+            "by_year": dict(sorted(years.items())),
             "differ": {k: by[k] for k in CATEGORIES if k in by},
             "differences": [{"period": c.period, "published": c.published, "rebuilt": c.rebuilt,
                              "difference": c.difference, "explanation": c.explanation, "finding": c.finding}

@@ -1,16 +1,19 @@
 ---
-// One question across sources: each source's definition, then the values by year side by side.
+// One question across sources: the values by year side by side, each source's name opening what it
+// counts (the site's term popover, linked to the source itself).
 // The income limits show the poorest fifth's limit and the gap (every fifth is in the download);
 // the other questions show every source's value by year in the question's unit. AADE's figures
 // are also given exactly as published, since its terms forbid modifying them: the table only
 // rounds them for reading, like every other source.
 import SourceList from "../../../../../components/SourceList.astro";
 import SourcesChart from "../../../../../components/SourcesChart.astro";
+import TermPopover from "../../../../../components/TermPopover.astro";
 import Base from "../../../../../layouts/Base.astro";
 import { num } from "../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
-import { m5Dir, results, slugOf } from "../../../../../lib/m5";
-import { countryPaths } from "../../../../../lib/topics";
+import { reference } from "../../../../../lib/references";
+import { results, slugOf } from "../../../../../lib/m5";
+import { countryPaths, dataHref } from "../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
 export function getStaticPaths() {
@@ -74,29 +77,30 @@ const chartSeries = limits
           <table class="data-table" data-m5="question">
             <caption>{t(lang, `m5.unit.${q.unit}`)}</caption>
             <thead><tr><th scope="col">{t(lang, "m5.question.period")}</th>
-              {q.sources.map((s) => <th scope="col">{name(s.label)}</th>)}</tr></thead>
+              {q.sources.map((s) => <th scope="col" data-m5-source={s.label}><TermPopover label={name(s.label)} heading={name(s.label)}
+                text={t(lang, `m5.def.${q.id}.${s.label}`)} href={reference(s.reference).url!} more={t(lang, "m5.term.source")} key={`${q.id}-${s.label}`} /></th>)}</tr></thead>
             <tbody>{periods.map((p) => (
               <tr><th scope="row">{p}</th>{q.sources.map((s) => <td>{cell(q.values[s.label][p])}</td>)}</tr>
             ))}</tbody>
           </table>
         </div>
-        <section class="stack" style="gap: var(--space-2)" aria-labelledby="defs-h">
-          <h2 id="defs-h">{t(lang, "m5.question.definitions")}</h2>
-          <dl class="stack" style="gap: var(--space-1)" data-m5="definitions">
-            {q.sources.map((s) => <div><dt><strong>{name(s.label)}</strong></dt><dd style="margin: 0">{t(lang, `m5.def.${q.id}.${s.label}`)}</dd></div>)}
-          </dl>
-          {asPublished.map((s) => (
-            <ul class="small" data-m5="as-published">
-              {Object.entries(q.values[s.label]).filter((e): e is [string, number] => e[1] != null).map(([p, v]) => (
-                <li>{p}: {t(lang, "m5.question.as_published", { source: name(s.label), value: `${num(lang, v, 2)} €` })}</li>
-              ))}
-            </ul>
-          ))}
-        </section>
+        {asPublished.map((s) => (
+          <section class="stack" style="gap: var(--space-2)" aria-labelledby={`published-${s.label}`}>
+            <h2 id={`published-${s.label}`} style="font-size: var(--text-lg)">{t(lang, "m5.published.title", { source: name(s.label) })}</h2>
+            <div class="table-wrap">
+              <table class="data-table" data-m5="as-published">
+                <thead><tr><th scope="col">{t(lang, "m5.question.period")}</th><th scope="col">{t(lang, "m5.published.value")}</th></tr></thead>
+                <tbody>{Object.entries(q.values[s.label]).filter((e): e is [string, number] => e[1] != null).map(([p, v]) => (
+                  <tr><th scope="row">{p}</th><td>{num(lang, v, 2)}</td></tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </section>
+        ))}
       </>
     )}
     {notices.map((p) => <p class="small muted" data-m5="notice">{t(lang, `m5.notice.${p}`)}</p>)}
-    <p><a href={`/data/v1/${m5Dir(country)}/downloads/${q.id}.csv`} download>{t(lang, "m5.download")}</a></p>
+    <p data-m5="files"><a href={`${dataHref(lang, country)}#official-figures-consistency`}>{t(lang, "m5.files.question")} →</a></p>
     <details class="panel">
       <summary>{t(lang, "m5.finding.sources")}</summary>
       <div style="margin-top: var(--space-3)"><SourceList keys={keys} lang={lang} /></div>
