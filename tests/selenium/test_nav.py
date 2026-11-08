@@ -272,3 +272,26 @@ def test_root_sends_the_browser_to_its_language(site, locale):
         site.wait(lambda _: site.path == f"/{expected}/", f"the root did not send a {locale} browser to /{expected}/")
     finally:
         site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"})
+
+
+@pytest.mark.phone
+def test_topic_bar_rows_open_scrolled_to_their_current_item(phone):
+    """SEL-NAV-016: on a phone, each row of the topic bar opens scrolled to its current item
+
+    Given a phone-sized screen
+    And Greece's page of the consistency topic, whose row of topics is wider than the screen with the current topic last
+    When it is opened
+    Then in every row of the bar wider than the screen, the current item is wholly inside the row's visible part
+    """
+    phone.open("/en/gr/official-figures-consistency/")
+    wide = 0
+    for row in phone.all(".topic-bar nav ul"):
+        box = phone.driver.execute_script(
+            "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};", row)
+        if box["scroll"] <= box["client"]:
+            continue
+        wide += 1
+        item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
+                                           row.find_element("css selector", "[aria-current]"))
+        assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
+    assert wide > 0

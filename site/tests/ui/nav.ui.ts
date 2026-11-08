@@ -209,3 +209,24 @@ test.describe("on a phone", () => {
     await expect(nav).toBeHidden();
   });
 });
+
+test("on a phone, each row of the topic bar opens scrolled to its current item", gwt({
+  id: "PW-NAV-014",
+  given: ["a phone-sized screen", "Greece's page of the consistency topic, whose row of topics is wider than the screen with the current topic last"],
+  when: "it is opened",
+  then: "in every row of the bar wider than the screen, the current item is wholly inside the row's visible part",
+}), async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/gr/official-figures-consistency/");
+  const rows = page.locator(".topic-bar nav ul");
+  let wide = 0;
+  for (const row of await rows.all()) {
+    const box = await row.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth, left: el.getBoundingClientRect().left }));
+    if (box.scroll <= box.client) continue;
+    wide += 1;
+    const item = await row.locator("[aria-current]").boundingBox();
+    expect(item!.x).toBeGreaterThanOrEqual(box.left - 1);
+    expect(item!.x + item!.width).toBeLessThanOrEqual(box.left + box.client + 1);
+  }
+  expect(wide).toBeGreaterThan(0);
+});

@@ -338,6 +338,11 @@ title = "the skip link takes the keyboard to the main content"
 playwright = ["PW-NAV-013"]
 selenium = ["SEL-NAV-010"]
 
+[TC-NAV-012]
+title = "on a phone, each row of the topic bar opens scrolled to its current item"
+playwright = ["PW-NAV-014"]
+selenium = ["SEL-NAV-016"]
+
 [TC-TERM-001]
 title = "pointing at a term opens its explanation; moving away closes it"
 playwright = ["PW-TERM-001"]

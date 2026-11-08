@@ -313,6 +313,7 @@ def test_section_strip_lists_pages_and_marks_the_current_one(site):
     row(r["questions"], "same-question", "gr-renters")
 
 
+@pytest.mark.phone
 def test_section_strip_opens_scrolled_to_the_current_page_on_a_phone(phone):
     """SEL-M5-012: on a phone, the bar's third row opens scrolled to the page being read
 
