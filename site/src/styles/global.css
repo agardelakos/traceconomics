@@ -494,3 +494,20 @@ label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not
 .chip-status.unknown { background: var(--color-disabled); color: var(--color-text); }
 .m5-checks td, .m5-checks th { vertical-align: top; }
 .m5-checks .sub { display: block; color: var(--color-text-muted); font-size: var(--text-sm); }
+
+/* The consistency topic's charts: one colour per source, from the validated series palette, so
+   the same order reads the same in both themes. */
+.m5-chart { width: 100%; height: auto; max-width: 720px; }
+.m5-chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
+.m5-chart .axis text { fill: var(--color-text-muted); font-size: 12px; }
+.m5-chart .s0 { stroke: var(--series-q1); fill: var(--series-q1); }
+.m5-chart .s1 { stroke: var(--series-q5); fill: var(--series-q5); }
+.m5-chart .s2 { stroke: var(--series-q2); fill: var(--series-q2); }
+.m5-chart .s3 { stroke: var(--series-q4); fill: var(--series-q4); }
+.m5-chart .s4 { stroke: var(--series-q3); fill: var(--series-q3); }
+.m5-chart path { fill: none; stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.m5-legend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); list-style: none; padding: 0; margin: 0; font-size: var(--text-sm); }
+.m5-legend .key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.m5-legend .s0 { background: var(--series-q1); } .m5-legend .s1 { background: var(--series-q5); }
+.m5-legend .s2 { background: var(--series-q2); } .m5-legend .s3 { background: var(--series-q4); }
+.m5-legend .s4 { background: var(--series-q3); }

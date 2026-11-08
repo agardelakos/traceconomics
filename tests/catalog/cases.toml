@@ -487,3 +487,8 @@ selenium = ["SEL-M5-005"]
 title = "a question across several sources gives each source's value by year, its definition, and AADE's figures as published"
 playwright = ["PW-M5-006"]
 selenium = ["SEL-M5-006"]
+
+[TC-M5-007]
+title = "a question's chart draws every source's values, to scale, without joining years apart"
+playwright = ["PW-M5-007"]
+selenium = ["SEL-M5-007"]

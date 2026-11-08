@@ -167,3 +167,28 @@ def test_question_across_sources_lists_values_definitions_and_aade_as_published(
     aade = [(p, x) for p, x in q["values"]["aade"].items() if x is not None]
     items = site.all('[data-m5="as-published"] li')
     assert len(items) == len(aade) and num("en", aade[0][1], 2) in items[0].text
+
+
+def test_question_chart_draws_every_value_without_joining_years_apart(site):
+    """SEL-M5-007: a question's chart draws every source's values, to scale, without joining years apart
+
+    Given the renters question's page for Greece
+    When it is opened
+    Then its chart has an accessible label naming the question and its unit
+    And the legend lists every source in order
+    And there is one dot per value in checks.json
+    And a line joins only values of consecutive years
+    """
+    q = next(x for x in _results()["questions"] if x["id"] == "gr-renters")
+    site.open(M5.format(lang="en") + "same-question/renters/")
+    svg = site.find('[data-m5="chart"] svg')
+    assert svg.get_attribute("aria-label") == f'{t("en", "m5.question.gr-renters.title")} ({t("en", "m5.unit.percent")})'
+    legend = [li.text.strip() for li in site.all('[data-m5="chart"] .m5-legend li')]
+    assert legend == [t("en", f"m5.src.gr-renters.{s['label']}") for s in q["sources"]]
+    values = [v for s in q["sources"] for v in q["values"][s["label"]].values() if v is not None]
+    assert len(site.all('[data-m5="chart"] circle')) == len(values)
+    consecutive = 0
+    for s in q["sources"]:
+        ys = sorted(int(y) for y, v in q["values"][s["label"]].items() if v is not None)
+        consecutive += any(b == a + 1 for a, b in zip(ys, ys[1:]))
+    assert len(site.all('[data-m5="chart"] path')) == consecutive

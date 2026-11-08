@@ -143,3 +143,25 @@ test("a question across several sources gives each source's value by year, its d
   await expect(page.locator('[data-m5="as-published"] li')).toHaveCount(aade.length);
   await expect(page.locator('[data-m5="as-published"] li').first()).toContainText(num("en", aade[0][1] as number, 2));
 });
+
+test("a question's chart draws every source's values, to scale, without joining years apart", gwt({
+  id: "PW-M5-007",
+  given: "the renters question's page for Greece",
+  when: "it is opened",
+  then: ["its chart has an accessible label naming the question and its unit", "the legend lists every source in order",
+    "there is one dot per value in checks.json", "a line joins only values of consecutive years"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const q = r.questions.find((x: any) => x.id === "gr-renters");
+  await page.goto(M5("en", "same-question/renters/"));
+  const chart = page.locator('[data-m5="chart"]');
+  await expect(chart.locator("svg")).toHaveAttribute("aria-label", `${t("en", "m5.question.gr-renters.title")} (${t("en", "m5.unit.percent")})`);
+  await expect(chart.locator(".m5-legend li")).toHaveText(q.sources.map((s: any) => t("en", `m5.src.gr-renters.${s.label}`)));
+  const values = q.sources.flatMap((s: any) => Object.entries(q.values[s.label]).filter(([, v]) => v != null));
+  await expect(chart.locator("circle")).toHaveCount(values.length);
+  const consecutive = q.sources.reduce((n: number, s: any) => {
+    const ys = Object.keys(q.values[s.label]).filter((y) => q.values[s.label][y] != null).map(Number).sort();
+    return n + (ys.some((y, i) => i > 0 && y === ys[i - 1] + 1) ? 1 : 0);
+  }, 0);
+  await expect(chart.locator("path")).toHaveCount(consecutive);
+});

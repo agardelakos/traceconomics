@@ -5,6 +5,7 @@
 // are also given exactly as published, since its terms forbid modifying them: the table only
 // rounds them for reading, like every other source.
 import SourceList from "../../../../../components/SourceList.astro";
+import SourcesChart from "../../../../../components/SourcesChart.astro";
 import Base from "../../../../../layouts/Base.astro";
 import { num } from "../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
@@ -39,6 +40,10 @@ const cell = (v: number | null | undefined) => (v == null ? "–" : num(lang, v 
 const asPublished = q.sources.filter((s) => s.source.startsWith("aade:"));
 const keys = [...new Set(q.sources.flatMap((s) => [s.reference, ...(s.more ?? [])]))];
 const name = (label: string) => (limits ? t(lang, `m5.source.${label}`) : t(lang, `m5.src.${q.id}.${label}`));
+const chartLabel = `${t(lang, `m5.question.${q.id}.title`)} (${limits ? t(lang, "m5.question.fifth") : t(lang, `m5.unit.${q.unit}`)})`;
+const chartSeries = limits
+  ? [first, second].map((s) => ({ name: name(s.label), values: Object.fromEntries(limitYears.map((y) => [y, q.values[s.label][`${y}/Q1`]])) }))
+  : q.sources.map((s) => ({ name: name(s.label), values: q.values[s.label] }));
 ---
 <Base lang={lang} title={t(lang, `m5.question.${q.id}.title`)} description={t(lang, `m5.question.${q.id}.text`)} topic={{ slug: SLUG, country, section: `same-question/${Astro.params.question}` }}>
   <article class="stack-lg">
@@ -46,6 +51,7 @@ const name = (label: string) => (limits ? t(lang, `m5.source.${label}`) : t(lang
       <h1>{t(lang, `m5.question.${q.id}.title`)}</h1>
       <p style="font-size: var(--text-lg)">{t(lang, `m5.question.${q.id}.text`)}</p>
     </header>
+    <SourcesChart lang={lang} label={chartLabel} series={chartSeries} divide={limits ? 1 : divide} digits={limits ? 0 : digits} />
     {limits ? (
       <div class="table-wrap">
         <table class="data-table" data-m5="question">

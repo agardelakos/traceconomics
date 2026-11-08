@@ -343,7 +343,7 @@ def module5_outputs(outputs: Path, store_con) -> None:
     checks = [check("gr-cpi-rates-own-index", "percent", own), check("gr-cpi-rates-rebuilt", "percent", rebuilt),
               check("gr-cpi-rebuilt-items", "percent, one decimal", items), hbs.household_types(types, [])]
     made_up = [
-        ("gr-renters", "percent", {"census": {"2011": 21.7, "2021": 24.5}, "hbs": {"2011": 20.8, "2021": 16.8, "2024": 18.9},
+        ("gr-renters", "percent", {"census": {"2011": 21.7, "2021": 24.5}, "hbs": {"2011": 20.8, "2021": 16.8, "2022": 17.2, "2023": 18.3, "2024": 18.9},
                                    "silc": {"2024": 24.5}}),
         ("gr-rent-paid", "EUR", {"national_accounts": {"2021": 7.233e9, "2022": 7.775e9}, "hbs": {"2021": 2.77e9},
                                  "aade": {"2022": 7857453360.18}}),
