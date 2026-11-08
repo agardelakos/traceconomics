@@ -192,7 +192,7 @@
   "m5.src.gr-rent-paid.hbs": "Spending survey (HBS)",
   "m5.def.gr-rent-paid.hbs": "Rent paid for the main home",
   "m5.src.gr-rent-paid.aade": "Tax returns (AADE)",
-  "m5.def.gr-rent-paid.aade": "Income from property declared on personal tax returns: all property, homes and other",
+  "m5.def.gr-rent-paid.aade": "Income from property declared on personal tax returns, after the 5% allowance for repairs: rents from homes, shops, offices and land, and the value of property lent free; not the owner’s own home",
   "m5.src.gr-household-income.national_accounts": "National accounts",
   "m5.def.gr-household-income.national_accounts": "Gross disposable income of households and the non-profits serving them",
   "m5.src.gr-household-income.aade": "Tax returns (AADE)",
