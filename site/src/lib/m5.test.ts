@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { t } from "./i18n";
 import { findings, slugOf, status, type Check } from "./m5";
+import { bandLabel, periodLabel, spanLabel } from "./m5-labels";
 import { m5Text, topic, topicHref } from "./topics";
 
 const check = (over: Partial<Check>): Check => ({
@@ -57,5 +59,31 @@ describe("consistency topic", () => {
     expect(topicHref("en", tp.slug, "gr", "checks/cpi-rates-own-index")).toBe("/en/gr/official-figures-consistency/checks/cpi-rates-own-index/");
     expect(m5Text("gr", "el", "june-2001")).toBe("el/june-2001");
     expect(() => m5Text("cy", "en", "x")).toThrow();
+  });
+
+  it("names a period of the survey's spending table by year, column and item, in either language", { meta: {
+    id: "VT-M5-004",
+    given: "periods of the spending table for all households and for an income and a size band, and ELSTAT's English band names",
+    when: "each is named in English and in Greek",
+    then: [
+      "all households read as the language's words for them, then the item code",
+      "a band keeps ELSTAT's name in English and is translated in Greek, the euro amounts unchanged",
+      "a month and a year with a group are named as before",
+      "as a check's first or last period, a spending table period is its year alone, any other period as named",
+    ],
+  } }, () => {
+    expect(periodLabel("en", "2014/all/01111")).toBe(`2014 · ${t("en", "m5.period.all")} · 01111`);
+    expect(periodLabel("el", "2014/all/01111")).toBe(`2014 · ${t("el", "m5.period.all")} · 01111`);
+    expect(periodLabel("en", "2010/up 750 €/01111")).toBe("2010 · up 750 € · 01111");
+    expect(periodLabel("el", "2010/up 750 €/01111")).toBe("2010 · έως 750 € · 01111");
+    expect(bandLabel("el", "3501 and over €")).toBe("3501 και άνω €");
+    expect(bandLabel("el", "751-1100 €")).toBe("751-1100 €");
+    expect(bandLabel("el", "1 member")).toBe("1 μέλος");
+    expect(bandLabel("el", "6 members and over")).toBe("6 μέλη και άνω");
+    expect(bandLabel("en", "6 members and over")).toBe("6 members and over");
+    expect(periodLabel("en", "2023")).toBe("2023");
+    expect(periodLabel("en", "2022/A1")).toBe(`2022 · ${t("en", "group.hhtype/A1")}`);
+    expect(spanLabel("en", "2024/all/13902")).toBe("2024");
+    expect(spanLabel("en", "2022/A1")).toBe(periodLabel("en", "2022/A1"));
   });
 });

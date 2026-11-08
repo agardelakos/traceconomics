@@ -50,6 +50,9 @@ def all_checks(store_con, archive, archive_dir: Path, duck) -> list[Check]:
     types = hbs.load_types(store_con)
     if types:
         found.append(hbs.household_types(types, explanations))
+    spending = hbs.load_spending(store_con)
+    if spending:
+        found.append(hbs.spending(spending))
     ids = [c.id for c in found]
     assert len(ids) == len(set(ids)), f"check ids repeat: {ids}"
     return found

@@ -51,6 +51,10 @@ FORMATS = {
         "measures": ("n_households", "share_households", "elstat_n_households", "elstat_share_households",
                      "agreement", "elstat_status"),
     },
+    "oet-spending": {
+        "dims": ("geo", "group", "coicop"),
+        "measures": ("item", "published", "ours", "result"),
+    },
     "oet-bands": {
         "dims": ("geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",
                  "unit"),

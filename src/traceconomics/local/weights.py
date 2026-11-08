@@ -1,6 +1,6 @@
 """The whole run for one survey year: archived microdata -> weights table -> archive (source `oet-local`).
 
-Per year, five CSV files, each opened by `#` lines with their provenance:
+Per year, six CSV files, each opened by `#` lines with their provenance:
 
 - `hbs-weights-gr-YYYY`: one row per spending concept, grouping, group, imputed-rent option and
   COICOP 2018 code:
@@ -25,6 +25,12 @@ Per year, five CSV files, each opened by `#` lines with their provenance:
   home in euros a year (the weighted sum of code 0411, all modes, as the survey records it). For
   the consistency topic, which lines the survey's rent up against the census, EU-SILC and the
   national accounts; module1 doesn't read it.
+- `hbs-spending-gr-YYYY`: our reading of the survey file against ELSTAT's published spending
+  table (table 1.03, average monthly purchases by item), the V2 check: per column (all
+  households, and each band where the year's bands can be rebuilt) and item, ELSTAT's figure,
+  ours, and whether they match to the cent, differ, or are excused (an item the public file lacks
+  or cuts, `data/hbs_puf_missing_items.toml`); one row per column gives both household totals.
+  For the consistency topic, which publishes it; module1 doesn't read it.
 
 Only aggregates are written, and the files are meant to be published, so a count under 20 is
 written as "<20" (as Eurostat does), never as a number. Cells under 20 keep their share: it is
@@ -81,9 +87,12 @@ ELSTAT_TYPE_UNUSABLE = {2023: "HB074 doesn't match the households' own sizes: 34
 RENT = "hbs-rent-gr-{year}"
 RENT_COLUMNS = ["geo", "ref_year", "tenure", "n_households", "households_weighted", "people_weighted",
                 "rent_paid_eur", "source_version"]
+SPENDING_CHECK = "hbs-spending-gr-{year}"
+SPENDING_COLUMNS = ["geo", "ref_year", "group", "coicop", "item", "published", "ours", "result", "source_version"]
+HOUSEHOLDS = "households"           # the `coicop` of each column's row of household totals
 RENT_CODE = "0411"                  # actual rent for the main home, the code the tenure rule reads
 LIMIT_COLUMNS = ["geo", "ref_year", "grouping", "group", "unit", "limit", "se", "se_design", "source_version"]
-CODE_FILES = ("puf.py", "groups.py", "shares.py", "bootstrap.py", "mapping.py", "weights.py")
+CODE_FILES = ("puf.py", "groups.py", "shares.py", "bootstrap.py", "mapping.py", "weights.py", "v2.py")
 DATA_FILES = (mapping.V1_TO_2018, mapping.OLD_TO_V1, "hbs_puf_missing_items.toml")
 
 
@@ -110,8 +119,8 @@ def _num(x, digits: int = 10) -> str:
 
 def build(archive: Archive, year: int,
           replicates: int = bootstrap.REPLICATES) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,
-                                                           pd.DataFrame, dict]:
-    """(weights, groups, limits, household types, rent, provenance) for one survey year."""
+                                                           pd.DataFrame, pd.DataFrame, dict]:
+    """(weights, groups, limits, household types, rent, spending check, provenance) for one survey year."""
     rec = archive.latest(puf.SOURCE, puf.dataset(year))
     survey = puf.read(archive, year)
     groups = assign(survey)                       # on the survey as read: tenure needs its own rent codes
@@ -134,7 +143,8 @@ def build(archive: Archive, year: int,
     })[WEIGHT_COLUMNS]
 
     tables = v2.archived_tables(archive)
-    uncovered, gaps = v2.uncovered(survey, hbs_tables.parse(tables[year], year))
+    table_103 = hbs_tables.parse(tables[year], year)
+    uncovered, gaps = v2.uncovered(survey, table_103)
     people = groups.people_weight
     w = survey.households.weight
     group_rows = []
@@ -151,6 +161,7 @@ def build(archive: Archive, year: int,
     limits = limits_table(survey, year, replicates, source_version)
     types = types_table(survey, groups, year, source_version)
     rent = rent_table(survey, groups, year, source_version)
+    spending_check = spending_table(v2.compare_all(survey, table_103), year, source_version)
 
     provenance = {
         "survey": source_version,
@@ -161,7 +172,7 @@ def build(archive: Archive, year: int,
         "replicates": replicates if design.status != "unavailable" else 0, "seed": bootstrap.SEED,
         "uncovered_items_eur_month": {c: round(g, 2) for c, g in gaps.items()},
     }
-    return weights, group_table, limits, types, rent, provenance
+    return weights, group_table, limits, types, rent, spending_check, provenance
 
 
 def types_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_version: str) -> pd.DataFrame:
@@ -208,6 +219,22 @@ def rent_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_versi
     return pd.DataFrame(rows)[RENT_COLUMNS]
 
 
+def spending_table(results: list[v2.V2Result], year: int, source_version: str) -> pd.DataFrame:
+    """V2's comparison as a table: per column, a row of household totals (ELSTAT's against the
+    survey file's weights), then every item compared, with its result. Only averages over all
+    households or a published band, and ELSTAT's own figures, so nothing here is one household's."""
+    rows = []
+    for r in results:
+        rows.append({"geo": GEO, "ref_year": year, "group": r.group, "coicop": HOUSEHOLDS, "item": "",
+                     "published": r.households_published, "ours": r.households_puf,
+                     "result": "matched" if r.same_households else "differs", "source_version": source_version})
+        for code, label, published, ours, result in r.rows:
+            rows.append({"geo": GEO, "ref_year": year, "group": r.group, "coicop": code, "item": label,
+                         "published": published, "ours": np.nan if ours is None else ours,
+                         "result": result, "source_version": source_version})
+    return pd.DataFrame(rows)[SPENDING_COLUMNS]
+
+
 def limits_table(survey: puf.Survey, year: int, replicates: int, source_version: str) -> pd.DataFrame:
     """The limits between the default grouping's parts, rounded to the euro (half to even), with
     standard errors from the same bootstrap as the shares."""
@@ -243,13 +270,14 @@ def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICAT
     """Build and archive each year; return one line of report per year."""
     report = []
     for year in years:
-        weights, group_table, limits, types, rent, provenance = build(archive, year, replicates)
+        weights, group_table, limits, types, rent, spending_check, provenance = build(archive, year, replicates)
         head = [f"Greek household budget survey {year}: spending shares by group and COICOP 2018 code.",
                 "Built from the survey's public use file by Traceconomics; aggregates only. Counts under 20 are written as <20.",
                 "provenance: " + json.dumps(provenance, ensure_ascii=False, sort_keys=True)]
         now = datetime.now(UTC)
         results = []
-        for name, table in ((WEIGHTS, weights), (GROUPS, group_table), (LIMITS, limits), (TYPES, types), (RENT, rent)):
+        for name, table in ((WEIGHTS, weights), (GROUPS, group_table), (LIMITS, limits), (TYPES, types), (RENT, rent),
+                            (SPENDING_CHECK, spending_check)):
             dataset = name.format(year=year)
             lines = head
             if name == LIMITS:
@@ -261,6 +289,9 @@ def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICAT
             elif name == RENT:
                 lines = [f"Greek household budget survey {year}: rent paid for the main home, by tenure, euros a year.",
                          *head[1:]]
+            elif name == SPENDING_CHECK:
+                lines = [f"Greek household budget survey {year}: our reading of the public use file against ELSTAT's "
+                         "table 1.03 (average monthly purchases, euros), item by item.", *head[1:]]
             r = archive.store_bytes(SOURCE, dataset, to_csv(table, lines), url=None, retrieved_at=now, ext=".csv",
                                     kind="local", extra={"original_name": f"{dataset}.csv", "note": "built locally"})
             results.append(r.status)
@@ -269,6 +300,8 @@ def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICAT
         report.append({"year": year, "weights": results[0], "groups": results[1], "limits": results[2],
                        "types": results[3], "types_agreement": round(float(types.agreement.iloc[0]), 4),
                        "rent": results[4],
+                       "spending_check": results[5],
+                       "spending_differs": int((spending_check.result == "differs").sum()),
                        "rent_paid_eur": int(round(float(rent.set_index("tenure").loc["all", "rent_paid_eur"]))),
                        "limits_eur": [int(x) for x in limits["limit"]], "rows": len(weights),
                        "se_design": weights.se_design.iloc[0],

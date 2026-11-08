@@ -340,8 +340,21 @@ def module5_outputs(outputs: Path, store_con) -> None:
                         "agreement": (None, 0.27 if year == 2023 else 0.98),
                         "elstat_status": ("unusable: made up" if year == 2023 else "compared", None)}
                     for g, s in (("A1", 0.26), ("A2", 0.28))} for year in (2022, 2023)}
+    # The spending table: 2013 matches to the cent (with one band and one excused item), 2014's
+    # household totals differ, so its differing item links to the survey-weights finding.
+    def column(households, items):
+        return {"households": {"published": (None, households[0]), "ours": (None, households[1]),
+                               "result": ("matched" if households[0] == households[1] else "differs", None)},
+                **{code: {"item": (f"Item {code}", None), "published": (None, pub), "ours": (None, ours), "result": (res, None)}
+                   for code, pub, ours, res in items}}
+    spending = {2013: {"All households": column((4178116, 4178116), [("01111", 12.34, 12.3412, "matched"),
+                                                                     ("07242", 17.5, 1.02, "excused")]),
+                       "1 member": column((1072760, 1072760), [("01111", 7.1, 7.1, "matched")])},
+                2014: {"All households": column((4152372, 4136073), [("01111", 12.0, 12.0, "matched"),
+                                                                     ("01112", 3.2, 3.25, "differs")])}}
     checks = [check("gr-cpi-rates-own-index", "percent", own), check("gr-cpi-rates-rebuilt", "percent", rebuilt),
-              check("gr-cpi-rebuilt-items", "percent, one decimal", items), hbs.household_types(types, [])]
+              check("gr-cpi-rebuilt-items", "percent, one decimal", items), hbs.household_types(types, []),
+              hbs.spending(spending)]
     made_up = [
         ("gr-renters", "percent", {"census": {"2011": 21.7, "2021": 24.5}, "hbs": {"2011": 20.8, "2021": 16.8, "2022": 17.2, "2023": 18.3, "2024": 18.9},
                                    "silc": {"2024": 24.5}}),

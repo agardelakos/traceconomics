@@ -7,7 +7,7 @@ import Base from "../../../../../../layouts/Base.astro";
 import { num } from "../../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../../lib/i18n";
 import { findings, m5Dir, results, slugOf, status } from "../../../../../../lib/m5";
-import { causes, diff, periodLabel } from "../../../../../../lib/m5-labels";
+import { causes, diff, periodLabel, spanLabel } from "../../../../../../lib/m5-labels";
 import { countryPaths, m5Text, topicHref } from "../../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
@@ -30,6 +30,12 @@ const linked = findings(c).map((f) => {
 });
 const shown = c.differences.slice(0, SHOWN);
 const decimals = c.unit.startsWith("percent") ? 4 : 2;
+// The spending table's differences name their item by ELSTAT's own (English) name, kept in the check.
+const names = (c.extra?.item_names ?? {}) as Record<string, string>;
+const rowLabel = (period: string) => {
+  const code = period.split("/")[2];
+  return code !== undefined && names[code] ? `${periodLabel(lang, period)} ${names[code]}` : periodLabel(lang, period);
+};
 const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
 ---
 <Base lang={lang} title={t(lang, `m5.check.${c.id}.title`)} description={t(lang, `m5.check.${c.id}.text`)} topic={{ slug: SLUG, country, section: "checks" }}>
@@ -38,7 +44,7 @@ const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
       <span class={`chip-status ${st}`}>{t(lang, `m5.status.${st}`)}</span>
       <h1>{t(lang, `m5.check.${c.id}.title`)}</h1>
       <p style="font-size: var(--text-lg)">{t(lang, `m5.check.${c.id}.text`)}</p>
-      <p data-m5="count"><strong>{t(lang, "m5.count", { agree: c.agree, compared: c.compared })}</strong>{c.first && ` (${periodLabel(lang, c.first)} – ${periodLabel(lang, c.last!)})`}{c.compared > c.agree && <>. {t(lang, "m5.others", { list: causes(lang, c) })}</>}</p>
+      <p data-m5="count"><strong>{t(lang, "m5.count", { agree: c.agree, compared: c.compared })}</strong>{c.first && ` (${spanLabel(lang, c.first)} – ${spanLabel(lang, c.last!)})`}{c.compared > c.agree && <>. {t(lang, "m5.others", { list: causes(lang, c) })}</>}</p>
     </header>
     {linked.length > 0 && (
       <section class="stack" style="gap: var(--space-3)" aria-labelledby="findings-h">
@@ -56,7 +62,7 @@ const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
               <th scope="col">{t(lang, "m5.diff.rebuilt")}</th><th scope="col">{t(lang, "m5.diff.difference")}</th><th scope="col">{t(lang, "m5.diff.why")}</th>
             </tr></thead>
             <tbody>{shown.map((d) => (
-              <tr><th scope="row">{periodLabel(lang, d.period)}</th><td>{num(lang, d.published, decimals)}</td><td>{num(lang, d.rebuilt, decimals)}</td>
+              <tr><th scope="row">{rowLabel(d.period)}</th><td>{num(lang, d.published, decimals)}</td><td>{num(lang, d.rebuilt, decimals)}</td>
                 <td>{diff(lang, d.difference)}</td><td>{t(lang, `m5.cat.${d.explanation}`)}</td></tr>
             ))}</tbody>
           </table>

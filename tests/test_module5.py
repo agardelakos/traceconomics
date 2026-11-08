@@ -307,3 +307,50 @@ def test_attribution_names_every_publisher_and_dataset_the_questions_use(tmp_pat
     assert "shown as published" in text
     used = set(re.findall(r'"source": "(?:eurostat|ec-empl):(\w+)"', Path(questions.__file__).read_text(encoding="utf-8")))
     assert used and not {d for d in used if d not in text}
+
+
+def test_spending_check_counts_figures_to_the_cent_and_links_years_with_other_weights():
+    """PY-M5-013: the spending check: figures to the cent agree, excused items are counted apart, and a year weighted differently links its differences to the finding
+
+    Given a made-up store with the spending tables of 2013 (households match; one item to the cent, one excused, an income band to the cent) and 2014 (households differ; one item to the cent, one 5 cents off, one the file has no column for)
+    When the spending check is built from the store
+    Then 5 figures are compared and 3 agree, the excused item left out and counted for 2013
+    And 2014's two differences are "not-known" and link to the survey-weights finding, the missing column read as zero
+    And the household totals are kept by year, and periods name the year, the column ("all" for all households) and the item
+    And the name of each item that differs is kept where the table gives one
+    """
+    import duckdb
+    from traceconomics.module5 import hbs
+    con = duckdb.connect()
+    con.execute('CREATE TABLE observations (dataset VARCHAR, key VARCHAR, ref_period VARCHAR, value DOUBLE, value_text VARCHAR, '
+                'published_at VARCHAR, retrieved_at VARCHAR, status VARCHAR, geo VARCHAR, "group" VARCHAR, coicop VARCHAR, '
+                'measure VARCHAR)')
+
+    def add(year, column, code, published, ours, result):
+        for m, v in (("published", published), ("ours", ours), ("result", result)):
+            if v is None:
+                continue
+            con.execute("INSERT INTO observations VALUES ('oet-local:hbs_spending', ?, ?, ?, ?, '2026-11-08', '2026-11-08', "
+                        "'new', 'GR', ?, ?, ?)", [f"{column}|{code}|{m}", year, v if m != "result" else None, str(v), column, code, m])
+    all_ = hbs.ALL_HOUSEHOLDS
+    add("2013", all_, "households", 4178116.0, 4178116.0, "matched")
+    add("2013", all_, "01111", 12.34, 12.3412, "matched")
+    add("2013", all_, "07242", 17.5, 1.02, "excused")
+    add("2013", "up 750 €", "households", 600000.0, 600000.0, "matched")
+    add("2013", "up 750 €", "01111", 7.1, 7.1, "matched")
+    add("2014", all_, "households", 4152372.0, 4136073.0, "differs")
+    add("2014", all_, "01111", 12.0, 12.0, "matched")
+    add("2014", all_, "01112", 3.2, 3.25, "differs")
+    con.execute("INSERT INTO observations VALUES ('oet-local:hbs_spending', 'i', '2014', NULL, 'Bread', '2026-11-08', "
+                "'2026-11-08', 'new', 'GR', ?, '01112', 'item')", [all_])
+    add("2014", all_, "03111", 0.09, None, "differs")
+    c = hbs.spending(hbs.load_spending(con))
+    s = c.summary()
+    assert (s["compared"], s["agree"], s["differ"]) == (5, 3, {"not-known": 2})
+    assert [d["period"] for d in s["differences"]] == ["2014/all/01112", "2014/all/03111"]
+    assert {d["finding"] for d in s["differences"]} == {hbs.SPENDING_WEIGHTS_FINDING}
+    assert s["differences"][1]["rebuilt"] == 0.0
+    assert "2013/up 750 €/01111" in [x.period for x in c.comparisons]
+    assert s["extra"]["excused_by_year"] == {"2013": 1, "2014": 0}
+    assert s["extra"]["households_by_year"]["2014"] == {"published": 4152372.0, "ours": 4136073.0}
+    assert s["extra"]["item_names"] == {"01112": "Bread"}

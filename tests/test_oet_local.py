@@ -204,3 +204,27 @@ def test_rent_file_reads_one_row_per_tenure_and_measure(tmp_path):
     assert ("GR", "all", "rent_paid_eur", "2024", "3501000000.75", 3501000000.75) in got
     assert ("GR", "renter", "households_weighted", "2024", "812000.5", 812000.5) in got
     assert ("GR", "renter", "n_households", "2024", "<20", None) in got
+
+
+def test_spending_file_reads_each_columns_figures_and_results(tmp_path):
+    """PY-OETLOCAL-013: a spending check file is read per column and item, with ELSTAT's figure, ours and the result
+
+    Given a made-up spending check CSV for 2014: all households' totals, an item that differs and one the file has no column for, and an income band's item
+    When it is read as oet-spending
+    Then each item has rows for its name and result as text and ELSTAT's figure and ours as numbers
+    And an item without our figure has no row for it
+    And the band is a column of its own
+    """
+    p = tmp_path / "s.csv"
+    p.write_text("# x\ngeo,ref_year,group,coicop,item,published,ours,result,source_version\n"
+                 "GR,2014,All households,households,,4152372,4136073,differs,v\n"
+                 "GR,2014,All households,01112,Bread,9.5,9.43,differs,v\n"
+                 "GR,2014,All households,03111,Clothing materials,0.09,,differs,v\n"
+                 "GR,2014,up 750 €,01112,Bread,6.1,6.1,matched,v\n", encoding="utf-8")
+    got = list(oet_local.rows(p, "oet-spending"))
+    assert ("GR", "All households", "households", "ours", "2014", "4136073", 4136073.0) in got
+    assert ("GR", "All households", "01112", "item", "2014", "Bread", None) in got
+    assert ("GR", "All households", "01112", "published", "2014", "9.5", 9.5) in got
+    assert ("GR", "All households", "01112", "result", "2014", "differs", None) in got
+    assert not [r for r in got if r[2] == "03111" and r[3] == "ours"]
+    assert ("GR", "up 750 €", "01112", "result", "2014", "matched", None) in got

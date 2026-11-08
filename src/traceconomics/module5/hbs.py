@@ -6,6 +6,14 @@
   two place alike. Two shares "agree" within `TYPE_SHARE_GAP`. A year whose ELSTAT variable
   can't be compared (`elstat_status` "unusable: …", decided when the weights run) is kept with
   its reason, never dropped.
+- `spending` (a check): ELSTAT's published spending table (table 1.03, average monthly purchases
+  by item) against our reading of the same survey's public use file, year by year, for all
+  households and for each band where the year's bands can be rebuilt (2010-2013). Matching "to
+  the cent" means within `SPENDING_TOLERANCE` (the table is rounded to the cent). Items the public
+  file lacks or cuts aren't compared; they're counted apart, by year. A year whose household
+  totals differ (the file's weights add up to another number of households than the table's) has
+  every difference linked to the finding `SPENDING_WEIGHTS_FINDING`: the weights differ, and
+  ELSTAT hasn't said why, so the cause stays "not known".
 - `income_limits` (a question, "Same question, different sources"): where each income fifth
   ends, by our HBS limits and by Eurostat's EU-SILC limits for the same year's incomes. The two
   surveys measure different incomes (the HBS before some taxes and contributions SILC takes
@@ -20,6 +28,11 @@ from traceconomics.module5.record import Check, Comparison, Explanation, explain
 
 TYPES = "gr-hbs-household-types"
 LIMITS = "gr-income-limits"
+SPENDING = "gr-hbs-spending"
+SPENDING_TOLERANCE = 0.015      # euros a month: the table's figures are rounded to the cent
+SPENDING_WEIGHTS_FINDING = "survey-weights"
+HOUSEHOLDS = "households"       # the archived table's row of household totals for each column
+ALL_HOUSEHOLDS = "All households"   # table 1.03's name for its first column
 
 # Percentage points of households. An assumption: wide enough for the 16-24-year-olds the two
 # rules can place on either side of "dependent child" (gaps of 0.5-1.4 points in 2015-2024),
@@ -69,6 +82,57 @@ def household_types(years: dict[int, dict[str, dict[str, tuple[str | None, float
                                                 e.finding if e else ""))
     check.extra = {"agreement_by_year": agreement, "elstat_status_by_year": status}
     return check
+
+
+def spending(years: dict[int, dict[str, dict[str, dict[str, tuple[str | None, float | None]]]]]) -> Check:
+    """`years`: year -> column (table 1.03's name) -> code -> measure -> (text, number).
+
+    Periods are "YYYY/<column>/<code>", the column "all" for all households. An item the file has
+    no column for counts as zero spending in the file (none recorded), so it shows as a difference."""
+    check = Check(SPENDING, "gr", "EUR a month", SPENDING_TOLERANCE,
+                  published={"source": "elstat:hbs-t103", "reference": "elstat-hbs-t103", "label": "ELSTAT's table 1.03"},
+                  rebuilt={"source": "oet-local:hbs_spending", "reference": "elstat-hbs-puf", "label": "the public use file"})
+    households, excused, names = {}, {}, {}
+    for year in sorted(years):
+        columns = years[year]
+        differ = any(c[HOUSEHOLDS]["result"][0] == "differs" for c in columns.values() if HOUSEHOLDS in c)
+        total = columns.get(ALL_HOUSEHOLDS, {}).get(HOUSEHOLDS)
+        if total:
+            households[str(year)] = {"published": total["published"][1], "ours": total["ours"][1]}
+        excused[str(year)] = 0
+        for column in sorted(columns, key=lambda c: (c != ALL_HOUSEHOLDS, c)):
+            key = "all" if column == ALL_HOUSEHOLDS else column
+            for code in sorted(columns[column]):
+                if code == HOUSEHOLDS:
+                    continue
+                m = columns[column][code]
+                if m["result"][0] == "excused":
+                    excused[str(year)] += 1
+                    continue
+                theirs = m["published"][1]
+                ours = m.get("ours", (None, None))[1]
+                ours = 0.0 if ours is None else ours
+                period = f"{year}/{key}/{code}"
+                if abs(ours - theirs) <= SPENDING_TOLERANCE:
+                    check.comparisons.append(Comparison(period, theirs, ours, True))
+                else:
+                    check.comparisons.append(Comparison(period, theirs, ours, False, "not-known",
+                                                        SPENDING_WEIGHTS_FINDING if differ else ""))
+                    if m.get("item", (None, None))[0]:
+                        names[code] = m["item"][0]
+    # ELSTAT's (English) name of each item that differs somewhere, so a page can say what it is.
+    check.extra = {"households_by_year": households, "excused_by_year": excused,
+                   "item_names": dict(sorted(names.items()))}
+    return check
+
+
+def load_spending(store_con) -> dict:
+    years: dict[int, dict] = {}
+    for year, column, code, measure, text, value in _latest(store_con, "oet-local:hbs_spending",
+                                                            "ref_period, \"group\", coicop, measure, value_text, value",
+                                                            "geo = 'GR'"):
+        years.setdefault(int(year), {}).setdefault(column, {}).setdefault(code, {})[measure] = (text, value)
+    return years
 
 
 def income_limits(ours: dict[int, dict[str, float]], silc: dict[int, dict[str, float]]) -> Question:

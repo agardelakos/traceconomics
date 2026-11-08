@@ -140,6 +140,15 @@ format = "oet-rent"
 freq = "A"
 dimensions = ["geo", "tenure", "measure"]
 
+# Our reading of the survey file against ELSTAT's published spending table (table 1.03), item by
+# item and per band where the bands can be rebuilt, one file per survey year: the V2 check,
+# published by the consistency topic (module5).
+["oet-local".hbs_spending]
+archive = ["oet-local/hbs-spending-gr-*"]
+format = "oet-spending"
+freq = "A"
+dimensions = ["geo", "group", "coicop", "measure"]
+
 # EU-SILC: tenure and rent paid, by household and person, one file per survey year, built locally
 # from ELSTAT's SILC public use files (aggregates only), for the consistency topic.
 ["oet-local".silc_tenure]

@@ -187,6 +187,25 @@ def test_v2_compares_every_year_and_the_bands_where_they_can_be_rebuilt(files, m
         v2.run(None, [2010])
 
 
+
+def test_v2_keeps_every_figure_compared_with_its_result(files, monkeypatch):
+    """PY-HBS-010: V2 keeps every figure it compares, with ELSTAT's value, ours and the result
+
+    Given the made-up survey and table for 2010, with item 07242 listed as missing from the survey
+    When V2 is run for 2010
+    Then all households' rows hold one row per figure compared, in code order
+    And five are "matched" and the missing item is "excused", with ours as read from the survey
+    And each band's result holds its own rows
+    """
+    monkeypatch.setattr(v2, "missing_items", lambda: {"07242": [2010]})
+    results = v2.run(None, [2010])
+    first = results[0]
+    assert len(first.rows) == first.compared and [r[0] for r in first.rows] == sorted(r[0] for r in first.rows)
+    assert sorted(r[4] for r in first.rows) == ["excused"] + ["matched"] * 5
+    excused = next(r for r in first.rows if r[4] == "excused")
+    assert excused[0] == "07242" and excused[:4] == first.excused[0]
+    assert all(len(r.rows) == r.compared for r in results[1:])
+
 def test_bands_by_household_size_and_their_refusals():
     """PY-HBS-008: households are banded by size in 2013, and bands that don't fit are refused
 
@@ -354,29 +373,35 @@ def survey_2023(tmp_path, monkeypatch):
     return archive
 
 
-def test_the_weights_run_archives_five_tables_once(survey_2023):
-    """PY-OETLOCAL-008: the weights run archives a year's weights, groups, limits, household types and rent, once
+def test_the_weights_run_archives_six_tables_once(survey_2023):
+    """PY-OETLOCAL-008: the weights run archives a year's weights, groups, limits, household types, rent and spending check, once
 
     Given an archive with the 2023 survey (50 one-person households, incomes 6,000 to 64,800 euros a year) and its table 1.03
     When the weights run is made for 2023 with 20 replicates
     And made again with the same inputs
-    Then the first run stores the five oet-local tables for 2023
+    Then the first run stores the six oet-local tables for 2023
     And the income limits are the midpoints between the fifths: 17,400, 29,400, 41,400 and 53,400 euros
     And the standard errors come from the full design
-    And the second run finds all five unchanged
+    And the second run finds all six unchanged
+    And the run reports as many spending differences as the archived spending table marks "differs"
     And each table's header names its provenance, and counts under 20 are written as "<20"
     """
     from traceconomics.local import weights
 
     first = weights.run(survey_2023, [2023], replicates=20)[0]
-    assert (first["weights"], first["groups"], first["limits"], first["types"], first["rent"]) == ("stored",) * 5
+    assert (first["weights"], first["groups"], first["limits"], first["types"], first["rent"],
+            first["spending_check"]) == ("stored",) * 6
     assert first["limits_eur"] == [17400, 29400, 41400, 53400] and first["se_design"] == "full"
     second = weights.run(survey_2023, [2023], replicates=20)[0]
-    assert (second["weights"], second["groups"], second["limits"], second["types"], second["rent"]) == ("unchanged",) * 5
+    assert (second["weights"], second["groups"], second["limits"], second["types"], second["rent"],
+            second["spending_check"]) == ("unchanged",) * 6
     assert sorted(d for s, d in survey_2023.datasets() if s == "oet-local") == [
-        "hbs-groups-gr-2023", "hbs-hhtypes-gr-2023", "hbs-limits-gr-2023", "hbs-rent-gr-2023", "hbs-weights-gr-2023"]
+        "hbs-groups-gr-2023", "hbs-hhtypes-gr-2023", "hbs-limits-gr-2023", "hbs-rent-gr-2023", "hbs-spending-gr-2023",
+        "hbs-weights-gr-2023"]
     text = (survey_2023.root / survey_2023.latest("oet-local", "hbs-groups-gr-2023")["path"]).read_text(encoding="utf-8")
     assert '# provenance: {"code_fingerprint": ' in text and ",<20," in text
+    spent = (survey_2023.root / survey_2023.latest("oet-local", "hbs-spending-gr-2023")["path"]).read_text(encoding="utf-8")
+    assert first["spending_differs"] == sum(",differs," in line for line in spent.splitlines())
 
 
 def test_household_types_that_disagree_with_elstats_stop_the_run(survey_2023):
