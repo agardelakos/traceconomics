@@ -343,6 +343,11 @@ title = "on a phone, each row of the topic bar opens scrolled to its current ite
 playwright = ["PW-NAV-014"]
 selenium = ["SEL-NAV-016"]
 
+[TC-NAV-013]
+title = "on a method option's page, the bar's third row lists every option and marks the one being read"
+playwright = ["PW-NAV-015"]
+selenium = ["SEL-NAV-017"]
+
 [TC-TERM-001]
 title = "pointing at a term opens its explanation; moving away closes it"
 playwright = ["PW-TERM-001"]

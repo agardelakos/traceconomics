@@ -295,3 +295,26 @@ def test_topic_bar_rows_open_scrolled_to_their_current_item(phone):
                                            row.find_element("css selector", "[aria-current]"))
         assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
     assert wide > 0
+
+
+def test_method_option_strip_lists_every_option(site):
+    """SEL-NAV-017: on a method option's page, the bar's third row lists every option and marks the one being read
+
+    Given the method page, which lists every option, and one option's page
+    When the option's page is opened from the method page
+    Then the bar's third row lists the options in the method page's order, by their titles
+    And the option being read is plain text marked current; the others link to their pages
+    And the Method tab is marked as the current section
+    """
+    site.open("/en/gr/inflation-by-group/method/")
+    cards = site.all('nav[aria-labelledby="options-h"] a.card')
+    titles = [c.find_element("css selector", ".title").text.strip().removesuffix(" →") for c in cards]
+    hrefs = [c.get_attribute("href") for c in cards]
+    cards[1].click()
+    site.wait(lambda _: site.driver.current_url == hrefs[1], "the option's page did not open")
+    assert [li.text.strip() for li in site.all("nav[data-strip] li")] == titles
+    assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == titles[1]
+    links = {a.text.strip(): a.get_attribute("href") for a in site.all("nav[data-strip] a")}
+    assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs)) if i != 1}
+    tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.method"))
+    assert tab.get_attribute("aria-current") == "true"

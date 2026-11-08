@@ -230,3 +230,28 @@ test("on a phone, each row of the topic bar opens scrolled to its current item",
   }
   expect(wide).toBeGreaterThan(0);
 });
+
+test("on a method option's page, the bar's third row lists every option and marks the one being read", gwt({
+  id: "PW-NAV-015",
+  given: "the method page, which lists every option, and one option's page",
+  when: "the option's page is opened from the method page",
+  then: ["the bar's third row lists the options in the method page's order, by their titles",
+    "the option being read is plain text marked current; the others link to their pages",
+    "the Method tab is marked as the current section"],
+}), async ({ page, coverage }) => {
+  await page.goto(m1("en", "method/"));
+  const cards = page.locator('nav[aria-labelledby="options-h"] a.card');
+  const titles = (await cards.locator(".title").allTextContents()).map((x) => x.replace(/ →$/, ""));
+  const hrefs = await cards.evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+  await coverage.flush();
+  await cards.nth(1).click();
+  await expect(page).toHaveURL(new RegExp(`${hrefs[1]}$`));
+  const strip = page.locator("nav[data-strip]");
+  await expect(strip.locator("li")).toHaveText(titles);
+  await expect(strip.locator('[aria-current="page"]')).toHaveText(titles[1]);
+  for (const [i, title] of titles.entries()) {
+    if (i === 1) continue;
+    await expect(strip.getByRole("link", { name: title, exact: true })).toHaveAttribute("href", hrefs[i]);
+  }
+  await expect(page.locator(".topic-nav.sub a", { hasText: t("en", "nav.method") })).toHaveAttribute("aria-current", "true");
+});
