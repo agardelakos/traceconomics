@@ -314,6 +314,52 @@ def module1_outputs(outputs: Path, store_con, cpi, hicp, kept) -> None:
                           manifest=output.manifest(store_con))
 
 
+def module5_outputs(outputs: Path, store_con) -> None:
+    """What `traceconomics module5 run` writes, made up so each way a check can stand appears once:
+    one explained by rounding and a written finding (June 2001, whose page is in the site's
+    content), one whose differences have no known cause, one where every period agrees, the
+    household types with a year whose official variable can't be compared, and the income limits
+    question, built by the real code from the made-up store."""
+    from traceconomics.module5 import hbs, run
+    from traceconomics.module5.record import Check, Comparison
+
+    def check(cid, unit, rows):
+        c = Check(cid, "gr", unit, 1e-9, {"source": "elstat:cpi05", "reference": "elstat-cpi-rates", "label": "published"},
+                  {"source": "elstat:cpi05", "reference": "elstat-cpi-rates", "label": "rebuilt"})
+        c.comparisons = rows
+        return c
+
+    months = [f"{2000 + (6 + i) // 12}-{(6 + i) % 12 + 1:02d}" for i in range(24)]      # 2000-07 to 2002-06
+    own = [Comparison(p, 3.0 + i / 100, 3.0 + i / 100, True) for i, p in enumerate(months)]
+    own[7] = Comparison(months[7], 3.1, 3.07, False, "rounding")                             # 2001-02
+    own[11] = Comparison(months[11], 3.9332, 3.9239, False, "revision", "june-2001")         # 2001-06
+    rebuilt = [Comparison(p, 2.0, 2.0 + (0.13 if i % 4 == 3 else 0.0), i % 4 != 3, "" if i % 4 != 3 else "not-known")
+               for i, p in enumerate(months[:12])]
+    items = [Comparison(p, 1.5, 1.5, True) for p in months[:12]]
+    types = {year: {g: {"share_households": (None, s), "elstat_share_households": (None, s + (0.02 if year == 2023 else 0.003)),
+                        "agreement": (None, 0.27 if year == 2023 else 0.98),
+                        "elstat_status": ("unusable: made up" if year == 2023 else "compared", None)}
+                    for g, s in (("A1", 0.26), ("A2", 0.28))} for year in (2022, 2023)}
+    checks = [check("gr-cpi-rates-own-index", "percent", own), check("gr-cpi-rates-rebuilt", "percent", rebuilt),
+              check("gr-cpi-rebuilt-items", "percent, one decimal", items), hbs.household_types(types, [])]
+    made_up = [
+        ("gr-renters", "percent", {"census": {"2011": 21.7, "2021": 24.5}, "hbs": {"2011": 20.8, "2021": 16.8, "2024": 18.9},
+                                   "silc": {"2024": 24.5}}),
+        ("gr-rent-paid", "EUR", {"national_accounts": {"2021": 7.233e9, "2022": 7.775e9}, "hbs": {"2021": 2.77e9},
+                                 "aade": {"2022": 7857453360.18}}),
+        ("gr-household-income", "EUR", {"national_accounts": {"2022": 140.001e9}, "aade": {"2022": 91674362821.89}}),
+        ("gr-unemployment", "persons", {"lfs": {"2023": 470000.0, "2024": 400000.0}, "register": {"2023": 954795.0, "2024": 896099.0}}),
+    ]
+    sources = {"aade": "aade:pit_stats", "census": "eurostat:cens_21hhct_r3"}
+    extra = []
+    for qid, unit, values in made_up:
+        q = hbs.Question(qid, "gr", unit, [{"label": k, "source": sources.get(k, "made-up"), "reference": "elstat-hbs-puf",
+                                           "definition": "made up"} for k in values])
+        q.values = values
+        extra.append(q)
+    run.write(checks, outputs, run.all_questions(store_con) + extra)
+
+
 def generate(out: Path, work: Path, *, log=print) -> list[Path]:
     """Write the made-up site data into `out` (e.g. site/public/data); `work` holds the store,
     the archive and module 1's outputs."""
@@ -325,6 +371,7 @@ def generate(out: Path, work: Path, *, log=print) -> list[Path]:
     con = duckdb.connect()
     open_views(con, work / "store")
     module1_outputs(work / "outputs", con, cpi, hicp, kept)
+    module5_outputs(work / "outputs", con)
     return site.export(con, archive, work / "outputs", out, log=log,
                        blocks={"cpi": cpi, "hicp": hicp}, baskets=kept)
 

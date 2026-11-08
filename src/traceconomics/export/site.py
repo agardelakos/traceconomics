@@ -443,4 +443,33 @@ def export(store_con, archive, outputs: Path, out: Path, *, with_downloads: bool
     big = [p for p in root.rglob("*") if p.is_file() and p.stat().st_size > FILE_LIMIT]
     require(not big, f"files over {FILE_LIMIT} bytes: {[p.name for p in big]}")
     written.append(checksums(root))
+    written += export_m5(outputs, out, log)
+    return written
+
+
+def export_m5(outputs: Path, out: Path, log=print) -> list[Path]:
+    """Copy the consistency checks (`traceconomics module5 run`) to the site's data, as written:
+    `checks.json` for the pages, each check's and question's CSV under `downloads/`. Left out,
+    with a line in the log, when the outputs folder has no `m5` (the topic has no pages then)."""
+    written = []
+    for folder in sorted(Path(outputs).glob("*/m5")):
+        country = folder.parent.name
+        root = Path(out) / FORMAT / country / "m5" / "latest"
+        if root.exists():
+            shutil.rmtree(root)
+        (root / "downloads").mkdir(parents=True)
+        doc = json.loads((folder / "checks.json").read_text(encoding="utf-8"))
+        require(doc.get("format") == "m5-v1" and doc.get("country") == country,
+                f"{folder / 'checks.json'}: not module5's results for {country}")
+        shutil.copyfile(folder / "checks.json", root / "checks.json")
+        written.append(root / "checks.json")
+        for csv_path in sorted(folder.glob("*.csv")):
+            shutil.copyfile(csv_path, root / "downloads" / csv_path.name)
+            written.append(root / "downloads" / csv_path.name)
+        big = [p for p in root.rglob("*") if p.is_file() and p.stat().st_size > FILE_LIMIT]
+        require(not big, f"files over {FILE_LIMIT} bytes: {[p.name for p in big]}")
+        written.append(checksums(root))
+        log(f"{country}/m5: {len(doc['checks'])} checks, {len(doc.get('questions', []))} questions")
+    if not written:
+        log("no module5 results in the outputs folder: the consistency topic's files are left out")
     return written

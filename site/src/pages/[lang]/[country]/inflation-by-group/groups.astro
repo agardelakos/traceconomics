@@ -12,7 +12,8 @@ import { equivalentSize, eur, FIFTHS, HOUSEHOLD_TYPES, pps, ranges } from "../..
 import { householdTypes, incomeLimits } from "../../../../lib/data";
 import { pct } from "../../../../lib/format";
 import { href, LANGS, num, t, type Lang } from "../../../../lib/i18n";
-import { countryPaths, topicHref } from "../../../../lib/topics";
+import { countryPaths, topic, topicHref } from "../../../../lib/topics";
+import { results as m5Results, slugOf } from "../../../../lib/m5";
 
 export function getStaticPaths() {
   return countryPaths("inflation-by-group", LANGS);
@@ -53,6 +54,11 @@ const compare = eu.income_year === ours.income_year
               { pct: pct(lang, (Math.abs(eu.top_cutoffs.Q1 - ours.top_cutoffs.Q1) / ours.top_cutoffs.Q1) * 100) }),
     })
   : null;
+// Every year side by side lives in the consistency topic, when its question is built for this country.
+const limitsQuestion = topic("official-figures-consistency").countries.includes(country)
+  ? m5Results(country).questions.find((q) => q.id === `${country}-income-limits`) : undefined;
+const compareHref = limitsQuestion
+  ? topicHref(lang, "official-figures-consistency", country, `same-question/${slugOf(limitsQuestion.id, country)}`) : null;
 const ppsNone = ours.top_cutoffs_pps ? null : t(lang, "income.unit.pps_none", { income: ours.income_year });
 // The note's example: the poorest fifth's limit in both units. Its wording says a euro buys more
 // than one PPS's worth in this country; the build stops if the figures stop saying so.
@@ -196,6 +202,7 @@ const finderConfig = {
         {oursNote && <p class="note" data-income-role="ours-note">{oursNote}</p>}
         <p class="note" data-income-role="eurostat-note">{t(lang, "income.source.eurostat_note", { survey: eu.survey_year, income: eu.income_year })}</p>
         {compare && <p class="note" data-income-role="compare">{compare}</p>}
+        {compare && compareHref && <p class="note" data-income-role="compare-link"><a href={compareHref}>{t(lang, "m5.link.groups")} →</a></p>}
       </fieldset>
       <fieldset class="option">
         <legend>{t(lang, "income.unit")}</legend>

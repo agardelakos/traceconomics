@@ -1,0 +1,73 @@
+---
+// One check: what it compares, how often the two sides agree, each difference with its cause,
+// the findings that have their own page, and every period as a download.
+import { getCollection } from "astro:content";
+import SourceList from "../../../../../../components/SourceList.astro";
+import Base from "../../../../../../layouts/Base.astro";
+import { num } from "../../../../../../lib/format";
+import { LANGS, t, type Lang } from "../../../../../../lib/i18n";
+import { findings, m5Dir, results, slugOf, status } from "../../../../../../lib/m5";
+import { causes, diff, periodLabel } from "../../../../../../lib/m5-labels";
+import { countryPaths, m5Text, topicHref } from "../../../../../../lib/topics";
+
+const SLUG = "official-figures-consistency";
+export function getStaticPaths() {
+  return countryPaths("official-figures-consistency", LANGS).flatMap(({ params }) =>
+    results(params.country).checks.map((c) => ({ params: { ...params, check: slugOf(c.id, params.country) } })));
+}
+
+// The table shows this many differences; every period is in the download.
+const SHOWN = 60;
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const c = results(country).checks.find((x) => slugOf(x.id, country) === Astro.params.check)!;
+const st = status(c);
+const pages = await getCollection("findings", (e) => e.id.startsWith(m5Text(country, lang, "")) && e.data.check === c.id);
+const linked = findings(c).map((f) => {
+  const page = pages.find((e) => e.id === m5Text(country, lang, f.slug));
+  if (!page) throw new Error(`${c.id}: no ${lang} page for finding "${f.slug}"`);
+  return { href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}/${f.slug}`), title: page.data.title, summary: page.data.summary };
+});
+const shown = c.differences.slice(0, SHOWN);
+const decimals = c.unit.startsWith("percent") ? 4 : 2;
+const sources = [...new Set([c.published.reference, c.rebuilt.reference])];
+---
+<Base lang={lang} title={t(lang, `m5.check.${c.id}.title`)} description={t(lang, `m5.check.${c.id}.text`)} topic={{ slug: SLUG, country, section: "checks" }}>
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <span class={`chip-status ${st}`}>{t(lang, `m5.status.${st}`)}</span>
+      <h1>{t(lang, `m5.check.${c.id}.title`)}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, `m5.check.${c.id}.text`)}</p>
+      <p data-m5="count"><strong>{t(lang, "m5.count", { agree: c.agree, compared: c.compared })}</strong>{c.first && ` (${periodLabel(lang, c.first)} – ${periodLabel(lang, c.last!)})`}{c.compared > c.agree && <>. {t(lang, "m5.others", { list: causes(lang, c) })}</>}</p>
+    </header>
+    {linked.length > 0 && (
+      <section class="stack" style="gap: var(--space-3)" aria-labelledby="findings-h">
+        <h2 id="findings-h">{t(lang, "m5.finding.read")}</h2>
+        <div class="cards">{linked.map((f) => <a class="card" href={f.href}><span class="title">{f.title} →</span><span class="text">{f.summary}</span></a>)}</div>
+      </section>
+    )}
+    <section class="stack" style="gap: var(--space-3)" aria-labelledby="diff-h">
+      <h2 id="diff-h">{t(lang, "m5.diff.title")}</h2>
+      {c.differences.length === 0 ? <p>{t(lang, "m5.diff.none")}</p> : (
+        <div class="table-wrap">
+          <table class="data-table" data-m5="differences">
+            <thead><tr>
+              <th scope="col">{t(lang, "m5.diff.period")}</th><th scope="col">{t(lang, "m5.diff.published")}</th>
+              <th scope="col">{t(lang, "m5.diff.rebuilt")}</th><th scope="col">{t(lang, "m5.diff.difference")}</th><th scope="col">{t(lang, "m5.diff.why")}</th>
+            </tr></thead>
+            <tbody>{shown.map((d) => (
+              <tr><th scope="row">{periodLabel(lang, d.period)}</th><td>{num(lang, d.published, decimals)}</td><td>{num(lang, d.rebuilt, decimals)}</td>
+                <td>{diff(lang, d.difference)}</td><td>{t(lang, `m5.cat.${d.explanation}`)}</td></tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+      {c.differences.length > SHOWN && <p>{t(lang, "m5.diff.more", { shown: SHOWN, total: c.differences.length })}</p>}
+      <p><a href={`/data/v1/${m5Dir(country)}/downloads/${c.id}.csv`} download>{t(lang, "m5.download")}</a></p>
+    </section>
+    <details class="panel">
+      <summary>{t(lang, "m5.finding.sources")}</summary>
+      <div style="margin-top: var(--space-3)"><SourceList keys={sources} lang={lang} /></div>
+    </details>
+  </article>
+</Base>

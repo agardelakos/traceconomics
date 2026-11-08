@@ -100,6 +100,9 @@ def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> l
         Step("check-v1", _py("check", "v1")),
         Step("check-v1-cpi", _py("check", "v1-cpi")),
         Step("check-combos", _py("check", "combos", "--outputs", str(outputs))),
+        # Each official figure against its own inputs. Differences never fail it (they are what the
+        # topic publishes); only an input it can't read does.
+        Step("consistency", _py("module5", "run", "--out", str(outputs))),
         Step("export", _py("export", "site", "--out", str(site / "public" / "data"), "--outputs", str(outputs))),
         Step("npm-ci", ("npm", "ci", "--no-audit", "--no-fund"), site),
         Step("site-check", ("npm", "run", "check"), site),

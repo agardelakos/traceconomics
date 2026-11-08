@@ -457,3 +457,33 @@ selenium = ["SEL-THEME-011"]
 title = "on a phone, the menu's copy of the theme setting works and stays in step with the header's"
 playwright = ["PW-THEME-008"]
 selenium = ["SEL-THEME-008"]
+
+[TC-M5-001]
+title = "the consistency overview lists every check with how often it agrees and where it stands"
+playwright = ["PW-M5-001"]
+selenium = ["SEL-M5-001"]
+
+[TC-M5-002]
+title = "a check's page lists each difference with its cause and offers every period as CSV"
+playwright = ["PW-M5-002"]
+selenium = ["SEL-M5-002"]
+
+[TC-M5-003]
+title = "a finding's page tells what happened, links back to its check and lists its sources"
+playwright = ["PW-M5-003"]
+selenium = ["SEL-M5-003"]
+
+[TC-M5-004]
+title = "a question across sources lines up each source's value by year, reached from the Groups page"
+playwright = ["PW-M5-004"]
+selenium = ["SEL-M5-004"]
+
+[TC-M5-005]
+title = "the home page's country card and the data page lead to the consistency topic and its files"
+playwright = ["PW-M5-005"]
+selenium = ["SEL-M5-005"]
+
+[TC-M5-006]
+title = "a question across several sources gives each source's value by year, its definition, and AADE's figures as published"
+playwright = ["PW-M5-006"]
+selenium = ["SEL-M5-006"]

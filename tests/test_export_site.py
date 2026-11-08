@@ -280,3 +280,35 @@ def test_pps_factor_refuses_limits_that_dont_share_one(eur, pps, message):
     """
     with pytest.raises(FormatError, match=message):
         site.pps_factor(eur, pps)
+
+
+def test_m5_results_are_copied_with_checksums(tmp_path):
+    """PY-SITEEXP-014: the consistency checks reach the site's data as written, with their checksums
+
+    Given module5's results for Greece: one check and one question, with their CSV files
+    When they are exported to the site's data, over an older copy holding a stale file
+    Then checks.json is copied byte for byte, the CSVs go under downloads/, and the stale file is gone
+    And SHA256SUMS lists every file
+    And an outputs folder without module5 results exports nothing and says so
+    """
+    from traceconomics.module5.hbs import income_limits
+    from traceconomics.module5.record import Check, Comparison
+    from traceconomics.module5.run import write
+
+    c = Check("gr-x", "gr", "percent", 1e-9, {"source": "a"}, {"source": "b"})
+    c.comparisons = [Comparison("2001-01", 1.0, 1.0, True)]
+    outputs, out = tmp_path / "outputs", tmp_path / "data"
+    write([c], outputs, [income_limits({2024: {"Q1": 1.0}}, {2025: {"Q1": 2.0}})])
+    stale = out / "v1" / "gr" / "m5" / "latest" / "old.json"
+    stale.parent.mkdir(parents=True)
+    stale.write_text("{}", encoding="utf-8")
+    site.export_m5(outputs, out, log=lambda *_: None)
+    root = out / "v1" / "gr" / "m5" / "latest"
+    assert (root / "checks.json").read_bytes() == (outputs / "gr" / "m5" / "checks.json").read_bytes()
+    assert sorted(p.name for p in (root / "downloads").iterdir()) == ["gr-income-limits.csv", "gr-x.csv"]
+    assert not stale.exists()
+    sums = (root / "SHA256SUMS").read_text(encoding="utf-8")
+    assert "  checks.json" in sums and "  downloads/gr-x.csv" in sums
+    said = []
+    assert site.export_m5(tmp_path / "empty", tmp_path / "data2", log=said.append) == []
+    assert said and "left out" in said[0]

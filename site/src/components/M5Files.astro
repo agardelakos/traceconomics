@@ -1,0 +1,29 @@
+---
+// The consistency topic's files for one country, as a section of its data page: what they are
+// (src/content/pages/<lang>/m5-data.md), then every file with its size.
+import fs from "node:fs";
+import path from "node:path";
+import { render, type CollectionEntry } from "astro:content";
+import { DATA_ROOT } from "../lib/data";
+import { num, t, type Lang } from "../lib/i18n";
+import { m5Dir, results } from "../lib/m5";
+
+interface Props { lang: Lang; country: string; entry: CollectionEntry<"pages"> }
+const { lang, country, entry } = Astro.props;
+const { Content } = await render(entry);
+const base = `/data/v1/${m5Dir(country)}`;
+const size = (rel: string) => {
+  const bytes = fs.statSync(path.join(DATA_ROOT, m5Dir(country), rel)).size;
+  return bytes > 1e6 ? `${num(lang, bytes / 1e6)} MB` : `${num(lang, bytes / 1e3, 0)} KB`;
+};
+const r = results(country);
+const files = [
+  ...["checks.json", "SHA256SUMS"].map((f) => ({ name: f, label: f, href: `${base}/${f}`, size: size(f) })),
+  ...r.checks.map((c) => ({ name: `${c.id}.csv`, label: t(lang, `m5.check.${c.id}.title`), href: `${base}/downloads/${c.id}.csv`, size: size(`downloads/${c.id}.csv`) })),
+  ...r.questions.map((q) => ({ name: `${q.id}.csv`, label: t(lang, `m5.question.${q.id}.title`), href: `${base}/downloads/${q.id}.csv`, size: size(`downloads/${q.id}.csv`) })),
+];
+---
+<div class="prose"><Content /></div>
+<ul class="stack" style="gap: var(--space-1)" data-m5="files">
+  {files.map((f) => <li><a href={f.href} download>{f.name}</a> · {f.label === f.name ? "" : `${f.label} · `}{f.size}</li>)}
+</ul>

@@ -1,0 +1,94 @@
+---
+// One question across sources: each source's definition, then the values by year side by side.
+// The income limits show the poorest fifth's limit and the gap (every fifth is in the download);
+// the other questions show every source's value by year in the question's unit. AADE's figures
+// are also given exactly as published, since its terms forbid modifying them: the table only
+// rounds them for reading, like every other source.
+import SourceList from "../../../../../components/SourceList.astro";
+import Base from "../../../../../layouts/Base.astro";
+import { num } from "../../../../../lib/format";
+import { LANGS, t, type Lang } from "../../../../../lib/i18n";
+import { m5Dir, results, slugOf } from "../../../../../lib/m5";
+import { countryPaths } from "../../../../../lib/topics";
+
+const SLUG = "official-figures-consistency";
+export function getStaticPaths() {
+  return countryPaths("official-figures-consistency", LANGS).flatMap(({ params }) =>
+    results(params.country).questions.map((q) => ({ params: { ...params, question: slugOf(q.id, params.country) } })));
+}
+
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const q = results(country).questions.find((x) => slugOf(x.id, country) === Astro.params.question)!;
+const limits = q.id.endsWith("-income-limits");
+const [first, second] = q.sources;
+
+// The income limits: the poorest fifth's limit by income year, and the gap.
+const limitYears = limits ? [...new Set(Object.keys(q.values[first.label]).map((p) => p.split("/")[0]))]
+  .filter((y) => q.values[first.label][`${y}/Q1`] != null || q.values[second.label][`${y}/Q1`] != null).sort() : [];
+const limitRows = limitYears.map((y) => {
+  const a = q.values[first.label][`${y}/Q1`], b = q.values[second.label][`${y}/Q1`];
+  return { year: y, a, b, gap: a != null && b != null ? (a / b - 1) * 100 : null };
+});
+
+// The other questions: every source's value by year, in the question's unit.
+const SCALE: Record<string, [number, number]> = { percent: [1, 1], EUR: [1e9, 2], persons: [1e3, 0] };
+const [divide, digits] = SCALE[q.unit] ?? [1, 1];
+const periods = limits ? [] : [...new Set(q.sources.flatMap((s) => Object.keys(q.values[s.label])))].sort();
+const cell = (v: number | null | undefined) => (v == null ? "–" : num(lang, v / divide, digits));
+const asPublished = q.sources.filter((s) => s.source.startsWith("aade:"));
+const keys = [...new Set(q.sources.flatMap((s) => [s.reference, ...(s.more ?? [])]))];
+const name = (label: string) => (limits ? t(lang, `m5.source.${label}`) : t(lang, `m5.src.${q.id}.${label}`));
+---
+<Base lang={lang} title={t(lang, `m5.question.${q.id}.title`)} description={t(lang, `m5.question.${q.id}.text`)} topic={{ slug: SLUG, country, section: `same-question/${Astro.params.question}` }}>
+  <article class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <h1>{t(lang, `m5.question.${q.id}.title`)}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, `m5.question.${q.id}.text`)}</p>
+    </header>
+    {limits ? (
+      <div class="table-wrap">
+        <table class="data-table" data-m5="question">
+          <caption>{t(lang, "m5.question.fifth")}</caption>
+          <thead><tr><th scope="col">{t(lang, "m5.question.year")}</th><th scope="col">{name(first.label)}</th>
+            <th scope="col">{name(second.label)}</th><th scope="col">{t(lang, "m5.question.gap")}</th></tr></thead>
+          <tbody>{limitRows.map((r) => (
+            <tr><th scope="row">{r.year}</th><td>{r.a == null ? "–" : num(lang, r.a, 0)}</td><td>{r.b == null ? "–" : num(lang, r.b, 0)}</td>
+              <td>{r.gap == null ? "–" : `${r.gap > 0 ? "+" : ""}${num(lang, r.gap, 0)}%`}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+    ) : (
+      <>
+        <div class="table-wrap">
+          <table class="data-table" data-m5="question">
+            <caption>{t(lang, `m5.unit.${q.unit}`)}</caption>
+            <thead><tr><th scope="col">{t(lang, "m5.question.period")}</th>
+              {q.sources.map((s) => <th scope="col">{name(s.label)}</th>)}</tr></thead>
+            <tbody>{periods.map((p) => (
+              <tr><th scope="row">{p}</th>{q.sources.map((s) => <td>{cell(q.values[s.label][p])}</td>)}</tr>
+            ))}</tbody>
+          </table>
+        </div>
+        <section class="stack" style="gap: var(--space-2)" aria-labelledby="defs-h">
+          <h2 id="defs-h">{t(lang, "m5.question.definitions")}</h2>
+          <dl class="stack" style="gap: var(--space-1)" data-m5="definitions">
+            {q.sources.map((s) => <div><dt><strong>{name(s.label)}</strong></dt><dd style="margin: 0">{t(lang, `m5.def.${q.id}.${s.label}`)}</dd></div>)}
+          </dl>
+          {asPublished.map((s) => (
+            <ul class="small" data-m5="as-published">
+              {Object.entries(q.values[s.label]).filter((e): e is [string, number] => e[1] != null).map(([p, v]) => (
+                <li>{p}: {t(lang, "m5.question.as_published", { source: name(s.label), value: `${num(lang, v, 2)} €` })}</li>
+              ))}
+            </ul>
+          ))}
+        </section>
+      </>
+    )}
+    <p><a href={`/data/v1/${m5Dir(country)}/downloads/${q.id}.csv`} download>{t(lang, "m5.download")}</a></p>
+    <details class="panel">
+      <summary>{t(lang, "m5.finding.sources")}</summary>
+      <div style="margin-top: var(--space-3)"><SourceList keys={keys} lang={lang} /></div>
+    </details>
+  </article>
+</Base>

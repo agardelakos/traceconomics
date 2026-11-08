@@ -32,6 +32,14 @@ def main(argv: list[str] | None = None) -> int:
     i.add_argument("--downloaded", type=date.fromisoformat, help="download date (YYYY-MM-DD) if not today")
     i.add_argument("--note")
 
+    w = sub.add_parser("import-wayback", help="add a publisher's past file as kept by the Wayback Machine")
+    w.add_argument("file", type=Path)
+    w.add_argument("--url", required=True, help="the raw-capture address: https://web.archive.org/web/<YYYYMMDDhhmmss>id_/<url>")
+    w.add_argument("--dataset", required=True, help="ends in -wayback, e.g. cpi05-wayback")
+    w.add_argument("--source", default="elstat")
+    w.add_argument("--downloaded", type=date.fromisoformat, required=True, help="download date (YYYY-MM-DD)")
+    w.add_argument("--note")
+
     s = sub.add_parser("seed", help="copy earlier downloads with recorded URL, date and checksum")
     s.add_argument("folder", type=Path)
     s.add_argument("--dry-run", action="store_true")
@@ -74,6 +82,14 @@ def main(argv: list[str] | None = None) -> int:
                     help="all: every combination of the options (default); default: the default one only")
     m1.add_argument("--spending", action="append", choices=["purchases", "all"],
                     help="spending concept(s) to compute (default: both)")
+
+    m5 = sub.add_parser("module5", help="consistency of official figures: every check, from the store")
+    m5.add_argument("action", choices=["run"], help="run: compare each official figure with its own inputs and write the results")
+    m5.add_argument("--out", type=Path, required=True, help="folder to write into (rebuildable, e.g. ~/traceconomics-outputs)")
+
+    sl = sub.add_parser("silc", help="tenure and rent paid from the EU-SILC microdata (needs the local extra)")
+    sl.add_argument("action", choices=["run"], help="run: build each SILC year's tenure table and archive it as oet-local")
+    sl.add_argument("--years", type=_years, help="e.g. 2024-2025 (default: every archived SILC file)")
 
     wt = sub.add_parser("weights", help="spending shares by group from the survey microdata (needs the local extra)")
     wt.add_argument("action", choices=["run"], help="run: build each survey year's tables and archive them as oet-local")
@@ -346,6 +362,12 @@ def _dispatch(args, cfg) -> int:
         print(f"{r.status}: {r.source}/{r.dataset}" + (f" -> {r.path}" if r.path else ""))
         return 0
 
+    if args.command == "import-wayback":
+        r = backfill.import_wayback(Archive(cfg.archive_dir), args.file, source=args.source, dataset=args.dataset,
+                                    url=args.url, downloaded=args.downloaded, note=args.note)
+        print(f"{r.status}: {r.source}/{r.dataset}" + (f" -> {r.path}" if r.path else ""))
+        return 0
+
     if args.command == "seed":
         rep = backfill.seed(Archive(cfg.archive_dir), args.folder, dry_run=args.dry_run)
         verb = "would store" if args.dry_run else "stored"
@@ -384,6 +406,26 @@ def _dispatch(args, cfg) -> int:
     if args.command == "store":
         return _store(cfg, args.action, args.dataset)
 
+    if args.command == "module5":
+        from traceconomics.module5 import run as m5
+        from traceconomics.store.db import connect
+        from traceconomics.store.query import open_views
+
+        con = connect(cfg.store_memory_limit, cfg.store_threads)
+        open_views(con, cfg.store_dir)
+        found = m5.all_checks(con, Archive(cfg.archive_dir), cfg.archive_dir, connect())
+        for c in found:
+            s = c.summary()
+            print(f"{c.id}: {s['agree']} of {s['compared']} agree ({s['first']} to {s['last']}); differ: {s['differ'] or 'none'}")
+        questions = m5.all_questions(con)
+        for q in questions:
+            print(f"{q.id}: {len(q.sources)} sources")
+        if not any(c.id == "gr-hbs-household-types" for c in found) or not questions:
+            print("  (survey tables or Eurostat's income limits not in the store yet: those parts left out)")
+        for path in m5.write(found, args.out, questions):
+            print(f"  wrote {path}")
+        return 0
+
     if args.command == "module1":
         from traceconomics.module1 import availability, combinations, index, output
         from traceconomics.store.db import connect
@@ -415,6 +457,13 @@ def _dispatch(args, cfg) -> int:
         for path in written:
             print(f"Wrote {path}")
         print(json.dumps(writer.counts))
+        return 0
+
+    if args.command == "silc":
+        from traceconomics.local import silc
+
+        for line in silc.run(Archive(cfg.archive_dir), args.years):
+            print(json.dumps(line, ensure_ascii=False))
         return 0
 
     if args.command == "weights":

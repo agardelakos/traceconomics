@@ -1,0 +1,39 @@
+---
+// The consistency topic across countries: its question, what it does, then one card per country.
+import Breadcrumb from "../../../components/Breadcrumb.astro";
+import MoreCard from "../../../components/MoreCard.astro";
+import Base from "../../../layouts/Base.astro";
+import { LANGS, t, type Lang } from "../../../lib/i18n";
+import { results } from "../../../lib/m5";
+import { topic, topicHref } from "../../../lib/topics";
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const SLUG = "official-figures-consistency";
+const countries = topic(SLUG).countries.map((c) => ({ code: c, n: results(c).checks.length }));
+---
+<Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <Breadcrumb lang={lang} trail={[[t(lang, `topic.${SLUG}`)]]} />
+      <h1>{t(lang, `topic.${SLUG}`)}</h1>
+      <p style="font-size: var(--text-lg); font-weight: 600">{t(lang, `topic.${SLUG}.question`)}</p>
+      <p>{t(lang, "m5.lead")}</p>
+    </header>
+    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
+      <h2 id="countries-h">{t(lang, "m5.landing.countries")}</h2>
+      <div class="card-row">
+        {countries.map((c) => (
+          <a class="card" href={topicHref(lang, SLUG, c.code)}>
+            <span class="title">{t(lang, `country.${c.code}`)} →</span>
+            <span class="text">{t(lang, "m5.landing.country_text", { n: c.n })}</span>
+          </a>
+        ))}
+        <MoreCard lang={lang} what="countries" />
+      </div>
+    </nav>
+  </div>
+</Base>

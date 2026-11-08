@@ -7,7 +7,7 @@ sources: []
 
 An independent project that follows the economy, run by one person, with no institution or funder behind it. **Every number is computed from public data, and the method, the code and the source files are open, so anyone can check or rebuild them.**
 
-We start with how inflation differs between groups of households in Greece; more topics and countries will follow. The figures are updated each month, after ELSTAT publishes the consumer price index.
+We start with Greece: how inflation differs between groups of households, and whether the official figures add up. More topics and countries will follow. The figures are updated each month, after ELSTAT publishes the consumer price index.
 
 ## Who it is for
 

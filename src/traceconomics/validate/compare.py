@@ -37,6 +37,9 @@ class Comparison:
     min_covered: float = 1.0
     first: str | None = None
     last: str | None = None
+    # Every month with both rates: (period, ours, official), before rounding. Kept so the
+    # comparison can be published month by month, not only as these totals.
+    rows: list[tuple[str, float, float]] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
@@ -90,6 +93,7 @@ def compare(name: str, result: ChainResult, official: dict[str, float],
         theirs = official_rates.get(period) if official_rates is not None else annual_rate(official, period)
         if ours is None or theirs is None:
             continue
+        c.rows.append((period, ours, theirs))
         ours, theirs = round(ours, 1), round(theirs, 1)
         rate_gap = abs(ours - theirs)
         c.months += 1

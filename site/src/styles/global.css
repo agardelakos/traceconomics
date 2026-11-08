@@ -487,3 +487,10 @@ label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not
 .facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .facts dt { font-size: var(--text-sm); color: var(--color-text-muted); }
 .facts dd { margin: 0; font-family: var(--font-serif); font-size: var(--text-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Consistency topic: where a check stands. "Explained" and "all agree" use the accent; the other
+   two are neutral on purpose: a difference with no known cause is not an accusation. */
+.chip-status.partly { background: var(--color-flag-less-certain); color: var(--color-text); }
+.chip-status.unknown { background: var(--color-disabled); color: var(--color-text); }
+.m5-checks td, .m5-checks th { vertical-align: top; }
+.m5-checks .sub { display: block; color: var(--color-text-muted); font-size: var(--text-sm); }

@@ -1,0 +1,52 @@
+---
+// One country's overview: the question, then every check with how often its two sides agree and
+// where it stands, then the ways on to the questions across sources and the rules.
+import Base from "../../../../layouts/Base.astro";
+import { LANGS, t, type Lang } from "../../../../lib/i18n";
+import { results, slugOf, status } from "../../../../lib/m5";
+import { causes } from "../../../../lib/m5-labels";
+import { countryPaths, topicHref } from "../../../../lib/topics";
+
+export function getStaticPaths() {
+  return countryPaths("official-figures-consistency", LANGS);
+}
+
+const SLUG = "official-figures-consistency";
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const { checks } = results(country);
+const rows = checks.map((c) => ({
+  href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
+  title: t(lang, `m5.check.${c.id}.title`),
+  source: t(lang, `m5.check.${c.id}.source`),
+  count: t(lang, "m5.count", { agree: c.agree, compared: c.compared }),
+  others: c.compared > c.agree ? t(lang, "m5.others", { list: causes(lang, c) }) : "",
+  status: status(c),
+}));
+---
+<Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG, country, section: "" }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <h1>{t(lang, `topic.${SLUG}.question`)}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "m5.lead")}</p>
+    </header>
+    <div class="table-wrap">
+      <table class="data-table m5-checks" data-m5="checks">
+        <thead><tr><th scope="col">{t(lang, "m5.table.check")}</th><th scope="col">{t(lang, "m5.table.agree")}</th><th scope="col">{t(lang, "m5.table.status")}</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <th scope="row"><a href={r.href}>{r.title}</a><span class="sub">{r.source}</span></th>
+              <td><strong>{r.count}</strong>{r.others && <span class="sub">{r.others}</span>}</td>
+              <td><span class={`chip-status ${r.status}`}>{t(lang, `m5.status.${r.status}`)}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="cards">
+      <a class="card" href={topicHref(lang, SLUG, country, "same-question")}><span class="title">{t(lang, "nav.same-question")} →</span><span class="text">{t(lang, "m5.card.same")}</span></a>
+      <a class="card" href={topicHref(lang, SLUG, country, "how-we-check")}><span class="title">{t(lang, "nav.how-we-check")} →</span><span class="text">{t(lang, "m5.card.how")}</span></a>
+    </div>
+  </div>
+</Base>

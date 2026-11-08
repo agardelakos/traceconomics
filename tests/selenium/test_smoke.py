@@ -9,6 +9,10 @@ PAGES = [
     "", "about/", "countries/", "topics/", "glossary/", "data/", "data/gr/", "inflation-by-group/",
     "gr/", "gr/inflation-by-group/", "gr/inflation-by-group/method/", "gr/inflation-by-group/groups/",
     "gr/inflation-by-group/explore/", "gr/inflation-by-group/calculator/",
+    "official-figures-consistency/", "gr/official-figures-consistency/", "gr/official-figures-consistency/checks/",
+    "gr/official-figures-consistency/checks/cpi-rates-own-index/",
+    "gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/",
+    "gr/official-figures-consistency/same-question/", "gr/official-figures-consistency/how-we-check/",
 ]
 
 
