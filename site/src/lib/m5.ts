@@ -69,9 +69,21 @@ export function chips(q: Question): string[] {
   }))];
 }
 
-/** Checks with differences first, so they are seen, then the consistent ones; each in file order. */
+// The order checks are shown in: explained first (a difference found and its cause shown is the
+// topic's work at its most useful), then partly explained, then those whose cause isn't known
+// yet, then the consistent ones. Within a status, file order.
+export const STATUS_ORDER: Status[] = ["explained", "partly", "unknown", "agree"];
+
 export function ordered(checks: Check[]): Check[] {
-  return [...checks.filter((c) => c.agree < c.compared), ...checks.filter((c) => c.agree === c.compared)];
+  return STATUS_ORDER.flatMap((st) => checks.filter((c) => status(c) === st));
+}
+
+// The glossary term for what a check is about, by the source of its published side.
+const TERMS: [RegExp, string][] = [[/^elstat:cpi/, "consumer-price-index"], [/^eurostat:prc_hicp/, "hicp"], [/^elstat:hbs/, "household-budget-survey"]];
+
+/** The glossary term a check's card explains, if any. */
+export function termOf(c: Pick<Check, "published">): string | undefined {
+  return TERMS.find(([re]) => re.test(c.published.source))?.[1];
 }
 
 /**

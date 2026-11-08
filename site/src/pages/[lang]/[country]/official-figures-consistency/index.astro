@@ -1,12 +1,15 @@
 ---
-// One country's overview: the question, a line on everything checked (consistent checks count as
-// much as the rest), then every check with how often its two sides agree and where it stands, those
-// with differences first, then the ways on to the questions across sources and the rules.
+// One country's overview, for a curious reader who may not know what a price index or a spending
+// survey is: why official figures should add up, three numbers on everything checked, then every
+// check as a card asking its question in plain words (explained first: a difference found and its
+// cause shown), with buttons to show one status at a time, and the questions several sources
+// answer. Without scripts the buttons stay hidden and every card shows.
+import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import Base from "../../../../layouts/Base.astro";
 import { num } from "../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../lib/i18n";
-import { ordered as order, results, slugOf, status } from "../../../../lib/m5";
-import { causes, checkedSpan } from "../../../../lib/m5-labels";
+import { chips, ordered, results, slugOf, status, STATUS_ORDER, termOf } from "../../../../lib/m5";
+import { checkedSpan } from "../../../../lib/m5-labels";
 import { countryPaths, topicHref } from "../../../../lib/topics";
 
 export function getStaticPaths() {
@@ -14,48 +17,89 @@ export function getStaticPaths() {
 }
 
 const SLUG = "official-figures-consistency";
+// The questions the overview shows as cards (the rest are one click away), where they exist.
+const FEATURED = ["renters", "rent-change"];
 const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
-const { checks } = results(country);
-const ordered = order(checks);
-const consistent = checks.length - ordered.filter((c) => c.agree < c.compared).length;
+const { checks, questions } = results(country);
+const cards = ordered(checks).map((c) => ({
+  id: c.id, status: status(c), term: termOf(c),
+  href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
+  question: t(lang, `m5.check.${c.id}.question`),
+  source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
+  count: t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }),
+}));
 const compared = checks.reduce((n, c) => n + c.compared, 0);
 const agreeing = checks.reduce((n, c) => n + c.agree, 0);
-const rows = ordered.map((c) => ({
-  href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
-  title: t(lang, `m5.check.${c.id}.title`),
-  source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
-  count: t(lang, "m5.count", { agree: c.agree, compared: c.compared }),
-  others: c.compared > c.agree ? t(lang, "m5.others", { list: causes(lang, c) }) : "",
-  status: status(c),
-}));
+// Rounded down, so "100%" is never shown while a single figure differs.
+const share = compared ? Math.floor((agreeing / compared) * 100) : 0;
+const years = checks.flatMap((c) => Object.keys(c.by_year ?? {})).sort();
+const counts = Object.fromEntries(STATUS_ORDER.map((st) => [st, cards.filter((c) => c.status === st).length]));
+// Only the statuses some check has get a button and a line in the key (none is "partly" today); a
+// status that turns up later gets both without a change here.
+const present = STATUS_ORDER.filter((st) => counts[st] > 0);
+const featured = FEATURED.map((s) => questions.find((q) => q.id === `${country}-${s}`)).filter((q) => q !== undefined);
 ---
 <Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG, country, section: "" }}>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <h1>{t(lang, `topic.${SLUG}.question`)}</h1>
       <p style="font-size: var(--text-lg)">{t(lang, "m5.lead")}</p>
-      <p data-m5="summary"><strong>{t(lang, "m5.summary", { checks: checks.length, compared: num(lang, compared, 0), agree: num(lang, agreeing, 0) })}</strong>
-        {consistent > 0 && <> {t(lang, "m5.summary.consistent", { n: consistent })}</>}
-        {consistent < checks.length && <> {t(lang, "m5.summary.differ", { n: checks.length - consistent })}</>}</p>
     </header>
-    <div class="table-wrap">
-      <table class="data-table m5-checks" data-m5="checks">
-        <thead><tr><th scope="col">{t(lang, "m5.table.check")}</th><th scope="col">{t(lang, "m5.table.agree")}</th><th scope="col">{t(lang, "m5.table.status")}</th></tr></thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr>
-              <th scope="row"><a href={r.href}>{r.title}</a><span class="sub">{r.source}</span></th>
-              <td><strong>{r.count}</strong>{r.others && <span class="sub">{r.others}</span>}</td>
-              <td><span class={`chip-status ${r.status}`}>{t(lang, `m5.status.${r.status}`)}</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div class="m5-stats" data-m5="stats">
+      <p><strong>{num(lang, checks.length, 0)}</strong><span>{t(lang, "m5.stat.checks")}</span></p>
+      <p><strong>{num(lang, compared, 0)}</strong><span>{years.length ? t(lang, "m5.stat.compared", { from: years[0], to: years[years.length - 1] }) : ""}</span></p>
+      <p><strong>{share}%</strong><span>{t(lang, "m5.stat.agree")}</span></p>
     </div>
+    <section class="stack" style="gap: var(--space-3)" aria-labelledby="checks-h" data-m5-filter
+      data-shown={t(lang, "m5.filter.shown", { n: "{n}", total: "{total}" })}>
+      <h2 id="checks-h">{t(lang, "nav.checks")}</h2>
+      <div class="chips" role="group" aria-label={t(lang, "m5.filter.label")} data-m5="filter" hidden>
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">{t(lang, "m5.filter.count", { label: t(lang, "m5.filter.all"), n: cards.length })}</button>
+        {present.map((st) => (
+          <button type="button" class="chip" data-filter={st} aria-pressed="false">
+            {t(lang, "m5.filter.count", { label: t(lang, `m5.status.${st}`), n: counts[st] })}</button>
+        ))}
+      </div>
+      <p class="small muted m5-key" data-m5="key">{present.map((st) => (
+        <span data-key={st}><span class={`chip-status ${st}`}>{t(lang, `m5.status.${st}`)}</span> {t(lang, `m5.key.${st}`)}</span>
+      ))}</p>
+      <p class="visually-hidden" aria-live="polite" data-m5="shown"></p>
+      <div class="cards m5-cards" data-m5="checks">
+        {cards.map((c) => (
+          <div class="card" data-status={c.status} data-m5-card={c.id}>
+            <span class={`chip-status ${c.status}`}>{t(lang, `m5.status.${c.status}`)}</span>
+            <a class="title" href={c.href}>{c.question}&nbsp;→</a>
+            <span class="small muted">{c.term && <><GlossaryTerm lang={lang} term={c.term} instance={c.id} />, </>}{c.source}</span>
+            <span data-m5="count"><strong>{c.count}</strong></span>
+          </div>
+        ))}
+      </div>
+    </section>
+    {questions.length > 0 && (
+      <section class="stack" style="gap: var(--space-3)" aria-labelledby="same-h">
+        <h2 id="same-h">{t(lang, "nav.same-question")}</h2>
+        <p style="max-width: var(--text-max)">{t(lang, "m5.same.lead")}</p>
+        <div class="cards" data-m5="featured">
+          {featured.map((q) => (
+            <a class="card" href={topicHref(lang, SLUG, country, `same-question/${slugOf(q.id, country)}`)}>
+              <span class="title">{t(lang, `m5.question.${q.id}.title`)}&nbsp;→</span><span class="text">{t(lang, `m5.question.${q.id}.teaser`)}</span>
+              <span class="source-chips">{chips(q).map((k) => <span class="source-chip">{t(lang, `m5.chip.${k}`)}</span>)}</span>
+            </a>
+          ))}
+          <a class="card" href={topicHref(lang, SLUG, country, "same-question")}>
+            <span class="title">{t(lang, "m5.same.all", { n: questions.length })}&nbsp;→</span><span class="text">{t(lang, "m5.same.all.text")}</span>
+          </a>
+        </div>
+      </section>
+    )}
     <div class="cards">
-      <a class="card" href={topicHref(lang, SLUG, country, "same-question")}><span class="title">{t(lang, "nav.same-question")} →</span><span class="text">{t(lang, "m5.card.same")}</span></a>
-      <a class="card" href={topicHref(lang, SLUG, country, "how-we-check")}><span class="title">{t(lang, "nav.how-we-check")} →</span><span class="text">{t(lang, "m5.card.how")}</span></a>
+      <a class="card" href={topicHref(lang, SLUG, country, "how-we-check")}><span class="title">{t(lang, "nav.how-we-check")}&nbsp;→</span><span class="text">{t(lang, "m5.card.how")}</span></a>
     </div>
   </div>
 </Base>
+
+<script>
+  import { start } from "../../../../scripts/m5-filter";
+  for (const root of document.querySelectorAll<HTMLElement>("[data-m5-filter]")) start(root);
+</script>
