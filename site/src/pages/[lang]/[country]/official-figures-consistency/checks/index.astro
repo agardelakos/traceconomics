@@ -2,6 +2,7 @@
 // Every check, each with what it compares and how: the way into each check's own page.
 import Base from "../../../../../layouts/Base.astro";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
+import { checkedSpan } from "../../../../../lib/m5-labels";
 import { ordered, results, slugOf, status } from "../../../../../lib/m5";
 import { countryPaths, topicHref } from "../../../../../lib/topics";
 
@@ -23,7 +24,7 @@ const { checks } = results(country);
           <span class={`chip-status ${status(c)}`}>{t(lang, `m5.status.${status(c)}`)}</span>
           <h2 style="margin: 0"><a href={topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`)}>{t(lang, `m5.check.${c.id}.title`)}</a></h2>
           <p style="margin: 0">{t(lang, `m5.check.${c.id}.text`)}</p>
-          <p style="margin: 0"><strong>{t(lang, "m5.count", { agree: c.agree, compared: c.compared })}</strong> · {t(lang, `m5.check.${c.id}.source`)}</p>
+          <p style="margin: 0"><strong>{t(lang, "m5.count", { agree: c.agree, compared: c.compared })}</strong> · {[t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · ")}</p>
         </li>
       ))}
     </ul>

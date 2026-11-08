@@ -28,6 +28,15 @@ export function spanLabel(lang: Lang, period: string): string {
   return parts.length === 3 ? parts[0] : periodLabel(lang, period);
 }
 
+/** The years a check actually compared ("checked 1960–2026"), from its data, never from a source's
+ * own span: a source line saying "from 1959" would read as a claim about what was checked. */
+export function checkedSpan(lang: Lang, c: Pick<Check, "by_year">): string {
+  const years = Object.keys(c.by_year ?? {}).sort();
+  if (years.length === 0) return "";
+  const [from, to] = [years[0], years[years.length - 1]];
+  return from === to ? t(lang, "m5.checked.one", { year: from }) : t(lang, "m5.checked", { from, to });
+}
+
 /** "7 rounding, 1 a revision not carried through", in the categories' fixed order. */
 export function causes(lang: Lang, c: Check): string {
   const order: Category[] = ["rounding", "revision", "rebasing", "splice", "definition", "not-known"];

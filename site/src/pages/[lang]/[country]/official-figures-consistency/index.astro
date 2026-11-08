@@ -6,7 +6,7 @@ import Base from "../../../../layouts/Base.astro";
 import { num } from "../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../lib/i18n";
 import { ordered as order, results, slugOf, status } from "../../../../lib/m5";
-import { causes } from "../../../../lib/m5-labels";
+import { causes, checkedSpan } from "../../../../lib/m5-labels";
 import { countryPaths, topicHref } from "../../../../lib/topics";
 
 export function getStaticPaths() {
@@ -24,7 +24,7 @@ const agreeing = checks.reduce((n, c) => n + c.agree, 0);
 const rows = ordered.map((c) => ({
   href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
   title: t(lang, `m5.check.${c.id}.title`),
-  source: t(lang, `m5.check.${c.id}.source`),
+  source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
   count: t(lang, "m5.count", { agree: c.agree, compared: c.compared }),
   others: c.compared > c.agree ? t(lang, "m5.others", { list: causes(lang, c) }) : "",
   status: status(c),

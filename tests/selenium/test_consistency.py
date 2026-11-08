@@ -38,6 +38,7 @@ def test_overview_lists_every_check(site, lang):
     And a summary gives the number of checks, of figures compared and agreeing, and how many checks found no inconsistency
     And there is one row per check in checks.json, those with differences first, each group in file order
     And each row gives "N of M match" and the check's status, and links to the check's page
+    And each row gives the years actually checked, from checks.json, not a source's own span
     """
     r = _results()
     site.open(M5.format(lang=lang))
@@ -56,6 +57,8 @@ def test_overview_lists_every_check(site, lang):
         assert link.get_attribute("href").endswith(M5.format(lang=lang) + f"checks/{c['id'][3:]}/")
         assert t(lang, "m5.count", agree=c["agree"], compared=c["compared"]) in row.text
         assert row.find_element("css selector", ".chip-status").text.strip() == t(lang, f"m5.status.{_status(c)}")
+        years = sorted(c["by_year"])
+        assert t(lang, "m5.checked", **{"from": years[0], "to": years[-1]}) in row.find_element("css selector", "th .sub").text
 
 
 def test_check_page_lists_differences_and_offers_csv(site, base_url):

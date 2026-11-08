@@ -21,7 +21,8 @@ for (const lang of ["en", "el"] as const) {
     then: ["its heading is the topic's question",
       "a summary gives the number of checks, of figures compared and agreeing, and how many checks found no inconsistency",
       "there is one row per check in checks.json, those with differences first, each group in file order",
-      "each row gives \"N of M match\" and the check's status, and links to the check's page"],
+      "each row gives \"N of M match\" and the check's status, and links to the check's page",
+      "each row gives the years actually checked, from checks.json, not a source's own span"],
   }), async ({ page, request }) => {
     const r = await (await request.get(`${DATA}/checks.json`)).json();
     await page.goto(M5(lang));
@@ -40,6 +41,8 @@ for (const lang of ["en", "el"] as const) {
         .toHaveAttribute("href", M5(lang, `checks/${c.id.slice(3)}/`));
       await expect(row).toContainText(t(lang, "m5.count", { agree: c.agree, compared: c.compared }));
       await expect(row.locator(".chip-status")).toHaveText(t(lang, `m5.status.${status(c)}`));
+      const years = Object.keys(c.by_year).sort();
+      await expect(row.locator("th .sub")).toContainText(t(lang, "m5.checked", { from: years[0], to: years[years.length - 1] }));
     }
   });
 }

@@ -5,7 +5,7 @@ check: gr-cpi-rates-rebuilt
 sources: [elstat-cpi-items, elstat-cpi-rates, elstat-cpi-coicop18-note-2026]
 ---
 
-ELSTAT publishes the consumer price index's overall level in two tables: table 05 (the index and its yearly rate since 1959) and table 07 (every item's index, one file a year). We compute the yearly rate from table 07 and compare it with table 05's. They agree exactly in 2011–2013 and from 2025, and differ slightly in between.
+ELSTAT publishes the consumer price index's overall level in two tables: table 05 (the index since 1959, and its yearly rate) and table 07 (every item's index, one file a year). We compute the yearly rate from table 07 and compare it with table 05's. They agree exactly in 2011–2013 and from 2025, and differ slightly in between.
 
 ## What happened
 
