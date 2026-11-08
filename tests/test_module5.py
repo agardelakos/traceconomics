@@ -179,7 +179,7 @@ def test_income_limits_line_up_by_the_year_the_incomes_describe(tmp_path):
 
 
 DIMS = ("geo", "hhcomp", "unit", "tenure", "rskpovth", "measure", "coicop", "direct", "na_item", "sector", "age",
-        "sex", "regis_es", "stk_flow")
+        "sex", "regis_es", "stk_flow", "coicop18", "grouping", "spending", "imputed_rent")
 
 
 def _store(rows):
@@ -240,3 +240,43 @@ def test_a_question_needs_two_sources_and_keeps_aades_text():
             ("aade:pit_stats", "2022", 91674362821.89, {"geo": "GR", "measure": "declared_income", "unit": "EUR"})]
     v = questions.household_income(_store(rows)).summary()["values"]
     assert v["national_accounts"]["2022"] == 140001e6 and v["aade"]["2022"] == 91674362821.89
+
+
+def test_rent_weight_puts_every_source_in_percent_of_spending():
+    """PY-M5-010: rent's weight: the indices' per mille and the national accounts' share become percent
+
+    Given a made-up store with the CPI's rent weight 36.3 per mille and the HICP's 31.1 for 2024, the national accounts' actual rentals (8,116.4) and all consumption (169,881.8) for 2023, and the HBS's rent share of purchases 0.0423 for 2024
+    When the rent-weight question is built
+    Then the CPI reads 3.63%, the HICP 3.11%, the national accounts 4.78% and the HBS 4.23%
+    """
+    from traceconomics.module5 import questions
+    rows = [("elstat:cpi07", "2024", 36.3, {"unit": "PM", "coicop18": "041"}),
+            ("eurostat:prc_hicp_iw", "2024", 31.1, {"geo": "GR", "coicop18": "041"}),
+            ("eurostat:nama_10_co3_p3", "2023", 8116.4, {"geo": "GR", "unit": "CP_MEUR", "coicop": "CP041"}),
+            ("eurostat:nama_10_co3_p3", "2023", 169881.8, {"geo": "GR", "unit": "CP_MEUR", "coicop": "TOTAL"}),
+            ("oet-local:hbs_weights", "2024", 0.0423, {"geo": "GR", "grouping": "all", "spending": "purchases",
+                                                       "imputed_rent": "excluded", "coicop18": "041", "measure": "share"})]
+    v = questions.rent_weight(_store(rows)).summary()["values"]
+    assert round(v["cpi"]["2024"], 2) == 3.63 and round(v["hicp"]["2024"], 2) == 3.11
+    assert round(v["national_accounts"]["2023"], 2) == 4.78 and round(v["hbs"]["2024"], 2) == 4.23
+
+
+def test_rent_change_compares_average_rents_year_on_year():
+    """PY-M5-011: rent change: each survey's average rent per renting household, change on the year before
+
+    Given a made-up store without table 07, and the HBS and SILC rent tables for 2020 and 2021 (rent paid and renting households)
+    When the rent-change question is built
+    Then the CPI line is left out, since table 07 isn't in the store
+    And the HBS line reads +5% for 2021 (average rent 3,600 to 3,780 a year) and the SILC line +10% (3,000 to 3,300)
+    """
+    from traceconomics.module5 import questions
+    rows = []
+    for ds, (r20, r21) in (("oet-local:hbs_rent", (3600.0, 3780.0)), ("oet-local:silc_tenure", (3000.0, 3300.0))):
+        for year, rent in (("2020", r20), ("2021", r21)):
+            rows += [(ds, year, rent * 100, {"geo": "GR", "tenure": "all", "measure": "rent_paid_eur"}),
+                     (ds, year, 100.0, {"geo": "GR", "tenure": "renter", "measure": "households_weighted"})]
+    con = _store(rows)
+    con.execute("ALTER TABLE observations ADD COLUMN archive_dataset VARCHAR")
+    s = questions.rent_change(con).summary()
+    assert [x["label"] for x in s["sources"]] == ["hbs", "silc"]
+    assert round(s["values"]["hbs"]["2021"], 6) == 5.0 and round(s["values"]["silc"]["2021"], 6) == 10.0

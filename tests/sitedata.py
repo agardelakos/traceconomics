@@ -348,6 +348,10 @@ def module5_outputs(outputs: Path, store_con) -> None:
         ("gr-rent-paid", "EUR", {"national_accounts": {"2021": 7.233e9, "2022": 7.775e9}, "hbs": {"2021": 2.77e9},
                                  "aade": {"2022": 7857453360.18}}),
         ("gr-household-income", "EUR", {"national_accounts": {"2022": 140.001e9}, "aade": {"2022": 91674362821.89}}),
+        ("gr-rent-weight", "percent", {"cpi": {"2023": 3.53, "2024": 3.63}, "hicp": {"2023": 3.15, "2024": 3.11},
+                                       "hbs": {"2023": 4.0, "2024": 4.23}}),
+        ("gr-rent-change", "percent", {"cpi": {"2020": 0.0, "2021": 0.1, "2022": 1.3}, "hbs": {"2020": 5.0, "2021": 3.7, "2022": 0.6},
+                                       "silc": {"2020": 3.3, "2021": 5.2, "2022": 7.8}}),
         ("gr-unemployment", "persons", {"lfs": {"2023": 470000.0, "2024": 400000.0}, "register": {"2023": 954795.0, "2024": 896099.0}}),
     ]
     sources = {"aade": "aade:pit_stats", "census": "eurostat:cens_21hhct_r3"}

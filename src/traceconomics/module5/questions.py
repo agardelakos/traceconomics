@@ -14,6 +14,13 @@ division that makes a share; AADE's figures are never changed (its terms forbid 
   households and their non-profits (B6G), and AADE's declared income on personal tax returns.
 - `gr-unemployment`, persons: the labour force survey (ILO definition, ages 15-74) and the
   employment service's register (registered unemployed, annual average, DG EMPL's LMP database).
+- `gr-rent-weight`, percent of spending: the CPI's and the HICP's weight for actual rent, the
+  national accounts' share (CP041 over all household consumption), and the household budget
+  survey's share (rent in purchases, imputed rent left out, as the CPI does).
+- `gr-rent-change`, percent change on the year before: the CPI's rent index (yearly average of
+  its months, each year from its own table 07 file) against the average rent renting households
+  report paying, in the household budget survey and in EU-SILC. An average of what renters pay is
+  not a price index (it moves with who rents what as well as with rents), and the page says so.
 """
 
 from __future__ import annotations
@@ -113,6 +120,59 @@ def unemployment(store_con) -> Question | None:
     ])
 
 
+def rent_weight(store_con) -> Question | None:
+    nama = "geo = 'GR' AND unit = 'CP_MEUR' AND coicop = '{}'"
+    return _question("gr-rent-weight", "percent", [
+        ({"label": "cpi", "source": "elstat:cpi07", "reference": "elstat-cpi-items",
+          "definition": "the CPI's weight for actual rent, per mille, from the year's table 07"},
+         _series(store_con, "elstat:cpi07", "unit = 'PM' AND coicop18 = '041'", 0.1)),
+        ({"label": "hicp", "source": "eurostat:prc_hicp_iw", "reference": "eurostat-prc-hicp-minr",
+          "definition": "the HICP's weight for actual rent, per mille"},
+         _series(store_con, "eurostat:prc_hicp_iw", "geo = 'GR' AND coicop18 = '041'", 0.1)),
+        ({"label": "national_accounts", "source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",
+          "definition": "actual rentals over all household consumption, national accounts"},
+         _share(_series(store_con, "eurostat:nama_10_co3_p3", nama.format("CP041")),
+                _series(store_con, "eurostat:nama_10_co3_p3", nama.format("TOTAL")))),
+        ({"label": "hbs", "source": "oet-local:hbs_weights", "reference": "elstat-hbs-puf",
+          "definition": "rent's share of all households' purchases, household budget survey"},
+         _series(store_con, "oet-local:hbs_weights",
+                 "geo = 'GR' AND grouping = 'all' AND spending = 'purchases' AND imputed_rent = 'excluded' "
+                 "AND coicop18 = '041' AND measure = 'share'", 100.0)),
+    ])
+
+
+def _change(series: dict[str, float]) -> dict[str, float]:
+    return {p: (series[p] / series[str(int(p) - 1)] - 1) * 100 for p in sorted(series) if str(int(p) - 1) in series}
+
+
+def _mean_rent(store_con, dataset: str) -> dict[str, float]:
+    paid = _local(store_con, dataset, "all", "rent_paid_eur")
+    renters = _local(store_con, dataset, "renter", "households_weighted")
+    return {p: paid[p] / renters[p] for p in paid if renters.get(p)}
+
+
+def rent_change(store_con) -> Question | None:
+    from traceconomics.module1 import prices
+    yearly = {}
+    has_cpi = store_con.execute("SELECT count(*) FROM observations WHERE dataset = 'elstat:cpi07'").fetchone()[0]
+    blocks = prices.cpi_blocks(store_con) if has_cpi else {}     # no table 07 yet: the line is left out
+    for year, block in blocks.items():
+        months = [v for p, v in block.get("041", {}).items() if p.startswith(f"{year}-")]
+        if len(months) == 12:
+            yearly[str(year)] = sum(months) / 12
+    return _question("gr-rent-change", "percent", [
+        ({"label": "cpi", "source": "elstat:cpi07", "reference": "elstat-cpi-items",
+          "definition": "the CPI's index for actual rent, yearly average, change on the year before"}, _change(yearly)),
+        ({"label": "hbs", "source": "oet-local:hbs_rent", "reference": "elstat-hbs-puf",
+          "definition": "average rent renting households report paying, household budget survey, change on the year before"},
+         _change(_mean_rent(store_con, "oet-local:hbs_rent"))),
+        ({"label": "silc", "source": "oet-local:silc_tenure", "reference": "elstat-silc-puf",
+          "definition": "average rent renting households report paying, EU-SILC, change on the year before"},
+         _change(_mean_rent(store_con, "oet-local:silc_tenure"))),
+    ])
+
+
 def all_questions(store_con) -> list[Question]:
-    return [q for q in (renters(store_con), rent_paid(store_con), household_income(store_con), unemployment(store_con))
-            if q is not None]
+    found = (renters(store_con), rent_paid(store_con), rent_weight(store_con), rent_change(store_con),
+             household_income(store_con), unemployment(store_con))
+    return [q for q in found if q is not None]
