@@ -6,6 +6,7 @@ import SourceList from "../../../../../../components/SourceList.astro";
 import Base from "../../../../../../layouts/Base.astro";
 import { LANGS, t, type Lang } from "../../../../../../lib/i18n";
 import { findings, results, slugOf } from "../../../../../../lib/m5";
+import { checkStrip } from "../../../../../../lib/m5-strip";
 import { countryPaths, topicHref } from "../../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
@@ -23,7 +24,8 @@ if (!entry || entry.data.check !== c.id) throw new Error(`no ${lang} finding "${
 const { Content } = await render(entry);
 const st = findings(c).find((f) => f.slug === Astro.params.finding)!.explanation === "not-known" ? "unknown" : "explained";
 ---
-<Base lang={lang} title={entry.data.title} description={entry.data.summary} topic={{ slug: SLUG, country, section: `checks/${Astro.params.check}/${Astro.params.finding}` }}>
+<Base lang={lang} title={entry.data.title} description={entry.data.summary} topic={{ slug: SLUG, country, section: `checks/${Astro.params.check}/${Astro.params.finding}` }}
+  strip={checkStrip(lang, country, c.id)}>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <p><a href={topicHref(lang, SLUG, country, `checks/${Astro.params.check}`)}>{t(lang, `m5.check.${c.id}.title`)}</a></p>

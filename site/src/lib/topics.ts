@@ -70,6 +70,9 @@ export function officialSources(): Office[] {
   }), EUROSTAT];
 }
 
+/** The pages of one section of a topic, for the bar's third row: each by its short name, one current. */
+export interface Strip { label: string; items: { href: string; label: string; current: boolean }[] }
+
 export function topic(slug: string): Topic {
   const found = TOPICS.find((x) => x.slug === slug);
   if (!found) throw new Error(`no topic "${slug}"`);

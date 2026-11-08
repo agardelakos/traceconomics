@@ -280,3 +280,53 @@ def test_questions_page_gives_cards_with_teasers_and_source_chips(site):
         assert names and len(set(names)) == len(names)
         if q["id"] == "gr-rent-paid":
             assert t("en", "m5.chip.tax-aade") in names and t("en", "m5.chip.na-eurostat") in names
+
+
+def test_section_strip_lists_pages_and_marks_the_current_one(site):
+    """SEL-M5-011: inside a section, the bar's third row lists the section's pages by short name and marks the one being read
+
+    Given a check's page, a finding of that check, and a question's page, with the checks and questions in checks.json
+    When each is opened
+    Then on the check's page the row lists every check, differences first, the check being read as plain text marked current and the others as links to their pages
+    And the Checks tab is marked as the current section, not the current page
+    And on the finding's page the same row marks its check as current
+    And on the question's page the row lists every question, that question marked current
+    """
+    r = _results()
+    order = [c for c in r["checks"] if c["agree"] < c["compared"]] + [c for c in r["checks"] if c["agree"] == c["compared"]]
+
+    def row(items, kind, current):
+        assert [li.text.strip() for li in site.all("nav[data-strip] li")] == [t("en", f"m5.short.{x['id']}") for x in items]
+        assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == t("en", f"m5.short.{current}")
+        links = {a.text.strip(): a.get_attribute("href") for a in site.all("nav[data-strip] a")}
+        for x in items:
+            if x["id"] != current:
+                assert links[t("en", f"m5.short.{x['id']}")].endswith(M5.format(lang="en") + f"{kind}/{x['id'][3:]}/")
+
+    site.open(M5.format(lang="en") + "checks/cpi-rates-own-index/")
+    row(order, "checks", "gr-cpi-rates-own-index")
+    tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.checks"))
+    assert tab.get_attribute("aria-current") == "true"
+    site.open(M5.format(lang="en") + "checks/cpi-rates-own-index/june-2001/")
+    assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == t("en", "m5.short.gr-cpi-rates-own-index")
+    site.open(M5.format(lang="en") + "same-question/renters/")
+    row(r["questions"], "same-question", "gr-renters")
+
+
+def test_section_strip_opens_scrolled_to_the_current_page_on_a_phone(phone):
+    """SEL-M5-012: on a phone, the bar's third row opens scrolled to the page being read
+
+    Given a phone-sized screen
+    And a question's page whose row of questions is wider than the screen, the question being read far along it
+    When it is opened
+    Then the row is wider than the screen
+    And the question being read is wholly inside the row's visible part
+    """
+    phone.open(M5.format(lang="en") + "same-question/renters/")
+    row = phone.find("nav[data-strip] ul")
+    box = phone.driver.execute_script(
+        "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};", row)
+    assert box["scroll"] > box["client"]
+    item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
+                                       phone.find('nav[data-strip] [aria-current="page"]'))
+    assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1

@@ -258,3 +258,47 @@ test("the questions page gives each question as a card: its title, a short tease
   await expect(rent.locator(".source-chip", { hasText: t("en", "m5.chip.tax-aade") })).toHaveCount(1);
   await expect(rent.locator(".source-chip", { hasText: t("en", "m5.chip.na-eurostat") })).toHaveCount(1);
 });
+
+test("inside a section, the bar's third row lists the section's pages by short name and marks the one being read", gwt({
+  id: "PW-M5-011",
+  given: "a check's page, a finding of that check, and a question's page, with the checks and questions in checks.json",
+  when: "each is opened",
+  then: ["on the check's page the row lists every check, differences first, the check being read as plain text marked current and the others as links to their pages",
+    "the Checks tab is marked as the current section, not the current page",
+    "on the finding's page the same row marks its check as current",
+    "on the question's page the row lists every question, that question marked current"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const order = [...r.checks.filter((c: any) => c.agree < c.compared), ...r.checks.filter((c: any) => c.agree === c.compared)];
+  const strip = page.locator("nav[data-strip]");
+  const expectRow = async (items: any[], kind: string, current: string) => {
+    await expect(strip.locator("li")).toHaveText(items.map((x) => t("en", `m5.short.${x.id}`)));
+    await expect(strip.locator('[aria-current="page"]')).toHaveText(t("en", `m5.short.${current}`));
+    for (const x of items.filter((x) => x.id !== current)) {
+      await expect(strip.getByRole("link", { name: t("en", `m5.short.${x.id}`), exact: true })).toHaveAttribute("href", M5("en", `${kind}/${x.id.slice(3)}/`));
+    }
+  };
+  await page.goto(M5("en", "checks/cpi-rates-own-index/"));
+  await expectRow(order, "checks", "gr-cpi-rates-own-index");
+  await expect(page.locator(".topic-nav.sub a", { hasText: t("en", "nav.checks") })).toHaveAttribute("aria-current", "true");
+  await page.goto(M5("en", "checks/cpi-rates-own-index/june-2001/"));
+  await expect(strip.locator('[aria-current="page"]')).toHaveText(t("en", "m5.short.gr-cpi-rates-own-index"));
+  await page.goto(M5("en", "same-question/renters/"));
+  await expectRow(r.questions, "same-question", "gr-renters");
+});
+
+test("on a phone, the bar's third row opens scrolled to the page being read", gwt({
+  id: "PW-M5-012",
+  given: ["a phone-sized screen", "a question's page whose row of questions is wider than the screen, the question being read far along it"],
+  when: "it is opened",
+  then: ["the row is wider than the screen", "the question being read is wholly inside the row's visible part"],
+}), async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(M5("en", "same-question/renters/"));
+  const list = page.locator("nav[data-strip] ul");
+  const box = await list.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth, ...el.getBoundingClientRect().toJSON() }));
+  expect(box.scroll).toBeGreaterThan(box.client);
+  const item = await list.locator('[aria-current="page"]').boundingBox();
+  expect(item!.x).toBeGreaterThanOrEqual(box.left - 1);
+  expect(item!.x + item!.width).toBeLessThanOrEqual(box.left + box.client + 1);
+});

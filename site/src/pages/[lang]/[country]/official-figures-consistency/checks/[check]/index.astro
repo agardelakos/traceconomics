@@ -9,6 +9,7 @@ import { num } from "../../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../../lib/i18n";
 import { findings, results, slugOf, status, yearRuns } from "../../../../../../lib/m5";
 import { causes, diff, periodLabel, spanLabel } from "../../../../../../lib/m5-labels";
+import { checkStrip } from "../../../../../../lib/m5-strip";
 import { countryPaths, dataHref, m5Text, topicHref } from "../../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
@@ -45,7 +46,8 @@ const unknown = c.differ["not-known"] ?? 0;
 const open = linked.filter((f) => f.explanation === "not-known");
 const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.finding).length;
 ---
-<Base lang={lang} title={t(lang, `m5.check.${c.id}.title`)} description={t(lang, `m5.check.${c.id}.text`)} topic={{ slug: SLUG, country, section: "checks" }}>
+<Base lang={lang} title={t(lang, `m5.check.${c.id}.title`)} description={t(lang, `m5.check.${c.id}.text`)} topic={{ slug: SLUG, country, section: `checks/${Astro.params.check}` }}
+  strip={checkStrip(lang, country, c.id)}>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <span class={`chip-status ${st}`}>{t(lang, `m5.status.${st}`)}</span>

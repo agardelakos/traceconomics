@@ -507,3 +507,13 @@ selenium = ["SEL-M5-009"]
 title = "the questions page gives each question as a card: its title, a short teaser and a chip per source"
 playwright = ["PW-M5-010"]
 selenium = ["SEL-M5-010"]
+
+[TC-M5-011]
+title = "inside a section, the bar's third row lists the section's pages by short name and marks the one being read"
+playwright = ["PW-M5-011"]
+selenium = ["SEL-M5-011"]
+
+[TC-M5-012]
+title = "on a phone, the bar's third row opens scrolled to the page being read"
+playwright = ["PW-M5-012"]
+selenium = ["SEL-M5-012"]

@@ -17,14 +17,16 @@ import SiteHeader from "../components/SiteHeader.astro";
 import CountryBar from "../components/CountryBar.astro";
 import TopicBar from "../components/TopicBar.astro";
 import { href, isOffered, otherLang, t, type Lang } from "../lib/i18n";
-import { countryHref, topic as topicOf, topicHref, topicPath } from "../lib/topics";
+import { countryHref, topic as topicOf, topicHref, topicPath, type Strip } from "../lib/topics";
 import { analyticsOn, BEACON, TOKEN } from "../lib/analytics";
 
 interface Props {
   lang: Lang; title: string; description: string; path?: string; current?: string; country?: string;
   topic?: { slug: string; country?: string; section?: string };
+  // A page inside a section (a check, a question): every page of that section, the current one marked.
+  strip?: Strip;
 }
-const { lang, title, description, topic } = Astro.props;
+const { lang, title, description, topic, strip } = Astro.props;
 const path = topic ? topicPath(topic.slug, topic.country, topic.section) : (Astro.props.path ?? "");
 const current = topic ? topic.slug : Astro.props.current;
 const country = topic?.country ?? Astro.props.country;
@@ -66,7 +68,7 @@ const canonical = absolute(Astro.url.pathname.endsWith("/") ? Astro.url.pathname
   <body>
     <a class="skip-link" href="#content">{t(lang, "skip")}</a>
     <SiteHeader lang={lang} path={path} current={current} country={country} countryLink={countryLink} />
-    {country !== undefined && <CountryBar lang={lang} country={country} slug={topic?.slug} section={topic?.section} />}
+    {country !== undefined && <CountryBar lang={lang} country={country} slug={topic?.slug} section={topic?.section} strip={strip} />}
     {topic && topic.country === undefined && <TopicBar lang={lang} slug={topic.slug} />}
     <main id="content">
       <slot name="band" />
