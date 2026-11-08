@@ -164,3 +164,43 @@ def test_limits_file_reads_one_row_per_fifth(tmp_path):
     assert ("GR", "B", "Q1", "EUR_PER_ADULT_EQ_Y", "limit", "2024", "7400", 7400.0) in got
     assert ("GR", "B", "Q2", "EUR_PER_ADULT_EQ_Y", "se_design", "2024", "unavailable", None) in got
     assert not [r for r in got if r[1:5] == ("B", "Q2", "EUR_PER_ADULT_EQ_Y", "se")]     # an empty se is no row
+
+
+def test_household_types_file_reads_ours_and_elstats(tmp_path):
+    """PY-OETLOCAL-011: a household types file is read with ours and ELSTAT's shares, agreement and status
+
+    Given a made-up household types CSV for 2023 with two types, ELSTAT's marked unusable and one count written "<20"
+    When it is read as oet-hhtypes
+    Then each type has rows for our share and ELSTAT's share as numbers
+    And the agreement is a number and the status a text row
+    And the small count stays as text with no number
+    """
+    p = tmp_path / "t.csv"
+    p.write_text("# x\ngeo,ref_year,group,n_households,share_households,elstat_n_households,elstat_share_households,"
+                 "agreement,elstat_status,source_version\n"
+                 "GR,2023,A1,812,0.25,1004,0.31,0.269,unusable: broken,v\n"
+                 "GR,2023,A1_DCH,<20,0.004,55,0.02,0.269,unusable: broken,v\n", encoding="utf-8")
+    got = list(oet_local.rows(p, "oet-hhtypes"))
+    assert ("GR", "A1", "share_households", "2023", "0.25", 0.25) in got
+    assert ("GR", "A1", "elstat_share_households", "2023", "0.31", 0.31) in got
+    assert ("GR", "A1", "agreement", "2023", "0.269", 0.269) in got
+    assert ("GR", "A1", "elstat_status", "2023", "unusable: broken", None) in got
+    assert ("GR", "A1_DCH", "n_households", "2023", "<20", None) in got
+
+
+def test_rent_file_reads_one_row_per_tenure_and_measure(tmp_path):
+    """PY-OETLOCAL-012: a rent file is read per tenure, with rent paid in euros
+
+    Given a made-up rent CSV for 2024 with all households and renters, the renters' count written "<20"
+    When it is read as oet-rent
+    Then each tenure has rows for its households, people and rent paid as numbers
+    And the small count stays as text with no number
+    """
+    p = tmp_path / "r.csv"
+    p.write_text("# x\ngeo,ref_year,tenure,n_households,households_weighted,people_weighted,rent_paid_eur,source_version\n"
+                 "GR,2024,all,6000,4299000.5,10400000.25,3501000000.75,v\n"
+                 "GR,2024,renter,<20,812000.5,1900000,3501000000.75,v\n", encoding="utf-8")
+    got = list(oet_local.rows(p, "oet-rent"))
+    assert ("GR", "all", "rent_paid_eur", "2024", "3501000000.75", 3501000000.75) in got
+    assert ("GR", "renter", "households_weighted", "2024", "812000.5", 812000.5) in got
+    assert ("GR", "renter", "n_households", "2024", "<20", None) in got

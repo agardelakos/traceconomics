@@ -27,16 +27,16 @@ def rows(con, sql):
 
 @pytest.mark.parametrize("dataset_id", sorted(SPECS))
 def test_every_dataset_fixture_parses(con, dataset_id):
-    """PY-EUROSTAT-001: every Eurostat TSV dataset's fixture parses
+    """PY-EUROSTAT-001: every Eurostat-format TSV dataset's fixture parses
 
-    Given the trimmed fixture of a Eurostat TSV dataset the catalog lists
+    Given the trimmed fixture of a dataset in Eurostat's TSV format the catalog lists (Eurostat's, or DG EMPL's on the same API)
     When it is parsed
     Then it gives at least one row and one series
     And Greece is coded GR, never EL
     And where the dataset has a COICOP dimension, TOTAL is present and no code keeps the "CP" prefix
     """
     spec = SPECS[dataset_id]
-    r = parse.parse(con, FIX / f"eurostat_{spec.name}.tsv.gz", spec)
+    r = parse.parse(con, FIX / f"{spec.source}_{spec.name}.tsv.gz", spec)
     assert r.rows > 0 and r.series > 0
     geos = {g for (g,) in rows(con, "SELECT DISTINCT geo FROM parsed")}
     assert "GR" in geos and "EL" not in geos
@@ -128,7 +128,7 @@ def test_wrong_dimensions_are_refused(con):
 
 
 @pytest.mark.parametrize("body,message", [
-    ("A,CP01,IW,EL\t1.0 \t2.0 zz\n", "unknown observation flags"),
+    ("A,CP01,IW,EL\t1.0 \t2.0 xq\n", "unknown observation flags"),
     ("A,CP01,IW,EL\t1.0 \tabc \n", "aren't numbers"),
     ("A,CP01,IW,ZZZ\t1.0 \t2.0 \n", "unknown country codes"),
     ("A,CP01,IW,EL\t1.0 \t2.0 \nA,CP01,IW,EL\t1.0 \t2.0 \n", "appear twice"),
@@ -155,3 +155,38 @@ def test_unexpected_period_column_is_refused(con, tmp_path):
     f = write_gz(tmp_path / "bad.tsv.gz", "freq,coicop18,statinfo,geo\\TIME_PERIOD\t2025-01 \nA,CP01,IW,EL\t1.0 \n")
     with pytest.raises(FormatError, match="period columns"):
         parse.parse(con, f, SPECS["eurostat:prc_hicp_iw"])
+
+
+def test_capital_dimension_names_are_read_like_lower_case(con, tmp_path):
+    """PY-EUROSTAT-010: a header with capital dimension names, as DG EMPL writes them, is read like Eurostat's
+
+    Given a made-up file in DG EMPL's form: key dimensions in capitals, Greece coded EL, and a cell flagged z (not applicable)
+    When it is parsed as the registered-unemployed dataset
+    Then it parses, with its dimensions as lower-case columns
+    And Greece is coded GR
+    And the flagged cell is kept without a value
+    """
+    f = write_gz(tmp_path / "lmp.tsv.gz", "FREQ,UNIT,STK_FLOW,REGIS_ES,AGE,SEX,GEO\\TIME_PERIOD\t2023 \t2024 \n"
+                                          "A,NR,STK,REG_UNE,TOTAL,T,EL\t954795 \t896099 \n"
+                                          "A,NR,STK,REG_OTH,TOTAL,T,EL\t: z\t12 \n")
+    parse.parse(con, f, SPECS["ec-empl:lmp_rjru"])
+    assert rows(con, "SELECT geo, regis_es, ref_period, value FROM parsed WHERE value IS NOT NULL ORDER BY ALL") == [
+        ("GR", "REG_OTH", "2024", 12.0), ("GR", "REG_UNE", "2023", 954795.0), ("GR", "REG_UNE", "2024", 896099.0)]
+    assert rows(con, "SELECT flags FROM parsed WHERE value IS NULL") == [("z",)]
+
+
+def test_regions_are_accepted_only_where_declared(con, tmp_path):
+    """PY-EUROSTAT-011: NUTS regions are accepted only in a dataset declared with regions
+
+    Given a made-up census file with Greece's total (EL), a Greek region (EL30) and a cell flagged @N (not for publication)
+    When it is parsed as the 2011 census table, declared with regions
+    Then Greece's total is coded GR and the region keeps its NUTS code EL30
+    And the same rows in a dataset without regions are refused as unknown country codes
+    """
+    body = ("freq,hhcomp,tenure,unit,geo\\TIME_PERIOD\t2011 \n"
+            "A,TOTAL,RENT,NR,EL\t896090 \nA,TOTAL,RENT,NR,EL30\t412000 \nA,TOTAL,OTH,NR,EL30\t: @N\n")
+    parse.parse(con, write_gz(tmp_path / "c.tsv.gz", body), SPECS["eurostat:cens_11htts_r2"])
+    assert rows(con, "SELECT DISTINCT geo FROM parsed ORDER BY geo") == [("EL30",), ("GR",)]
+    other = ("freq,coicop18,statinfo,geo\\TIME_PERIOD\t2025 \nA,CP01,IW,EL30\t1.0 \n")
+    with pytest.raises(FormatError, match="unknown country codes"):
+        parse.parse(con, write_gz(tmp_path / "w.tsv.gz", other), SPECS["eurostat:prc_hicp_iw"])

@@ -34,8 +34,10 @@ PERIOD = {"M": re.compile(r"^\d{4}-(0[1-9]|1[0-2])$"), "A": re.compile(r"^\d{4}$
 # Eurostat observation flags: letters from its code list (b break, d definition
 # differs, e estimated, f forecast, i see metadata, m missing, n not significant,
 # p provisional, u low reliability) plus c (confidential), and "@C", which the
-# ECOICOP v1 files use for confidential values.
-FLAG = re.compile(r"^(@C|[bcdefimnpu]+)$")
+# ECOICOP v1 files use for confidential values. Since 2025-01-27 Eurostat sends confidentiality
+# as its own list, written with "@": "@C" confidential, "@N" not for publication (seen in the
+# sector accounts). "z" is the pre-2025 "not applicable", still in DG EMPL's files.
+FLAG = re.compile(r"^(@[CN]|[bcdefimnpuz]+)$")
 
 
 @dataclass(frozen=True)
@@ -59,14 +61,17 @@ def header(path: Path) -> tuple[list[str], list[str]]:
 
 def parse(con: duckdb.DuckDBPyConnection, path: Path, spec: DatasetSpec, table: str = "parsed") -> Parsed:
     """Parse one bulk file into `table` (replaced if it exists). Raises FormatError on any surprise."""
-    dims, periods = header(path)
+    raw_dims, periods = header(path)
+    # Compared without regard to case: DG EMPL's files, served by the same API, write the key
+    # dimensions in capitals. The column is still read by its name as written.
+    dims = [d.lower() for d in raw_dims]
     require(tuple(dims) == spec.dimensions,
-            f"{path.name}: key dimensions are {dims}, expected {list(spec.dimensions)} for {spec.id}")
+            f"{path.name}: key dimensions are {raw_dims}, expected {list(spec.dimensions)} for {spec.id}")
     pattern = PERIOD[spec.freq]
     bad = [p for p in periods if not pattern.match(p)]
     require(not bad, f"{path.name}: unexpected period columns {examples(bad)}")
 
-    first = f"{','.join(dims)}\\TIME_PERIOD"
+    first = f"{','.join(raw_dims)}\\TIME_PERIOD"
     key_cols = [f"split_part(\"{first}\", ',', {i + 1}) AS {d}" for i, d in enumerate(dims)]
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE _wide AS
@@ -147,7 +152,13 @@ def _check(con: duckdb.DuckDBPyConnection, table: str, spec: DatasetSpec, path: 
     require(not empty, f"{path.name}: empty codes in {empty}")
 
     geos = [g for (g,) in con.execute(f"SELECT DISTINCT geo FROM {table}").fetchall()]
-    unknown = [g for g in geos if not geo(spec.source).is_known(g)]
+    places = geo(spec.source)
+    # A table declared with regions (the censuses) also holds NUTS codes: a country's NUTS code
+    # (Greece: EL, as NUTS writes it) and one to three more characters. They stay as NUTS writes
+    # them, a code system of its own; only whole countries are translated (geo.toml).
+    region = re.compile(r"[A-Z]{2}[0-9A-Z]{1,3}")
+    unknown = [g for g in geos if not places.is_known(g)
+               and not (spec.regions and region.fullmatch(g) and places.is_known(g[:2]))]
     require(not unknown, f"{path.name}: unknown country codes {examples(unknown)}")
 
     dup = con.execute(f"""

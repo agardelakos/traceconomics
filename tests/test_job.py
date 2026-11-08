@@ -8,7 +8,7 @@ import pytest
 from traceconomics import job
 from traceconomics.archive.store import Archive
 from traceconomics.config import Config
-from traceconomics.sources import base, eurostat
+from traceconomics.sources import base, ec_empl, eurostat
 
 pytestmark = pytest.mark.integration
 
@@ -137,6 +137,10 @@ def fake_files():
         "format=TSV": b"tsv.gz bytes",
         "prc_hicp_esms": b"<html><body><p>metadata</p></body></html>",
         "copyright-notice": b"<html><body><p>reuse allowed</p></body></html>",
+        "legal-notice": b"<html><body><p>reuse allowed</p></body></html>",
+        "annual-statistical-reports-natural-persons": (FIX / "aade_annual_reports_natural_persons_en.html").read_bytes(),
+        "/sites/default/files/": b"xlsx bytes",
+        "terms-use-iaprs-website": b"<html><body><p>use allowed if accurately reproduced</p></body></html>",
         "pneumatika": b"<html><body><p>reuse allowed</p></body></html>",
         "Copyright_Reuse_Policy": b"%PDF terms",
     }
@@ -162,7 +166,7 @@ def test_full_run_then_second_run_stores_nothing(tmp_path, fake_http):
     Then the first run is ok with more than 10 files stored
     And its report in the outbox lists the files to back up
     And the second run is ok with nothing stored
-    And Eurostat's data files were downloaded only once each, since their last update didn't change
+    And Eurostat's and DG EMPL's data files were downloaded only once each, since their last update didn't change
     """
     c = cfg(tmp_path)
     first = job.run(c, now=at(2026, 10, 18, 14))
@@ -174,7 +178,7 @@ def test_full_run_then_second_run_stores_nothing(tmp_path, fake_http):
     assert second["stored"] == 0 and second["result"] == "ok"
     # Eurostat's "last data update" didn't change, so the big files weren't downloaded again.
     tsv = [u for u in fake_http.requested if "format=TSV" in u]
-    assert len(tsv) == len(eurostat.LIVE) + len(eurostat.FROZEN)
+    assert len(tsv) == len(eurostat.LIVE) + len(eurostat.FROZEN) + len(ec_empl.LIVE)
 
 
 def test_changed_terms_raise_an_alert(tmp_path, fake_http):

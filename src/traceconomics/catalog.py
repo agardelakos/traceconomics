@@ -32,6 +32,7 @@ class DatasetSpec:
     release: str | None = None
     file_name: re.Pattern | None = None
     label_files: re.Pattern | None = None
+    regions: bool = False        # the geo column also holds NUTS regions (the censuses)
 
     def covers(self, source: str, dataset: str) -> bool:
         """Whether an archived dataset is one this store dataset is built from (its `archive` list)."""
@@ -60,7 +61,7 @@ def datasets() -> dict[str, DatasetSpec]:
             spec = DatasetSpec(
                 id=f"{source}:{name}", source=source, name=name,
                 archive=tuple(e["archive"]), format=e["format"], freq=e.get("freq"),
-                dimensions=tuple(e["dimensions"]), coicop=e.get("coicop"),
+                dimensions=tuple(e["dimensions"]), coicop=e.get("coicop"), regions=bool(e.get("regions", False)),
                 classification=e.get("classification"), backcast_before=e.get("backcast_before"),
                 release=e.get("release"),
                 file_name=re.compile(e["file_name"]) if "file_name" in e else None,

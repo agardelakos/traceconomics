@@ -57,8 +57,36 @@ Data for countries outside the EU, EFTA and the EU's acceding and candidate coun
 | HICP item indices, `prc_hicp_minr` ([doi:10.2908/PRC_HICP_MINR](https://doi.org/10.2908/PRC_HICP_MINR)) | Prices for the HICP option | Yes: chain-linked and weighted into indices by group |
 | Distribution of income by quantiles, `ilc_di01` (EU-SILC) | Eurostat's income cut-offs, shown next to ours; their euro-to-PPS ratio converts our own cut-offs to purchasing power standards | Shown as published; the ratio of its euro and PPS figures is applied to our own cut-offs |
 | Other HICP datasets (`prc_hicp_midx`, `prc_hicp_iw`, `prc_hicp_inw`, `prc_hicp_fpd`, `prc_hicp_fp`) | Checks of our calculations only | Not published |
+| Household consumption by purpose, `nama_10_co3_p3`; sector accounts, `nasa_10_nf_tr` (national accounts) | Rent paid (actual rentals) and household disposable income, shown next to other sources' answers to the same question | Shown as published |
+| Tenure status, `ilc_lvho02`; mean and median income, `ilc_di03` (EU-SILC) | The same: renters and household income from the income survey | Shown as published |
+| Unemployment, `une_rt_m`, `une_rt_a` (labour force survey) | The same: the survey's unemployed, next to the employment service's register | Shown as published |
+| Census households by tenure, `cens_11htts_r2` (2011), `cens_21hhct_r3` (2021) | The same: the censuses' renters | Shown as published |
 
 **Notice:** "Source: Eurostat. Data modified by TracEconomics; Eurostat bears no responsibility for the derived figures." Eurostat's suggested citation for a dataset is its DOI and the access date; each dataset's `metadata.json` lists the exact files and dates used.
+
+## AADE (Independent Authority for Public Revenue), www.aade.gr
+
+**Terms:** AADE, "Terms of use", https://www.aade.gr/en/terms-use-iaprs-website: "The user of IAPR's website is allowed to use the published information posted therein, on condition that such information is accurately produced and the IAPR is always cited as its source. In addition, any modification or sale of the published information on the IAPR's website shall be prohibited."
+
+**What we use:**
+
+| Data | How we use it | Modified? |
+|---|---|---|
+| Yearly statistics of personal income tax returns, table 1, all regions (tax years 2019 onwards) | Declared income and its sources, next to other sources' answers to the same question | No: AADE's own totals, shown as published; we never add up its regions or rescale its figures |
+
+**Notice:** "Source: Independent Authority for Public Revenue (AADE), www.aade.gr. Shown as published."
+
+## European Commission, DG Employment, Social Affairs and Inclusion: labour market policy (LMP) database
+
+**Terms:** the European Commission's legal notice, https://commission.europa.eu/legal-notice_en: the Commission's reuse policy (Commission Decision 2011/833/EU); unless otherwise indicated, content owned by the EU is licensed under the Creative Commons Attribution 4.0 International licence (CC BY 4.0), so reuse is allowed provided appropriate credit is given and changes are indicated. The LMP database is maintained by DG EMPL and its data are disseminated by Eurostat (the database's metadata); the figures are the national employment services' transmissions.
+
+**What we use:**
+
+| Dataset | How we use it | Modified? |
+|---|---|---|
+| Persons registered with public employment services, `lmp_rjru` | Greece's registered unemployed, next to the labour force survey's unemployed | Shown as published |
+
+**Notice:** "Source: European Commission, DG EMPL, labour market policy database (data from the national public employment services). Data modified by TracEconomics where stated; the European Commission bears no responsibility for the derived figures."
 
 ## Eurostat and the Publications Office of the European Union: EU Vocabularies
 

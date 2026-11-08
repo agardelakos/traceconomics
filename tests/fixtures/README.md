@@ -18,6 +18,17 @@ tests run without network access and fail if a parser stops understanding a form
 | `elstat_cpi05_2026_09.xlsx` | https://www.statistics.gr/en/statistics?…_documentID=114837 (CPI table 05, twelve-month rates, January 1959 to September 2026, English) | 2026-10-13 | not trimmed |
 | `eurostat_prc_hicp_{minr,iw,fpd,midx,inw,fp}.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/{DATASET}/?format=TSV&compressed=true | 2026-10-18, except `prc_hicp_fp` (research download of 2026-10-14) | header kept whole; rows for Greece, Cyprus and the euro area, all items and the food branch down to one subclass (plus games of chance and education not by level), units I25, I15 and RCH_A; plus the first row with an empty flagged cell |
 | `eurostat_ilc_di01.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/ILC_DI01/?format=TSV&compressed=true | 2026-11-05 | header kept whole; rows for Greece and Cyprus, the five fifths (`QU1`-`QU5`), top cut-offs and shares, units EUR, NAC and PPS; plus one row (Austria) with flagged cells |
+| `eurostat_nama_10_co3_p3.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/NAMA_10_CO3_P3/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece and Cyprus, unit CP_MEUR, every COICOP code |
+| `eurostat_nasa_10_nf_tr.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/NASA_10_NF_TR/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece and Cyprus, sector S14_S15, unit CP_MEUR, items B6G, B6N, P3, D61, D62; plus Cyprus's B101 for S1, paid, whose cells carry the confidentiality flag `@N` |
+| `eurostat_ilc_lvho02.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/ILC_LVHO02/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece and Cyprus, all household types, all poverty statuses |
+| `eurostat_ilc_di03.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/ILC_DI03/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece and Cyprus, all ages, both sexes together |
+| `eurostat_une_rt_m.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/UNE_RT_M/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece and Cyprus, all ages |
+| `eurostat_une_rt_a.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/UNE_RT_A/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece and Cyprus, ages 15-74 and 20-64 |
+| `eurostat_cens_11htts_r2.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/CENS_11HTTS_R2/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece, Cyprus and the region EL30 (Attica), all households and one-person households |
+| `eurostat_cens_21hhct_r3.tsv.gz` | https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/CENS_21HHCT_R3/?format=TSV&compressed=true | 2026-11-08 | header kept whole; rows for Greece, Cyprus and the region EL301, all households and one-person households |
+| `ec-empl_lmp_rjru.tsv.gz` | https://webgate.ec.europa.eu/empl/redisstat/api/dissemination/sdmx/2.1/data/LMP_RJRU/?format=TSV&compressed=true | 2026-11-08 | header kept whole (DG EMPL writes the key dimensions in capitals); rows for Greece and Cyprus; plus the first other row with a `z` (not applicable) cell |
+| `aade_annual_reports_natural_persons_en.html` | https://www.aade.gr/en/perfomance-reports-accountability/statistics/annual-statistical-reports-natural-persons | 2026-11-08 | not trimmed |
+| `aade_SD_FP_22F_3.xlsx` | https://www.aade.gr/sites/default/files/2024-05/SD_FP_22F_3.xlsx | 2026-11-08 | not trimmed (AADE's personal income tax statistics, tax year 2022) |
 | `eurostat_v1_gr_{minr,iw}.tsv.gz` | same Eurostat bulk files (`prc_hicp_minr`, `prc_hicp_iw`) | 2026-10-18 | Greece only. minr: unit I25 for every category, plus RCH_A for all items, periods from 2014-12. iw: every category, years from 2015 |
 
 Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, and Eurostat, reused under
@@ -42,3 +53,5 @@ and compare hashes. `tests/test_fixtures.py` checks that the stored files still 
 | `elstat_cpi07_2026.xlsx` | `11baa71c365f5203f36ba5e9745e31df38ead23a3bb9e5ac27cf439fc0448593` |
 | `elstat_cpi07_2011_el.xls` | `6f7496fe0925d0ac7931264e6cfb338ceff7f890d9f8af033f9e234499f74eb7` |
 | `elstat_cpi05_2026_09.xlsx` | `28c992705281c33702a98d798b6a6aa28a017f4a4563306fe107a0c8f2f0fbf3` |
+| `aade_annual_reports_natural_persons_en.html` | `a125dd2e91d9837bf0783557dd5f6a62e43721bb59ddee4cea5dd09e1de374ad` |
+| `aade_SD_FP_22F_3.xlsx` | `777321bcbe3c652315e4eef0bb5e1bfe9a7e8a3c34e89fe0cf957aaeb9c34136` |
