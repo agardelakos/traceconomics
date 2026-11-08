@@ -790,6 +790,10 @@ python-dateutil==3.0.0 \
     --hash=sha256:3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd \
     --hash=sha256:7ebcb3c29a92f3ceafe79a7a48a5c45677e9e004bbeec5742ac0bbb00560b7a2
     # via pandas
+pyxlsb==1.0.10 \
+    --hash=sha256:8062d1ea8626d3f1980e8b1cfe91a4483747449242ecb61013bc2df85435f685 \
+    --hash=sha256:87c122a9a622e35ca5e741d2e541201d28af00fb46bec492cfa9586890b120b4
+    # via traceconomics (pyproject.toml)
 secretstorage==3.5.0 \
     --hash=sha256:0ce65888c0725fcb2c5bc0fdb8e5438eece02c523557ea40ce0703c266248137 \
     --hash=sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be

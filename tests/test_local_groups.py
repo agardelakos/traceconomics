@@ -606,3 +606,23 @@ def test_types_table_marks_elstats_2023_type_unusable():
     from traceconomics.local import weights
     s, g = _single_adults(0)
     assert weights.types_table(s, g, 2023, "v").elstat_status.iloc[0].startswith("unusable")
+
+
+def test_rent_table_sums_rent_paid_by_tenure():
+    """PY-GROUPS-031: the rent table gives rent paid in euros a year, by tenure and for all households
+
+    Given four made-up households: two renters paying 4,800 and 6,000 euros a year with weights 100 and 50, an owner of weight 200 and a household housed free of weight 10, one of the renters with two people
+    When the rent table is made for 2015
+    Then all households' rent paid is 100 × 4,800 + 50 × 6,000 = 780,000 euros, all of it in the renters' row
+    And owners and the housed free pay none
+    And the renters are 150 households and 250 people weighted, written "<20" as counted
+    """
+    from traceconomics.local import weights
+    rows = [("r1", 100, 9000, "1", {"0411": 4800}), ("r2", 50, 9000, "1", {"0411": 6000}),
+            ("o", 200, 9000, "1", {"0421": 3000}), ("f", 10, 9000, "1", {"04221": 2000})]
+    s = survey(rows, [("r1", 40), ("r1", 38), ("r2", 40), ("o", 40), ("f", 40)])
+    t = weights.rent_table(s, assign(s), 2015, "v").set_index("tenure")
+    assert t.loc["all", "rent_paid_eur"] == 780000.0 and t.loc["renter", "rent_paid_eur"] == 780000.0
+    assert t.loc["owner", "rent_paid_eur"] == 0.0 and t.loc["rent_free", "rent_paid_eur"] == 0.0
+    assert t.loc["renter", "households_weighted"] == 150.0 and t.loc["renter", "people_weighted"] == 250.0
+    assert t.loc["renter", "n_households"] == "<20"

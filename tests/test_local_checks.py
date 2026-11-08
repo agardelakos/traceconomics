@@ -354,27 +354,27 @@ def survey_2023(tmp_path, monkeypatch):
     return archive
 
 
-def test_the_weights_run_archives_four_tables_once(survey_2023):
-    """PY-OETLOCAL-008: the weights run archives a year's weights, groups, limits and household types, once
+def test_the_weights_run_archives_five_tables_once(survey_2023):
+    """PY-OETLOCAL-008: the weights run archives a year's weights, groups, limits, household types and rent, once
 
     Given an archive with the 2023 survey (50 one-person households, incomes 6,000 to 64,800 euros a year) and its table 1.03
     When the weights run is made for 2023 with 20 replicates
     And made again with the same inputs
-    Then the first run stores the four oet-local tables for 2023
+    Then the first run stores the five oet-local tables for 2023
     And the income limits are the midpoints between the fifths: 17,400, 29,400, 41,400 and 53,400 euros
     And the standard errors come from the full design
-    And the second run finds all four unchanged
+    And the second run finds all five unchanged
     And each table's header names its provenance, and counts under 20 are written as "<20"
     """
     from traceconomics.local import weights
 
     first = weights.run(survey_2023, [2023], replicates=20)[0]
-    assert (first["weights"], first["groups"], first["limits"], first["types"]) == ("stored",) * 4
+    assert (first["weights"], first["groups"], first["limits"], first["types"], first["rent"]) == ("stored",) * 5
     assert first["limits_eur"] == [17400, 29400, 41400, 53400] and first["se_design"] == "full"
     second = weights.run(survey_2023, [2023], replicates=20)[0]
-    assert (second["weights"], second["groups"], second["limits"], second["types"]) == ("unchanged",) * 4
+    assert (second["weights"], second["groups"], second["limits"], second["types"], second["rent"]) == ("unchanged",) * 5
     assert sorted(d for s, d in survey_2023.datasets() if s == "oet-local") == [
-        "hbs-groups-gr-2023", "hbs-hhtypes-gr-2023", "hbs-limits-gr-2023", "hbs-weights-gr-2023"]
+        "hbs-groups-gr-2023", "hbs-hhtypes-gr-2023", "hbs-limits-gr-2023", "hbs-rent-gr-2023", "hbs-weights-gr-2023"]
     text = (survey_2023.root / survey_2023.latest("oet-local", "hbs-groups-gr-2023")["path"]).read_text(encoding="utf-8")
     assert '# provenance: {"code_fingerprint": ' in text and ",<20," in text
 

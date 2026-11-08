@@ -24,7 +24,7 @@ dependencies = [
 dev = ["pytest==9.1.1", "coverage==7.17.0"]
 # Only for the microdata code that runs on the owner's machine (src/traceconomics/local); never needed to
 # use the published data.
-local = ["pandas==3.0.6", "py7zr==1.1.4"]
+local = ["pandas==3.0.6", "py7zr==1.1.4", "pyxlsb==1.0.10"]
 # Only for the Selenium browser tests in tests/selenium (run with `pytest tests/selenium --selenium`).
 selenium = ["selenium==4.51.0", "pytest-xdist==3.8.0"]
 
