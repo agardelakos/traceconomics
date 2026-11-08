@@ -124,7 +124,8 @@ test("a question across several sources gives each source's value by year, its d
   given: "the rent-paid question's page for Greece",
   when: "it is opened",
   then: ["its table has one column per source and one row per year in checks.json, values in billions of euros",
-    "each source's definition is listed", "AADE's figures are also given exactly as published"],
+    "each source's definition is listed", "AADE's figures are also given exactly as published",
+    "the notice of each publisher whose terms ask for one (AADE, the European Commission) is shown, and no other"],
 }), async ({ page, request }) => {
   const r = await (await request.get(`${DATA}/checks.json`)).json();
   const q = r.questions.find((x: any) => x.id === "gr-rent-paid");
@@ -142,6 +143,9 @@ test("a question across several sources gives each source's value by year, its d
   const aade = Object.entries(q.values.aade).filter(([, x]) => x != null);
   await expect(page.locator('[data-m5="as-published"] li')).toHaveCount(aade.length);
   await expect(page.locator('[data-m5="as-published"] li').first()).toContainText(num("en", aade[0][1] as number, 2));
+  const notices = ["aade", "ec-empl"].filter((p) => q.sources.some((s: any) => s.source.startsWith(`${p}:`)));
+  expect(notices).toContain("aade");
+  await expect(page.locator('[data-m5="notice"]')).toHaveText(notices.map((p) => t("en", `m5.notice.${p}`)));
 });
 
 test("a question's chart draws every source's values, to scale, without joining years apart", gwt({
@@ -164,4 +168,26 @@ test("a question's chart draws every source's values, to scale, without joining 
     return n + (ys.some((y, i) => i > 0 && y === ys[i - 1] + 1) ? 1 : 0);
   }, 0);
   await expect(chart.locator("path")).toHaveCount(consecutive);
+});
+
+test("the Groups page leads from tenure and household types to their pages in the consistency topic", gwt({
+  id: "PW-M5-008",
+  given: "the Groups page for Greece, and checks.json with the renters and rent-weight questions and the household-types check",
+  when: "it is opened and the household-types link is followed",
+  then: ["the tenure section links to the renters and the rent-weight questions", "the household-types section links to the household-types check",
+    "following that link opens the check's page"],
+}), async ({ page, request, coverage }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const ids = [...r.checks, ...r.questions].map((x: any) => x.id);
+  expect(ids).toEqual(expect.arrayContaining(["gr-renters", "gr-rent-weight", "gr-hbs-household-types"]));
+  await page.goto("/en/gr/inflation-by-group/groups/");
+  for (const id of ["renters", "rent-weight"]) {
+    await expect(page.locator(`#tenure [data-m5-link="${id}"] a`)).toHaveAttribute("href", M5("en", `same-question/${id}/`));
+  }
+  const types = page.locator('#household [data-m5-link="hbs-household-types"] a');
+  await expect(types).toHaveText(`${t("en", "m5.link.hbs-household-types")} →`);
+  await coverage.flush();
+  await types.click();
+  await expect(page).toHaveURL(/\/checks\/hbs-household-types\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("en", "m5.check.gr-hbs-household-types.title"));
 });
