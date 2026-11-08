@@ -422,3 +422,100 @@ def test_checks_page_gives_every_check_as_a_card(site):
         notes = card.find_elements("css selector", '[data-m5="note"]')
         assert [n.text.strip() for n in notes] == ([t("en", "m5.note.rounding", n=num("en", rounding, 0))] if rounding else [])
     assert any(_status(c) == "agree" and c["agree"] < c["compared"] for c in r["checks"])
+
+
+def test_topic_page_across_countries(site):
+    """SEL-M5-016: the topic's page across countries gives its question and a card per country
+
+    Given the consistency topic's page across countries, and the checks in Greece's checks.json
+    When it is opened
+    Then its heading is the topic's name, with its question under it
+    And Greece's card links to Greece's overview and says how many checks it has
+    """
+    r = _results()
+    site.open("/en/official-figures-consistency/")
+    assert site.find("h1").text.strip() == t("en", "topic.official-figures-consistency")
+    assert t("en", "topic.official-figures-consistency.question") in site.find("main header").text
+    card = site.find(f'a.card[href$="{M5.format(lang="en")}"]')
+    assert card.find_element("css selector", ".title").text.strip() == t("en", "country.gr") + " →"
+    assert card.find_element("css selector", ".text").text.strip() == t("en", "m5.landing.country_text", n=len(r["checks"]))
+
+
+def test_method_page_explains_and_lists_sources(site):
+    """SEL-M5-017: the Method page explains the checks, invites ideas, and lists its sources
+
+    Given the consistency topic's Method page for Greece
+    When it is opened and its sources are unfolded
+    Then the Method tab is marked as the current page
+    And it says what "agree" means and what a check can tell you, under their own headings
+    And it gives the support address for ideas
+    And its sources list is not empty
+    """
+    site.open(M5.format(lang="en") + "method/")
+    tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.method"))
+    assert tab.get_attribute("aria-current") == "page"
+    headings = [h.text.strip() for h in site.all("main h2")]
+    assert "What “agree” means" in headings and "What a check tells you" in headings
+    assert len(site.all('a[href="mailto:support@traceconomics.com"]')) == 1
+    site.find("details.panel summary").click()
+    site.wait(lambda _: site.all("ol.sources li") and site.all("ol.sources li")[0].is_displayed(), "no sources shown")
+
+
+def test_household_types_check_names_differences_and_links_finding(site):
+    """SEL-M5-018: the household-types check names each difference by year and type and leads to its finding
+
+    Given the household-types check's page for Greece, whose year with an unusable ELSTAT type differs, and its differences in checks.json
+    When it is opened
+    Then each difference's period reads as the year and the household type's name
+    And it links to the household-type finding, in its findings and in what is still open
+    """
+    c = next(x for x in _results()["checks"] if x["id"] == "gr-hbs-household-types")
+    site.open(M5.format(lang="en") + "checks/hbs-household-types/")
+    labels = [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')]
+    assert labels == [f'{d["period"].split("/")[0]} · {t("en", "group.hhtype/" + d["period"].split("/")[1])}' for d in c["differences"]]
+    assert len(site.all('a.card[href$="/checks/hbs-household-types/household-type-rules/"]')) == 1
+    assert len(site.all('[data-m5="open"] a[href$="/household-type-rules/"]')) == 1
+
+
+def test_spending_check_names_items_and_opens_its_finding(site):
+    """SEL-M5-019: the spending check spans years, names each differing item, and its finding opens
+
+    Given the spending table check's page for Greece and its differences in checks.json
+    When it is opened and its finding is followed
+    Then its count gives the years checked, not periods within them
+    And each difference names its year, its column and its item, with ELSTAT's name for the item
+    And the finding on the weights opens, its heading naming the three years
+    """
+    c = next(x for x in _results()["checks"] if x["id"] == "gr-hbs-spending")
+    site.open(M5.format(lang="en") + "checks/hbs-spending/")
+    years = sorted(c["by_year"])
+    assert f"({years[0]} – {years[-1]})" in site.find('[data-m5="count"]').text
+
+    def label(period):
+        year, column, code = period.split("/")
+        return f'{year} · {t("en", "m5.period.all") if column == "all" else column} · {code} {c["extra"]["item_names"][code]}'
+    assert [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')] == [label(d["period"]) for d in c["differences"]]
+    site.find('a.card[href$="/survey-weights/"]').click()
+    site.wait(lambda _: site.path.endswith("/checks/hbs-spending/survey-weights/"), "the finding did not open")
+    assert "2014, 2015 and 2018" in site.find("h1").text
+
+
+def test_data_page_describes_topic_files_naming_every_publisher(site, base_url):
+    """SEL-M5-020: the data page describes the topic's files for search engines, naming every publisher
+
+    Given Greece's data page, the topic's checks.json and the bibliography
+    When its structured data for search engines is read
+    Then one Dataset describes the consistency topic's files: checks.json and each check's and question's CSV
+    And its sources include AADE's and the European Commission's datasets, by their cited addresses
+    """
+    from urllib.parse import urlparse
+    r = _results()
+    refs = json.loads(_get(base_url, "/data/v1/references.json")[1])["references"]
+    site.open("/en/data/gr/")
+    blocks = [json.loads(b.get_attribute("textContent")) for b in site.all('script[type="application/ld+json"]')]
+    sets = [d for d in blocks if d.get("@type") == "Dataset" and t("en", "topic.official-figures-consistency") in d["name"]]
+    assert len(sets) == 1
+    urls = [urlparse(d["contentUrl"]).path for d in sets[0]["distribution"]]
+    assert urls == [f"{DATA}/checks.json"] + [f"{DATA}/downloads/{c['id']}.csv" for c in r["checks"] + r["questions"]]
+    sources = [s for q in r["questions"] for s in q["sources"] if s["source"].split(":")[0] in ("aade", "ec-empl")]
+    assert sources and all(refs[s["reference"]]["url"] in sets[0]["isBasedOn"] for s in sources)

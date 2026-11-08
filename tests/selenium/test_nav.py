@@ -318,3 +318,21 @@ def test_method_option_strip_lists_every_option(site):
     assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs)) if i != 1}
     tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.method"))
     assert tab.get_attribute("aria-current") == "true"
+
+
+def test_topics_quick_list_names_every_live_topic(site):
+    """SEL-NAV-018: the Topics quick list names every live topic and leads to its page
+
+    Given Greece's page of the consistency topic
+    When the arrow beside Topics in the header is pressed
+    Then the list links to both live topics, inflation by household and the consistency of official figures, each to its page
+    And the consistency topic is marked as the current one
+    """
+    site.open("/en/gr/official-figures-consistency/")
+    _arrow(site, "en", "topics").click()
+    pop = site.find("#topic-menu")
+    site.wait(lambda _: site.popover_open(pop), "#topic-menu did not open")
+    links = {a.text.strip(): a for a in site.all("#topic-menu a")}
+    for slug in ("inflation-by-group", "official-figures-consistency"):
+        assert links[t("en", f"topic.{slug}")].get_attribute("href").endswith(f"/en/{slug}/")
+    assert links[t("en", "topic.official-figures-consistency")].get_attribute("aria-current") == "true"

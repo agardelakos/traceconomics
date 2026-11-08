@@ -358,3 +358,126 @@ def test_spending_check_counts_figures_to_the_cent_and_links_years_with_other_we
     assert s["extra"]["excused_by_year"] == {"2013": 1, "2014": 0}
     assert s["extra"]["households_by_year"]["2014"] == {"published": 4152372.0, "ours": 4136073.0}
     assert s["extra"]["item_names"] == {"01112": "Bread"}
+
+
+def _validation(rows, name="finest detail"):
+    """A stand-in for the engine's validation result: its name and (period, ours, theirs) rows."""
+    from types import SimpleNamespace
+    return SimpleNamespace(name=name, rows=rows)
+
+
+def test_cpi_rebuild_labels_each_month_from_the_validation(monkeypatch):
+    """PY-M5-014: the CPI rebuilt from table 07: each month the validation compared, labelled
+
+    Given the validation of the CPI rebuilt from table 07 with three months: equal at one decimal, 0.1 apart, and 0.3 apart
+    When the check is built
+    Then it is the items check, both sides citing table 07
+    And the months read: agree, rounding, and a difference whose cause isn't known
+    """
+    from traceconomics.module5 import rebuilds
+    from traceconomics.validate import v1_cpi
+    rows = [("2015-01", 1.02, 1.04), ("2015-02", 1.06, 1.16), ("2015-03", 2.0, 2.3)]
+    monkeypatch.setattr(v1_cpi, "run_archive", lambda archive: (_validation(rows), None, 0, {}))
+    c = rebuilds.cpi(None, [])
+    assert c.id == rebuilds.CPI and c.published["reference"] == c.rebuilt["reference"] == "elstat-cpi-items"
+    assert [(x.period, x.agree, x.explanation) for x in c.comparisons] == [
+        ("2015-01", True, ""), ("2015-02", False, "rounding"), ("2015-03", False, "not-known")]
+
+
+def test_hicp_rebuild_uses_the_finest_detail_and_is_left_out_without_its_files(monkeypatch, tmp_path):
+    """PY-M5-015: the HICP rebuilt: only the finest detail is published, and nothing without both files
+
+    Given an archive with Eurostat's item indices but not their weights
+    And then one with both, whose validation gives a coarse level and the finest detail
+    When the HICP check is built each time
+    Then without the weights there is no check
+    And with both the check holds only the finest detail's months
+    And a validation without the finest detail gives no check either
+    """
+    from types import SimpleNamespace
+    from traceconomics.module5 import rebuilds
+    from traceconomics.validate import v1
+    held = {"prc_hicp_minr": {"path": "minr.tsv"}}
+    archive = SimpleNamespace(latest=lambda source, name: held.get(name))
+    assert rebuilds.hicp(archive, tmp_path, None, []) is None
+    held["prc_hicp_iw"] = {"path": "iw.tsv"}
+    monkeypatch.setattr(v1, "load", lambda duck, minr, iw, geo: ({}, {}, {"2024-12": 2.9}, {}))
+    found = [_validation([("2024-12", 2.0, 2.0)], "two digits"), _validation([("2024-11", 3.0, 3.0), ("2024-12", 2.9, 2.9)])]
+    monkeypatch.setattr(v1, "run", lambda *a, **k: found)
+    c = rebuilds.hicp(archive, tmp_path, None, [])
+    assert c.id == rebuilds.HICP and [x.period for x in c.comparisons] == ["2024-11", "2024-12"]
+    monkeypatch.setattr(v1, "run", lambda *a, **k: found[:1])
+    assert rebuilds.hicp(archive, tmp_path, None, []) is None
+
+
+def test_all_checks_in_order_without_missing_parts_and_never_two_with_one_id(monkeypatch):
+    """PY-M5-016: every check is gathered in a fixed order, a missing part is left out, and a repeated id stops the run
+
+    Given the CPI checks, the CPI rebuild, no HICP rebuild, household types and the spending table, each made up
+    When all checks are gathered
+    Then they come in that order, without the HICP
+    And two checks sharing an id stop the run with a FormatError naming the ids
+    """
+    from traceconomics.module5 import cpi as m5cpi, hbs, rebuilds, run
+    made = lambda cid: Check(cid, "gr", "percent", 0.0, {}, {})
+    monkeypatch.setattr(m5cpi, "checks", lambda con, ex: [made("gr-a"), made("gr-b")])
+    monkeypatch.setattr(rebuilds, "cpi", lambda archive, ex: made("gr-c"))
+    monkeypatch.setattr(rebuilds, "hicp", lambda archive, d, duck, ex: None)
+    monkeypatch.setattr(hbs, "load_types", lambda con: {2024: {}})
+    monkeypatch.setattr(hbs, "household_types", lambda years, ex: made("gr-d"))
+    monkeypatch.setattr(hbs, "load_spending", lambda con: {2024: {}})
+    monkeypatch.setattr(hbs, "spending", lambda years: made("gr-e"))
+    assert [c.id for c in run.all_checks(None, None, ".", None)] == ["gr-a", "gr-b", "gr-c", "gr-d", "gr-e"]
+    monkeypatch.setattr(rebuilds, "cpi", lambda archive, ex: made("gr-a"))
+    with pytest.raises(FormatError, match="check ids repeat"):
+        run.all_checks(None, None, ".", None)
+
+
+def _cpi05_store(rows):
+    """A stand-in store holding table 05: (unit, period, value, status, published_at)."""
+    import duckdb
+    con = duckdb.connect()
+    con.execute("CREATE TABLE observations (dataset VARCHAR, key VARCHAR, freq VARCHAR, unit VARCHAR, ref_period VARCHAR, "
+                "value DOUBLE, status VARCHAR, published_at VARCHAR, retrieved_at VARCHAR)")
+    for unit, period, value, status, published in rows:
+        con.execute("INSERT INTO observations VALUES ('elstat:cpi05', ?, 'M', ?, ?, ?, ?, ?, ?)",
+                    [f"unit={unit}", unit, period, value, status, published, published])
+    return con
+
+
+def test_table05_reads_the_newest_rows_rates_in_percent():
+    """PY-M5-017: table 05 is read from the store: the newest version of each month, rates in percent, withdrawn rows left out
+
+    Given a store with table 05's index and its yearly rate as a fraction, one month published twice, and one month withdrawn
+    When table 05 is read
+    Then the index keeps each month's newest value
+    And the rate is in percent, from the newest version
+    And the withdrawn month is in neither
+    """
+    con = _cpi05_store([("I20", "2001-06", 80.0, "new", "2026-01"), ("I20", "2001-06", 80.5, "changed", "2026-02"),
+                        ("RCH_A_FR", "2001-06", 0.039332, "new", "2026-01"), ("RCH_A_FR", "2001-06", 0.039239, "changed", "2026-02"),
+                        ("I20", "2001-07", 81.0, "new", "2026-01"), ("I20", "2001-07", 81.0, "withdrawn", "2026-02")])
+    index, rate = cpi.table05(con)
+    assert index == {"2001-06": 80.5}
+    assert rate == {"2001-06": pytest.approx(3.9239)}
+
+
+def test_household_types_are_read_by_year_type_and_measure():
+    """PY-M5-018: the household types table is read from the store by year, type and measure
+
+    Given a store with two types' shares for 2023, ELSTAT's status as text, and a row for another country
+    When the household types are loaded
+    Then they are grouped by year, then type, then measure, each as its text and number
+    And the other country's row is left out
+    """
+    import duckdb
+    from traceconomics.module5 import hbs
+    con = duckdb.connect()
+    con.execute('CREATE TABLE observations (dataset VARCHAR, key VARCHAR, geo VARCHAR, "group" VARCHAR, measure VARCHAR, '
+                'ref_period VARCHAR, value DOUBLE, value_text VARCHAR, status VARCHAR, published_at VARCHAR, retrieved_at VARCHAR)')
+    for geo, group, measure, text, value in [("GR", "A1", "share_households", "0.25", 0.25), ("GR", "A2", "share_households", "0.3", 0.3),
+                                             ("GR", "A1", "elstat_status", "unusable: broken", None), ("CY", "A1", "share_households", "0.2", 0.2)]:
+        con.execute("INSERT INTO observations VALUES ('oet-local:hbs_hhtypes', ?, ?, ?, ?, '2023', ?, ?, 'new', 'p', 'r')",
+                    [f"{geo}|{group}|{measure}", geo, group, measure, value, text])
+    assert hbs.load_types(con) == {2023: {"A1": {"share_households": ("0.25", 0.25), "elstat_status": ("unusable: broken", None)},
+                                          "A2": {"share_households": ("0.3", 0.3)}}}

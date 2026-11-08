@@ -190,3 +190,52 @@ def test_regions_are_accepted_only_where_declared(con, tmp_path):
     other = ("freq,coicop18,statinfo,geo\\TIME_PERIOD\t2025 \nA,CP01,IW,EL30\t1.0 \n")
     with pytest.raises(FormatError, match="unknown country codes"):
         parse.parse(con, write_gz(tmp_path / "w.tsv.gz", other), SPECS["eurostat:prc_hicp_iw"])
+
+
+class _FetchContext:
+    """Just enough of a run context for `check_and_fetch`: an archive that records what it is told,
+    an HTTP client that answers with given bytes or an error, and the run's lists."""
+
+    def __init__(self, answer, tmp_path):
+        from types import SimpleNamespace
+        self.dry_run, self.failures, self.planned, self.logged, self.fetched = False, [], [], [], []
+        self.archive = SimpleNamespace(new_tmp=lambda: tmp_path / "tmp", latest=lambda source, dataset: None,
+                                       log_failure=lambda *a: self.logged.append(a))
+        self.http = SimpleNamespace(get_bytes=lambda url, tmp: answer(url))
+
+    def fetch_and_store(self, *args, **kwargs):
+        self.fetched.append(args)
+
+
+def test_update_check_reports_a_failed_fetch_and_downloads_nothing(tmp_path):
+    """PY-EUROSTAT-012: a dataflow that can't be fetched is logged as a failure and nothing is downloaded
+
+    Given a run whose request for a dataset's dataflow fails
+    When the dataset is checked for an update
+    Then the failure is logged in the archive and added to the run's failures, naming the dataset
+    And the dataset itself isn't downloaded
+    """
+    from traceconomics.sources import eurostat
+    from traceconomics.sources.base import FetchError
+
+    def fail(url):
+        raise FetchError("HTTP 503")
+    ctx = _FetchContext(fail, tmp_path)
+    eurostat.check_and_fetch(ctx, "une_rt_a")
+    assert ctx.logged and ctx.logged[0][:2] == ("eurostat", "une_rt_a")
+    assert ctx.failures == ["eurostat/une_rt_a: HTTP 503"] and ctx.fetched == []
+
+
+def test_update_check_refuses_a_dataflow_without_its_update_date(tmp_path):
+    """PY-EUROSTAT-013: a dataflow without its "last data update" is reported, not guessed
+
+    Given a run whose dataflow for a dataset has no UPDATE_DATA annotation
+    When the dataset is checked for an update
+    Then the run's failures say the format may have changed, naming the dataset
+    And the dataset isn't downloaded
+    """
+    from traceconomics.sources import eurostat
+    ctx = _FetchContext(lambda url: (200, b"<Structure><Dataflow id='une_rt_a'/></Structure>"), tmp_path)
+    eurostat.check_and_fetch(ctx, "une_rt_a")
+    assert ctx.failures == ["eurostat/une_rt_a: no UPDATE_DATA in the dataflow; the format may have changed"]
+    assert ctx.fetched == []

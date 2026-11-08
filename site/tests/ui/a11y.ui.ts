@@ -6,10 +6,17 @@ import type { Page } from "@playwright/test";
 import { expect, gwt, test } from "./helpers";
 
 const M1 = "gr/inflation-by-group/";
+const M5 = "gr/official-figures-consistency/";
+// The consistency topic: its page across countries, Greece's overview and Method, the check cards,
+// a check (its tables), a finding, the questions, a question with its chart and one with its source
+// popovers and AADE's table as published.
+const M5_PATHS = ["official-figures-consistency/", M5, `${M5}method/`, `${M5}checks/`, `${M5}checks/cpi-rates-own-index/`,
+  `${M5}checks/cpi-rates-own-index/june-2001/`, `${M5}same-question/`, `${M5}same-question/renters/`, `${M5}same-question/rent-paid/`];
+
 const PATHS = ["", "countries/", "topics/", "gr/", "inflation-by-group/", M1, `${M1}explore/`,
   `${M1}explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter`, `${M1}explore/?groups=Q1,Q5&view=parts`,
   `${M1}calculator/`, `${M1}method/`, `${M1}method/weights-timing/`, `${M1}groups/`, "data/", "data/gr/",
-  "glossary/", "glossary/imputed-rent/", "about/"];
+  "glossary/", "glossary/imputed-rent/", "about/", ...M5_PATHS];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const VIEWPORTS = { phone: { width: 390, height: 844 }, desktop: { width: 1280, height: 900 } };
 // The menus, checked open: the header's quick lists on a wide screen, the whole menu on a phone.
@@ -48,6 +55,28 @@ for (const scheme of ["light", "dark"] as const) {
             await check(page, path);
           });
         }
+
+        test(`/${lang}/${M5} with a status shown alone and a source's definition open`, gwt({
+          id: "PW-A11Y-003",
+          title: "the consistency topic passes the accessibility check with a status filter applied and a source's definition open",
+          given: "the consistency topic's Checks page and a question's page, in a language, at phone or desktop width, in light or dark mode",
+          when: ["each status button on the Checks page is pressed in turn", "on the rent-paid question, a source's definition is opened"],
+          then: "an accessibility check against the WCAG 2.2 AA rules finds no serious or critical problem in each state",
+        }), async ({ page }) => {
+          await page.goto(`/${lang}/${M5}checks/`);
+          const buttons = page.locator('[data-m5="filter"] button[data-filter]:not([data-filter="all"])');
+          for (const button of await buttons.all()) {
+            await button.click();
+            await expect(button).toHaveAttribute("aria-pressed", "true");
+            await check(page, `/${lang}/${M5}checks/ (${await button.getAttribute("data-filter")})`);
+          }
+          await page.goto(`/${lang}/${M5}same-question/rent-paid/`);
+          const term = page.locator('[data-m5="question"] th[data-m5-source] button.term').first();
+          await term.focus();
+          await page.keyboard.press("Enter");       // opens the definition on every device (a mouse click follows the link)
+          await expect(page.locator('[data-m5="question"] th[data-m5-source] .term-popover').first()).toBeVisible();
+          await check(page, `/${lang}/${M5}same-question/rent-paid/ (a definition open)`);
+        });
 
         test(`/${lang}/ with each menu open`, gwt({
           id: "PW-A11Y-002",

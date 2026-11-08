@@ -263,6 +263,11 @@ title = "no serious accessibility problem with a header menu or the phone menu o
 playwright = ["PW-A11Y-002"]
 selenium = ["SEL-A11Y-003", "SEL-A11Y-004"]
 
+[TC-A11Y-003]
+title = "the consistency topic passes the accessibility check with a status filter applied and a source's definition open"
+playwright = ["PW-A11Y-003"]
+selenium = ["SEL-A11Y-005"]
+
 [TC-HOST-001]
 title = "pages carry the security headers"
 playwright = ["PW-HOST-001"]
@@ -347,6 +352,11 @@ selenium = ["SEL-NAV-016"]
 title = "on a method option's page, the bar's third row lists every option and marks the one being read"
 playwright = ["PW-NAV-015"]
 selenium = ["SEL-NAV-017"]
+
+[TC-NAV-014]
+title = "the Topics quick list names every live topic and leads to its page"
+playwright = ["PW-NAV-016"]
+selenium = ["SEL-NAV-018"]
 
 [TC-TERM-001]
 title = "pointing at a term opens its explanation; moving away closes it"
@@ -542,3 +552,28 @@ selenium = ["SEL-M5-014"]
 title = "the Checks page gives every check as a card, explained first"
 playwright = ["PW-M5-015"]
 selenium = ["SEL-M5-015"]
+
+[TC-M5-016]
+title = "the topic's page across countries gives its question and a card per country"
+playwright = ["PW-M5-016"]
+selenium = ["SEL-M5-016"]
+
+[TC-M5-017]
+title = "the Method page explains the checks, invites ideas, and lists its sources"
+playwright = ["PW-M5-017"]
+selenium = ["SEL-M5-017"]
+
+[TC-M5-018]
+title = "the household-types check names each difference by year and type and leads to its finding"
+playwright = ["PW-M5-018"]
+selenium = ["SEL-M5-018"]
+
+[TC-M5-019]
+title = "the spending check spans years, names each differing item, and its finding opens"
+playwright = ["PW-M5-019"]
+selenium = ["SEL-M5-019"]
+
+[TC-M5-020]
+title = "the data page describes the topic's files for search engines, naming every publisher"
+playwright = ["PW-M5-020"]
+selenium = ["SEL-M5-020"]

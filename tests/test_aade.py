@@ -66,3 +66,25 @@ def test_a_workbook_in_another_layout_is_refused(tmp_path):
     wb.save(path)
     with pytest.raises(FormatError, match="Σύνολο Περιφεριών"):
         parse.rows(path)
+
+
+def test_a_figure_that_is_not_a_number_is_refused(tmp_path):
+    """PY-AADE-004: a kept row whose all-regions figure isn't a number is refused
+
+    Given a made-up workbook in table 1's layout whose declared income, all regions, reads "n/a"
+    When it is read
+    Then a FormatError is raised, naming the row and the text found
+    """
+    openpyxl = pytest.importorskip("openpyxl")
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Π1"
+    ws.append(["Φορολογικό Έτος 2023"])
+    ws.append(["", "Σύνολο Περιφεριών"])
+    ws.append(["Μετρήσιμο - Περιγραφή", "Δήλωση"])
+    ws.append(["1.ΑΡΙΘΜΟΣ ΦΟΡΟΛΟΓΟΥΜΕΝΩΝ", "6500000"])
+    ws.append(["2.ΔΗΛΩΘΕΝ ΕΙΣΟΔΗΜΑ", "n/a"])
+    path = tmp_path / "bad.xlsx"
+    wb.save(path)
+    with pytest.raises(FormatError, match="ΔΗΛΩΘΕΝ ΕΙΣΟΔΗΜΑ.*'n/a', not a number"):
+        parse.rows(path)

@@ -18,6 +18,7 @@ import csv
 import json
 from pathlib import Path
 
+from traceconomics.checks import require
 from traceconomics.module5 import cpi, hbs, questions, rebuilds
 from traceconomics.module5.record import Check, load_explanations
 
@@ -54,7 +55,9 @@ def all_checks(store_con, archive, archive_dir: Path, duck) -> list[Check]:
     if spending:
         found.append(hbs.spending(spending))
     ids = [c.id for c in found]
-    assert len(ids) == len(set(ids)), f"check ids repeat: {ids}"
+    # A real check, not an assert: `python -O` drops asserts, and two checks with one id would
+    # overwrite each other's files.
+    require(len(ids) == len(set(ids)), f"check ids repeat: {ids}")
     return found
 
 

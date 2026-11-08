@@ -255,3 +255,20 @@ test("on a method option's page, the bar's third row lists every option and mark
   }
   await expect(page.locator(".topic-nav.sub a", { hasText: t("en", "nav.method") })).toHaveAttribute("aria-current", "true");
 });
+
+test("the Topics quick list names every live topic and leads to its page", gwt({
+  id: "PW-NAV-016",
+  given: "Greece's page of the consistency topic",
+  when: "the arrow beside Topics in the header is pressed",
+  then: ["the list links to both live topics, inflation by household and the consistency of official figures, each to its page",
+    "the consistency topic is marked as the current one"],
+}), async ({ page }) => {
+  await page.goto("/en/gr/official-figures-consistency/");
+  await page.getByRole("button", { name: quick("nav.topics") }).click();
+  const list = page.locator("#topic-menu");
+  await expect(list).toBeVisible();
+  for (const slug of ["inflation-by-group", "official-figures-consistency"]) {
+    await expect(list.getByRole("link", { name: t("en", `topic.${slug}`) })).toHaveAttribute("href", `/en/${slug}/`);
+  }
+  await expect(list.getByRole("link", { name: t("en", "topic.official-figures-consistency") })).toHaveAttribute("aria-current", "true");
+});

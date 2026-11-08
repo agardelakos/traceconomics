@@ -383,3 +383,97 @@ test("the Checks page gives every check as a card, explained first", gwt({
   }
   expect(r.checks.some((c: any) => status(c) === "agree" && c.agree < c.compared)).toBe(true);
 });
+
+test("the topic's page across countries gives its question and a card per country", gwt({
+  id: "PW-M5-016",
+  given: "the consistency topic's page across countries, and the checks in Greece's checks.json",
+  when: "it is opened",
+  then: ["its heading is the topic's name, with its question under it", "Greece's card links to Greece's overview and says how many checks it has"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  await page.goto("/en/official-figures-consistency/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("en", "topic.official-figures-consistency"));
+  await expect(page.locator("main header")).toContainText(t("en", "topic.official-figures-consistency.question"));
+  const card = page.locator(`a.card[href="${M5("en")}"]`);
+  await expect(card.locator(".title")).toHaveText(`${t("en", "country.gr")} →`);
+  await expect(card.locator(".text")).toHaveText(t("en", "m5.landing.country_text", { n: r.checks.length }));
+});
+
+test("the Method page explains the checks, invites ideas, and lists its sources", gwt({
+  id: "PW-M5-017",
+  given: "the consistency topic's Method page for Greece",
+  when: "it is opened and its sources are unfolded",
+  then: ["the Method tab is marked as the current page", "it says what \"agree\" means and what a check can tell you, under their own headings",
+    "it gives the support address for ideas", "its sources list is not empty"],
+}), async ({ page }) => {
+  await page.goto(M5("en", "method/"));
+  await expect(page.locator(".topic-nav.sub a", { hasText: t("en", "nav.method") })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { level: 2 })).not.toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 2, name: "What “agree” means" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "What a check tells you" })).toBeVisible();
+  await expect(page.locator('a[href="mailto:support@traceconomics.com"]')).toHaveCount(1);
+  await page.locator("details.panel summary").click();
+  await expect(page.locator("ol.sources li").first()).toBeVisible();
+});
+
+test("the household-types check names each difference by year and type and leads to its finding", gwt({
+  id: "PW-M5-018",
+  given: "the household-types check's page for Greece, whose year with an unusable ELSTAT type differs, and its differences in checks.json",
+  when: "it is opened",
+  then: ["each difference's period reads as the year and the household type's name", "it links to the household-type finding, in its findings and in what is still open"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const c = r.checks.find((x: any) => x.id === "gr-hbs-household-types");
+  await page.goto(M5("en", "checks/hbs-household-types/"));
+  const rows = page.locator('[data-m5="differences"] tbody tr th');
+  await expect(rows).toHaveText(c.differences.map((d: any) => {
+    const [year, group] = d.period.split("/");
+    return `${year} · ${t("en", `group.hhtype/${group}`)}`;
+  }));
+  await expect(page.locator('a.card[href$="/checks/hbs-household-types/household-type-rules/"]')).toHaveCount(1);
+  await expect(page.locator('[data-m5="open"] a[href$="/household-type-rules/"]')).toHaveCount(1);
+});
+
+test("the spending check spans years, names each differing item, and its finding opens", gwt({
+  id: "PW-M5-019",
+  given: "the spending table check's page for Greece and its differences in checks.json",
+  when: "it is opened and its finding is followed",
+  then: ["its count gives the years checked, not periods within them", "each difference names its year, its column and its item, with ELSTAT's name for the item",
+    "the finding on the weights opens, its heading naming the three years"],
+}), async ({ page, request, coverage }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const c = r.checks.find((x: any) => x.id === "gr-hbs-spending");
+  await page.goto(M5("en", "checks/hbs-spending/"));
+  const years = Object.keys(c.by_year).sort();
+  await expect(page.locator('[data-m5="count"]')).toContainText(`(${years[0]} – ${years[years.length - 1]})`);
+  const rows = page.locator('[data-m5="differences"] tbody tr th');
+  await expect(rows).toHaveText(c.differences.map((d: any) => {
+    const [year, column, code] = d.period.split("/");
+    const where = column === "all" ? t("en", "m5.period.all") : column;
+    return `${year} · ${where} · ${code} ${c.extra.item_names[code]}`;
+  }));
+  await coverage.flush();
+  await page.locator('a.card[href$="/survey-weights/"]').click();
+  await expect(page).toHaveURL(/\/checks\/hbs-spending\/survey-weights\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("2014, 2015 and 2018");
+});
+
+test("the data page describes the topic's files for search engines, naming every publisher", gwt({
+  id: "PW-M5-020",
+  given: "Greece's data page, the topic's checks.json and the bibliography",
+  when: "its structured data for search engines is read",
+  then: ["one Dataset describes the consistency topic's files: checks.json and each check's and question's CSV",
+    "its sources include AADE's and the European Commission's datasets, by their cited addresses"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  const refs = (await (await request.get("/data/v1/references.json")).json()).references;
+  await page.goto("/en/data/gr/");
+  const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const sets = blocks.map((b) => JSON.parse(b)).filter((d) => d["@type"] === "Dataset" && d.name.includes(t("en", "topic.official-figures-consistency")));
+  expect(sets).toHaveLength(1);
+  const urls = sets[0].distribution.map((d: any) => new URL(d.contentUrl).pathname);
+  expect(urls).toEqual([`${DATA}/checks.json`, ...[...r.checks, ...r.questions].map((c: any) => `${DATA}/downloads/${c.id}.csv`)]);
+  const sources = r.questions.flatMap((q: any) => q.sources).filter((s: any) => /^(aade|ec-empl):/.test(s.source));
+  expect(sources.length).toBeGreaterThan(0);
+  for (const s of sources) expect(sets[0].isBasedOn).toContain(refs[s.reference].url);
+});

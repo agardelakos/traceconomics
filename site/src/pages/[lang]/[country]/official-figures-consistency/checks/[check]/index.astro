@@ -1,7 +1,10 @@
 ---
-// One check, headed by its question in plain words with its technical name under it: what it compares, how often the two sides agree and over which years (the years that
-// agree count as much as the rest), each difference with its cause, the findings that have their
-// own page, what is open where a cause isn't known, and the way to its files in the Data section.
+// One check, headed by its question in plain words with its technical name under it: what it
+// compares, how often the two sides agree and over which years (the years that agree count as much
+// as the rest), each difference with its cause, the findings that have their own page, what is open
+// where a cause isn't known, and the way to its files in the Data section.
+// Its tables scroll sideways on a narrow screen, so each scrolling box can take the keyboard's focus
+// and is named for screen readers (as on the Groups page).
 import { getCollection } from "astro:content";
 import SourceList from "../../../../../../components/SourceList.astro";
 import Base from "../../../../../../layouts/Base.astro";
@@ -66,7 +69,7 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
     {runs.length > 0 && (
       <section class="stack" style="gap: var(--space-3)" aria-labelledby="compared-h">
         <h2 id="compared-h">{t(lang, "m5.compared.title")}</h2>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label={t(lang, "m5.compared.title")}>
           <table class="data-table" data-m5="compared">
             <thead><tr><th scope="col">{t(lang, "m5.compared.years")}</th><th scope="col">{t(lang, "m5.compared.count")}</th><th scope="col">{t(lang, "m5.compared.agree")}</th></tr></thead>
             <tbody>{runs.map((r) => (
@@ -80,7 +83,7 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
     <section class="stack" style="gap: var(--space-3)" aria-labelledby="diff-h">
       <h2 id="diff-h">{t(lang, "m5.diff.title")}</h2>
       {c.differences.length === 0 ? <p>{t(lang, "m5.diff.none")}</p> : (
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label={t(lang, "m5.diff.title")}>
           <table class="data-table" data-m5="differences">
             <thead><tr>
               <th scope="col">{t(lang, "m5.diff.period")}</th><th scope="col">{t(lang, "m5.diff.published")}</th>
