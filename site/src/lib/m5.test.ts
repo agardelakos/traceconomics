@@ -48,7 +48,7 @@ describe("consistency topic", () => {
     given: "the consistency topic",
     when: "its addresses and texts are asked for",
     then: [
-      "it is live for gr with an overview, checks, same-question and how-we-check pages",
+      "it is live for gr with an overview, method, checks and same-question pages",
       "a check's page has an address under checks/",
       "its texts are found for gr and refused for another country",
     ],
@@ -56,7 +56,7 @@ describe("consistency topic", () => {
     const tp = topic("official-figures-consistency");
     expect(tp.status).toBe("live");
     expect(tp.countries).toEqual(["gr"]);
-    expect(tp.sections).toEqual(["", "checks", "same-question", "how-we-check"]);
+    expect(tp.sections).toEqual(["", "method", "checks", "same-question"]);
     expect(topicHref("en", tp.slug, "gr", "checks/cpi-rates-own-index")).toBe("/en/gr/official-figures-consistency/checks/cpi-rates-own-index/");
     expect(m5Text("gr", "el", "june-2001")).toBe("el/june-2001");
     expect(() => m5Text("cy", "en", "x")).toThrow();

@@ -12,7 +12,7 @@ const PAGES = [
   "/en/about/", "/en/official-figures-consistency/", "/en/gr/official-figures-consistency/",
   "/en/gr/official-figures-consistency/checks/", "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/",
   "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/",
-  "/en/gr/official-figures-consistency/same-question/", "/en/gr/official-figures-consistency/how-we-check/",
+  "/en/gr/official-figures-consistency/same-question/", "/en/gr/official-figures-consistency/method/",
 ];
 const smoke = { tag: "@smoke" };
 

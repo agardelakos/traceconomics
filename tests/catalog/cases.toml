@@ -469,7 +469,7 @@ playwright = ["PW-THEME-008"]
 selenium = ["SEL-THEME-008"]
 
 [TC-M5-001]
-title = "the overview gives three numbers and every check as a card, explained first"
+title = "the overview says why, gives three numbers and leads to each part of the topic"
 playwright = ["PW-M5-001"]
 selenium = ["SEL-M5-001"]
 
@@ -534,11 +534,11 @@ playwright = ["PW-M5-013"]
 selenium = ["SEL-M5-013"]
 
 [TC-M5-014]
-title = "the overview's status buttons show one status's checks at a time"
+title = "the Checks page's status buttons show one status's checks at a time"
 playwright = ["PW-M5-014"]
 selenium = ["SEL-M5-014"]
 
 [TC-M5-015]
-title = "the Checks page compares every check in one table, in the overview's order"
+title = "the Checks page gives every check as a card, explained first"
 playwright = ["PW-M5-015"]
 selenium = ["SEL-M5-015"]

@@ -45,7 +45,7 @@ export const TOPICS: Topic[] = [
   {
     slug: "official-figures-consistency", module: "m5", status: "live", countries: ["gr"],
     // What the checks found, each check on its own, one question across sources, then the rules.
-    sections: ["", "checks", "same-question", "how-we-check"],
+    sections: ["", "method", "checks", "same-question"],
   },
   { slug: "forecast-scorecard", module: "m2", status: "planned", countries: [], sections: [] },
   { slug: "gdp-nowcast", module: "m3", status: "planned", countries: [], sections: [] },

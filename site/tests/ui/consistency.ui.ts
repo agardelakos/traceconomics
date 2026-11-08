@@ -16,16 +16,15 @@ const ORDER = ["explained", "partly", "unknown", "agree"];
 const byStatus = (checks: any[]) => ORDER.flatMap((st) => checks.filter((c) => status(c) === st));
 
 for (const lang of ["en", "el"] as const) {
-  test(`the overview gives three numbers and every check as a card, explained first (${lang})`, gwt({
+  test(`the overview says why, gives three numbers and leads to each part of the topic (${lang})`, gwt({
     id: "PW-M5-001",
-    title: "the overview gives three numbers and every check as a card, explained first",
+    title: "the overview says why, gives three numbers and leads to each part of the topic",
     given: "the consistency topic's overview for Greece, in English or Greek",
     when: "it is opened",
     then: ["its heading is the topic's question",
       "it gives the number of checks, the figures compared with the years they span, and the share that agree, rounded down",
-      "there is one card per check in checks.json: explained first, then partly explained, reason not known yet, consistent, each group in file order",
-      "each card asks its question in plain words, linking to the check's page, with its status, \"N of M match\" and the years actually checked",
-      "a consistent card whose other figures differ only by rounding says how many, in a note"],
+      "it leads to the Method, Checks and Same question pages, one card each, and lists no check itself",
+      "the topic's tabs read Overview, Method, Checks, Same question, as in the other topic"],
   }), async ({ page, request }) => {
     const r = await (await request.get(`${DATA}/checks.json`)).json();
     await page.goto(M5(lang));
@@ -37,22 +36,14 @@ for (const lang of ["en", "el"] as const) {
     await expect(stats.nth(1).locator("strong")).toHaveText(num(lang, sum("compared"), 0));
     await expect(stats.nth(1)).toContainText(t(lang, "m5.stat.compared", { from: years[0], to: years[years.length - 1] }));
     await expect(stats.nth(2).locator("strong")).toHaveText(`${Math.floor((sum("agree") / sum("compared")) * 100)}%`);
-    const cards = page.locator('[data-m5="checks"] [data-m5-card]');
-    await expect(cards).toHaveCount(r.checks.length);
-    for (const [i, c] of byStatus(r.checks).entries()) {
-      const card = cards.nth(i);
-      await expect(card).toHaveAttribute("data-m5-card", c.id);
-      await expect(card.locator("a.title")).toHaveText(`${t(lang, `m5.check.${c.id}.question`)} →`);
-      await expect(card.locator("a.title")).toHaveAttribute("href", M5(lang, `checks/${c.id.slice(3)}/`));
-      await expect(card.locator(".chip-status")).toHaveText(t(lang, `m5.status.${status(c)}`));
-      await expect(card.locator('[data-m5="count"]')).toHaveText(t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }));
-      const span = Object.keys(c.by_year).sort();
-      await expect(card).toContainText(t(lang, "m5.checked", { from: span[0], to: span[span.length - 1] }));
-      const rounding = status(c) === "agree" ? c.compared - c.agree : 0;
-      if (rounding) await expect(card.locator('[data-m5="note"]')).toHaveText(t(lang, "m5.note.rounding", { n: num(lang, rounding, 0) }));
-      else await expect(card.locator('[data-m5="note"]')).toHaveCount(0);
+    const sections = page.locator('[data-m5="sections"] a.card');
+    await expect(sections).toHaveCount(3);
+    for (const [i, key] of ["method", "checks", "same-question"].entries()) {
+      await expect(sections.nth(i)).toHaveAttribute("href", M5(lang, `${key}/`));
+      await expect(sections.nth(i).locator(".title")).toHaveText(`${t(lang, `nav.${key}`)} →`);
     }
-    expect(r.checks.some((c: any) => status(c) === "agree" && c.agree < c.compared)).toBe(true);
+    await expect(page.locator("[data-m5-card]")).toHaveCount(0);
+    await expect(page.locator(".topic-nav.sub li")).toHaveText(["nav.overview", "nav.method", "nav.checks", "nav.same-question"].map((k) => t(lang, k)));
   });
 }
 
@@ -319,12 +310,12 @@ test("on a phone, the bar's third row opens scrolled to the page being read", gw
 
 test("each status's chip has its own colour, and a consistent check's chip carries a tick", gwt({
   id: "PW-M5-013",
-  given: "the consistency topic's overview, with consistent, explained and unexplained checks",
+  given: "the consistency topic's Checks page, with consistent, explained and unexplained checks",
   when: "it is opened",
   then: ["chips of different statuses have different background colours",
     "the Consistent chip is drawn with a tick that is not part of its text"],
 }), async ({ page }) => {
-  await page.goto(M5("en"));
+  await page.goto(M5("en", "checks/"));
   const chips = await page.locator('[data-m5="checks"] .chip-status').evaluateAll((els) => els.map((el) => ({
     status: [...el.classList].find((c) => c !== "chip-status")!, background: getComputedStyle(el).backgroundColor,
     tick: getComputedStyle(el, "::before").content })));
@@ -335,16 +326,16 @@ test("each status's chip has its own colour, and a consistent check's chip carri
   await expect(page.locator('[data-m5="checks"] .chip-status.agree').first()).toHaveText(t("en", "m5.status.agree"));
 });
 
-test("the overview's status buttons show one status's checks at a time", gwt({
+test("the Checks page's status buttons show one status's checks at a time", gwt({
   id: "PW-M5-014",
-  given: "the consistency topic's overview, with explained, unexplained and consistent checks and none partly explained",
+  given: "the consistency topic's Checks page, with explained, unexplained and consistent checks and none partly explained",
   when: ["the Explained button is pressed", "it is pressed again"],
   then: ["at first every card shows, All is pressed, and there is a button only for each status some check has, with its count",
     "after the first press only the explained cards and the key's explained line show, and the count shown is announced",
     "after the second press every card shows again and All is pressed"],
 }), async ({ page, request }) => {
   const r = await (await request.get(`${DATA}/checks.json`)).json();
-  await page.goto(M5("en"));
+  await page.goto(M5("en", "checks/"));
   const cards = page.locator('[data-m5="checks"] [data-m5-card]');
   const group = page.getByRole("group", { name: t("en", "m5.filter.label") });
   const present = ORDER.filter((st) => r.checks.some((c: any) => status(c) === st));
@@ -365,20 +356,30 @@ test("the overview's status buttons show one status's checks at a time", gwt({
   await expect(group.locator('button[data-filter="all"]')).toHaveAttribute("aria-pressed", "true");
 });
 
-test("the Checks page compares every check in one table, in the overview's order", gwt({
+test("the Checks page gives every check as a card, explained first", gwt({
   id: "PW-M5-015",
-  given: "the Checks page for Greece and the checks in checks.json",
+  given: "the consistency topic's Checks page for Greece, in English, and the checks in checks.json",
   when: "it is opened",
-  then: ["its table has a row per check in the overview's order", "each row asks the check's question, linking to its page, with its count and status"],
+  then: ["there is one card per check: explained first, then partly explained, reason not known yet, consistent, each group in file order",
+    "each card asks its question in plain words, linking to the check's page, with its status, \"N of M match\" and the years actually checked",
+    "a consistent card whose other figures differ only by rounding says how many, in a note"],
 }), async ({ page, request }) => {
   const r = await (await request.get(`${DATA}/checks.json`)).json();
   await page.goto(M5("en", "checks/"));
-  const rows = page.locator('[data-m5="check-list"] tbody tr');
-  await expect(rows).toHaveCount(r.checks.length);
+  const cards = page.locator('[data-m5="checks"] [data-m5-card]');
+  await expect(cards).toHaveCount(r.checks.length);
   for (const [i, c] of byStatus(r.checks).entries()) {
-    await expect(rows.nth(i).locator("th a")).toHaveText(t("en", `m5.check.${c.id}.question`));
-    await expect(rows.nth(i).locator("th a")).toHaveAttribute("href", M5("en", `checks/${c.id.slice(3)}/`));
-    await expect(rows.nth(i)).toContainText(t("en", "m5.count", { agree: num("en", c.agree, 0), compared: num("en", c.compared, 0) }));
-    await expect(rows.nth(i).locator(".chip-status")).toHaveText(t("en", `m5.status.${status(c)}`));
+    const card = cards.nth(i);
+    await expect(card).toHaveAttribute("data-m5-card", c.id);
+    await expect(card.locator("a.title")).toHaveText(`${t("en", `m5.check.${c.id}.question`)} →`);
+    await expect(card.locator("a.title")).toHaveAttribute("href", M5("en", `checks/${c.id.slice(3)}/`));
+    await expect(card.locator(".chip-status")).toHaveText(t("en", `m5.status.${status(c)}`));
+    await expect(card.locator('[data-m5="count"]')).toHaveText(t("en", "m5.count", { agree: num("en", c.agree, 0), compared: num("en", c.compared, 0) }));
+    const span = Object.keys(c.by_year).sort();
+    await expect(card).toContainText(t("en", "m5.checked", { from: span[0], to: span[span.length - 1] }));
+    const rounding = status(c) === "agree" ? c.compared - c.agree : 0;
+    if (rounding) await expect(card.locator('[data-m5="note"]')).toHaveText(t("en", "m5.note.rounding", { n: num("en", rounding, 0) }));
+    else await expect(card.locator('[data-m5="note"]')).toHaveCount(0);
   }
+  expect(r.checks.some((c: any) => status(c) === "agree" && c.agree < c.compared)).toBe(true);
 });

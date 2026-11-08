@@ -37,16 +37,15 @@ def _by_status(checks: list[dict]) -> list[dict]:
 
 
 @pytest.mark.parametrize("lang", ["en", "el"])
-def test_overview_gives_numbers_and_check_cards(site, lang):
-    """SEL-M5-001: the overview gives three numbers and every check as a card, explained first
+def test_overview_says_why_and_leads_to_each_part(site, lang):
+    """SEL-M5-001: the overview says why, gives three numbers and leads to each part of the topic
 
     Given the consistency topic's overview for Greece, in English or Greek
     When it is opened
     Then its heading is the topic's question
     And it gives the number of checks, the figures compared with the years they span, and the share that agree, rounded down
-    And there is one card per check in checks.json: explained first, then partly explained, reason not known yet, consistent, each group in file order
-    And each card asks its question in plain words, linking to the check's page, with its status, "N of M match" and the years actually checked
-    And a consistent card whose other figures differ only by rounding says how many, in a note
+    And it leads to the Method, Checks and Same question pages, one card each, and lists no check itself
+    And the topic's tabs read Overview, Method, Checks, Same question, as in the other topic
     """
     r = _results()
     site.open(M5.format(lang=lang))
@@ -58,22 +57,14 @@ def test_overview_gives_numbers_and_check_cards(site, lang):
     assert stats[1].find_element("css selector", "strong").text.strip() == num(lang, compared, 0)
     assert t(lang, "m5.stat.compared", **{"from": years[0], "to": years[-1]}) in stats[1].text
     assert stats[2].find_element("css selector", "strong").text.strip() == f"{agree * 100 // compared}%"
-    cards = site.all('[data-m5="checks"] [data-m5-card]')
-    assert len(cards) == len(r["checks"])
-    for card, c in zip(cards, _by_status(r["checks"])):
-        assert card.get_attribute("data-m5-card") == c["id"]
-        link = card.find_element("css selector", "a.title")
-        assert link.text.replace("\xa0", " ").strip() == t(lang, f"m5.check.{c['id']}.question") + " →"
-        assert link.get_attribute("href").endswith(M5.format(lang=lang) + f"checks/{c['id'][3:]}/")
-        assert card.find_element("css selector", ".chip-status").text.strip() == t(lang, f"m5.status.{_status(c)}")
-        assert card.find_element("css selector", '[data-m5="count"]').text.strip() == t(
-            lang, "m5.count", agree=num(lang, c["agree"], 0), compared=num(lang, c["compared"], 0))
-        span = sorted(c["by_year"])
-        assert t(lang, "m5.checked", **{"from": span[0], "to": span[-1]}) in card.text
-        rounding = c["compared"] - c["agree"] if _status(c) == "agree" else 0
-        notes = card.find_elements("css selector", '[data-m5="note"]')
-        assert [n.text.strip() for n in notes] == ([t(lang, "m5.note.rounding", n=num(lang, rounding, 0))] if rounding else [])
-    assert any(_status(c) == "agree" and c["agree"] < c["compared"] for c in r["checks"])
+    sections = site.all('[data-m5="sections"] a.card')
+    assert len(sections) == 3
+    for card, key in zip(sections, ["method", "checks", "same-question"]):
+        assert card.get_attribute("href").endswith(M5.format(lang=lang) + f"{key}/")
+        assert card.find_element("css selector", ".title").text.replace("\xa0", " ").strip() == t(lang, f"nav.{key}") + " →"
+    assert site.all("[data-m5-card]") == []
+    assert [li.text.strip() for li in site.all(".topic-nav.sub li")] == [
+        t(lang, k) for k in ("nav.overview", "nav.method", "nav.checks", "nav.same-question")]
 
 
 def test_check_page_lists_differences_and_offers_csv(site, base_url):
@@ -357,12 +348,12 @@ def test_section_strip_opens_scrolled_to_the_current_page_on_a_phone(phone):
 def test_status_chips_have_their_own_colours(site):
     """SEL-M5-013: each status's chip has its own colour, and a consistent check's chip carries a tick
 
-    Given the consistency topic's overview, with consistent, explained and unexplained checks
+    Given the consistency topic's Checks page, with consistent, explained and unexplained checks
     When it is opened
     Then chips of different statuses have different background colours
     And the Consistent chip is drawn with a tick that is not part of its text
     """
-    site.open(M5.format(lang="en"))
+    site.open(M5.format(lang="en") + "checks/")
     chips = site.driver.execute_script("""
         return [...document.querySelectorAll('[data-m5="checks"] .chip-status')].map((el) => ({
           status: [...el.classList].find((c) => c !== 'chip-status'), background: getComputedStyle(el).backgroundColor,
@@ -375,9 +366,9 @@ def test_status_chips_have_their_own_colours(site):
 
 
 def test_status_buttons_show_one_status_at_a_time(site):
-    """SEL-M5-014: the overview's status buttons show one status's checks at a time
+    """SEL-M5-014: the Checks page's status buttons show one status's checks at a time
 
-    Given the consistency topic's overview, with explained, unexplained and consistent checks and none partly explained
+    Given the consistency topic's Checks page, with explained, unexplained and consistent checks and none partly explained
     When the Explained button is pressed
     And it is pressed again
     Then at first every card shows, All is pressed, and there is a button only for each status some check has, with its count
@@ -386,7 +377,7 @@ def test_status_buttons_show_one_status_at_a_time(site):
     """
     r = _results()
     n = {st: sum(_status(c) == st for c in r["checks"]) for st in ORDER}
-    site.open(M5.format(lang="en"))
+    site.open(M5.format(lang="en") + "checks/")
     buttons = site.all('[data-m5="filter"] button')
     assert [b.text.strip() for b in buttons] == [t("en", "m5.filter.count", label=t("en", "m5.filter.all"), n=len(r["checks"]))] + [
         t("en", "m5.filter.count", label=t("en", f"m5.status.{st}"), n=n[st]) for st in ORDER if n[st]]
@@ -404,21 +395,30 @@ def test_status_buttons_show_one_status_at_a_time(site):
     assert site.find('[data-m5="filter"] button[data-filter="all"]').get_attribute("aria-pressed") == "true"
 
 
-def test_checks_page_compares_every_check_in_a_table(site):
-    """SEL-M5-015: the Checks page compares every check in one table, in the overview's order
+def test_checks_page_gives_every_check_as_a_card(site):
+    """SEL-M5-015: the Checks page gives every check as a card, explained first
 
-    Given the Checks page for Greece and the checks in checks.json
+    Given the consistency topic's Checks page for Greece, in English, and the checks in checks.json
     When it is opened
-    Then its table has a row per check in the overview's order
-    And each row asks the check's question, linking to its page, with its count and status
+    Then there is one card per check: explained first, then partly explained, reason not known yet, consistent, each group in file order
+    And each card asks its question in plain words, linking to the check's page, with its status, "N of M match" and the years actually checked
+    And a consistent card whose other figures differ only by rounding says how many, in a note
     """
     r = _results()
     site.open(M5.format(lang="en") + "checks/")
-    rows = site.all('[data-m5="check-list"] tbody tr')
-    assert len(rows) == len(r["checks"])
-    for row, c in zip(rows, _by_status(r["checks"])):
-        link = row.find_element("css selector", "th a")
-        assert link.text.strip() == t("en", f"m5.check.{c['id']}.question")
+    cards = site.all('[data-m5="checks"] [data-m5-card]')
+    assert len(cards) == len(r["checks"])
+    for card, c in zip(cards, _by_status(r["checks"])):
+        assert card.get_attribute("data-m5-card") == c["id"]
+        link = card.find_element("css selector", "a.title")
+        assert link.text.replace("\xa0", " ").strip() == t("en", f"m5.check.{c['id']}.question") + " →"
         assert link.get_attribute("href").endswith(M5.format(lang="en") + f"checks/{c['id'][3:]}/")
-        assert t("en", "m5.count", agree=num("en", c["agree"], 0), compared=num("en", c["compared"], 0)) in row.text
-        assert row.find_element("css selector", ".chip-status").text.strip() == t("en", f"m5.status.{_status(c)}")
+        assert card.find_element("css selector", ".chip-status").text.strip() == t("en", f"m5.status.{_status(c)}")
+        assert card.find_element("css selector", '[data-m5="count"]').text.strip() == t(
+            "en", "m5.count", agree=num("en", c["agree"], 0), compared=num("en", c["compared"], 0))
+        span = sorted(c["by_year"])
+        assert t("en", "m5.checked", **{"from": span[0], "to": span[-1]}) in card.text
+        rounding = c["compared"] - c["agree"] if _status(c) == "agree" else 0
+        notes = card.find_elements("css selector", '[data-m5="note"]')
+        assert [n.text.strip() for n in notes] == ([t("en", "m5.note.rounding", n=num("en", rounding, 0))] if rounding else [])
+    assert any(_status(c) == "agree" and c["agree"] < c["compared"] for c in r["checks"])

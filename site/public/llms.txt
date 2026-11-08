@@ -16,10 +16,10 @@ Prefer the data files over the pages for numbers: they hold every value at full 
 
 ## Consistency of official figures: Greece
 
-- [Overview](https://traceconomics.com/en/gr/official-figures-consistency/): every check, how often its two sides agree, and where it stands
-- [Checks](https://traceconomics.com/en/gr/official-figures-consistency/checks/): each check, what it compares, and its differences with their causes
+- [Overview](https://traceconomics.com/en/gr/official-figures-consistency/): why official figures should add up, how many checks and figures, and how many agree
+- [Method](https://traceconomics.com/en/gr/official-figures-consistency/method/): how each check works, what "agree" means, and what a check can tell you
+- [Checks](https://traceconomics.com/en/gr/official-figures-consistency/checks/): every check as a plain question with where it stands; each check's page gives its differences with their causes
 - [Same question, different sources](https://traceconomics.com/en/gr/official-figures-consistency/same-question/): one question answered by several official sources, with their definitions
-- [How we check](https://traceconomics.com/en/gr/official-figures-consistency/how-we-check/): what "agree" means, how a difference is worded, and what isn't claimed
 
 ## Data
 

@@ -1,13 +1,10 @@
 ---
-// Every check side by side, for the reader who wants to compare them: the question, its source and
-// the years checked, how often the two sides agree (and why the others don't), and where it stands.
-// The overview shows the same checks as cards.
+// Every check as a card, explained first, with buttons to show one status at a time
+// (M5CheckCards). Each card leads to the check's own page.
+import M5CheckCards from "../../../../../components/M5CheckCards.astro";
 import Base from "../../../../../layouts/Base.astro";
-import { num } from "../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
-import { causes, checkedSpan } from "../../../../../lib/m5-labels";
-import { ordered, results, roundingOnly, slugOf, status } from "../../../../../lib/m5";
-import { countryPaths, topicHref } from "../../../../../lib/topics";
+import { countryPaths } from "../../../../../lib/topics";
 
 export function getStaticPaths() {
   return countryPaths("official-figures-consistency", LANGS);
@@ -16,32 +13,13 @@ export function getStaticPaths() {
 const SLUG = "official-figures-consistency";
 const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
-const rows = ordered(results(country).checks).map((c) => ({
-  href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
-  question: t(lang, `m5.check.${c.id}.question`),
-  source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
-  count: t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }),
-  others: roundingOnly(c) ? t(lang, "m5.note.rounding", { n: num(lang, roundingOnly(c), 0) })
-    : c.compared > c.agree ? t(lang, "m5.others", { list: causes(lang, c) }) : "",
-  status: status(c),
-}));
 ---
-<Base lang={lang} title={t(lang, "nav.checks")} description={t(lang, "m5.lead")} topic={{ slug: SLUG, country, section: "checks" }}>
+<Base lang={lang} title={t(lang, "nav.checks")} description={t(lang, "m5.checks.lead")} topic={{ slug: SLUG, country, section: "checks" }}>
   <div class="stack-lg">
-    <h1>{t(lang, "nav.checks")}</h1>
-    <div class="table-wrap">
-      <table class="data-table m5-checks" data-m5="check-list">
-        <thead><tr><th scope="col">{t(lang, "m5.table.check")}</th><th scope="col">{t(lang, "m5.table.agree")}</th><th scope="col">{t(lang, "m5.table.status")}</th></tr></thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr>
-              <th scope="row"><a href={r.href}>{r.question}</a><span class="sub">{r.source}</span></th>
-              <td><strong>{r.count}</strong>{r.others && <span class="sub">{r.others}</span>}</td>
-              <td><span class={`chip-status ${r.status}`}>{t(lang, `m5.status.${r.status}`)}</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <h1>{t(lang, "nav.checks")}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "m5.checks.lead")}</p>
+    </header>
+    <M5CheckCards lang={lang} country={country} />
   </div>
 </Base>

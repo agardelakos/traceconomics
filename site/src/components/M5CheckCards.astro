@@ -1,0 +1,58 @@
+---
+// Every check as a card asking its question in plain words (its status, its source's glossary
+// term, the years checked, the count, and a note where the only differences are rounding), in
+// the topic's order: explained first. Buttons show one status at a time; there is one only for
+// each status some check has, and without scripts they stay hidden and every card shows.
+import GlossaryTerm from "./GlossaryTerm.astro";
+import { num } from "../lib/format";
+import { t, type Lang } from "../lib/i18n";
+import { ordered, results, roundingOnly, slugOf, status, STATUS_ORDER, termOf } from "../lib/m5";
+import { checkedSpan } from "../lib/m5-labels";
+import { topicHref } from "../lib/topics";
+
+interface Props { lang: Lang; country: string }
+const { lang, country } = Astro.props;
+const SLUG = "official-figures-consistency";
+const cards = ordered(results(country).checks).map((c) => ({
+  id: c.id, status: status(c), term: termOf(c),
+  href: topicHref(lang, SLUG, country, `checks/${slugOf(c.id, country)}`),
+  question: t(lang, `m5.check.${c.id}.question`),
+  source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
+  count: t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }),
+  note: roundingOnly(c) ? t(lang, "m5.note.rounding", { n: num(lang, roundingOnly(c), 0) }) : "",
+}));
+const counts = Object.fromEntries(STATUS_ORDER.map((st) => [st, cards.filter((c) => c.status === st).length]));
+// Only the statuses some check has get a button and a line in the key (none is "partly" today); a
+// status that turns up later gets both without a change here.
+const present = STATUS_ORDER.filter((st) => counts[st] > 0);
+---
+<section class="stack" style="gap: var(--space-3)" aria-label={t(lang, "nav.checks")} data-m5-filter
+  data-shown={t(lang, "m5.filter.shown", { n: "{n}", total: "{total}" })}>
+  <div class="chips" role="group" aria-label={t(lang, "m5.filter.label")} data-m5="filter" hidden>
+    <button type="button" class="chip" data-filter="all" aria-pressed="true">{t(lang, "m5.filter.count", { label: t(lang, "m5.filter.all"), n: cards.length })}</button>
+    {present.map((st) => (
+      <button type="button" class="chip" data-filter={st} aria-pressed="false">
+        {t(lang, "m5.filter.count", { label: t(lang, `m5.status.${st}`), n: counts[st] })}</button>
+    ))}
+  </div>
+  <p class="small muted m5-key" data-m5="key">{present.map((st) => (
+    <span data-key={st}><span class={`chip-status ${st}`}>{t(lang, `m5.status.${st}`)}</span> {t(lang, `m5.key.${st}`)}</span>
+  ))}</p>
+  <p class="visually-hidden" aria-live="polite" data-m5="shown"></p>
+  <div class="cards m5-cards" data-m5="checks">
+    {cards.map((c) => (
+      <div class="card" data-status={c.status} data-m5-card={c.id}>
+        <span class={`chip-status ${c.status}`}>{t(lang, `m5.status.${c.status}`)}</span>
+        <a class="title" href={c.href}>{c.question}&nbsp;→</a>
+        <span class="small muted">{c.term && <><GlossaryTerm lang={lang} term={c.term} instance={c.id} />, </>}{c.source}</span>
+        <span data-m5="count"><strong>{c.count}</strong></span>
+        {c.note && <span class="small muted" data-m5="note">{c.note}</span>}
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  import { start } from "../scripts/m5-filter";
+  for (const root of document.querySelectorAll<HTMLElement>("[data-m5-filter]")) start(root);
+</script>

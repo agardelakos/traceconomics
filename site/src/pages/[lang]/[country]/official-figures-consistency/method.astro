@@ -1,5 +1,5 @@
 ---
-// The rules every check follows, in plain words (src/content/pages/<lang>/m5-how-we-check.md).
+// The rules every check follows, in plain words (src/content/pages/<lang>/m5-method.md).
 import { getEntry, render } from "astro:content";
 import SourceList from "../../../../components/SourceList.astro";
 import Base from "../../../../layouts/Base.astro";
@@ -12,11 +12,11 @@ export function getStaticPaths() {
 
 const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
-const entry = await getEntry("pages", m5Text(country, lang, "m5-how-we-check"));
-if (!entry) throw new Error(`no ${lang} page m5-how-we-check`);
+const entry = await getEntry("pages", m5Text(country, lang, "m5-method"));
+if (!entry) throw new Error(`no ${lang} page m5-method`);
 const { Content } = await render(entry);
 ---
-<Base lang={lang} title={entry.data.title} description={entry.data.summary} topic={{ slug: "official-figures-consistency", country, section: "how-we-check" }}>
+<Base lang={lang} title={entry.data.title} description={entry.data.summary} topic={{ slug: "official-figures-consistency", country, section: "method" }}>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <h1>{entry.data.title}</h1>
