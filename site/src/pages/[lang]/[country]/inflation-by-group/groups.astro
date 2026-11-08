@@ -59,6 +59,15 @@ const limitsQuestion = topic("official-figures-consistency").countries.includes(
   ? m5Results(country).questions.find((q) => q.id === `${country}-income-limits`) : undefined;
 const compareHref = limitsQuestion
   ? topicHref(lang, "official-figures-consistency", country, `same-question/${slugOf(limitsQuestion.id, country)}`) : null;
+// The consistency topic's page on a group family's figures (renters by source, rent's weight, the
+// household types against ELSTAT's own variable), linked only when it is built for this country.
+const m5 = topic("official-figures-consistency").countries.includes(country) ? m5Results(country) : undefined;
+const m5Href = (kind: "checks" | "same-question", id: string) =>
+  m5 && [...m5.checks, ...m5.questions].some((x) => x.id === `${country}-${id}`)
+    ? topicHref(lang, "official-figures-consistency", country, `${kind}/${id}`) : null;
+const tenureLinks = [["same-question", "renters"], ["same-question", "rent-weight"]]
+  .map(([kind, id]) => ({ id, href: m5Href(kind as "same-question", id) })).filter((l) => l.href);
+const typesHref = m5Href("checks", "hbs-household-types");
 const ppsNone = ours.top_cutoffs_pps ? null : t(lang, "income.unit.pps_none", { income: ours.income_year });
 // The note's example: the poorest fifth's limit in both units. Its wording says a euro buys more
 // than one PPS's worth in this country; the build stops if the figures stop saying so.
@@ -245,6 +254,7 @@ const finderConfig = {
       <p class="definition">{tenure.entry.data.short}</p>
       <div class="prose"><tenure.Content /></div>
       <p class="small"><a href={href(lang, "glossary/tenure")}>{t(lang, "glossary.more")} →</a></p>
+      {tenureLinks.map((l) => <p class="small" data-m5-link={l.id}><a href={l.href!}>{t(lang, `m5.link.${l.id}`)} →</a></p>)}
     </section>
 
     <section class="panel stack" id="pensioners" aria-labelledby="pensioners-h" style="gap: var(--space-2)">
@@ -272,6 +282,7 @@ const finderConfig = {
         </table>
       </div>
       <p class="small muted" style="max-width: var(--text-max)">{t(lang, "groups.household.thin")}</p>
+      {typesHref && <p class="small" data-m5-link="hbs-household-types"><a href={typesHref}>{t(lang, "m5.link.hbs-household-types")} →</a></p>}
       <a href={`${topicHref(lang, "inflation-by-group", country, "explore")}?groups=${encodeURIComponent(HOUSEHOLD_GROUPS.join(","))}`} style="font-weight: 600" data-household-compare>{t(lang, "groups.household.compare")} →</a>
     </section>
 

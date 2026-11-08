@@ -8,6 +8,7 @@ import pytest
 from traceconomics.checks import FormatError
 from traceconomics.module5 import cpi
 from traceconomics.module5.record import Check, Comparison, load_explanations
+from traceconomics.module5.hbs import Question
 from traceconomics.module5.run import write
 
 pytestmark = pytest.mark.unit
@@ -285,3 +286,24 @@ def test_rent_change_indexes_average_rents_to_2015():
     assert round(v["hbs"]["2015"], 6) == 100.0 and round(v["hbs"]["2021"], 6) == 105.0
     assert round(v["silc"]["2015"], 6) == 100.0 and round(v["silc"]["2021"], 6) == 110.0
     assert questions._index({"2020": 3000.0, "2021": 3300.0}) == {}
+
+
+def test_attribution_names_every_publisher_and_dataset_the_questions_use(tmp_path):
+    """PY-M5-012: the files' attribution names every publisher and every Eurostat dataset the questions draw on
+
+    Given the sources every question names (publisher prefix and dataset), and a results file written
+    When its attribution is read
+    Then it names ELSTAT, Eurostat, AADE and the European Commission's DG EMPL
+    And it says AADE's figures are shown as published
+    And every Eurostat and DG EMPL dataset a question names is listed in it
+    """
+    import re
+    from pathlib import Path
+    from traceconomics.module5 import questions
+    write([], tmp_path, [Question("gr-x", "gr", "EUR", [{"label": "a", "source": "aade:pit_stats", "reference": "r", "definition": "d"}])])
+    text = json.loads((tmp_path / "gr" / "m5" / "checks.json").read_text(encoding="utf-8"))["attribution"]
+    for name in ("ELSTAT", "Eurostat", "AADE", "European Commission", "DG EMPL"):
+        assert name in text, name
+    assert "shown as published" in text
+    used = set(re.findall(r'"source": "(?:eurostat|ec-empl):(\w+)"', Path(questions.__file__).read_text(encoding="utf-8")))
+    assert used and not {d for d in used if d not in text}

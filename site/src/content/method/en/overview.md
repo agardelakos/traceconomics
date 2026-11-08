@@ -46,7 +46,7 @@ The weights come from a sample, so each group's rates carry an error band: two s
 
 ## Checks
 
-- Rebuilt from Eurostat's own item indices and weights, our calculation gives Greece's official HICP within 0.1 points in every month; the same holds for ELSTAT's CPI from 2014 (2011–2013 used a fixed basket).
+- Rebuilt from Eurostat's own item indices and weights, our calculation gives Greece's official HICP within 0.1 points in every month; the same holds for ELSTAT's CPI from 2014 (2011–2013 used a fixed basket). Every month compared, and the cause of each difference, is in the topic [Consistency of official figures](/en/gr/official-figures-consistency/checks/).
 - Our reading of the survey files reproduces ELSTAT's published spending tables to the cent (except in 2014, 2015 and 2018; see below), and its published sampling errors for 2024 within 0.1 points.
 - With Bruegel's settings, we rebuild its published Greek series within 0.1 points. KEPE's published figures differ from ours for known reasons (survey timing and detail).
 - Our contributions code reproduces Eurostat's published euro-area contributions to two decimals (rounding apart).

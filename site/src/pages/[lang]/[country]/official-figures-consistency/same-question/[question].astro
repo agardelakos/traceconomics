@@ -38,6 +38,10 @@ const [divide, digits] = SCALE[q.unit] ?? [1, 1];
 const periods = limits ? [] : [...new Set(q.sources.flatMap((s) => Object.keys(q.values[s.label])))].sort();
 const cell = (v: number | null | undefined) => (v == null ? "–" : num(lang, v / divide, digits));
 const asPublished = q.sources.filter((s) => s.source.startsWith("aade:"));
+// Publishers whose terms ask for their own notice next to their figures (SOURCES.md): AADE (cited
+// as the source, shown as published) and the European Commission (CC BY 4.0: credit, changes stated).
+const NOTICES = ["aade", "ec-empl"];
+const notices = NOTICES.filter((p) => q.sources.some((s) => s.source.startsWith(`${p}:`)));
 const keys = [...new Set(q.sources.flatMap((s) => [s.reference, ...(s.more ?? [])]))];
 const name = (label: string) => (limits ? t(lang, `m5.source.${label}`) : t(lang, `m5.src.${q.id}.${label}`));
 const chartLabel = `${t(lang, `m5.question.${q.id}.title`)} (${limits ? t(lang, "m5.question.fifth") : t(lang, `m5.unit.${q.unit}`)})`;
@@ -91,6 +95,7 @@ const chartSeries = limits
         </section>
       </>
     )}
+    {notices.map((p) => <p class="small muted" data-m5="notice">{t(lang, `m5.notice.${p}`)}</p>)}
     <p><a href={`/data/v1/${m5Dir(country)}/downloads/${q.id}.csv`} download>{t(lang, "m5.download")}</a></p>
     <details class="panel">
       <summary>{t(lang, "m5.finding.sources")}</summary>

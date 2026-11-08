@@ -15,6 +15,7 @@ import { DATA_ROOT, m1Dir, readJson, settings } from "../../../lib/data";
 import { href, LANGS, t, type Lang } from "../../../lib/i18n";
 import { dataset, ldJson } from "../../../lib/structured";
 import { m5Dir, results } from "../../../lib/m5";
+import { reference } from "../../../lib/references";
 import { dataCountries, EUROSTAT, m1Text, m5Text, OFFICES, topicHref, TOPICS } from "../../../lib/topics";
 
 export function getStaticPaths() {
@@ -53,7 +54,10 @@ const ld = shown.map(({ tp }) => {
       page: `${href(lang, `data/${country}`)}#${tp.slug}`,
       metadata: { licence: r.licence, attribution: r.attribution, first_period: periods[0], last_period: periods[periods.length - 1] },
       place: countryName,
-      basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang]],
+      // Beyond the statistics office and Eurostat, the other publishers' data (AADE, the European
+      // Commission's LMP database), each by its cited dataset's address.
+      basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang], ...[...new Set(r.questions.flatMap((q) => q.sources)
+        .filter((s) => /^(aade|ec-empl):/.test(s.source)).map((s) => reference(s.reference).url!))].sort()],
       files: [`${base}/checks.json`, ...[...r.checks, ...r.questions].map((c) => `${base}/downloads/${c.id}.csv`)],
     }));
   }

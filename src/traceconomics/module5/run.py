@@ -25,11 +25,17 @@ FORMAT = "m5-v1"
 LICENCE = "CC BY 4.0"
 # The publishers' reuse terms ask for the source, a clear statement that the data were modified,
 # and that they bear no responsibility for the result (SOURCES.md).
-ATTRIBUTION = ("Computed by TracEconomics from data of the Hellenic Statistical Authority (ELSTAT, www.statistics.gr) "
-               "and Eurostat: ELSTAT's Consumer Price Index (tables 05 and 07) and Household Budget Survey public use "
-               "files, Eurostat's HICP item indices (prc_hicp_minr, doi:10.2908/PRC_HICP_MINR) and EU-SILC income "
-               "limits (ilc_di01). The data have been modified: these comparisons are our own calculations, not "
-               "official statistics. ELSTAT and Eurostat bear no responsibility for the result of the modification.")
+ATTRIBUTION = ("Computed by TracEconomics from data of the Hellenic Statistical Authority (ELSTAT, www.statistics.gr), "
+               "Eurostat, the Independent Authority for Public Revenue (AADE, www.aade.gr) and the European Commission "
+               "(DG EMPL, labour market policy database, data from the national public employment services): "
+               "ELSTAT's Consumer Price Index (tables 05 and 07), Household Budget Survey and EU-SILC public use files; "
+               "Eurostat's HICP item indices and weights (prc_hicp_minr, doi:10.2908/PRC_HICP_MINR; prc_hicp_iw), EU-SILC tables (ilc_di01, ilc_lvho02), "
+               "national accounts (nama_10_co3_p3, nasa_10_nf_tr), labour force survey (une_rt_a) "
+               "and censuses (cens_11htts_r2, cens_21hhct_r3); AADE's statistics of personal income tax returns; the "
+               "LMP database's registered unemployed (lmp_rjru). AADE's figures are shown as published, never modified "
+               "(its terms forbid it). The other data have been modified: these comparisons are our own calculations, "
+               "not official statistics. ELSTAT, Eurostat and the European Commission bear no responsibility for the "
+               "result of the modification.")
 COLUMNS = ["period", "published", "rebuilt", "difference", "agree", "explanation", "finding"]
 
 

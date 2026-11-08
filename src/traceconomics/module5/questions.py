@@ -130,7 +130,7 @@ def rent_weight(store_con) -> Question | None:
         ({"label": "cpi", "source": "elstat:cpi07", "reference": "elstat-cpi-items",
           "definition": "the CPI's weight for actual rent, per mille, from the year's table 07"},
          _series(store_con, "elstat:cpi07", "unit = 'PM' AND coicop18 = '041'", 0.1)),
-        ({"label": "hicp", "source": "eurostat:prc_hicp_iw", "reference": "eurostat-prc-hicp-minr",
+        ({"label": "hicp", "source": "eurostat:prc_hicp_iw", "reference": "eurostat-prc-hicp-iw",
           "definition": "the HICP's weight for actual rent, per mille"},
          _series(store_con, "eurostat:prc_hicp_iw", "geo = 'GR' AND coicop18 = '041'", 0.1)),
         ({"label": "national_accounts", "source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",

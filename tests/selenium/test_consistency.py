@@ -152,6 +152,7 @@ def test_question_across_sources_lists_values_definitions_and_aade_as_published(
     Then its table has one column per source and one row per year in checks.json, values in billions of euros
     And each source's definition is listed
     And AADE's figures are also given exactly as published
+    And the notice of each publisher whose terms ask for one (AADE, the European Commission) is shown, and no other
     """
     q = next(x for x in _results()["questions"] if x["id"] == "gr-rent-paid")
     site.open(M5.format(lang="en") + "same-question/rent-paid/")
@@ -167,6 +168,9 @@ def test_question_across_sources_lists_values_definitions_and_aade_as_published(
     aade = [(p, x) for p, x in q["values"]["aade"].items() if x is not None]
     items = site.all('[data-m5="as-published"] li')
     assert len(items) == len(aade) and num("en", aade[0][1], 2) in items[0].text
+    notices = [p for p in ("aade", "ec-empl") if any(s["source"].startswith(f"{p}:") for s in q["sources"])]
+    assert "aade" in notices
+    assert [n.text.strip() for n in site.all('[data-m5="notice"]')] == [t("en", f"m5.notice.{p}") for p in notices]
 
 
 def test_question_chart_draws_every_value_without_joining_years_apart(site):
@@ -192,3 +196,25 @@ def test_question_chart_draws_every_value_without_joining_years_apart(site):
         ys = sorted(int(y) for y, v in q["values"][s["label"]].items() if v is not None)
         consecutive += any(b == a + 1 for a, b in zip(ys, ys[1:]))
     assert len(site.all('[data-m5="chart"] path')) == consecutive
+
+
+def test_groups_page_leads_to_tenure_and_household_type_pages(site):
+    """SEL-M5-008: the Groups page leads from tenure and household types to their pages in the consistency topic
+
+    Given the Groups page for Greece, and checks.json with the renters and rent-weight questions and the household-types check
+    When it is opened and the household-types link is followed
+    Then the tenure section links to the renters and the rent-weight questions
+    And the household-types section links to the household-types check
+    And following that link opens the check's page
+    """
+    r = _results()
+    assert {"gr-renters", "gr-rent-weight", "gr-hbs-household-types"} <= {x["id"] for x in r["checks"] + r["questions"]}
+    site.open("/en/gr/inflation-by-group/groups/")
+    for qid in ("renters", "rent-weight"):
+        href = site.find(f'#tenure [data-m5-link="{qid}"] a').get_attribute("href")
+        assert href.endswith(M5.format(lang="en") + f"same-question/{qid}/")
+    types = site.find('#household [data-m5-link="hbs-household-types"] a')
+    assert types.text.strip() == f'{t("en", "m5.link.hbs-household-types")} →'
+    types.click()
+    site.wait(lambda _: site.path.endswith("/checks/hbs-household-types/"), "the check's page did not open")
+    assert site.find("h1").text.strip() == t("en", "m5.check.gr-hbs-household-types.title")

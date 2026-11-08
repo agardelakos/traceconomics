@@ -355,7 +355,7 @@ def module5_outputs(outputs: Path, store_con) -> None:
                                      "silc": {"2015": 100.0, "2020": 103.2, "2021": 110.8, "2022": 117.1}}),
         ("gr-unemployment", "persons", {"lfs": {"2023": 470000.0, "2024": 400000.0}, "register": {"2023": 954795.0, "2024": 896099.0}}),
     ]
-    sources = {"aade": "aade:pit_stats", "census": "eurostat:cens_21hhct_r3"}
+    sources = {"aade": "aade:pit_stats", "census": "eurostat:cens_21hhct_r3", "register": "ec-empl:lmp_rjru"}
     extra = []
     for qid, unit, values in made_up:
         q = hbs.Question(qid, "gr", unit, [{"label": k, "source": sources.get(k, "made-up"), "reference": "elstat-hbs-puf",
