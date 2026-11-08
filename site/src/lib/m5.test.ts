@@ -13,14 +13,15 @@ const check = (over: Partial<Check>): Check => ({
 describe("consistency topic", () => {
   it("says where a check stands from its differences alone", { meta: {
     id: "VT-M5-001",
-    given: "checks where every period agrees, where every difference is rounding or explained, where some are not known, and where all are not known",
+    given: "checks where every period agrees, where every difference is rounding, where differences are rounding and a revision, where some are not known, and where all are not known",
     when: "each check's status is worked out",
     then: [
-      "they read agree, explained, partly and unknown",
-      "rounding counts as a known cause",
+      "they read agree, agree, explained, partly and unknown",
+      "a check whose only differences are rounding is consistent; rounding beside another cause is explained",
     ],
   } }, () => {
     expect(status(check({}))).toBe("agree");
+    expect(status(check({ agree: 8, differ: { rounding: 2 } }))).toBe("agree");
     expect(status(check({ agree: 7, differ: { rounding: 2, revision: 1 } }))).toBe("explained");
     expect(status(check({ agree: 7, differ: { rounding: 2, "not-known": 1 } }))).toBe("partly");
     expect(status(check({ agree: 7, differ: { "not-known": 3 } }))).toBe("unknown");
@@ -106,7 +107,7 @@ describe("consistency topic", () => {
       { from: "2005", to: "2005", compared: 12, agree: 12 },
     ]);
     const a = check({ id: "gr-a" }), b = check({ id: "gr-b", agree: 9, differ: { "not-known": 1 } });
-    const c = check({ id: "gr-c", agree: 9, differ: { rounding: 1 } }), d = check({ id: "gr-d" });
+    const c = check({ id: "gr-c", agree: 9, differ: { revision: 1 } }), d = check({ id: "gr-d" });
     expect(ordered([a, b, c, d]).map((x) => x.id)).toEqual(["gr-c", "gr-b", "gr-a", "gr-d"]);
   });
 

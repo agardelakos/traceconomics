@@ -20,7 +20,8 @@ def _results() -> dict:
 
 def _status(c: dict) -> str:
     unknown, differ = c["differ"].get("not-known", 0), c["compared"] - c["agree"]
-    return "agree" if differ == 0 else "explained" if unknown == 0 else "partly" if unknown < differ else "unknown"
+    return ("agree" if differ == c["differ"].get("rounding", 0) else "explained" if unknown == 0
+            else "partly" if unknown < differ else "unknown")
 
 
 def _get(base_url: str, path: str) -> tuple[int, bytes]:
@@ -45,6 +46,7 @@ def test_overview_gives_numbers_and_check_cards(site, lang):
     And it gives the number of checks, the figures compared with the years they span, and the share that agree, rounded down
     And there is one card per check in checks.json: explained first, then partly explained, reason not known yet, consistent, each group in file order
     And each card asks its question in plain words, linking to the check's page, with its status, "N of M match" and the years actually checked
+    And a consistent card whose other figures differ only by rounding says how many, in a note
     """
     r = _results()
     site.open(M5.format(lang=lang))
@@ -68,6 +70,10 @@ def test_overview_gives_numbers_and_check_cards(site, lang):
             lang, "m5.count", agree=num(lang, c["agree"], 0), compared=num(lang, c["compared"], 0))
         span = sorted(c["by_year"])
         assert t(lang, "m5.checked", **{"from": span[0], "to": span[-1]}) in card.text
+        rounding = c["compared"] - c["agree"] if _status(c) == "agree" else 0
+        notes = card.find_elements("css selector", '[data-m5="note"]')
+        assert [n.text.strip() for n in notes] == ([t(lang, "m5.note.rounding", n=num(lang, rounding, 0))] if rounding else [])
+    assert any(_status(c) == "agree" and c["agree"] < c["compared"] for c in r["checks"])
 
 
 def test_check_page_lists_differences_and_offers_csv(site, base_url):
@@ -75,7 +81,8 @@ def test_check_page_lists_differences_and_offers_csv(site, base_url):
 
     Given the page of the check of the CPI's rates against its own index
     When it is opened and its download link is fetched
-    Then it gives the check's count
+    Then its heading is the check's question in plain words, with its technical name under it
+    And it gives the check's count
     And its table of what was compared joins the years where all agree and sums to the count
     And its table has one row per difference, each with its cause
     And it links to the finding with its own page
@@ -84,6 +91,8 @@ def test_check_page_lists_differences_and_offers_csv(site, base_url):
     """
     c = next(x for x in _results()["checks"] if x["id"] == "gr-cpi-rates-own-index")
     site.open(M5.format(lang="en") + "checks/cpi-rates-own-index/")
+    assert site.find("h1").text.strip() == t("en", "m5.check.gr-cpi-rates-own-index.question")
+    assert site.find('[data-m5="technical"]').text.strip() == t("en", "m5.check.gr-cpi-rates-own-index.title")
     assert t("en", "m5.count", agree=c["agree"], compared=c["compared"]) in site.find('[data-m5="count"]').text
     rows = site.all('[data-m5="differences"] tbody tr')
     assert len(rows) == len(c["differences"])
@@ -116,7 +125,7 @@ def test_finding_page_links_back_and_lists_sources(site):
     site.find('a.card[href$="/june-2001/"]').click()
     site.wait(lambda _: site.path.endswith("/checks/cpi-rates-own-index/june-2001/"), "the finding's page did not open")
     assert "June 2001" in site.find("h1").text
-    back = next(a for a in site.all("header a") if a.text.strip() == t("en", "m5.check.gr-cpi-rates-own-index.title"))
+    back = next(a for a in site.all("header a") if a.text.strip() == t("en", "m5.check.gr-cpi-rates-own-index.question"))
     assert back.get_attribute("href").endswith(M5.format(lang="en") + "checks/cpi-rates-own-index/")
     summary = next(s for s in site.all("details.panel summary") if s.text.strip() == t("en", "m5.finding.sources"))
     summary.click()
@@ -252,7 +261,7 @@ def test_groups_page_leads_to_tenure_and_household_type_pages(site):
     assert types.text.strip() == f'{t("en", "m5.link.hbs-household-types")} →'
     types.click()
     site.wait(lambda _: site.path.endswith("/checks/hbs-household-types/"), "the check's page did not open")
-    assert site.find("h1").text.strip() == t("en", "m5.check.gr-hbs-household-types.title")
+    assert site.find("h1").text.strip() == t("en", "m5.check.gr-hbs-household-types.question")
 
 
 def test_check_with_unknown_causes_says_what_is_open(site):

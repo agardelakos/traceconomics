@@ -11,7 +11,7 @@ Each check takes two figures the same office publishes, where one should follow 
 ## What “agree” means
 
 - **A rate against its own index:** equal to within a billionth of a percentage point. Both come from the same published numbers, so any larger gap means one of them changed.
-- **An index rebuilt from its items:** equal once rounded to one decimal, as the office publishes it. The items and their weights are themselves published rounded, so a rebuilt rate can land 0.1 away. That is rounding.
+- **An index rebuilt from its items:** equal once rounded to one decimal, as the office publishes it. The items and their weights are themselves published rounded, so a rebuilt rate can land 0.1 away. That is rounding, and a check whose only differences are rounding counts as consistent, with a note saying how many.
 - **A survey's published table against its file:** each item's average spending within a cent, the table's own rounding. Items the public file leaves out or cuts are counted apart, not compared.
 - **Household types:** each type's share of households within one percentage point, wide enough for the people the two rules can place either way.
 

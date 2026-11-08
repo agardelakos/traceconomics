@@ -8,7 +8,7 @@ import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import Base from "../../../../layouts/Base.astro";
 import { num } from "../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../lib/i18n";
-import { chips, ordered, results, slugOf, status, STATUS_ORDER, termOf } from "../../../../lib/m5";
+import { chips, ordered, results, roundingOnly, slugOf, status, STATUS_ORDER, termOf } from "../../../../lib/m5";
 import { checkedSpan } from "../../../../lib/m5-labels";
 import { countryPaths, topicHref } from "../../../../lib/topics";
 
@@ -28,6 +28,7 @@ const cards = ordered(checks).map((c) => ({
   question: t(lang, `m5.check.${c.id}.question`),
   source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
   count: t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }),
+  note: roundingOnly(c) ? t(lang, "m5.note.rounding", { n: num(lang, roundingOnly(c), 0) }) : "",
 }));
 const compared = checks.reduce((n, c) => n + c.compared, 0);
 const agreeing = checks.reduce((n, c) => n + c.agree, 0);
@@ -72,6 +73,7 @@ const featured = FEATURED.map((s) => questions.find((q) => q.id === `${country}-
             <a class="title" href={c.href}>{c.question}&nbsp;→</a>
             <span class="small muted">{c.term && <><GlossaryTerm lang={lang} term={c.term} instance={c.id} />, </>}{c.source}</span>
             <span data-m5="count"><strong>{c.count}</strong></span>
+            {c.note && <span class="small muted" data-m5="note">{c.note}</span>}
           </div>
         ))}
       </div>

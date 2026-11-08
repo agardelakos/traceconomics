@@ -104,6 +104,11 @@ export function yearRuns(byYear: Check["by_year"]): { from: string; to: string; 
   return out;
 }
 
+/** How many of a consistent check's figures differ only by rounding (0 when every one agrees). */
+export function roundingOnly(c: Pick<Check, "differ" | "compared" | "agree">): number {
+  return status(c) === "agree" ? c.compared - c.agree : 0;
+}
+
 /** A check's or question's address within the topic: its id without the country's prefix. */
 export function slugOf(id: string, country: string): string {
   if (!id.startsWith(`${country}-`)) throw new Error(`"${id}" doesn't start with "${country}-"`);
@@ -111,15 +116,17 @@ export function slugOf(id: string, country: string): string {
 }
 
 /**
- * Where a check stands, from its differences only: every period agrees; every difference has a
- * known cause (rounding included); some do and some don't; none do. Never "wrong": the topic
- * says two published numbers are inconsistent, not that someone erred.
+ * Where a check stands, from its differences only: consistent when every period agrees or differs
+ * only by rounding (published figures are rounded, so a last-digit gap isn't an inconsistency;
+ * the page says so in a note); explained when every difference has another known cause too;
+ * partly; not known. Never "wrong": the topic says two published numbers are inconsistent, not
+ * that someone erred.
  */
 export type Status = "agree" | "explained" | "partly" | "unknown";
 export function status(c: Pick<Check, "differ" | "compared" | "agree">): Status {
   const unknown = c.differ["not-known"] ?? 0;
   const differ = c.compared - c.agree;
-  if (differ === 0) return "agree";
+  if (differ === (c.differ.rounding ?? 0)) return "agree";
   if (unknown === 0) return "explained";
   return unknown < differ ? "partly" : "unknown";
 }

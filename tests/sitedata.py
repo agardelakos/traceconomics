@@ -336,6 +336,7 @@ def module5_outputs(outputs: Path, store_con) -> None:
     rebuilt = [Comparison(p, 2.0, 2.0 + (0.13 if i % 4 == 3 else 0.0), i % 4 != 3, "" if i % 4 != 3 else "not-known")
                for i, p in enumerate(months[:12])]
     items = [Comparison(p, 1.5, 1.5, True) for p in months[:12]]
+    items[5] = Comparison(months[5], 1.5, 1.6, False, "rounding")    # consistent, with one difference to rounding
     types = {year: {g: {"share_households": (None, s), "elstat_share_households": (None, s + (0.02 if year == 2023 else 0.003)),
                         "agreement": (None, 0.27 if year == 2023 else 0.98),
                         "elstat_status": ("unusable: made up" if year == 2023 else "compared", None)}

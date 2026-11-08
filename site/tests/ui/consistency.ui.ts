@@ -9,7 +9,7 @@ const DATA = "/data/v1/gr/m5/latest";
 function status(c: any): string {
   const unknown = c.differ["not-known"] ?? 0;
   const differ = c.compared - c.agree;
-  return differ === 0 ? "agree" : unknown === 0 ? "explained" : unknown < differ ? "partly" : "unknown";
+  return differ === (c.differ.rounding ?? 0) ? "agree" : unknown === 0 ? "explained" : unknown < differ ? "partly" : "unknown";
 }
 
 const ORDER = ["explained", "partly", "unknown", "agree"];
@@ -24,7 +24,8 @@ for (const lang of ["en", "el"] as const) {
     then: ["its heading is the topic's question",
       "it gives the number of checks, the figures compared with the years they span, and the share that agree, rounded down",
       "there is one card per check in checks.json: explained first, then partly explained, reason not known yet, consistent, each group in file order",
-      "each card asks its question in plain words, linking to the check's page, with its status, \"N of M match\" and the years actually checked"],
+      "each card asks its question in plain words, linking to the check's page, with its status, \"N of M match\" and the years actually checked",
+      "a consistent card whose other figures differ only by rounding says how many, in a note"],
   }), async ({ page, request }) => {
     const r = await (await request.get(`${DATA}/checks.json`)).json();
     await page.goto(M5(lang));
@@ -47,7 +48,11 @@ for (const lang of ["en", "el"] as const) {
       await expect(card.locator('[data-m5="count"]')).toHaveText(t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }));
       const span = Object.keys(c.by_year).sort();
       await expect(card).toContainText(t(lang, "m5.checked", { from: span[0], to: span[span.length - 1] }));
+      const rounding = status(c) === "agree" ? c.compared - c.agree : 0;
+      if (rounding) await expect(card.locator('[data-m5="note"]')).toHaveText(t(lang, "m5.note.rounding", { n: num(lang, rounding, 0) }));
+      else await expect(card.locator('[data-m5="note"]')).toHaveCount(0);
     }
+    expect(r.checks.some((c: any) => status(c) === "agree" && c.agree < c.compared)).toBe(true);
   });
 }
 
@@ -55,7 +60,7 @@ test("a check's page lists each difference with its cause and offers every perio
   id: "PW-M5-002",
   given: "the page of the check of the CPI's rates against its own index",
   when: "it is opened and its download link is followed",
-  then: ["it gives the check's count", "its table of what was compared joins the years where all agree and sums to the count",
+  then: ["its heading is the check's question in plain words, with its technical name under it", "it gives the check's count", "its table of what was compared joins the years where all agree and sums to the count",
     "its table has one row per difference, each with its cause",
     "it links to the finding with its own page", "it leads to the topic's section of the Data page, which lists the check's CSV",
     "the CSV has a header and one row per period compared"],
@@ -63,6 +68,8 @@ test("a check's page lists each difference with its cause and offers every perio
   const r = await (await request.get(`${DATA}/checks.json`)).json();
   const c = r.checks.find((x: any) => x.id === "gr-cpi-rates-own-index");
   await page.goto(M5("en", "checks/cpi-rates-own-index/"));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("en", "m5.check.gr-cpi-rates-own-index.question"));
+  await expect(page.locator('[data-m5="technical"]')).toHaveText(t("en", "m5.check.gr-cpi-rates-own-index.title"));
   await expect(page.locator('[data-m5="count"]')).toContainText(t("en", "m5.count", { agree: c.agree, compared: c.compared }));
   const rows = page.locator('[data-m5="differences"] tbody tr');
   await expect(rows).toHaveCount(c.differences.length);
@@ -93,7 +100,7 @@ test("a finding's page tells what happened, links back to its check and lists it
   await page.locator('a.card[href$="/june-2001/"]').click();
   await expect(page).toHaveURL(/\/checks\/cpi-rates-own-index\/june-2001\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("June 2001");
-  await expect(page.getByRole("link", { name: t("en", "m5.check.gr-cpi-rates-own-index.title") }))
+  await expect(page.getByRole("link", { name: t("en", "m5.check.gr-cpi-rates-own-index.question") }))
     .toHaveAttribute("href", M5("en", "checks/cpi-rates-own-index/"));
   await page.locator("details.panel summary", { hasText: t("en", "m5.finding.sources") }).click();
   await expect(page.locator("ol.sources li").first()).toBeVisible();
@@ -222,7 +229,7 @@ test("the Groups page leads from tenure and household types to their pages in th
   await coverage.flush();
   await types.click();
   await expect(page).toHaveURL(/\/checks\/hbs-household-types\/$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("en", "m5.check.gr-hbs-household-types.title"));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("en", "m5.check.gr-hbs-household-types.question"));
 });
 
 test("a check whose causes aren't all known says what is open, where it is written up, and asks for ideas", gwt({

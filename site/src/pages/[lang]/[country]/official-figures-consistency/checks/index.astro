@@ -6,7 +6,7 @@ import Base from "../../../../../layouts/Base.astro";
 import { num } from "../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
 import { causes, checkedSpan } from "../../../../../lib/m5-labels";
-import { ordered, results, slugOf, status } from "../../../../../lib/m5";
+import { ordered, results, roundingOnly, slugOf, status } from "../../../../../lib/m5";
 import { countryPaths, topicHref } from "../../../../../lib/topics";
 
 export function getStaticPaths() {
@@ -21,7 +21,8 @@ const rows = ordered(results(country).checks).map((c) => ({
   question: t(lang, `m5.check.${c.id}.question`),
   source: [t(lang, `m5.check.${c.id}.source`), checkedSpan(lang, c)].filter(Boolean).join(" · "),
   count: t(lang, "m5.count", { agree: num(lang, c.agree, 0), compared: num(lang, c.compared, 0) }),
-  others: c.compared > c.agree ? t(lang, "m5.others", { list: causes(lang, c) }) : "",
+  others: roundingOnly(c) ? t(lang, "m5.note.rounding", { n: num(lang, roundingOnly(c), 0) })
+    : c.compared > c.agree ? t(lang, "m5.others", { list: causes(lang, c) }) : "",
   status: status(c),
 }));
 ---
