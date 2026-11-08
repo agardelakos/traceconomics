@@ -478,6 +478,44 @@ def test_limits_table_rounds_midpoints_to_the_euro():
     assert t.se.isna().all()          # no replicates asked for
 
 
+def test_every_household_lies_between_its_fifths_limits():
+    """PY-GROUPS-030: every household lies between its fifth's income limits
+
+    Given 300 made-up households of one to five people (some children), with unequal weights and many tied incomes
+    When they are placed in fifths of people and the limits between the fifths are taken, before rounding
+    Then every household's income per adult equivalent lies between its own fifth's lower and upper limits
+    And the limits rise from one fifth to the next
+    And some households sit exactly on a limit, so ties are covered
+    """
+    import numpy as np
+    from traceconomics.local.groups import cut_points, ranking
+    rng = np.random.default_rng(20261108)
+    n = 300
+    ids = [f"h{i:03d}" for i in range(n)]
+    # Twelve round incomes only, and two households in three alone: equal incomes per adult
+    # equivalent come in large blocks, so the cuts fall inside blocks of ties, as with real round
+    # reported incomes.
+    income = (rng.integers(4, 16, n) * 1000).tolist()
+    weight = rng.uniform(50, 900, n).round(3).tolist()
+    members = np.where(rng.random(n) < 2 / 3, 1, rng.integers(2, 6, n))
+    s = survey([(h, w, inc, "1", {}) for h, w, inc in zip(ids, weight, income)],
+               [(h, 40 if k == 0 else int(rng.integers(1, 80)))
+                for h, m in zip(ids, members) for k in range(int(m))])
+    g = assign(s)
+    values, size = ranking(s)
+    v = values["B"].to_numpy(float)
+    # The same weights as the published limits: people, that is household weight times size.
+    cuts = cut_points(values["B"], s.households.weight.to_numpy(float) * size.to_numpy(float), s.households.hh)[:, 0]
+    lower = np.concatenate([[-np.inf], cuts])
+    upper = np.concatenate([cuts, [np.inf]])
+    k = g.B.str[1:].astype(int).to_numpy() - 1
+    assert g.B.notna().all()
+    outside = ~((v >= lower[k]) & (v <= upper[k]))
+    assert not outside.any(), f"{outside.sum()} households outside their fifth's limits"
+    assert (np.diff(cuts) > 0).all()
+    assert ((v == lower[k]) | (v == upper[k])).any()     # the tie case is exercised
+
+
 # ---- household types ---------------------------------------------------------------------------
 
 def test_household_types_follow_eurostats_dependent_child_rule():
