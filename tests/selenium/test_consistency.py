@@ -483,7 +483,7 @@ def test_spending_check_names_items_and_opens_its_finding(site):
     Given the spending table check's page for Greece and its differences in checks.json
     When it is opened and its finding is followed
     Then its count gives the years checked, not periods within them
-    And each difference names its year, its column and its item, with ELSTAT's name for the item
+    And each difference shown (the first 60, the rest counted in a line) names its year, its column and its item, with ELSTAT's name for the item
     And the finding on the weights opens, its heading naming the three years
     """
     c = next(x for x in _results()["checks"] if x["id"] == "gr-hbs-spending")
@@ -494,7 +494,10 @@ def test_spending_check_names_items_and_opens_its_finding(site):
     def label(period):
         year, column, code = period.split("/")
         return f'{year} · {t("en", "m5.period.all") if column == "all" else column} · {code} {c["extra"]["item_names"][code]}'
-    assert [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')] == [label(d["period"]) for d in c["differences"]]
+    shown = 60     # the page lists the first 60 differences and says where the rest are
+    assert [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')] == [label(d["period"]) for d in c["differences"][:shown]]
+    if len(c["differences"]) > shown:
+        assert t("en", "m5.diff.more", shown=shown, total=len(c["differences"])) in site.find("main").text
     site.find('a.card[href$="/survey-weights/"]').click()
     site.wait(lambda _: site.path.endswith("/checks/hbs-spending/survey-weights/"), "the finding did not open")
     assert "2014, 2015 and 2018" in site.find("h1").text

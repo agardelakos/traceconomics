@@ -438,7 +438,8 @@ test("the spending check spans years, names each differing item, and its finding
   id: "PW-M5-019",
   given: "the spending table check's page for Greece and its differences in checks.json",
   when: "it is opened and its finding is followed",
-  then: ["its count gives the years checked, not periods within them", "each difference names its year, its column and its item, with ELSTAT's name for the item",
+  then: ["its count gives the years checked, not periods within them",
+    "each difference shown (the first 60, the rest counted in a line) names its year, its column and its item, with ELSTAT's name for the item",
     "the finding on the weights opens, its heading naming the three years"],
 }), async ({ page, request, coverage }) => {
   const r = await (await request.get(`${DATA}/checks.json`)).json();
@@ -446,8 +447,11 @@ test("the spending check spans years, names each differing item, and its finding
   await page.goto(M5("en", "checks/hbs-spending/"));
   const years = Object.keys(c.by_year).sort();
   await expect(page.locator('[data-m5="count"]')).toContainText(`(${years[0]} – ${years[years.length - 1]})`);
+  // The page lists the first 60 differences and says where the rest are (every period is in the files).
+  const SHOWN = 60;
   const rows = page.locator('[data-m5="differences"] tbody tr th');
-  await expect(rows).toHaveText(c.differences.map((d: any) => {
+  if (c.differences.length > SHOWN) await expect(page.getByText(t("en", "m5.diff.more", { shown: SHOWN, total: c.differences.length }))).toBeVisible();
+  await expect(rows).toHaveText(c.differences.slice(0, SHOWN).map((d: any) => {
     const [year, column, code] = d.period.split("/");
     const where = column === "all" ? t("en", "m5.period.all") : column;
     return `${year} · ${where} · ${code} ${c.extra.item_names[code]}`;
