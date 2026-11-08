@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { t } from "./i18n";
-import { findings, ordered, slugOf, status, yearRuns, type Check } from "./m5";
+import { chips, findings, ordered, slugOf, status, yearRuns, type Check, type Question } from "./m5";
 import { bandLabel, periodLabel, spanLabel } from "./m5-labels";
 import { m5Text, topic, topicHref } from "./topics";
 
@@ -107,5 +107,22 @@ describe("consistency topic", () => {
     ]);
     const a = check({ id: "gr-a" }), b = check({ id: "gr-b", agree: 9 }), c = check({ id: "gr-c" });
     expect(ordered([a, b, c]).map((x) => x.id)).toEqual(["gr-b", "gr-a", "gr-c"]);
+  });
+
+  it("gives a question's card one chip per kind of source, named by who we take it from", { meta: {
+    id: "VT-M5-006",
+    given: "a question whose lines are the census, the spending survey's households and persons, Eurostat's income survey table and tax returns, and one with a source no chip names",
+    when: "their chips are worked out",
+    then: [
+      "the chips follow the lines' order, the spending survey's two lines giving one chip",
+      "Eurostat's income survey table and tax returns get their own publishers",
+      "a source without a chip stops the build",
+    ],
+  } }, () => {
+    const q = (sources: string[]): Question => ({ id: "gr-q", country: "gr", unit: "percent", first: null, last: null, values: {},
+      sources: sources.map((s, i) => ({ label: `l${i}`, source: s, reference: "r", definition: "d" })) });
+    expect(chips(q(["eurostat:cens_21hhct_r3", "oet-local:hbs_rent", "oet-local:hbs_rent", "eurostat:ilc_lvho02", "aade:pit_stats"])))
+      .toEqual(["census-eurostat", "hbs-elstat", "silc-eurostat", "tax-aade"]);
+    expect(() => chips(q(["somewhere:else"]))).toThrow(/no chip for source "somewhere:else"/);
   });
 });

@@ -502,3 +502,8 @@ selenium = ["SEL-M5-008"]
 title = "a check whose causes aren't all known says what is open, where it is written up, and asks for ideas"
 playwright = ["PW-M5-009"]
 selenium = ["SEL-M5-009"]
+
+[TC-M5-010]
+title = "the questions page gives each question as a card: its title, a short teaser and a chip per source"
+playwright = ["PW-M5-010"]
+selenium = ["SEL-M5-010"]

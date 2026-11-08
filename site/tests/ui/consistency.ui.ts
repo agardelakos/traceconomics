@@ -233,3 +233,28 @@ test("a check whose causes aren't all known says what is open, where it is writt
   await expect(open.locator('a[href$="/checks/hbs-spending/survey-weights/"]')).toHaveCount(1);
   await expect(open.locator('a[href="mailto:support@traceconomics.com"]')).toHaveCount(1);
 });
+
+test("the questions page gives each question as a card: its title, a short teaser and a chip per source", gwt({
+  id: "PW-M5-010",
+  given: "the \"Same question, different sources\" page for Greece and the questions in checks.json",
+  when: "it is opened",
+  then: ["there is one card per question, each linking to its page with its title and teaser",
+    "each card has a chip per kind of source, none repeated, the rent-paid card naming tax returns (AADE) and the national accounts (Eurostat)"],
+}), async ({ page, request }) => {
+  const r = await (await request.get(`${DATA}/checks.json`)).json();
+  await page.goto(M5("en", "same-question/"));
+  const cards = page.locator('[data-m5="questions"] a.card');
+  await expect(cards).toHaveCount(r.questions.length);
+  for (const [i, q] of r.questions.entries()) {
+    const card = cards.nth(i);
+    await expect(card).toHaveAttribute("href", M5("en", `same-question/${q.id.slice(3)}/`));
+    await expect(card.locator(".title")).toHaveText(`${t("en", `m5.question.${q.id}.title`)} →`);
+    await expect(card.locator(".text")).toHaveText(t("en", `m5.question.${q.id}.teaser`));
+    const names = await card.locator(".source-chip").allTextContents();
+    expect(names.length).toBeGreaterThan(0);
+    expect(new Set(names).size).toBe(names.length);
+  }
+  const rent = cards.filter({ has: page.locator(".title", { hasText: t("en", "m5.question.gr-rent-paid.title") }) });
+  await expect(rent.locator(".source-chip", { hasText: t("en", "m5.chip.tax-aade") })).toHaveCount(1);
+  await expect(rent.locator(".source-chip", { hasText: t("en", "m5.chip.na-eurostat") })).toHaveCount(1);
+});

@@ -258,3 +258,25 @@ def test_check_with_unknown_causes_says_what_is_open(site):
     assert t("en", "m5.open.count", n=c["differ"]["not-known"]) in block.text
     assert len(block.find_elements("css selector", 'a[href$="/checks/hbs-spending/survey-weights/"]')) == 1
     assert len(block.find_elements("css selector", 'a[href="mailto:support@traceconomics.com"]')) == 1
+
+
+def test_questions_page_gives_cards_with_teasers_and_source_chips(site):
+    """SEL-M5-010: the questions page gives each question as a card: its title, a short teaser and a chip per source
+
+    Given the "Same question, different sources" page for Greece and the questions in checks.json
+    When it is opened
+    Then there is one card per question, each linking to its page with its title and teaser
+    And each card has a chip per kind of source, none repeated, the rent-paid card naming tax returns (AADE) and the national accounts (Eurostat)
+    """
+    r = _results()
+    site.open(M5.format(lang="en") + "same-question/")
+    cards = site.all('[data-m5="questions"] a.card')
+    assert len(cards) == len(r["questions"])
+    for card, q in zip(cards, r["questions"]):
+        assert card.get_attribute("href").endswith(M5.format(lang="en") + f"same-question/{q['id'][3:]}/")
+        assert card.find_element("css selector", ".title").text.strip() == t("en", f"m5.question.{q['id']}.title") + " →"
+        assert card.find_element("css selector", ".text").text.strip() == t("en", f"m5.question.{q['id']}.teaser")
+        names = [c.text.strip() for c in card.find_elements("css selector", ".source-chip")]
+        assert names and len(set(names)) == len(names)
+        if q["id"] == "gr-rent-paid":
+            assert t("en", "m5.chip.tax-aade") in names and t("en", "m5.chip.na-eurostat") in names

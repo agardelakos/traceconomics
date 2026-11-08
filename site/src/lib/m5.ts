@@ -52,6 +52,23 @@ export function results(country: string): Results {
   return { ...r, questions: r.questions ?? [] };
 }
 
+// Where a question's line comes from, as its card's chip names it: the kind of source and who we
+// take the figures from (as the Sources list and the reuse notices name them).
+const CHIPS: [RegExp, string][] = [
+  [/^eurostat:cens_/, "census-eurostat"], [/^oet-local:silc_/, "silc-elstat"], [/^eurostat:ilc_/, "silc-eurostat"],
+  [/^oet-local:hbs_/, "hbs-elstat"], [/^eurostat:(nama|nasa)_/, "na-eurostat"], [/^aade:/, "tax-aade"],
+  [/^eurostat:une_/, "lfs-eurostat"], [/^ec-empl:/, "register-ec"], [/^elstat:cpi/, "cpi-elstat"], [/^eurostat:prc_hicp/, "hicp-eurostat"],
+];
+
+/** A question's chips, one per kind of source, in the order of its lines (the key under `m5.chip.`). */
+export function chips(q: Question): string[] {
+  return [...new Set(q.sources.map((s) => {
+    const hit = CHIPS.find(([re]) => re.test(s.source));
+    if (!hit) throw new Error(`${q.id}: no chip for source "${s.source}"`);
+    return hit[1];
+  }))];
+}
+
 /** Checks with differences first, so they are seen, then the consistent ones; each in file order. */
 export function ordered(checks: Check[]): Check[] {
   return [...checks.filter((c) => c.agree < c.compared), ...checks.filter((c) => c.agree === c.compared)];
