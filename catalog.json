@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "ecfdcc672144825152b77f30f3e24b92b01c3353",
- "generated": "2026-11-07T21:01:51Z",
+ "commit": "3680b4e1a605b0b5a643e7ca1bdc2d109e9f93f8",
+ "generated": "2026-11-08T10:39:26Z",
  "missing": [],
  "cases": [
   {
@@ -10501,11 +10501,38 @@
    "named": false
   },
   {
+   "id": "PY-GROUPS-030",
+   "suite": "pytest",
+   "title": "every household lies between its fifth's income limits",
+   "file": "tests/test_local_groups.py",
+   "line": 481,
+   "node": "tests/test_local_groups.py::test_every_household_lies_between_its_fifths_limits",
+   "given": [
+    "300 made-up households of one to five people (some children), with unequal weights and many tied incomes"
+   ],
+   "when": [
+    "they are placed in fifths of people and the limits between the fifths are taken, before rounding"
+   ],
+   "then": [
+    "every household's income per adult equivalent lies between its own fifth's lower and upper limits",
+    "the limits rise from one fifth to the next",
+    "some households sit exactly on a limit, so ties are covered"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-GROUPS-023",
    "suite": "pytest",
    "title": "household types follow Eurostat's dependent-child rule",
    "file": "tests/test_local_groups.py",
-   "line": 483,
+   "line": 521,
    "node": "tests/test_local_groups.py::test_household_types_follow_eurostats_dependent_child_rule",
    "given": [
     "made-up households: one adult; a parent and a child under 16; a couple with a 20-year-old student child; the same with the child working; a couple with a student nephew; a couple with a parent and a 25-year-old student child; and a child alone"
@@ -10531,7 +10558,7 @@
    "suite": "pytest",
    "title": "household types are a grouping, and households without persons are left out",
    "file": "tests/test_local_groups.py",
-   "line": 507,
+   "line": 545,
    "node": "tests/test_local_groups.py::test_household_types_are_a_grouping_and_unplaced_households_are_left_out",
    "given": [
     "three made-up households, the last with no person records"
@@ -10557,7 +10584,7 @@
    "suite": "pytest",
    "title": "the types table compares with ELSTAT's type",
    "file": "tests/test_local_groups.py",
-   "line": 529,
+   "line": 567,
    "node": "tests/test_local_groups.py::test_types_table_compares_with_elstats_type",
    "given": [
     "ten made-up single adults, with ELSTAT's type agreeing for nine of them"
@@ -10583,7 +10610,7 @@
    "suite": "pytest",
    "title": "the types table stops when far from ELSTAT's type",
    "file": "tests/test_local_groups.py",
-   "line": 545,
+   "line": 583,
    "node": "tests/test_local_groups.py::test_types_table_stops_when_far_from_elstats_type",
    "given": [
     "ten made-up single adults, with ELSTAT's type agreeing for none of them"
@@ -10608,7 +10635,7 @@
    "suite": "pytest",
    "title": "in 2023, ELSTAT's type is marked unusable, not compared",
    "file": "tests/test_local_groups.py",
-   "line": 559,
+   "line": 597,
    "node": "tests/test_local_groups.py::test_types_table_marks_elstats_2023_type_unusable",
    "given": [
     "ten made-up single adults, with ELSTAT's type agreeing for none of them"
