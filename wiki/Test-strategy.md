@@ -193,8 +193,9 @@ they inform, they don't gate.
 - **Translation quality.** Tests check that every text exists in both languages, and that where the
   English uses a glossary term the Greek uses the same term in one of its Greek forms
   (`site/src/lib/twin-terms.mjs`; misses known today are listed in `site/src/i18n/terms-allow.json`,
-  a list that may only shrink; `npm run terms:report` shows each with both texts). They don't check
-  that the Greek is good; that is a native speaker's review.
+  a list that may only shrink; `npm run terms:report` shows each with both texts), and that the Greek
+  follows the final-ν rule («δεν», «την», «στην», «μην», «αυτήν»; `site/src/lib/final-n.mjs`). They
+  don't check that the Greek is good; that is a native speaker's review.
 - **Manual and exploratory testing** has no recorded cases yet (see [Future](Future)).
 
 ---

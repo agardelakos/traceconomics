@@ -24,12 +24,16 @@
 //     its Greek forms (src/lib/twin-terms.mjs), so one concept is never said two ways. Only the
 //     pairs on src/i18n/terms-allow.json may miss, and an entry that no longer misses fails too,
 //     so that list only shrinks. `npm run terms:report` lists every miss with both texts.
+// 10. The final ν in the Greek (src/lib/final-n.mjs): «δεν», «την», «στην» keep it before a vowel
+//     or κ, π, τ, ξ, ψ, μπ, ντ, γκ and drop it before other consonants; «μην» and «αυτήν» drop it
+//     there too.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 import { BEACON, TOKEN } from "../src/lib/analytics.ts";
-import { compare, loadAllowList, loadGlossary, loadPairs, misses } from "../src/lib/twin-terms.mjs";
+import { compare, loadAllowList, loadGlossary, loadPairs, misses, visible } from "../src/lib/twin-terms.mjs";
+import { finalN } from "../src/lib/final-n.mjs";
 
 // The one address a page may show (see 3. above).
 const PUBLIC_EMAIL = "support@traceconomics.com";
@@ -221,6 +225,11 @@ else {
   const { fresh, stale } = compare(misses(loadPairs(src), loadGlossary(src)), loadAllowList(join(src, "i18n", "terms-allow.json")));
   for (const m of fresh) fail(`${m.id}: the English uses the glossary term "${m.term}", the Greek none of its forms: use the term, or add its missing form to the Greek glossary (npm run terms:report)`);
   for (const m of stale) fail(`src/i18n/terms-allow.json: ${m.id} now uses "${m.term}" in both languages: delete its entry`);
+}
+
+// 10. The final ν (source only).
+for (const p of loadPairs(join(site, "src"))) {
+  for (const f of finalN(visible(p.el))) fail(`${p.id}: «${f.found}» should be «${f.want}» (the final ν)`);
 }
 
 if (failures.length) {
