@@ -18,9 +18,11 @@ flowchart LR
     D --> W["Static site<br/>Astro + Observable Plot"]
 ```
 
-1. **Sources** (`sources/`). One adapter per publisher finds and fetches its files: `elstat/` and
-   `eurostat/`, plus `terms.py`, which watches each publisher's reuse terms and alerts when they
-   change. `base.py` is the shared HTTP client: one request at a time, a pause between requests, a
+1. **Sources** (`sources/`). One adapter per publisher finds and fetches its files: `elstat/`,
+   `eurostat/` and `ec_empl.py`, plus `terms.py`, which watches those publishers' reuse terms and
+   alerts when they change. AADE's yearly workbooks are the exception: its CDN refuses requests from
+   cloud servers, so they are downloaded by hand and added with `traceconomics import --source aade`,
+   and `aade/` only names and parses them. `base.py` is the shared HTTP client: one request at a time, a pause between requests, a
    User-Agent naming the project, retries with growing waits, `robots.txt` respected. Publishers'
    release calendars decide when the job runs.
 2. **Raw archive** (`archive/store.py`). Every file is stored exactly as received, with a manifest
