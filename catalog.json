@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "dc0af94080b484644f3807505e20d90e2c5a221d",
- "generated": "2026-11-10T21:45:53Z",
+ "commit": "2e7dd094fcac18eeb1c3a7fed447666d698cd16c",
+ "generated": "2026-11-10T21:53:33Z",
  "missing": [],
  "cases": [
   {
@@ -6689,6 +6689,34 @@
    "named": false
   },
   {
+   "id": "PY-CLI-045",
+   "suite": "pytest",
+   "title": "check tenure prints each survey's calibration and the change it makes",
+   "file": "tests/test_cli_local.py",
+   "line": 200,
+   "node": "tests/test_cli_local.py::test_check_tenure_prints_what_the_calibration_changes",
+   "given": [
+    "a tenure check with one survey, one group's change, its rent share and the gap's change"
+   ],
+   "when": [
+    "check tenure is run"
+   ],
+   "then": [
+    "it prints the survey's renters before and after, the target with how it was set, and the weight factors",
+    "the group's change in the annual average and in December, with three decimals and a sign",
+    "rent's share before and after, and the gap's change",
+    "it exits with code 0 (a report)"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-COMBO-010",
    "suite": "pytest",
    "title": "every identity holds on outputs written by the real writer",
@@ -10365,7 +10393,7 @@
    "suite": "pytest",
    "title": "each household gets its income band's published hospital spending",
    "file": "tests/test_local_checks.py",
-   "line": 84,
+   "line": 103,
    "node": "tests/test_local_checks.py::test_each_household_gets_its_bands_hospital_spending",
    "given": [
     "ten households with monthly money incomes from 500 to 5,000 euros",
@@ -10393,16 +10421,17 @@
    "suite": "pytest",
    "title": "the hospital spending is put back into each requested group's basket",
    "file": "tests/test_local_checks.py",
-   "line": 100,
+   "line": 119,
    "node": "tests/test_local_checks.py::test_hospital_spending_is_put_back_into_the_baskets",
    "given": [
-    "the made-up 2010 survey and table"
+    "the made-up 2010 and 2011 surveys and tables"
    ],
    "when": [
     "the baskets with hospital services are built for quintile 1 and all households"
    ],
    "then": [
     "only those two groups' baskets are returned, keyed by survey year",
+    "not the 2010 survey's quintile, since that survey's incomes can't rank households",
     "in each the hospital code 06310 carries all of division 06",
     "hospitals are 3,960 of 9,455 euros of purchases, worked out by hand: 0.4188"
    ],
@@ -10420,7 +10449,7 @@
    "suite": "pytest",
    "title": "the hospital check reports each survey's share and each group's change in rates",
    "file": "tests/test_local_checks.py",
-   "line": 116,
+   "line": 138,
    "node": "tests/test_local_checks.py::test_the_hospital_check_reports_each_groups_change",
    "given": [
     "the made-up surveys and tables for 2008-2014 (2013 banded by household size)",
@@ -10432,6 +10461,7 @@
    "then": [
     "every survey 2008-2014 is reported with its hospital share and how its bands were made",
     "each group's change is ten times its health share with hospitals put back, through 2016 only",
+    "2011, whose survey (2010) has no quintiles rebuilt, doesn't move",
     "the gap's change is quintile 1's change minus quintile 5's"
    ],
    "notes": "",
@@ -10448,7 +10478,7 @@
    "suite": "pytest",
    "title": "V2 finds the newest archived English table 1.03 of each survey year",
    "file": "tests/test_local_checks.py",
-   "line": 145,
+   "line": 168,
    "node": "tests/test_local_checks.py::test_v2_finds_the_newest_english_table_of_each_year",
    "given": [
     "an archive with the 2018 English table twice (retrieved in January and March), the 2024 one, a Greek one and another document"
@@ -10474,7 +10504,7 @@
    "suite": "pytest",
    "title": "V2 compares all households every year, and each band where the bands can be rebuilt",
    "file": "tests/test_local_checks.py",
-   "line": 168,
+   "line": 191,
    "node": "tests/test_local_checks.py::test_v2_compares_every_year_and_the_bands_where_they_can_be_rebuilt",
    "given": [
     "the made-up survey and table for 2010 (banded by income) and 2016 (bands not rebuilt)",
@@ -10503,7 +10533,7 @@
    "suite": "pytest",
    "title": "V2 keeps every figure it compares, with ELSTAT's value, ours and the result",
    "file": "tests/test_local_checks.py",
-   "line": 191,
+   "line": 214,
    "node": "tests/test_local_checks.py::test_v2_keeps_every_figure_compared_with_its_result",
    "given": [
     "the made-up survey and table for 2010, with item 07242 listed as missing from the survey"
@@ -10530,7 +10560,7 @@
    "suite": "pytest",
    "title": "households are banded by size in 2013, and bands that don't fit are refused",
    "file": "tests/test_local_checks.py",
-   "line": 209,
+   "line": 232,
    "node": "tests/test_local_checks.py::test_bands_by_household_size_and_their_refusals",
    "given": [
     "the made-up survey of one-person households for 2013 and a table banded by size"
@@ -10559,7 +10589,7 @@
    "suite": "pytest",
    "title": "the published coefficients of variation and the PUF's missing items are on file",
    "file": "tests/test_local_checks.py",
-   "line": 228,
+   "line": 251,
    "node": "tests/test_local_checks.py::test_the_published_coefficients_of_variation_and_missing_items_are_on_file",
    "given": [
     "the package's files of published CVs and of items the public files lack"
@@ -10586,7 +10616,7 @@
    "suite": "pytest",
    "title": "each survey's own codes map to COICOP 2018 in one step",
    "file": "tests/test_local_checks.py",
-   "line": 247,
+   "line": 270,
    "node": "tests/test_local_checks.py::test_the_effective_mapping_of_each_code_list",
    "given": [
     "the package's mapping tables"
@@ -10613,7 +10643,7 @@
    "suite": "pytest",
    "title": "the reasons for known differences after the mapping are read by year pair and code",
    "file": "tests/test_local_checks.py",
-   "line": 263,
+   "line": 286,
    "node": "tests/test_local_checks.py::test_the_reasons_for_known_differences_are_read_by_year_pair",
    "given": [
     "the package's file of explained differences",
@@ -10640,7 +10670,7 @@
    "suite": "pytest",
    "title": "all households' shares come with standard errors only when replicates are asked for",
    "file": "tests/test_local_checks.py",
-   "line": 280,
+   "line": 303,
    "node": "tests/test_local_checks.py::test_all_households_shares_with_and_without_standard_errors",
    "given": [
     "the made-up survey of 50 households for 2023, moved to COICOP 2018"
@@ -10667,7 +10697,7 @@
    "suite": "pytest",
    "title": "the last year in the old codes, mapped, is compared with the next, and unexplained mapping effects fail it",
    "file": "tests/test_local_checks.py",
-   "line": 296,
+   "line": 319,
    "node": "tests/test_local_checks.py::test_the_mapped_year_is_compared_with_the_next_and_unexplained_mapping_effects_fail",
    "given": [
     "made-up surveys of 2023 (ECOICOP v1) and 2024 (COICOP 2018), the second spending 60% more on food",
@@ -10697,7 +10727,7 @@
    "suite": "pytest",
    "title": "a code's usual yearly change is its median change over the 2016-2023 surveys",
    "file": "tests/test_local_checks.py",
-   "line": 319,
+   "line": 342,
    "node": "tests/test_local_checks.py::test_the_usual_yearly_change_is_the_median_over_the_baseline_years",
    "given": [
     "made-up surveys for 2016-2023 that are all the same",
@@ -10724,7 +10754,7 @@
    "suite": "pytest",
    "title": "ELSTAT's CPI weights are compared with our mapped shares of the survey one and two years before",
    "file": "tests/test_local_checks.py",
-   "line": 334,
+   "line": 357,
    "node": "tests/test_local_checks.py::test_the_cpi_weights_are_compared_with_our_mapped_shares_a_year_or_two_before",
    "given": [
     "made-up surveys that are the same every year",
@@ -10751,7 +10781,7 @@
    "suite": "pytest",
    "title": "the weights run archives a year's weights, groups, limits, household types, rent and spending check, once",
    "file": "tests/test_local_checks.py",
-   "line": 376,
+   "line": 401,
    "node": "tests/test_local_checks.py::test_the_weights_run_archives_six_tables_once",
    "given": [
     "an archive with the 2023 survey (50 one-person households, incomes 6,000 to 64,800 euros a year) and its table 1.03"
@@ -10778,11 +10808,66 @@
    "named": false
   },
   {
+   "id": "PY-OETLOCAL-014",
+   "suite": "pytest",
+   "title": "the weights run calibrates the households' weights to EU-SILC's tenure split, except in the comparison tables",
+   "file": "tests/test_local_checks.py",
+   "line": 437,
+   "node": "tests/test_local_checks.py::test_the_weights_run_calibrates_to_eu_silcs_tenure_split",
+   "given": [
+    "the archive above, but EU-SILC 2023 with 60% of households renting and 40% owning (the survey: half and half)"
+   ],
+   "when": [
+    "the weights run is made for 2023"
+   ],
+   "then": [
+    "the groups table counts 30 renting and 20 owning households of 50: renters' weights x1.2, owners' x0.8",
+    "rent's share of all households' purchases rises, the renters' own basket staying as it was",
+    "the rent table, a comparison with the census, keeps ELSTAT's weights: 25 and 25",
+    "the provenance and the run's report give the target and the factors"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OETLOCAL-015",
+   "suite": "pytest",
+   "title": "the weights run builds no income-ranked groups and no income limits from the 2010 survey",
+   "file": "tests/test_local_checks.py",
+   "line": 469,
+   "node": "tests/test_local_checks.py::test_the_2010_survey_gets_no_income_groups_and_no_income_limits",
+   "given": [
+    "an archive with the 2010 survey (made up, 50 households), its table 1.03 and EU-SILC 2010"
+   ],
+   "when": [
+    "the weights run is made for 2010"
+   ],
+   "then": [
+    "the weights and groups tables hold no group of a grouping ranked by income (A, B and the validation groups)",
+    "they hold the groups ranked by spending (C), tenure and all households",
+    "the limits file is written with no rows, its header saying why, so the store drops any earlier limits"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-OETLOCAL-009",
    "suite": "pytest",
    "title": "a year whose household types disagree with ELSTAT's stops the weights run",
    "file": "tests/test_local_checks.py",
-   "line": 407,
+   "line": 502,
    "node": "tests/test_local_checks.py::test_household_types_that_disagree_with_elstats_stop_the_run",
    "given": [
     "the made-up survey for 2019, a year whose ELSTAT type column should be usable, but which carries none"
@@ -10808,7 +10893,7 @@
    "suite": "pytest",
    "title": "the income limits get standard errors from the bootstrap when replicates are asked for",
    "file": "tests/test_local_checks.py",
-   "line": 426,
+   "line": 521,
    "node": "tests/test_local_checks.py::test_the_income_limits_get_standard_errors_from_the_bootstrap",
    "given": [
     "the made-up survey of 50 households for 2023"
@@ -10834,7 +10919,7 @@
    "suite": "pytest",
    "title": "the bands run archives a standard error for every rate of every series and of the gap",
    "file": "tests/test_local_checks.py",
-   "line": 471,
+   "line": 569,
    "node": "tests/test_local_checks.py::test_the_bands_run_archives_a_standard_error_for_every_rate",
    "given": [
     "made-up surveys of 50 households for 2016-2018, each with its full sampling design",
@@ -10865,7 +10950,7 @@
    "suite": "pytest",
    "title": "index years fed by a survey published without its sampling design get no band",
    "file": "tests/test_local_checks.py",
-   "line": 502,
+   "line": 600,
    "node": "tests/test_local_checks.py::test_years_fed_by_a_survey_without_its_design_get_no_band",
    "given": [
     "made-up surveys for 2016-2018, the 2017 one read from a file without primary sampling units"
@@ -10892,7 +10977,7 @@
    "suite": "pytest",
    "title": "the mapping tables are rebuilt from the correspondence, the HICP weights and the surveys",
    "file": "tests/test_local_checks.py",
-   "line": 536,
+   "line": 634,
    "node": "tests/test_local_checks.py::test_the_mapping_tables_are_rebuilt_from_their_sources",
    "given": [
     "an archived correspondence holding every link of the package's ECOICOP v1 -> COICOP 2018 table, plus a class-level link",
@@ -10924,7 +11009,7 @@
    "suite": "pytest",
    "title": "a correspondence file without its columns or with too few subclass links is refused",
    "file": "tests/test_local_checks.py",
-   "line": 595,
+   "line": 693,
    "node": "tests/test_local_checks.py::test_a_correspondence_file_that_isnt_one_is_refused",
    "given": [
     "a CSV without the srcNot column, and one with only two subclass links"
@@ -13510,6 +13595,32 @@
    "named": false
   },
   {
+   "id": "PY-INDEX-005",
+   "suite": "pytest",
+   "title": "an income fifth's series is built without the 2010 survey, the 2009 survey price-updated in its place",
+   "file": "tests/test_module1_index.py",
+   "line": 99,
+   "node": "tests/test_module1_index.py::test_an_income_fifth_is_built_without_the_2010_survey",
+   "given": [
+    "baskets for surveys 2008 to 2024 with none for the 2010 survey's fifths"
+   ],
+   "when": [
+    "the B/Q1 series is built with the default rule"
+   ],
+   "then": [
+    "it runs from 2009 as usual, and 2011 uses survey 2009's basket",
+    "that basket is price-updated from 2009, the stand-in's own year"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-ORIG-001",
    "suite": "pytest",
    "title": "the 2005-based file is put on the 2009 base",
@@ -14255,6 +14366,36 @@
    ],
    "notes": "",
    "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SCHED-010",
+   "suite": "pytest",
+   "title": "wherever a rule would use the 2010 survey for a grouping ranked by income, the 2009 survey stands in",
+   "file": "tests/test_module1_schedule.py",
+   "line": 110,
+   "node": "tests/test_module1_schedule.py::test_the_2009_survey_stands_in_for_2010s_income_groups",
+   "given": [
+    "surveys 2008 to 2024, the 2010 survey's income groups not built (its incomes can't rank households)"
+   ],
+   "when": [
+    "rules N, F and U are applied for the income fifths (B) and for tenure"
+   ],
+   "then": [
+    "the index year each rule weighs with survey 2010 (2011, 2013, 2010) uses survey 2009 for the fifths, its basis saying why",
+    "the tenure groups still use survey 2010 there, and no other year changes"
+   ],
+   "notes": "",
+   "examples": [
+    "N-2011",
+    "F-2013",
+    "U-2010"
+   ],
    "defects": [],
    "tags": [
     "unit"
@@ -15524,6 +15665,33 @@
    "defects": [],
    "tags": [
     "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OETLOCAL-016",
+   "suite": "pytest",
+   "title": "a limits file with no rows withdraws the year's earlier limits, rather than failing",
+   "file": "tests/test_oet_local.py",
+   "line": 233,
+   "node": "tests/test_oet_local.py::test_an_empty_limits_file_withdraws_the_earlier_limits",
+   "given": [
+    "a made-up 2010 limits table for Q1 and Q2 archived and loaded into the store",
+    "then a newer 2010 limits file with its header and no rows (a survey whose incomes can't rank households)"
+   ],
+   "when": [
+    "the store is updated again"
+   ],
+   "then": [
+    "the update adds nothing and withdraws the six earlier values",
+    "no 2010 limit is left in the store"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
    ],
    "problems": [],
    "named": false
@@ -17162,6 +17330,198 @@
    "defects": [],
    "tags": [
     "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CALIB-001",
+   "suite": "pytest",
+   "title": "the target is EU-SILC's split, plus the step to the 2021 census spread over 2012-2021",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 69,
+   "node": "tests/test_sensitivity_checks.py::test_the_target_spreads_eu_silcs_census_step_over_the_years_between_the_censuses",
+   "given": [
+    "EU-SILC at 22% renters, 70% owners, 8% housed free through 2022, then 25%, 69%, 6% in 2023"
+   ],
+   "when": [
+    "the targets for surveys 2010, 2016, 2021, 2022 and 2023 are worked out"
+   ],
+   "then": [
+    "2010 and 2023 are EU-SILC's own split",
+    "2016 carries half the step: 23.5% renters, 69.5% owners, 7% housed free",
+    "2021 and 2022 carry all of it: the 2023 split",
+    "each target names how it was set and which EU-SILC tables it used"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CALIB-002",
+   "suite": "pytest",
+   "title": "a missing EU-SILC table, or one with a tenure missing or not adding up, is refused",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 88,
+   "node": "tests/test_sensitivity_checks.py::test_a_missing_or_broken_eu_silc_table_is_refused",
+   "given": [
+    "EU-SILC tables where 2019 lacks the housed-free row and 2018's tenures add up to 90 of 100 households"
+   ],
+   "when": [
+    "the target for 2024 (no table), 2019 or 2018 is worked out"
+   ],
+   "then": [
+    "a FormatError names the problem, not a guess"
+   ],
+   "notes": "",
+   "examples": [
+    "no table",
+    "a tenure missing",
+    "shares not adding up"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CALIB-003",
+   "suite": "pytest",
+   "title": "calibration gives each tenure its share, keeps the total, and works column by column",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 108,
+   "node": "tests/test_sensitivity_checks.py::test_calibration_hits_the_target_keeps_the_total_and_works_per_replicate",
+   "given": [
+    "the made-up survey, a third renting, a third owning, a third housed free",
+    "one more household with no tenure, weight 1"
+   ],
+   "when": [
+    "its weights are calibrated to 50% renters, 40% owners, 10% housed free"
+   ],
+   "then": [
+    "the households with a tenure have those shares and still add up to 12, the factors 1.5, 1.2 and 0.3",
+    "the household with no tenure keeps its weight",
+    "two columns of other weights (replicates) are each calibrated to the same shares"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CALIB-004",
+   "suite": "pytest",
+   "title": "each bootstrap replicate's weights are calibrated again, as the survey's were",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 133,
+   "node": "tests/test_sensitivity_checks.py::test_bootstrap_replicates_are_calibrated_again",
+   "given": [
+    "the made-up survey's tenure and a calibration to 50% renters"
+   ],
+   "when": [
+    "replicate weights are drawn with and without the calibration"
+   ],
+   "then": [
+    "with it, every replicate has renters at 50% of households",
+    "without it, the replicates' renter shares vary"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TENURE-001",
+   "suite": "pytest",
+   "title": "calibrating to more renters raises rent's share in mixed groups and leaves each tenure's own basket",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 160,
+   "node": "tests/test_sensitivity_checks.py::test_calibration_moves_rent_in_mixed_groups_only",
+   "given": [
+    "the made-up survey, a third of its households renting, and a target of 50% renters"
+   ],
+   "when": [
+    "its baskets are built on ELSTAT's weights and on the calibrated ones"
+   ],
+   "then": [
+    "the renters', owners' and housed-free baskets are the same both ways",
+    "rent's share of all households' basket rises",
+    "the year's note gives renters at a third, then a half, the target and how it was set"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TENURE-002",
+   "suite": "pytest",
+   "title": "the tenure check reports each survey's calibration and the change it makes to each group",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 192,
+   "node": "tests/test_sensitivity_checks.py::test_the_tenure_check_reports_what_the_calibration_changes",
+   "given": [
+    "the made-up 2024 survey, a target of 50% renters, and stored baskets equal to the calibrated ones",
+    "a series builder whose rate is a hundred times the basket's rent share the year before"
+   ],
+   "when": [
+    "the tenure check is run for all households, the renters and quintiles 1 and 5"
+   ],
+   "then": [
+    "survey 2024 is reported with renters at a third, then a half, and no gap to the stored baskets",
+    "all households' 2025 rate rises, in the annual average and in December alike",
+    "the renters' rate doesn't move, and rent's share is reported both ways",
+    "the gap's change is quintile 1's change minus quintile 5's"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TENURE-003",
+   "suite": "pytest",
+   "title": "the tenure check refuses a store that lacks groups the weights run builds",
+   "file": "tests/test_sensitivity_checks.py",
+   "line": 220,
+   "node": "tests/test_sensitivity_checks.py::test_the_tenure_check_refuses_a_stale_store",
+   "given": [
+    "the made-up 2024 survey and a store holding only all households' basket for it"
+   ],
+   "when": [
+    "the tenure check is run for all households and quintile 1"
+   ],
+   "then": [
+    "a FormatError says groups are missing from the store and to run the weights run"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
    ],
    "problems": [],
    "named": false
