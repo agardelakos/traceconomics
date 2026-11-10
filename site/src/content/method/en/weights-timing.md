@@ -16,4 +16,4 @@ The law asks consumer price index weights to represent the year before. Rule N d
 
 ## How much it matters
 
-The 2022 gap between the poorest and richest fifth is 1.8 points under rule N, 1.4 under rule U and 1.1 under rule F, whose weights come from 2019, before food and energy took a larger share of poorer households' spending. Single years can differ by up to 0.7 points between rules, which is why the choice is explained, not hidden.
+The 2022 gap between the poorest and richest fifth is 1.7 points under rule N, 1.3 under rule U and 1.1 under rule F, whose weights come from 2019, before food and energy took a larger share of poorer households' spending. Single years can differ by up to 0.9 points between rules, which is why the choice is explained, not hidden.

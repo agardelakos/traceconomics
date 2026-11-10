@@ -77,7 +77,7 @@ SOURCES: dict[str, dict[str, dict]] = {
         "national_accounts": {"source": "eurostat:nama_10_co3_p3", "reference": "eurostat-nama-10-co3-p3",
             "definition": "actual rentals over all household consumption, national accounts"},
         "hbs": {"source": "oet-local:hbs_weights", "reference": "elstat-hbs-puf",
-            "definition": "rent's share of all households' purchases, household budget survey"},
+            "definition": "rent's share of all households' purchases, household budget survey, renters scaled to the census's share"},
     },
     "gr-rent-change": {
         # The Bank of Greece's and the OECD's rent figures are the CPI's own index, cited so a

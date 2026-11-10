@@ -71,9 +71,28 @@ def table(year=2010, by="income"):
     return t
 
 
+def store_silc(archive, year, renter, owner, rent_free):
+    """An EU-SILC tenure table in the archive, as `traceconomics silc run` writes it: households weighted by tenure."""
+    from traceconomics.local import silc, weights
+
+    rows = [{"geo": "GR", "ref_year": year, "tenure": t, "n_households": "100", "households_weighted": v,
+             "people_weighted": v, "rent_paid_eur": 0.0, "source_version": "made up"}
+            for t, v in (("all", renter + owner + rent_free), ("owner", owner), ("renter", renter),
+                         ("rent_free", rent_free))]
+    archive.store_bytes("oet-local", silc.OUT.format(year=year), weights.to_csv(pd.DataFrame(rows)[silc.COLUMNS], ["made up"]),
+                        url=None, retrieved_at=datetime(2026, 1, 1, tzinfo=UTC), ext=".csv", kind="local")
+
+
+AS_SURVEYED = {"renter": 0.5, "owner": 0.5, "rent_free": 0.0}       # the made-up surveys' own split
+
+
 @pytest.fixture
 def files(monkeypatch):
-    """Reading a year's survey or table gives the made-up ones for that year."""
+    """Reading a year's survey or table gives the made-up ones for that year; the tenure target is
+    the made-up surveys' own split, so calibration leaves their weights as they are."""
+    from traceconomics.local import calibration
+
+    monkeypatch.setattr(calibration, "target", lambda archive, year: calibration.Target(AS_SURVEYED, "test", AS_SURVEYED, ()))
     monkeypatch.setattr(puf, "read", lambda archive, year: survey(year))
     monkeypatch.setattr(hbs_tables, "parse", lambda path, year: table(year, v2.BANDED.get(year, "income")))
     monkeypatch.setattr(v2, "archived_tables", lambda archive: {y: f"t{y}" for y in range(2008, 2025)})
@@ -100,14 +119,17 @@ def test_each_household_gets_its_bands_hospital_spending():
 def test_hospital_spending_is_put_back_into_the_baskets(files):
     """PY-HOSP-002: the hospital spending is put back into each requested group's basket
 
-    Given the made-up 2010 survey and table
+    Given the made-up 2010 and 2011 surveys and tables
     When the baskets with hospital services are built for quintile 1 and all households
     Then only those two groups' baskets are returned, keyed by survey year
+    But not the 2010 survey's quintile, since that survey's incomes can't rank households
     And in each the hospital code 06310 carries all of division 06
     And hospitals are 3,960 of 9,455 euros of purchases, worked out by hand: 0.4188
     """
     out, how, share = hc.baskets_with_hospital(None, 2010, {("B", "Q1"), ("all", "all")})
-    assert set(out) == {(2010, "B", "Q1"), (2010, "all", "all")} and how == "income bands"
+    assert set(out) == {(2010, "all", "all")} and how == "income bands"
+    assert set(hc.baskets_with_hospital(None, 2011, {("B", "Q1"), ("all", "all")})[0]) == {
+        (2011, "B", "Q1"), (2011, "all", "all")}
     for b in out.values():
         assert b.shares["06310"] == pytest.approx(b.shares["06"]) and b.shares["06"] > 0
     assert share == pytest.approx(3960 / 9455)
@@ -121,6 +143,7 @@ def test_the_hospital_check_reports_each_groups_change(files, monkeypatch):
     When the hospital check is run for quintiles 1 and 5
     Then every survey 2008-2014 is reported with its hospital share and how its bands were made
     And each group's change is ten times its health share with hospitals put back, through 2016 only
+    But 2011, whose survey (2010) has no quintiles rebuilt, doesn't move
     And the gap's change is quintile 1's change minus quintile 5's
     """
     monkeypatch.setattr(index, "price_blocks", lambda con, archive: {})
@@ -135,8 +158,8 @@ def test_the_hospital_check_reports_each_groups_change(files, monkeypatch):
     assert list(r["surveys"]) == list(range(2008, 2015))
     assert r["surveys"][2013]["bands"] == "size bands" and r["surveys"][2008]["bands"] == "income bands, approximate"
     q1, q5 = r["series"]["B/Q1"], r["series"]["B/Q5"]
-    assert sorted(q1) == list(range(2009, 2017)) and all(v > 0 for y, v in q1.items() if y <= 2015)
-    assert q1[2016] == 0.0
+    assert sorted(q1) == list(range(2009, 2017)) and all(v > 0 for y, v in q1.items() if y <= 2015 and y != 2011)
+    assert q1[2011] == q1[2016] == 0.0
     assert r["gap_change"][2011] == pytest.approx(q1[2011] - q5[2011], abs=0.002)
 
 
@@ -361,12 +384,14 @@ def test_the_cpi_weights_are_compared_with_our_mapped_shares_a_year_or_two_befor
 @pytest.fixture
 def survey_2023(tmp_path, monkeypatch):
     """An archive holding a 2023 survey file (a placeholder: reading it gives the made-up survey of
-    50 households) and its English table 1.03."""
+    50 households), its English table 1.03 and EU-SILC's 2023 tenure table, at the survey's own
+    split (half renting, half owning)."""
     archive = Archive(tmp_path)
     when = datetime(2026, 1, 1, tzinfo=UTC)
     archive.store_bytes("elstat", puf.dataset(2023), b"survey", url=None, retrieved_at=when, ext=".zip", kind="manual")
     archive.store_bytes("elstat", "doc-1", b"table", url=None, retrieved_at=when, ext=".xls",
                         extra={"original_name": "SFA05_TB_AN_00_2023_103_F_EN.xls"})
+    store_silc(archive, 2023, 25.0, 25.0, 0.0)            # the survey's own split: calibration changes nothing
     monkeypatch.setattr(puf, "read", lambda archive, year: survey(year, n=50))
     monkeypatch.setattr(hbs_tables, "parse", lambda path, year: table(year))
     monkeypatch.setattr(v2, "missing_items", lambda: {})
@@ -395,13 +420,83 @@ def test_the_weights_run_archives_six_tables_once(survey_2023):
     second = weights.run(survey_2023, [2023], replicates=20)[0]
     assert (second["weights"], second["groups"], second["limits"], second["types"], second["rent"],
             second["spending_check"]) == ("unchanged",) * 6
-    assert sorted(d for s, d in survey_2023.datasets() if s == "oet-local") == [
+    assert sorted(d for s, d in survey_2023.datasets() if s == "oet-local" and d.startswith("hbs-")) == [
         "hbs-groups-gr-2023", "hbs-hhtypes-gr-2023", "hbs-limits-gr-2023", "hbs-rent-gr-2023", "hbs-spending-gr-2023",
         "hbs-weights-gr-2023"]
     text = (survey_2023.root / survey_2023.latest("oet-local", "hbs-groups-gr-2023")["path"]).read_text(encoding="utf-8")
     assert '# provenance: {"code_fingerprint": ' in text and ",<20," in text
     spent = (survey_2023.root / survey_2023.latest("oet-local", "hbs-spending-gr-2023")["path"]).read_text(encoding="utf-8")
     assert first["spending_differs"] == sum(",differs," in line for line in spent.splitlines())
+
+
+def _table(archive, dataset):
+    path = archive.root / archive.latest("oet-local", dataset)["path"]
+    return pd.read_csv(path, comment="#", dtype={"group": str, "coicop18": str}), path.read_text(encoding="utf-8")
+
+
+def test_the_weights_run_calibrates_to_eu_silcs_tenure_split(survey_2023):
+    """PY-OETLOCAL-014: the weights run calibrates the households' weights to EU-SILC's tenure split, except in the comparison tables
+
+    Given the archive above, but EU-SILC 2023 with 60% of households renting and 40% owning (the survey: half and half)
+    When the weights run is made for 2023
+    Then the groups table counts 30 renting and 20 owning households of 50: renters' weights x1.2, owners' x0.8
+    And rent's share of all households' purchases rises, the renters' own basket staying as it was
+    And the rent table, a comparison with the census, keeps ELSTAT's weights: 25 and 25
+    And the provenance and the run's report give the target and the factors
+    """
+    from traceconomics.local import weights
+
+    plain = weights.build(survey_2023, 2023, replicates=20)[0]
+    store_silc(survey_2023, 2023, 60.0, 40.0, 0.0)
+    report = weights.run(survey_2023, [2023], replicates=20)[0]
+    groups, text = _table(survey_2023, "hbs-groups-gr-2023")
+    weighted = groups.set_index(["grouping", "group"]).households_weighted
+    assert (weighted["tenure", "renter"], weighted["tenure", "owner"], weighted["all", "all"]) == pytest.approx((30, 20, 50))
+    assert report["tenure_factors"] == pytest.approx({"renter": 1.2, "owner": 0.8, "rent_free": 1.0})
+    assert '"tenure_target": {"basis": "EU-SILC\'s split for the year"' in text and '"renter": 0.6' in text
+    shares, _ = _table(survey_2023, "hbs-weights-gr-2023")
+
+    def share(t, grouping, group, code):
+        rows = t[(t.grouping == grouping) & (t.group == group) & (t.coicop18 == code) & (t.spending == "purchases")
+                 & (t.imputed_rent == "excluded")]
+        return float(rows.share.iloc[0])
+    assert share(shares, "all", "all", "041") > share(plain, "all", "all", "041")
+    assert share(shares, "tenure", "renter", "041") == pytest.approx(share(plain, "tenure", "renter", "041"))
+    rent, _ = _table(survey_2023, "hbs-rent-gr-2023")
+    assert rent.set_index("tenure").households_weighted[["renter", "owner"]].tolist() == [25, 25]
+
+
+def test_the_2010_survey_gets_no_income_groups_and_no_income_limits(tmp_path, monkeypatch):
+    """PY-OETLOCAL-015: the weights run builds no income-ranked groups and no income limits from the 2010 survey
+
+    Given an archive with the 2010 survey (made up, 50 households), its table 1.03 and EU-SILC 2010
+    When the weights run is made for 2010
+    Then the weights and groups tables hold no group of a grouping ranked by income (A, B and the validation groups)
+    But they hold the groups ranked by spending (C), tenure and all households
+    And the limits file is written with no rows, its header saying why, so the store drops any earlier limits
+    """
+    from traceconomics.local import weights
+    from traceconomics.module1.schedule import INCOME_RANKED
+    from traceconomics.sources import oet_local
+
+    archive = Archive(tmp_path)
+    when = datetime(2026, 1, 1, tzinfo=UTC)
+    archive.store_bytes("elstat", puf.dataset(2010), b"survey", url=None, retrieved_at=when, ext=".zip", kind="manual")
+    archive.store_bytes("elstat", "doc-1", b"table", url=None, retrieved_at=when, ext=".xls",
+                        extra={"original_name": "SFA05_TB_AN_00_2010_103_F_EN.xls"})
+    store_silc(archive, 2010, 25.0, 25.0, 0.0)
+    monkeypatch.setattr(puf, "read", lambda archive, year: survey(year, n=50))
+    monkeypatch.setattr(hbs_tables, "parse", lambda path, year: table(year))
+    monkeypatch.setattr(v2, "missing_items", lambda: {})
+    monkeypatch.setitem(weights.ELSTAT_TYPE_UNUSABLE, 2010, "the made-up survey carries no ELSTAT type")
+    report = weights.run(archive, [2010], replicates=20)[0]
+    for name in ("hbs-weights-gr-2010", "hbs-groups-gr-2010"):
+        t, _ = _table(archive, name)
+        assert not set(t.grouping) & set(INCOME_RANKED)
+        assert {"C", "tenure", "all"} <= set(t.grouping)
+    path = archive.root / archive.latest("oet-local", "hbs-limits-gr-2010")["path"]
+    assert list(oet_local.rows(path, "oet-limits")) == [] and report["limits_eur"] == []
+    assert "no income limits: the survey's incomes can't rank households" in path.read_text(encoding="utf-8")
 
 
 def test_household_types_that_disagree_with_elstats_stop_the_run(survey_2023):
@@ -443,12 +538,15 @@ def test_the_income_limits_get_standard_errors_from_the_bootstrap():
 
 def _bands_inputs(monkeypatch, surveys):
     """Series for quintiles 1 and 5 of grouping B, built by the real series code from the surveys'
-    own baskets and made-up prices (food rising faster than the rest), 2017-2019."""
+    own baskets and made-up prices (food rising faster than the rest), 2017-2019. The tenure target
+    is the surveys' own split, so calibration leaves their weights as they are."""
+    from traceconomics.local import calibration
     from traceconomics.local.groups import assign
     from traceconomics.local.shares import shares
     from traceconomics.module1 import combinations
 
     monkeypatch.setattr(puf, "read", lambda archive, year: surveys[year])
+    monkeypatch.setattr(calibration, "target", lambda archive, year: calibration.Target(AS_SURVEYED, "test", AS_SURVEYED, ()))
     baskets, codes = {}, set()
     for year, s in surveys.items():
         t = shares(mapping.to_2018(s), assign(s), "purchases")

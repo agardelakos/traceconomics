@@ -46,6 +46,7 @@ import csv
 import hashlib
 import io
 import json
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib import resources
 
@@ -55,9 +56,10 @@ import pandas as pd
 from traceconomics import __version__
 from traceconomics.archive.store import Archive
 from traceconomics.checks import require
-from traceconomics.local import bootstrap, mapping, puf, v2
+from traceconomics.local import bootstrap, calibration, mapping, puf, v2
 from traceconomics.local.groups import ELSTAT_TYPES, RANKED, assign, cut_points, ranking
 from traceconomics.module1.index import HOUSEHOLD_TYPES
+from traceconomics.module1.schedule import UNUSABLE_INCOMES, unusable
 from traceconomics.local.shares import PUBLISHED, SPENDING, memberships, shares
 from traceconomics.sources.elstat import hbs_tables
 
@@ -92,7 +94,7 @@ SPENDING_COLUMNS = ["geo", "ref_year", "group", "coicop", "item", "published", "
 HOUSEHOLDS = "households"           # the `coicop` of each column's row of household totals
 RENT_CODE = "0411"                  # actual rent for the main home, the code the tenure rule reads
 LIMIT_COLUMNS = ["geo", "ref_year", "grouping", "group", "unit", "limit", "se", "se_design", "source_version"]
-CODE_FILES = ("puf.py", "groups.py", "shares.py", "bootstrap.py", "mapping.py", "weights.py", "v2.py")
+CODE_FILES = ("puf.py", "groups.py", "shares.py", "bootstrap.py", "calibration.py", "mapping.py", "weights.py", "v2.py")
 DATA_FILES = (mapping.V1_TO_2018, mapping.OLD_TO_V1, "hbs_puf_missing_items.toml")
 
 
@@ -117,20 +119,49 @@ def _num(x, digits: int = 10) -> str:
     return "" if x is None or (isinstance(x, float) and np.isnan(x)) else f"{x:.{digits}g}"
 
 
+@dataclass(frozen=True)
+class Prepared:
+    """One survey ready for the groups' shares: as read, and with its weights calibrated."""
+    survey: puf.Survey               # as read: ELSTAT's weights
+    as_read: pd.DataFrame            # its groups on ELSTAT's weights (tenure needs its own rent codes)
+    calibrated: puf.Survey           # weights calibrated to the target tenure split (`calibration`)
+    groups: pd.DataFrame             # the groups formed on the calibrated weights
+    mapped: puf.Survey               # the calibrated survey in COICOP 2018 codes (same households, same totals)
+    target: calibration.Target
+    factors: dict[str, float]        # each tenure's weight factor
+
+    def recalibrate(self, w: np.ndarray) -> np.ndarray:
+        """The same calibration applied to other weights (bootstrap replicates)."""
+        return calibration.calibrate(w, self.groups["tenure"], self.target.shares)
+
+
+def prepare(archive: Archive, year: int) -> Prepared:
+    survey = puf.read(archive, year)
+    as_read = assign(survey)
+    target = calibration.target(archive, year)
+    calibrated, factors = calibration.calibrated(survey, as_read["tenure"], target)
+    groups = assign(calibrated)
+    return Prepared(survey, as_read, calibrated, groups, mapping.to_2018(calibrated), target, factors)
+
+
 def build(archive: Archive, year: int,
           replicates: int = bootstrap.REPLICATES) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,
                                                            pd.DataFrame, pd.DataFrame, dict]:
     """(weights, groups, limits, household types, rent, spending check, provenance) for one survey year."""
     rec = archive.latest(puf.SOURCE, puf.dataset(year))
-    survey = puf.read(archive, year)
-    groups = assign(survey)                       # on the survey as read: tenure needs its own rent codes
-    mapped = mapping.to_2018(survey)              # same households, same totals, COICOP 2018 codes
+    p = prepare(archive, year)
+    survey, as_read, calibrated, groups, mapped, target, factors = (
+        p.survey, p.as_read, p.calibrated, p.groups, p.mapped, p.target, p.factors)
+    recalibrate = p.recalibrate
+
     parts = []
     for spending in SPENDING:
         t = shares(mapped, groups, spending)
-        design, se = bootstrap.standard_errors(mapped, groups, replicates=replicates, spending=spending)
+        design, se = bootstrap.standard_errors(mapped, groups, replicates=replicates, spending=spending,
+                                               calibrate=recalibrate)
         parts.append(bootstrap.with_errors(t, se, design).assign(spending=spending))
     t = pd.concat(parts, ignore_index=True)
+    t = t[[not unusable(g, year) for g in t.grouping]]
     source_version = f"{puf.SOURCE}/{puf.dataset(year)}@{rec['sha256'][:12]}"
 
     weights = pd.DataFrame({
@@ -146,9 +177,11 @@ def build(archive: Archive, year: int,
     table_103 = hbs_tables.parse(tables[year], year)
     uncovered, gaps = v2.uncovered(survey, table_103)
     people = groups.people_weight
-    w = survey.households.weight
+    w = calibrated.households.weight
     group_rows = []
     for grouping, group, member in memberships(groups):
+        if unusable(grouping, year):
+            continue
         group_rows.append({
             "geo": GEO, "ref_year": year, "grouping": grouping, "group": group,
             "n_households": _count(int(member.sum())),
@@ -158,9 +191,11 @@ def build(archive: Archive, year: int,
             "source_version": source_version,
         })
     group_table = pd.DataFrame(group_rows)[GROUP_COLUMNS]
-    limits = limits_table(survey, year, replicates, source_version)
-    types = types_table(survey, groups, year, source_version)
-    rent = rent_table(survey, groups, year, source_version)
+    limits = limits_table(calibrated, year, replicates, source_version, recalibrate)
+    # The comparisons with ELSTAT's own tables and the census keep ELSTAT's weights: they check
+    # our reading of its file, and the survey's renter shortfall is what they show.
+    types = types_table(survey, as_read, year, source_version)
+    rent = rent_table(survey, as_read, year, source_version)
     spending_check = spending_table(v2.compare_all(survey, table_103), year, source_version)
 
     provenance = {
@@ -171,7 +206,13 @@ def build(archive: Archive, year: int,
         "code_version": __version__, "code_fingerprint": code_fingerprint()[:16],
         "replicates": replicates if design.status != "unavailable" else 0, "seed": bootstrap.SEED,
         "uncovered_items_eur_month": {c: round(g, 2) for c, g in gaps.items()},
+        "tenure_target": {"shares": {k: round(v, 6) for k, v in target.shares.items()}, "basis": target.basis,
+                          "silc": list(target.sources)},
+        "tenure_factors": {k: round(v, 6) for k, v in factors.items()},
     }
+    if unusable(LIMITS_GROUPING, year):
+        provenance["income_groups"] = (f"not built: survey {year}'s incomes can't rank households; "
+                                       f"survey {UNUSABLE_INCOMES[year]} stands in for it")
     return weights, group_table, limits, types, rent, spending_check, provenance
 
 
@@ -235,16 +276,21 @@ def spending_table(results: list[v2.V2Result], year: int, source_version: str) -
     return pd.DataFrame(rows)[SPENDING_COLUMNS]
 
 
-def limits_table(survey: puf.Survey, year: int, replicates: int, source_version: str) -> pd.DataFrame:
+def limits_table(survey: puf.Survey, year: int, replicates: int, source_version: str,
+                 calibrate: bootstrap.Calibrate | None = None) -> pd.DataFrame:
     """The limits between the default grouping's parts, rounded to the euro (half to even), with
-    standard errors from the same bootstrap as the shares."""
+    standard errors from the same bootstrap as the shares. For a survey whose incomes can't
+    rank households: no rows (the file is still written, so the store withdraws earlier limits)."""
+    if unusable(LIMITS_GROUPING, year):
+        return pd.DataFrame(columns=LIMIT_COLUMNS)
     value, by_people, parts, prefix = RANKED[LIMITS_GROUPING]
     values, size = ranking(survey)
     w = survey.households.weight.to_numpy(float)
     basis = w * np.nan_to_num(size.to_numpy(float)) if by_people else w
     point = cut_points(values[value], basis, survey.households.hh, parts)[:, 0]
     require(not np.isnan(point).any(), f"{year}: an income part is empty")
-    design, se = bootstrap.limit_errors(survey, LIMITS_GROUPING, replicates) if replicates else (bootstrap.design(survey), None)
+    design, se = (bootstrap.limit_errors(survey, LIMITS_GROUPING, replicates, calibrate=calibrate) if replicates
+                  else (bootstrap.design(survey), None))
     return pd.DataFrame({
         "geo": GEO, "ref_year": year, "grouping": LIMITS_GROUPING,
         "group": [f"{prefix}{k}" for k in range(1, parts)], "unit": LIMIT_UNIT,
@@ -280,7 +326,10 @@ def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICAT
                             (SPENDING_CHECK, spending_check)):
             dataset = name.format(year=year)
             lines = head
-            if name == LIMITS:
+            if name == LIMITS and table.empty:
+                lines = [f"Greek household budget survey {year}: no income limits: the survey's incomes can't "
+                         "rank households.", *head[1:]]
+            elif name == LIMITS:
                 lines = [f"Greek household budget survey {year}: the income limits between the fifths of people "
                          "ranked by equivalised money income (midpoints, rounded to the euro).", *head[1:]]
             elif name == TYPES:
@@ -304,6 +353,7 @@ def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICAT
                        "spending_differs": int((spending_check.result == "differs").sum()),
                        "rent_paid_eur": int(round(float(rent.set_index("tenure").loc["all", "rent_paid_eur"]))),
                        "limits_eur": [int(x) for x in limits["limit"]], "rows": len(weights),
+                       "tenure_factors": provenance["tenure_factors"],
                        "se_design": weights.se_design.iloc[0],
                        "uncovered": round(float(group_table.uncovered_purchases_share.iloc[0]), 4),
                        "leaves_suppressed": int((leaf.reliability == "suppressed").sum()),

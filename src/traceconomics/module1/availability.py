@@ -32,7 +32,7 @@ REASONS = {
     "same_before_2026": "The two tutoring options differ only from 2026, when ELSTAT's CPI stops weighting "
                         "tutoring; before that they are the same series.",
     "hospital": "The {first}-{last} household surveys' public files leave out hospital services. Putting them back "
-                "changes the groups' annual-average rates by at most 0.11 pp and the Q1-Q5 gap by at most 0.07 pp "
+                "changes the groups' annual-average rates by at most 0.15 pp and the Q1-Q5 gap by at most 0.06 pp "
                 "(checked with the default options).",
     "lockdown": "Weights from the 2020 survey, a lockdown year with unusual spending.",
     "first_estimate": "A first estimate: the weights will be revised once, when the survey of the year before is "

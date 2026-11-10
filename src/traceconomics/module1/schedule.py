@@ -109,3 +109,41 @@ def rule_u(years, surveys: set[int], release_dates=None) -> list[Entry]:
 
 
 RULES = {"N": rule_n, "F": rule_f, "U": rule_u}
+
+# The groupings formed by ranking money income: households (A, BH, BH10) or people (B, B10).
+INCOME_RANKED = ("A", "B", "BH", "B10", "BH10")
+# Surveys whose incomes can't rank households, and the survey that stands in for each in the
+# groupings ranked by income. In the 2010 survey the money income of households living on wages
+# is far too low, in ELSTAT's own published table too: renters' median income is about a quarter
+# of their spending, against about nine tenths in 2009 and 2011, so the poorest fifth fills with
+# working renters (rent is 13.6% of its basket, against 6.1% in 2009 and 8.3% in 2011). Its
+# income groups are therefore not built (`weights run` writes none), and wherever a rule would
+# use them the survey before stands in, as if the 2010 survey were missing. Groupings not ranked
+# by income (spending, tenure, pensioners, household types) still use it.
+UNUSABLE_INCOMES = {2010: 2009}
+
+
+def unusable(grouping: str, survey: int) -> bool:
+    """Whether the survey's groups for this grouping are left out (see UNUSABLE_INCOMES)."""
+    return grouping in INCOME_RANKED and survey in UNUSABLE_INCOMES
+
+
+def held_for_rule(grouping: str, surveys: set[int]) -> set[int]:
+    """The surveys a rule may pick for the grouping: those held, plus each unusable survey whose
+    stand-in is held (the rule picks it; `with_stand_ins` then swaps in the stand-in)."""
+    if grouping not in INCOME_RANKED:
+        return set(surveys)
+    return set(surveys) | {s for s, by in UNUSABLE_INCOMES.items() if by in surveys}
+
+
+def with_stand_ins(grouping: str, entries: list[Entry]) -> list[Entry]:
+    """The schedule with every unusable survey replaced by its stand-in. The stand-in's shares
+    are price-updated from its own year, like any survey's."""
+    out = []
+    for e in entries:
+        if unusable(grouping, e.survey):
+            by = UNUSABLE_INCOMES[e.survey]
+            e = Entry(e.year, by, e.status, e.valid_from,
+                      f"survey {by}, standing in for survey {e.survey}, whose incomes can't rank households")
+        out.append(e)
+    return out

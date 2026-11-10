@@ -228,3 +228,28 @@ def test_spending_file_reads_each_columns_figures_and_results(tmp_path):
     assert ("GR", "All households", "01112", "result", "2014", "differs", None) in got
     assert not [r for r in got if r[2] == "03111" and r[3] == "ours"]
     assert ("GR", "up 750 €", "01112", "result", "2014", "matched", None) in got
+
+
+@pytest.mark.integration
+def test_an_empty_limits_file_withdraws_the_earlier_limits(tmp_path):
+    """PY-OETLOCAL-016: a limits file with no rows withdraws the year's earlier limits, rather than failing
+
+    Given a made-up 2010 limits table for Q1 and Q2 archived and loaded into the store
+    And then a newer 2010 limits file with its header and no rows (a survey whose incomes can't rank households)
+    When the store is updated again
+    Then the update adds nothing and withdraws the six earlier values
+    And no 2010 limit is left in the store
+    """
+    archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
+    head = "# x\ngeo,ref_year,grouping,group,unit,limit,se,se_design,source_version\n"
+    full = head + ("GR,2010,B,Q1,EUR_PER_ADULT_EQ_Y,4797,50,full,v\n"
+                   "GR,2010,B,Q2,EUR_PER_ADULT_EQ_Y,8167,60,full,v\n")
+    con = duckdb.connect()
+    for day, text in ((19, full), (20, head)):
+        archive.store_bytes("oet-local", "hbs-limits-gr-2010", text.encode("utf-8"), url=None,
+                            retrieved_at=datetime(2026, 10, day, 12, tzinfo=UTC), ext=".csv", kind="local",
+                            extra={"original_name": "hbs-limits-gr-2010.csv"})
+    reports = update(archive, store, con, only=["oet-local:hbs_limits"])
+    assert (reports[0].added, reports[0].withdrawn) == (6, 6)
+    open_views(con, store.root)
+    assert as_of(con, "oet-local:hbs_limits").fetchall() == []
