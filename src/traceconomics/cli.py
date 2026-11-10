@@ -27,7 +27,8 @@ def main(argv: list[str] | None = None) -> int:
     i = sub.add_parser("import", help="add a file downloaded by hand (e.g. microdata)")
     i.add_argument("file", type=Path)
     i.add_argument("--source", default="elstat")
-    i.add_argument("--dataset", help="default: puf-<file name>, e.g. puf-hbs-2025")
+    i.add_argument("--dataset", help="default: puf-<file name>, e.g. puf-hbs-2025; "
+                                     "with --source aade, pit-<file name>, e.g. pit-sd-fp-22f-3")
     i.add_argument("--url", help="the page it was downloaded from, if any")
     i.add_argument("--downloaded", type=date.fromisoformat, help="download date (YYYY-MM-DD) if not today")
     i.add_argument("--note")

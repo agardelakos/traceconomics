@@ -65,6 +65,12 @@ def dataset_for_url(url: str) -> tuple[str, str] | None:
 
 def import_file(archive: Archive, path: Path, *, source: str, dataset: str | None, url: str | None,
                 downloaded: date | None, note: str | None) -> StoreResult:
+    if dataset is None and source == "aade":
+        # Named as the adapter names a fetched workbook, so a hand import and a fetch of the
+        # same file land in the same dataset (two would count one tax year twice).
+        from traceconomics.sources.aade import dataset_for   # aade imports this module
+
+        dataset = dataset_for(path.name)
     dataset = dataset or f"puf-{slug(path.stem)}"
     when = datetime.combine(downloaded, datetime.min.time(), UTC) if downloaded else utc_now()
     extra = {"original_name": path.name, "note": note or "downloaded by hand"}

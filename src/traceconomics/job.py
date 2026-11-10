@@ -21,7 +21,7 @@ from traceconomics import analytics, backup, heartbeat
 from traceconomics.archive.store import Archive, iso, utc_now
 from traceconomics.config import Config
 from traceconomics.notify import notify
-from traceconomics.sources import aade, ec_empl, elstat, eurostat, terms
+from traceconomics.sources import ec_empl, elstat, eurostat, terms
 from traceconomics.sources.elstat import history as elstat_history
 from traceconomics.sources.base import HttpClient, RunContext
 
@@ -214,7 +214,12 @@ def export_analytics(config: Config, archive: Archive, state: dict, now: datetim
 
 
 def _run_sources(ctx: RunContext, state: dict) -> None:
-    """ELSTAT first (nobody else keeps its files), then Eurostat, DG EMPL and AADE, then the terms pages."""
+    """ELSTAT first (nobody else keeps its files), then Eurostat and DG EMPL, then the terms pages.
+
+    AADE is not fetched here: its CDN refuses requests from cloud servers (HTTP 403), and one
+    failed source would stop every release build. It publishes once a year, so its workbooks
+    are downloaded by hand and added with `import --source aade`.
+    """
     dates = state.setdefault("release_dates", {})
     for topic, days in elstat.run(ctx, state).items():
         if days:
@@ -223,7 +228,6 @@ def _run_sources(ctx: RunContext, state: dict) -> None:
     if euro_dates:
         dates["eurostat-hicp"] = sorted({*dates.get("eurostat-hicp", []), *(d.isoformat() for d in euro_dates)})
     ec_empl.run(ctx)
-    aade.run(ctx)
     terms.run(ctx)
 
 
