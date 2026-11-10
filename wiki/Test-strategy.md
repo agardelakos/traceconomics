@@ -23,7 +23,7 @@ in [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONT
 | Fixture integrity | pytest (`tests/test_fixtures.py`) | every push and pull request | untouched publisher files are byte-identical to what was served |
 | Dependency integrity | pytest (`tests/test_lock_files.py`) | every push and pull request | every hashed lock file agrees with the pins in `pyproject.toml` |
 | Site unit tests | Vitest | every push and pull request; release builds | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series |
-| Site checks | `site/scripts/checks.mjs` | every push and pull request; release builds | translations complete, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses |
+| Site checks | `site/scripts/checks.mjs` | every push and pull request; release builds | translations complete, glossary terms kept in both languages, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses |
 | Browser (primary) | Playwright, Chromium | every push and pull request; release `ui-test` and `smoke` | every interactive part works in both languages; accessibility; CSP and headers; privacy |
 | Browser (second suite) | Selenium, Chrome for Testing | every push and pull request (not required); on demand for comparison | the same behaviour, independently written, as a cross-check of the primary suite and of the tools |
 | Validation against official figures | `traceconomics check …` | release builds; by hand | the engine and the method rebuild official figures within stated margins |
@@ -190,8 +190,11 @@ they inform, they don't gate.
   published figures (`check v2`) run only where the microdata are held.
 - **Load and performance.** The site is static files; page weight is bounded by the build's budgets
   instead.
-- **Translation quality.** Tests check that every text exists in both languages, not that the Greek
-  is good; that is a native speaker's review.
+- **Translation quality.** Tests check that every text exists in both languages, and that where the
+  English uses a glossary term the Greek uses the same term in one of its Greek forms
+  (`site/src/lib/twin-terms.mjs`; misses known today are listed in `site/src/i18n/terms-allow.json`,
+  a list that may only shrink; `npm run terms:report` shows each with both texts). They don't check
+  that the Greek is good; that is a native speaker's review.
 - **Manual and exploratory testing** has no recorded cases yet (see [Future](Future)).
 
 ---

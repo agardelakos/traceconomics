@@ -13,7 +13,8 @@
     "test:ui": "playwright test",
     "check": "astro check && vitest run && astro build && node scripts/checks.mjs",
     "check:code": "astro check && vitest run --exclude src/lib/engine/parity.test.ts --exclude src/lib/data-files.test.ts",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "terms:report": "node scripts/twin-terms-report.mjs"
   },
   "dependencies": {
     "@fontsource/source-code-pro": "5.3.1",
