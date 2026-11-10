@@ -9,7 +9,7 @@ The survey's public file holds ELSTAT's own household type for every household (
 
 ## What we found
 
-- **In most years the two agree closely.** They place 95.2% to 99.4% of households alike (2023 aside), and the largest gap in a type's share is 0.1 points in 2008 and 0.5 to 1.4 points from 2015 on.
+- **In most years the two agree closely.** They place 95.2% to 99.4% of households alike (2023 aside), and the largest discrepancy in a type's share is 0.1 points in 2008 and 0.5 to 1.4 points from 2015 on.
 - **In 2009–2014 some shares differ by 1.9 to 2.9 points**, above the one point we count as agreeing. The differences are mostly between neighbouring types: a 16–24-year-old counted as an adult by one side and as a dependent child by the other.
 - **In 2023 ELSTAT's type can't be compared.** Only 34.4% of its "one adult" households have one member, against 100% in 2022 and 2024. Our types agree with it on 26.9% of households.
 
