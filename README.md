@@ -12,7 +12,7 @@ An open, transparent tracker of the economy, built only on public data. Greece f
 - an archive job that keeps every published version of the source statistics;
 - a store and calculation engine that rebuild the official Greek inflation figures from their published parts;
 - inflation by household group for Greece (income fifths, renters and owners, pensioner households), monthly from 2010, under every combination of the method options, with error bands;
-- the website, with the charts, the option switches, a personal inflation calculator and a glossary. It is built in English and Greek; the Greek version opens after a final read.
+- the website, with the charts, the option switches, a personal inflation calculator and a glossary. It is in English and Greek.
 
 ## Why an archive first
 

@@ -6,6 +6,7 @@ The links are followed over plain HTTP (one request per address), not by clickin
 thousand links would test Chrome, not the site.
 """
 
+import json
 import urllib.error
 import urllib.request
 from html.parser import HTMLParser
@@ -13,7 +14,7 @@ from urllib.parse import urljoin, urlsplit
 
 import pytest
 
-from helpers import sitemap_paths
+from helpers import ROOT, sitemap_paths
 
 PAGES = sitemap_paths() + [p.replace("/en/", "/el/", 1) for p in sitemap_paths() if p.startswith("/en/")]
 
@@ -77,10 +78,12 @@ def test_sitemap_lists_only_offered_languages():
     Given the built sitemap
     When its pages are read
     Then it lists at least one page
-    And every page it lists is in English
+    And every page it lists is in a language the site offers
     """
+    offered = json.loads((ROOT / "site/src/i18n/languages.json").read_text(encoding="utf-8"))["offered"]
     assert PAGES, "the sitemap lists no page"
-    assert all(p.startswith("/en/") for p in sitemap_paths()), "the sitemap lists a language that isn't offered"
+    elsewhere = [p for p in sitemap_paths() if not any(p.startswith(f"/{lang}/") for lang in offered)]
+    assert not elsewhere, f"the sitemap lists a language that isn't offered: {elsewhere[:3]}"
 
 
 def test_internal_links_answer(base_url, crawl):
