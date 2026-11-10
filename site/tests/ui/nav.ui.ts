@@ -209,3 +209,66 @@ test.describe("on a phone", () => {
     await expect(nav).toBeHidden();
   });
 });
+
+test("on a phone, each row of the topic bar opens scrolled to its current item", gwt({
+  id: "PW-NAV-014",
+  given: ["a phone-sized screen", "Greece's page of the consistency topic, whose row of topics is wider than the screen with the current topic last"],
+  when: "it is opened",
+  then: "in every row of the bar wider than the screen, the current item is wholly inside the row's visible part",
+}), async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/gr/official-figures-consistency/");
+  const rows = page.locator(".topic-bar nav ul");
+  let wide = 0;
+  for (const row of await rows.all()) {
+    const box = await row.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth, left: el.getBoundingClientRect().left }));
+    if (box.scroll <= box.client) continue;
+    wide += 1;
+    const item = await row.locator("[aria-current]").boundingBox();
+    expect(item!.x).toBeGreaterThanOrEqual(box.left - 1);
+    expect(item!.x + item!.width).toBeLessThanOrEqual(box.left + box.client + 1);
+  }
+  expect(wide).toBeGreaterThan(0);
+});
+
+test("on a method option's page, the bar's third row lists every option and marks the one being read", gwt({
+  id: "PW-NAV-015",
+  given: "the method page, which lists every option, and one option's page",
+  when: "the option's page is opened from the method page",
+  then: ["the bar's third row lists the options in the method page's order, by their titles",
+    "the option being read is plain text marked current; the others link to their pages",
+    "the Method tab is marked as the current section"],
+}), async ({ page, coverage }) => {
+  await page.goto(m1("en", "method/"));
+  const cards = page.locator('nav[aria-labelledby="options-h"] a.card');
+  const titles = (await cards.locator(".title").allTextContents()).map((x) => x.replace(/ →$/, ""));
+  const hrefs = await cards.evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+  await coverage.flush();
+  await cards.nth(1).click();
+  await expect(page).toHaveURL(new RegExp(`${hrefs[1]}$`));
+  const strip = page.locator("nav[data-strip]");
+  await expect(strip.locator("li")).toHaveText(titles);
+  await expect(strip.locator('[aria-current="page"]')).toHaveText(titles[1]);
+  for (const [i, title] of titles.entries()) {
+    if (i === 1) continue;
+    await expect(strip.getByRole("link", { name: title, exact: true })).toHaveAttribute("href", hrefs[i]);
+  }
+  await expect(page.locator(".topic-nav.sub a", { hasText: t("en", "nav.method") })).toHaveAttribute("aria-current", "true");
+});
+
+test("the Topics quick list names every live topic and leads to its page", gwt({
+  id: "PW-NAV-016",
+  given: "Greece's page of the consistency topic",
+  when: "the arrow beside Topics in the header is pressed",
+  then: ["the list links to both live topics, inflation by household and the consistency of official figures, each to its page",
+    "the consistency topic is marked as the current one"],
+}), async ({ page }) => {
+  await page.goto("/en/gr/official-figures-consistency/");
+  await page.getByRole("button", { name: quick("nav.topics") }).click();
+  const list = page.locator("#topic-menu");
+  await expect(list).toBeVisible();
+  for (const slug of ["inflation-by-group", "official-figures-consistency"]) {
+    await expect(list.getByRole("link", { name: t("en", `topic.${slug}`) })).toHaveAttribute("href", `/en/${slug}/`);
+  }
+  await expect(list.getByRole("link", { name: t("en", "topic.official-figures-consistency") })).toHaveAttribute("aria-current", "true");
+});

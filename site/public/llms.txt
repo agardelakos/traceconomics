@@ -2,7 +2,7 @@
 
 > An open tracker of the economy, built only on public data. It computes figures that official statistics don't publish, from the statistics offices' and Eurostat's own files, and publishes the method, the code and every number as open data (CC BY 4.0). Our figures are our own calculations, not official statistics.
 
-Live today: **inflation by household group, for Greece**: how much consumer prices rose for poorer and richer households, renters and owners, household types (one adult, couples, households with children) and pensioner households, month by month, from ELSTAT's and Eurostat's price indices and ELSTAT's Household Budget Survey. Updated each month after ELSTAT publishes the consumer price index. More topics and countries will follow.
+Live today: **inflation by household group, for Greece**: how much consumer prices rose for poorer and richer households, renters and owners, household types (one adult, couples, households with children) and pensioner households, month by month, from ELSTAT's and Eurostat's price indices and ELSTAT's Household Budget Survey. Updated each month after ELSTAT publishes the consumer price index. Also live: **consistency of official figures, for Greece**: whether each official figure follows from the inputs the same office publishes (the CPI's rates against its own index, the CPI and HICP rebuilt from their items, household types in the spending survey), how often they agree, and why they differ where they do. More topics and countries will follow.
 
 Prefer the data files over the pages for numbers: they hold every value at full precision, with the options each one was computed under. The pages state the same numbers in plain words, with the method behind them.
 
@@ -14,6 +14,13 @@ Prefer the data files over the pages for numbers: they hold every value at full 
 - [How it is measured](https://traceconomics.com/en/gr/inflation-by-group/method/): the method, each option, its default and why
 - [Calculator](https://traceconomics.com/en/gr/inflation-by-group/calculator/): inflation for a household's own spending pattern
 
+## Consistency of official figures: Greece
+
+- [Overview](https://traceconomics.com/en/gr/official-figures-consistency/): why official figures should add up, how many checks and figures, and how many agree
+- [Method](https://traceconomics.com/en/gr/official-figures-consistency/method/): how each check works, what "agree" means, and what a check can tell you
+- [Checks](https://traceconomics.com/en/gr/official-figures-consistency/checks/): every check as a plain question with where it stands; each check's page gives its differences with their causes
+- [Same question, different sources](https://traceconomics.com/en/gr/official-figures-consistency/same-question/): one question answered by several official sources, with their definitions
+
 ## Data
 
 - [Data for Greece](https://traceconomics.com/en/data/gr/): every file, what it holds, its licence and sources
@@ -24,6 +31,7 @@ Prefer the data files over the pages for numbers: they hold every value at full 
 - [Settings](https://traceconomics.com/data/v1/gr/m1/latest/settings.json): every combination of the options and its folder under `downloads/`
 - [Income limits](https://traceconomics.com/data/v1/gr/m1/latest/income-limits.json): each income fifth's upper limit in euros a year per adult equivalent, ours from the household budget survey (`ours`, every survey year under `years`, with standard errors) and Eurostat's from EU-SILC (`eurostat`), each with its survey and income year
 - [Checksums](https://traceconomics.com/data/v1/gr/m1/latest/SHA256SUMS)
+- [Consistency checks](https://traceconomics.com/data/v1/gr/m5/latest/checks.json): every check of an official figure against its own inputs: what is compared, how many periods agree, and each difference with its cause (`rounding`, `revision`, `rebasing`, `splice`, `definition` or `not-known`); each check's periods as CSV under `downloads/`
 - [Bibliography](https://traceconomics.com/data/v1/references.json): every source the method and pages cite
 
 ## Attribution

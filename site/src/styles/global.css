@@ -123,6 +123,12 @@ main { padding: var(--space-5) 0 var(--space-7); }
 .topic-nav a.with-flag { gap: var(--space-2); }
 .topic-nav.sub a { min-height: 40px; font-size: var(--text-sm); border-bottom-width: 2px; }
 .topic-nav.sub a[aria-current] { font-weight: 600; }
+/* The third row: a section's pages; links in the link colour, the current page in plain bold text. */
+.topic-nav.strip a, .topic-nav.strip span { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--space-3); font-size: var(--text-sm); white-space: nowrap; }
+.topic-nav.strip a { color: var(--color-link); border-bottom: none; }
+.topic-nav.strip a:hover { text-decoration: underline; }
+.topic-nav.strip li:first-child a, .topic-nav.strip li:first-child span { padding-left: 0; }
+.topic-nav.strip span[aria-current] { color: var(--color-text); font-weight: 700; }
 
 /* The settings menu, under its button */
 .theme-menu { max-width: 280px; padding: var(--space-3) var(--space-4); background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-m); box-shadow: var(--shadow-1); color: var(--color-text); }
@@ -187,6 +193,9 @@ main { padding: var(--space-5) 0 var(--space-7); }
 
 /* GroupPicker */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* A question card's sources: plain labels, not buttons. */
+.source-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-2); }
+.source-chip { font-size: var(--text-xs); padding: 2px 10px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); }
 .chip { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 4px 12px 4px 10px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: 0.9375rem; cursor: pointer; }
 .chip[aria-pressed="true"] { border: 2px solid var(--color-accent); background: var(--color-accent-tint); font-weight: 600; padding: 3px 11px 3px 9px; }
 .chip:disabled { cursor: not-allowed; opacity: 0.6; }
@@ -487,3 +496,47 @@ label.check:has(input:disabled) { color: var(--color-disabled-text); cursor: not
 .facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .facts dt { font-size: var(--text-sm); color: var(--color-text-muted); }
 .facts dd { margin: 0; font-family: var(--font-serif); font-size: var(--text-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Consistency topic: where a check stands. "Explained" and "all agree" use the accent; the other
+   two are neutral on purpose: a difference with no known cause is not an accusation. */
+/* A consistent check stands apart from an explained one by lightness (solid, not a tint) and by a
+   tick, not by hue alone; the tick is decoration, so it has empty alternative text. */
+.chip-status.agree { background: var(--color-accent); color: var(--color-accent-contrast); }
+.chip-status.agree::before { content: "✓\00a0" / ""; }
+.chip-status.partly { background: var(--color-flag-less-certain); color: var(--color-text); }
+.chip-status.unknown { background: var(--color-disabled); color: var(--color-text); }
+.m5-checks td, .m5-checks th { vertical-align: top; }
+.m5-checks .sub { display: block; color: var(--color-text-muted); font-size: var(--text-sm); }
+
+/* The consistency topic's charts: one colour per source, from the validated series palette, so
+   the same order reads the same in both themes. */
+.m5-chart { width: 100%; height: auto; max-width: 720px; }
+.m5-chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
+.m5-chart .axis text { fill: var(--color-text-muted); font-size: 12px; }
+.m5-chart .s0 { stroke: var(--series-q1); fill: var(--series-q1); }
+.m5-chart .s1 { stroke: var(--series-q5); fill: var(--series-q5); }
+.m5-chart .s2 { stroke: var(--series-q2); fill: var(--series-q2); }
+.m5-chart .s3 { stroke: var(--series-q4); fill: var(--series-q4); }
+.m5-chart .s4 { stroke: var(--series-q3); fill: var(--series-q3); }
+.m5-chart path { fill: none; stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.m5-legend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); list-style: none; padding: 0; margin: 0; font-size: var(--text-sm); }
+.m5-legend .key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.m5-legend .s0 { background: var(--series-q1); } .m5-legend .s1 { background: var(--series-q5); }
+.m5-legend .s2 { background: var(--series-q2); } .m5-legend .s3 { background: var(--series-q4); }
+.m5-legend .s4 { background: var(--series-q3); }
+
+/* The consistency overview: three numbers, the status key, and the check cards. */
+.m5-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); }
+.m5-stats p { margin: 0; display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-m); background: var(--color-surface); }
+.m5-stats strong { font-family: var(--font-serif); font-size: 2rem; font-weight: 600; line-height: 1.1; }
+.m5-stats span { color: var(--color-text-muted); }
+@media (max-width: 599px) {
+  /* On a phone each number sits beside its words, so the three take little height. */
+  .m5-stats p { flex-direction: row; align-items: baseline; gap: var(--space-3); padding: var(--space-2) var(--space-3); }
+  .m5-stats strong { font-size: 1.5rem; min-width: 4.5ch; }
+}
+.m5-key { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: 0; }
+.m5-cards { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.m5-cards .card { gap: var(--space-2); }
+.m5-cards .card a.title { color: var(--color-link); text-decoration: none; }
+.m5-cards .card a.title:hover { text-decoration: underline; }

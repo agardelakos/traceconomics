@@ -4,7 +4,8 @@ The archived files are wide CSV tables, opened by `#` lines (their provenance). 
 value is its own row, keyed by the table's dimensions plus a `measure` column: `share`, `se`,
 `n_households_unweighted`, `reliability` for the weights; `n_households`, `households_weighted`,
 `people_weighted`, `uncovered_purchases_share`, `se_design` for the groups; `limit`, `se`,
-`se_design` for the income limits. Text values ("<20",
+`se_design` for the income limits; for the household types ours and ELSTAT's counts
+and shares, the households both place alike (`agreement`) and `elstat_status`. Text values ("<20",
 "suppressed") stay in `value_text` with no number. Standard library only: the store is built
 without the microdata tools installed.
 """
@@ -36,6 +37,23 @@ FORMATS = {
     "oet-limits": {
         "dims": ("geo", "grouping", "group", "unit"),
         "measures": ("limit", "se", "se_design"),
+    },
+    "oet-silc-tenure": {
+        "dims": ("geo", "tenure"),
+        "measures": ("n_households", "households_weighted", "people_weighted", "rent_paid_eur"),
+    },
+    "oet-rent": {
+        "dims": ("geo", "tenure"),
+        "measures": ("n_households", "households_weighted", "people_weighted", "rent_paid_eur"),
+    },
+    "oet-hhtypes": {
+        "dims": ("geo", "group"),
+        "measures": ("n_households", "share_households", "elstat_n_households", "elstat_share_households",
+                     "agreement", "elstat_status"),
+    },
+    "oet-spending": {
+        "dims": ("geo", "group", "coicop"),
+        "measures": ("item", "published", "ours", "result"),
     },
     "oet-bands": {
         "dims": ("geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",

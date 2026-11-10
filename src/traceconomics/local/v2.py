@@ -66,6 +66,9 @@ class V2Result:
     mismatches: list[tuple[str, str, float, float | None]] = field(default_factory=list)  # code, label, published, ours
     group: str = ALL
     uncovered: float | None = None     # all households only, see `uncovered`
+    # Every figure compared, in code order: (code, label, published, ours, result), result one of
+    # "matched", "excused", "differs". The consistency topic publishes them (`weights` archives them).
+    rows: list[tuple[str, str, float, float | None, str]] = field(default_factory=list)
 
     @property
     def same_households(self) -> bool:
@@ -201,11 +204,29 @@ def compare(survey: Survey, table: Table103, missing: dict[str, list] | None = N
         row = (code, table.labels.get(code, ""), published, None if ours is None else round(ours, 4))
         if ours is not None and abs(ours - published) <= TOLERANCE:
             r.matched += 1
+            result = "matched"
         elif _excused(code, survey.year, missing):
             r.excused.append(row)
+            result = "excused"
         else:
             r.mismatches.append(row)
+            result = "differs"
+        r.rows.append((*row, result))
     return r
+
+
+def compare_all(survey: Survey, table: Table103, missing: dict[str, list] | None = None) -> list[V2Result]:
+    """All households (with the share of purchases the survey lacks), then each band where the
+    year's bands can be rebuilt (`BANDED`)."""
+    missing = missing_items() if missing is None else missing
+    result = compare(survey, table, missing)
+    result.uncovered = uncovered(survey, table, missing)[0]
+    out = [result]
+    if survey.year in BANDED:
+        band = bands(survey, table, BANDED[survey.year])
+        for label in table.groups[1:]:
+            out.append(compare(survey, table, missing, group=label, members=band == label))
+    return out
 
 
 def archived_tables(archive: Archive) -> dict[int, Path]:
@@ -229,12 +250,5 @@ def run(archive: Archive, years: list[int]) -> list[V2Result]:
     for year in years:
         if year not in tables:
             raise FileNotFoundError(f"no archived table 1.03 for {year}")
-        survey, table = puf.read(archive, year), hbs_tables.parse(tables[year], year)
-        result = compare(survey, table, missing)
-        result.uncovered = uncovered(survey, table, missing)[0]
-        out.append(result)
-        if year in BANDED:
-            band = bands(survey, table, BANDED[year])
-            for label in table.groups[1:]:
-                out.append(compare(survey, table, missing, group=label, members=band == label))
+        out += compare_all(puf.read(archive, year), hbs_tables.parse(tables[year], year), missing)
     return out

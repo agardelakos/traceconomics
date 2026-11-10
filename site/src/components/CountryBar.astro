@@ -1,13 +1,14 @@
 ---
 // Under the header on every page of a country, the same bar, so the reader always knows which
 // country they are in: the country's name, then a tab for all its topics and one for each topic
-// it has. On a topic's pages a second, smaller row holds that topic's pages. Topics not built yet
+// it has. On a topic's pages a second, smaller row holds that topic's pages, and on a page inside a
+// section a third row lists that section's pages, the current one in plain text. Topics not built yet
 // are not tabs: the country's page lists them, greyed out. The country switch is in the header.
 import { t, type Lang } from "../lib/i18n";
-import { countryHref, topic, topicHref, TOPICS } from "../lib/topics";
+import { countryHref, topic, topicHref, TOPICS, type Strip } from "../lib/topics";
 
-interface Props { lang: Lang; country: string; slug?: string; section?: string }
-const { lang, country, slug, section = "" } = Astro.props;
+interface Props { lang: Lang; country: string; slug?: string; section?: string; strip?: Strip }
+const { lang, country, slug, section = "", strip } = Astro.props;
 const name = t(lang, `country.${country}`);
 const live = TOPICS.filter((tp) => tp.status === "live" && tp.countries.includes(country));
 const top = section.split("/")[0];
@@ -27,10 +28,24 @@ const top = section.split("/")[0];
       <nav class="topic-nav sub" aria-label={t(lang, "topic.nav", { topic: t(lang, `topic.${slug}`), country: name })}>
         <ul>
           {topic(slug).sections.map((s) => (
-            <li><a href={topicHref(lang, slug, country, s)} aria-current={s === top ? "page" : undefined}>{t(lang, s ? `nav.${s}` : "nav.overview")}</a></li>
+            <li><a href={topicHref(lang, slug, country, s)} aria-current={s === top ? (strip ? "true" : "page") : undefined}>{t(lang, s ? `nav.${s}` : "nav.overview")}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+    {strip && (
+      <nav class="topic-nav strip" aria-label={strip.label} data-strip>
+        <ul>
+          {strip.items.map((i) => (
+            <li>{i.current ? <span aria-current="page">{i.label}</span> : <a href={i.href}>{i.label}</a>}</li>
           ))}
         </ul>
       </nav>
     )}
   </div>
 </div>
+
+<script>
+  import { start } from "../scripts/topic-bar";
+  start();
+</script>

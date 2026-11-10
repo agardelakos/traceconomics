@@ -1,0 +1,35 @@
+---
+// "Same question, different sources": every question several official sources answer, each as a
+// card: the question, a short teaser, and a chip per source naming who we take its figures from.
+import Base from "../../../../../layouts/Base.astro";
+import { LANGS, t, type Lang } from "../../../../../lib/i18n";
+import { chips, results, slugOf } from "../../../../../lib/m5";
+import { countryPaths, topicHref } from "../../../../../lib/topics";
+
+export function getStaticPaths() {
+  return countryPaths("official-figures-consistency", LANGS);
+}
+
+const SLUG = "official-figures-consistency";
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const { questions } = results(country);
+---
+<Base lang={lang} title={t(lang, "nav.same-question")} description={t(lang, "m5.same.lead")} topic={{ slug: SLUG, country, section: "same-question" }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <h1>{t(lang, "nav.same-question")}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "m5.same.lead")}</p>
+    </header>
+    {questions.length === 0 ? <p data-m5="no-questions">{t(lang, "m5.same.empty")}</p> : (
+      <div class="cards" data-m5="questions">
+        {questions.map((q) => (
+          <a class="card" href={topicHref(lang, SLUG, country, `same-question/${slugOf(q.id, country)}`)}>
+            <span class="title">{t(lang, `m5.question.${q.id}.title`)} →</span><span class="text">{t(lang, `m5.question.${q.id}.teaser`)}</span>
+            <span class="source-chips" data-m5="chips">{chips(q).map((k) => <span class="source-chip">{t(lang, `m5.chip.${k}`)}</span>)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</Base>

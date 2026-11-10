@@ -11,6 +11,10 @@ from traceconomics.sources.base import RunContext
 
 PAGES = (
     ("eurostat", "terms-copyright", "https://ec.europa.eu/eurostat/help/copyright-notice", ".html"),
+    # The Commission's own legal notice: its reuse policy covers DG EMPL's LMP database.
+    ("ec-empl", "terms-legal-notice", "https://commission.europa.eu/legal-notice_en", ".html"),
+    # AADE allows reuse if accurately reproduced and cited, and forbids modification: watched.
+    ("aade", "terms-use", "https://www.aade.gr/en/terms-use-iaprs-website", ".html"),
     ("elstat", "terms-reuse", "https://www.statistics.gr/en/pneumatika-diakaiomata-kai-epanachresimopoiese-stoicheion", ".html"),
     ("elstat", "terms-reuse-pdf",
      "https://www.statistics.gr/documents/20181/1412250/Copyright_Reuse_Policy_EN.pdf/dfacb7d1-3d9b-471f-851a-8b8b09994a74",

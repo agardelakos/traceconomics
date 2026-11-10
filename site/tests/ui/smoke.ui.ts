@@ -9,7 +9,10 @@ const PAGES = [
   "/en/", "/el/", "/en/countries/", "/en/topics/", "/en/gr/", "/en/inflation-by-group/",
   M1, `${M1}groups/`, `${M1}explore/`, `${M1}calculator/`, `${M1}method/`, `${M1}method/weights-timing/`,
   m1("el", "explore/"), "/en/data/", "/en/data/gr/", "/en/glossary/", "/en/glossary/imputed-rent/",
-  "/en/about/",
+  "/en/about/", "/en/official-figures-consistency/", "/en/gr/official-figures-consistency/",
+  "/en/gr/official-figures-consistency/checks/", "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/",
+  "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/",
+  "/en/gr/official-figures-consistency/same-question/", "/en/gr/official-figures-consistency/method/",
 ];
 const smoke = { tag: "@smoke" };
 

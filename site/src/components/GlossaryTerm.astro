@@ -1,14 +1,15 @@
 ---
 // A glossary term inside running text: pressing it opens the term's one-sentence explanation
-// with a link to its page (TermPopover).
+// with a link to its page (TermPopover). Where one term appears more than once on a page, each
+// use passes its own `instance`, so the explanations' ids stay unique.
 import { getEntry } from "astro:content";
 import TermPopover from "./TermPopover.astro";
 import { href, t, type Lang } from "../lib/i18n";
 
-interface Props { lang: Lang; term: string; label?: string }
-const { lang, term, label } = Astro.props;
+interface Props { lang: Lang; term: string; label?: string; instance?: string }
+const { lang, term, label, instance } = Astro.props;
 const entry = await getEntry("glossary", `${lang}/${term}`);
 if (!entry) throw new Error(`no glossary term "${term}" in ${lang}`);
 ---
-<TermPopover key={term} label={label ?? entry.data.term} heading={entry.data.term} text={entry.data.short}
+<TermPopover key={instance ? `${term}-${instance}` : term} label={label ?? entry.data.term} heading={entry.data.term} text={entry.data.short}
   href={href(lang, `glossary/${term}`)} more={t(lang, "glossary.more")} />

@@ -76,7 +76,7 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     Given a configuration with release builds on and steps that all succeed
     When a release build runs
     Then it is ok, with an id from the build's UTC time
-    And the steps run in order: store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, export, npm-ci, site-check, ui-test, upload, smoke
+    And the steps run in order: store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke
     And the preview address is the build's alias address
     And the build folder's SHA256SUMS lists the site files and the outputs
     And its release.json records the result ok
@@ -87,7 +87,7 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     rec = release.build(cfg, now=datetime(2026, 11, 10, 11, 30, tzinfo=UTC), runner=fake)
     assert rec["result"] == "ok" and rec["id"] == "20261110T113000Z"
     assert fake.ran == ["store", "series", "bands", "store-bands", "check-v1", "check-v1-cpi", "check-combos",
-                        "export", "npm-ci", "site-check", "ui-test", "upload", "smoke"]
+                        "consistency", "export", "npm-ci", "site-check", "ui-test", "upload", "smoke"]
     folder = cfg.release.releases_dir / rec["id"]
     assert rec["preview_url"] == "https://build-20261110t113000z-traceconomics.example.workers.dev"
     sums = (folder / "SHA256SUMS").read_text(encoding="utf-8")

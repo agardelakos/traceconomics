@@ -53,4 +53,17 @@ const steps = defineCollection({
   }),
 });
 
-export const collections = { glossary, method, pages, steps };
+// A finding of the consistency topic with its own page: one difference between two published
+// figures, what happened and what isn't known (src/content/findings/<lang>/<slug>.md). The slug is
+// the one module5's explanations file names, so the page and the data meet.
+const findings = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/findings" }),
+  schema: z.object({
+    title: z.string(),
+    summary: z.string(),
+    check: z.string(),                 // the module5 check id it belongs to
+    sources: z.array(z.string()).min(1),
+  }),
+});
+
+export const collections = { glossary, method, pages, steps, findings };

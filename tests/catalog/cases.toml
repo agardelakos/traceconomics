@@ -268,6 +268,11 @@ title = "no serious accessibility problem with a header menu or the phone menu o
 playwright = ["PW-A11Y-002"]
 selenium = ["SEL-A11Y-003", "SEL-A11Y-004"]
 
+[TC-A11Y-003]
+title = "the consistency topic passes the accessibility check with a status filter applied and a source's definition open"
+playwright = ["PW-A11Y-003"]
+selenium = ["SEL-A11Y-005"]
+
 [TC-HOST-001]
 title = "pages carry the security headers"
 playwright = ["PW-HOST-001"]
@@ -342,6 +347,21 @@ selenium = ["SEL-NAV-005"]
 title = "the skip link takes the keyboard to the main content"
 playwright = ["PW-NAV-013"]
 selenium = ["SEL-NAV-010"]
+
+[TC-NAV-012]
+title = "on a phone, each row of the topic bar opens scrolled to its current item"
+playwright = ["PW-NAV-014"]
+selenium = ["SEL-NAV-016"]
+
+[TC-NAV-013]
+title = "on a method option's page, the bar's third row lists every option and marks the one being read"
+playwright = ["PW-NAV-015"]
+selenium = ["SEL-NAV-017"]
+
+[TC-NAV-014]
+title = "the Topics quick list names every live topic and leads to its page"
+playwright = ["PW-NAV-016"]
+selenium = ["SEL-NAV-018"]
 
 [TC-TERM-001]
 title = "pointing at a term opens its explanation; moving away closes it"
@@ -462,3 +482,103 @@ selenium = ["SEL-THEME-011"]
 title = "on a phone, the menu's copy of the theme setting works and stays in step with the header's"
 playwright = ["PW-THEME-008"]
 selenium = ["SEL-THEME-008"]
+
+[TC-M5-001]
+title = "the overview says why, gives three numbers and leads to each part of the topic"
+playwright = ["PW-M5-001"]
+selenium = ["SEL-M5-001"]
+
+[TC-M5-002]
+title = "a check's page lists each difference with its cause and offers every period as CSV"
+playwright = ["PW-M5-002"]
+selenium = ["SEL-M5-002"]
+
+[TC-M5-003]
+title = "a finding's page tells what happened, links back to its check and lists its sources"
+playwright = ["PW-M5-003"]
+selenium = ["SEL-M5-003"]
+
+[TC-M5-004]
+title = "a question across sources lines up each source's value by year, reached from the Groups page"
+playwright = ["PW-M5-004"]
+selenium = ["SEL-M5-004"]
+
+[TC-M5-005]
+title = "the home page's country card and the data page lead to the consistency topic and its files"
+playwright = ["PW-M5-005"]
+selenium = ["SEL-M5-005"]
+
+[TC-M5-006]
+title = "a question across several sources gives each source's value by year, its definition, and AADE's figures as published"
+playwright = ["PW-M5-006"]
+selenium = ["SEL-M5-006"]
+
+[TC-M5-007]
+title = "a question's chart draws every source's values, to scale, without joining years apart"
+playwright = ["PW-M5-007"]
+selenium = ["SEL-M5-007"]
+
+[TC-M5-008]
+title = "the Groups page leads from tenure and household types to their pages in the consistency topic"
+playwright = ["PW-M5-008"]
+selenium = ["SEL-M5-008"]
+
+[TC-M5-009]
+title = "a check whose causes aren't all known says what is open, where it is written up, and asks for ideas"
+playwright = ["PW-M5-009"]
+selenium = ["SEL-M5-009"]
+
+[TC-M5-010]
+title = "the questions page gives each question as a card: its title, a short teaser and a chip per source"
+playwright = ["PW-M5-010"]
+selenium = ["SEL-M5-010"]
+
+[TC-M5-011]
+title = "inside a section, the bar's third row lists the section's pages by short name and marks the one being read"
+playwright = ["PW-M5-011"]
+selenium = ["SEL-M5-011"]
+
+[TC-M5-012]
+title = "on a phone, the bar's third row opens scrolled to the page being read"
+playwright = ["PW-M5-012"]
+selenium = ["SEL-M5-012"]
+
+[TC-M5-013]
+title = "each status's chip has its own colour, and a consistent check's chip carries a tick"
+playwright = ["PW-M5-013"]
+selenium = ["SEL-M5-013"]
+
+[TC-M5-014]
+title = "the Checks page's status buttons show one status's checks at a time"
+playwright = ["PW-M5-014"]
+selenium = ["SEL-M5-014"]
+
+[TC-M5-015]
+title = "the Checks page gives every check as a card, explained first"
+playwright = ["PW-M5-015"]
+selenium = ["SEL-M5-015"]
+
+[TC-M5-016]
+title = "the topic's page across countries gives its question and a card per country"
+playwright = ["PW-M5-016"]
+selenium = ["SEL-M5-016"]
+
+[TC-M5-017]
+title = "the Method page explains the checks, invites ideas, and lists its sources"
+playwright = ["PW-M5-017"]
+selenium = ["SEL-M5-017"]
+
+[TC-M5-018]
+title = "the household-types check names each difference by year and type and leads to its finding"
+playwright = ["PW-M5-018"]
+selenium = ["SEL-M5-018"]
+
+[TC-M5-019]
+title = "the spending check spans years, names each differing item, and its finding opens"
+playwright = ["PW-M5-019"]
+selenium = ["SEL-M5-019"]
+
+[TC-M5-020]
+title = "the data page describes the topic's files for search engines, naming every publisher"
+playwright = ["PW-M5-020"]
+selenium = ["SEL-M5-020"]

@@ -42,7 +42,11 @@ export const TOPICS: Topic[] = [
     // In reading order: what it is, how it was measured, who the groups are, then the tools.
     sections: ["", "method", "groups", "explore", "calculator"],
   },
-  { slug: "official-figures-checked", module: "m5", status: "planned", countries: [], sections: [], shown: true },
+  {
+    slug: "official-figures-consistency", module: "m5", status: "live", countries: ["gr"],
+    // What the checks found, each check on its own, one question across sources, then the rules.
+    sections: ["", "method", "checks", "same-question"],
+  },
   { slug: "forecast-scorecard", module: "m2", status: "planned", countries: [], sections: [] },
   { slug: "gdp-nowcast", module: "m3", status: "planned", countries: [], sections: [] },
   { slug: "revisions", module: "m4", status: "planned", countries: [], sections: [] },
@@ -65,6 +69,9 @@ export function officialSources(): Office[] {
     return OFFICES[c];
   }), EUROSTAT];
 }
+
+/** The pages of one section of a topic, for the bar's third row: each by its short name, one current. */
+export interface Strip { label: string; items: { href: string; label: string; current: boolean }[] }
 
 export function topic(slug: string): Topic {
   const found = TOPICS.find((x) => x.slug === slug);
@@ -120,6 +127,16 @@ export function dataHref(lang: Lang, country?: string): string {
 /** getStaticPaths for a topic's per-country pages: every language × every country it covers. */
 export function countryPaths(slug: string, langs: readonly Lang[]) {
   return langs.flatMap((lang) => topic(slug).countries.map((country) => ({ params: { lang, country } })));
+}
+
+/**
+ * The content entry holding a country's written text for the consistency topic: its findings
+ * (src/content/findings/<lang>/<id>.md) and its "how we check" page. Those name one country's
+ * sources and figures, so another country brings its own, never borrows Greece's.
+ */
+export function m5Text(country: string, lang: Lang, id: string): string {
+  if (country !== "gr") throw new Error(`no consistency texts for "${country}": write its own findings and method first`);
+  return `${lang}/${id}`;
 }
 
 /**

@@ -8,12 +8,15 @@ import path from "node:path";
 import { getEntry } from "astro:content";
 import Breadcrumb from "../../../components/Breadcrumb.astro";
 import M1Files from "../../../components/M1Files.astro";
+import M5Files from "../../../components/M5Files.astro";
 import SourceList from "../../../components/SourceList.astro";
 import Base from "../../../layouts/Base.astro";
 import { DATA_ROOT, m1Dir, readJson, settings } from "../../../lib/data";
 import { href, LANGS, t, type Lang } from "../../../lib/i18n";
 import { dataset, ldJson } from "../../../lib/structured";
-import { dataCountries, EUROSTAT, m1Text, OFFICES, topicHref, TOPICS } from "../../../lib/topics";
+import { m5Dir, results } from "../../../lib/m5";
+import { reference } from "../../../lib/references";
+import { dataCountries, EUROSTAT, m1Text, m5Text, OFFICES, topicHref, TOPICS } from "../../../lib/topics";
 
 export function getStaticPaths() {
   return LANGS.flatMap((lang) => dataCountries().map((country) => ({ params: { lang, country } })));
@@ -28,8 +31,8 @@ const countryName = t(lang, `country.${country}`);
 // without its files.
 const sections = await Promise.all(TOPICS.map(async (tp) => {
   if (tp.status !== "live" || !tp.countries.includes(country)) return null;
-  if (tp.module !== "m1") throw new Error(`no files component for topic "${tp.slug}" on the data page`);
-  const entry = await getEntry("pages", m1Text(country, lang, "data"));
+  if (!["m1", "m5"].includes(tp.module)) throw new Error(`no files component for topic "${tp.slug}" on the data page`);
+  const entry = await getEntry("pages", tp.module === "m1" ? m1Text(country, lang, "data") : m5Text(country, lang, "m5-data"));
   if (!entry) throw new Error(`no data text for ${tp.slug} in ${country}, ${lang}`);
   return { tp, entry };
 }));
@@ -40,6 +43,24 @@ const title = t(lang, "opendata.country.title", { country: countryName });
 // Each topic's files described for search engines and data tools (Google Dataset Search reads
 // this): the default setting's tables and the metadata; the page lists every setting's.
 const ld = shown.map(({ tp }) => {
+  if (tp.module === "m5") {
+    const r = results(country);
+    const base = `/data/v1/${m5Dir(country)}`;
+    const periods = r.checks.flatMap((c) => [c.first, c.last]).filter((p): p is string => !!p && /^\d{4}-\d{2}$/.test(p)).sort();
+    return ldJson(dataset({
+      site: Astro.site!, lang,
+      name: `${countryName}: ${t(lang, `topic.${tp.slug}`)}`,
+      description: `${t(lang, `topic.${tp.slug}.text`)} ${t(lang, "opendata.country.lead", { country: countryName })}`,
+      page: `${href(lang, `data/${country}`)}#${tp.slug}`,
+      metadata: { licence: r.licence, attribution: r.attribution, first_period: periods[0], last_period: periods[periods.length - 1] },
+      place: countryName,
+      // Beyond the statistics office and Eurostat, the other publishers' data (AADE, the European
+      // Commission's LMP database), each by its cited dataset's address.
+      basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang], ...[...new Set(r.questions.flatMap((q) => q.sources)
+        .filter((s) => /^(aade|ec-empl):/.test(s.source)).map((s) => reference(s.reference).url!))].sort()],
+      files: [`${base}/checks.json`, ...[...r.checks, ...r.questions].map((c) => `${base}/downloads/${c.id}.csv`)],
+    }));
+  }
   const base = `/data/v1/${m1Dir(country)}`;
   const slug = settings(country).settings.find((s) => s.default)!.slug;
   const files = fs.readdirSync(path.join(DATA_ROOT, m1Dir(country), "downloads", slug)).sort();
@@ -73,7 +94,7 @@ const ld = shown.map(({ tp }) => {
           <h2 id={s.tp.slug}>{t(lang, `topic.${s.tp.slug}`)}</h2>
           <a href={topicHref(lang, s.tp.slug, country)}>{t(lang, "opendata.country.see_topic", { topic: t(lang, `topic.${s.tp.slug}`) })} →</a>
         </div>
-        <M1Files lang={lang} country={country} entry={s.entry} />
+        {s.tp.module === "m1" ? <M1Files lang={lang} country={country} entry={s.entry} /> : <M5Files lang={lang} country={country} entry={s.entry} />}
       </section>
     ))}
 

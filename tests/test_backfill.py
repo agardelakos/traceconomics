@@ -4,7 +4,7 @@ from datetime import date
 import pytest
 
 from traceconomics.archive.store import Archive
-from traceconomics.backfill import dataset_for_url, import_file, seed
+from traceconomics.backfill import dataset_for_url, import_file, import_wayback, seed
 
 pytestmark = pytest.mark.integration
 
@@ -211,3 +211,55 @@ def test_seed_skips_rows_it_cant_vouch_for_and_files_listed_twice(tmp_path):
     rep = seed(Archive(tmp_path / "archive"), tmp_path / "research", dry_run=True)
     assert rep.stored == ["elstat/doc-1 <- good.xlsx (2026-10-17)"]
     assert sorted(s.split(": ")[0].rsplit("/", 1)[1] for s in rep.skipped) == ["missing.xlsx", "undated.xlsx"]
+
+
+WAYBACK_URL = "https://web.archive.org/web/20210724233349id_/https://www.statistics.gr/en/statistics?_documentID=114837&_locale=en"
+
+
+def test_import_wayback_stamps_the_capture_time(tmp_path):
+    """PY-BACKFILL-009: a Wayback copy is stored under its capture time, apart from the job's files
+
+    Given a newer copy of a table already archived by the job as elstat/doc-114837
+    And an older copy of the same table downloaded on 2026-11-08 from a Wayback capture of 2021-07-24
+    When the older copy is imported as elstat/cpi05-wayback
+    Then it is stored in a folder stamped 20210724T233349Z, of kind "wayback"
+    And its manifest names the original address, the capture time and the download date
+    And the job's dataset still has only its own snapshot
+    And importing the same copy again stores nothing new
+    """
+    archive = Archive(tmp_path / "archive")
+    job = tmp_path / "new.xlsx"
+    job.write_bytes(b"new")
+    import_file(archive, job, source="elstat", dataset="doc-114837", url=ELSTAT_DOC.format(114837),
+                downloaded=date(2026, 10, 13), note=None)
+    old = tmp_path / "doc114837_20210724233349.xls"
+    old.write_bytes(b"old")
+    r = import_wayback(archive, old, source="elstat", dataset="cpi05-wayback", url=WAYBACK_URL,
+                       downloaded=date(2026, 11, 8), note=None)
+    assert r.status == "stored" and r.path.parent.name == "20210724T233349Z"
+    m = archive.manifest(archive.latest("elstat", "cpi05-wayback"))
+    assert m["kind"] == "wayback" and m["retrieved_at"] == "2021-07-24T23:33:49Z"
+    assert m["original_url"] == "https://www.statistics.gr/en/statistics?_documentID=114837&_locale=en"
+    assert m["captured_at"] == "2021-07-24T23:33:49Z" and m["downloaded"] == "2026-11-08"
+    assert len(archive.snapshots("elstat", "doc-114837")) == 1
+    again = import_wayback(archive, old, source="elstat", dataset="cpi05-wayback", url=WAYBACK_URL,
+                           downloaded=date(2026, 11, 8), note=None)
+    assert again.status == "unchanged"
+
+
+def test_import_wayback_refuses_other_addresses_and_dataset_names(tmp_path):
+    """PY-BACKFILL-010: a Wayback import refuses an address that isn't a raw capture, and a job's dataset name
+
+    Given a file and an archive
+    When it is imported with the publisher's own address, with a Wayback address lacking the raw-capture marker, or into a dataset not ending in "-wayback"
+    Then each import is refused with a ValueError and nothing is stored
+    """
+    archive = Archive(tmp_path / "archive")
+    f = tmp_path / "copy.xls"
+    f.write_bytes(b"x")
+    for url, dataset in [(ELSTAT_DOC.format(114837), "cpi05-wayback"),
+                         (WAYBACK_URL.replace("id_/", "/"), "cpi05-wayback"),
+                         (WAYBACK_URL, "doc-114837")]:
+        with pytest.raises(ValueError):
+            import_wayback(archive, f, source="elstat", dataset=dataset, url=url, downloaded=date(2026, 11, 8), note=None)
+    assert archive.datasets() == []

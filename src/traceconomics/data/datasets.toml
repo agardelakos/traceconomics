@@ -124,7 +124,120 @@ format = "oet-limits"
 freq = "A"
 dimensions = ["geo", "grouping", "group", "unit", "measure"]
 
+# Our household types next to ELSTAT's own (HB074), one file per survey year: a check of our
+# rule against the office's, published by the consistency topic (module5), not by module1.
+["oet-local".hbs_hhtypes]
+archive = ["oet-local/hbs-hhtypes-gr-*"]
+format = "oet-hhtypes"
+freq = "A"
+dimensions = ["geo", "group", "measure"]
+
+# Rent paid for the main home by tenure, euros a year, one file per survey year: the survey's
+# answer to "how much rent do households pay?", published by the consistency topic (module5).
+["oet-local".hbs_rent]
+archive = ["oet-local/hbs-rent-gr-*"]
+format = "oet-rent"
+freq = "A"
+dimensions = ["geo", "tenure", "measure"]
+
+# Our reading of the survey file against ELSTAT's published spending table (table 1.03), item by
+# item and per band where the bands can be rebuilt, one file per survey year: the V2 check,
+# published by the consistency topic (module5).
+["oet-local".hbs_spending]
+archive = ["oet-local/hbs-spending-gr-*"]
+format = "oet-spending"
+freq = "A"
+dimensions = ["geo", "group", "coicop", "measure"]
+
+# EU-SILC: tenure and rent paid, by household and person, one file per survey year, built locally
+# from ELSTAT's SILC public use files (aggregates only), for the consistency topic.
+["oet-local".silc_tenure]
+archive = ["oet-local/silc-tenure-gr-*"]
+format = "oet-silc-tenure"
+freq = "A"
+dimensions = ["geo", "tenure", "measure"]
+
 ["oet-local".hbs_bands]
 archive = ["oet-local/hbs-bands-gr"]
 format = "oet-bands"
 dimensions = ["geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring", "unit", "measure"]
+
+# "Same question, different sources" (the consistency topic): each official answer to one question,
+# lined up with its definition. Shown as published, never used to compute another source's figure.
+
+# Rent paid by households (CP041, actual rentals for housing) and imputed rent (CP042), in the
+# national accounts' household consumption by purpose (COICOP 1999 codes, kept as Eurostat writes
+# them: not a classification this package maps, so no `coicop` key).
+[eurostat.nama_10_co3_p3]
+archive = ["eurostat/nama_10_co3_p3"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "unit", "coicop", "geo"]
+
+# Household income in the sector accounts: B6G, gross disposable income of households and the
+# non-profits serving them (sector S14_S15).
+[eurostat.nasa_10_nf_tr]
+archive = ["eurostat/nasa_10_nf_tr"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "unit", "direct", "na_item", "sector", "geo"]
+
+# EU-SILC: the population by tenure (persons), and mean and median income.
+[eurostat.ilc_lvho02]
+archive = ["eurostat/ilc_lvho02"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "rskpovth", "hhcomp", "tenure", "unit", "geo"]
+
+[eurostat.ilc_di03]
+archive = ["eurostat/ilc_di03"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "age", "sex", "statinfo", "unit", "geo"]
+
+# Labour force survey: unemployment (ILO definition), monthly and annual.
+[eurostat.une_rt_m]
+archive = ["eurostat/une_rt_m"]
+format = "eurostat-tsv"
+freq = "M"
+dimensions = ["freq", "s_adj", "age", "unit", "sex", "geo"]
+
+[eurostat.une_rt_a]
+archive = ["eurostat/une_rt_a"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "age", "unit", "sex", "geo"]
+
+# The censuses' private households by tenure: 2011 (by household type, NUTS 2) and 2021 (by
+# household composition, NUTS 3). Each country's total is its own row.
+[eurostat.cens_11htts_r2]
+archive = ["eurostat/cens_11htts_r2"]
+format = "eurostat-tsv"
+freq = "A"
+regions = true
+dimensions = ["freq", "hhcomp", "tenure", "unit", "geo"]
+
+[eurostat.cens_21hhct_r3]
+archive = ["eurostat/cens_21hhct_r3"]
+format = "eurostat-tsv"
+freq = "A"
+regions = true
+dimensions = ["freq", "tenure", "hhcomp", "unit", "geo"]
+
+# The register: people registered with the public employment services (DG EMPL's LMP database,
+# annual average stock), beside the labour force survey's unemployed.
+["ec-empl".lmp_rjru]
+archive = ["ec-empl/lmp_rjru"]
+format = "eurostat-tsv"
+freq = "A"
+dimensions = ["freq", "unit", "stk_flow", "regis_es", "age", "sex", "geo"]
+
+# AADE's yearly personal income tax statistics, table 1: its own national totals (returns,
+# declared income and its sources), shown as published (its terms forbid modifying them). Only
+# workbooks in the layout checked (tax years 2019-2022) feed the store; older ones stay archived.
+[aade.pit_stats]
+archive = ["aade/pit-*"]
+file_name = '^(SD_FP_\d\dF_\d+|etisio_stats_fysikwn_forologikou_\d{4}[^/]*)\.xlsx$'
+format = "aade-pit"
+freq = "A"
+dimensions = ["freq", "unit", "measure", "geo"]

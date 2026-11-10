@@ -606,3 +606,44 @@ def test_types_table_marks_elstats_2023_type_unusable():
     from traceconomics.local import weights
     s, g = _single_adults(0)
     assert weights.types_table(s, g, 2023, "v").elstat_status.iloc[0].startswith("unusable")
+
+
+def test_rent_table_sums_rent_paid_by_tenure():
+    """PY-GROUPS-031: the rent table gives rent paid in euros a year, by tenure and for all households
+
+    Given four made-up households: two renters paying 4,800 and 6,000 euros a year with weights 100 and 50, an owner of weight 200 and a household housed free of weight 10, one of the renters with two people
+    When the rent table is made for 2015
+    Then all households' rent paid is 100 × 4,800 + 50 × 6,000 = 780,000 euros, all of it in the renters' row
+    And owners and the housed free pay none
+    And the renters are 150 households and 250 people weighted, written "<20" as counted
+    """
+    from traceconomics.local import weights
+    rows = [("r1", 100, 9000, "1", {"0411": 4800}), ("r2", 50, 9000, "1", {"0411": 6000}),
+            ("o", 200, 9000, "1", {"0421": 3000}), ("f", 10, 9000, "1", {"04221": 2000})]
+    s = survey(rows, [("r1", 40), ("r1", 38), ("r2", 40), ("o", 40), ("f", 40)])
+    t = weights.rent_table(s, assign(s), 2015, "v").set_index("tenure")
+    assert t.loc["all", "rent_paid_eur"] == 780000.0 and t.loc["renter", "rent_paid_eur"] == 780000.0
+    assert t.loc["owner", "rent_paid_eur"] == 0.0 and t.loc["rent_free", "rent_paid_eur"] == 0.0
+    assert t.loc["renter", "households_weighted"] == 150.0 and t.loc["renter", "people_weighted"] == 250.0
+    assert t.loc["renter", "n_households"] == "<20"
+
+
+def test_spending_table_lists_household_totals_and_every_figure_compared():
+    """PY-GROUPS-032: the spending check table gives each column's household totals, then every figure compared
+
+    Given V2's results for 2014: all households, whose weights add up to fewer households than the table, with a matched item, a differing one and an item the file has no column for
+    When the spending check table is made
+    Then it starts with the household totals, marked "differs"
+    And each item follows with ELSTAT's figure, ours and the result, ours left empty where the file has no column
+    """
+    from traceconomics.local import weights
+    r = v2.V2Result(year=2014, households_puf=4136073.0, households_published=4152372.0, compared=3, matched=1)
+    r.rows = [("01111", "Rice", 3.21, 3.2104, "matched"), ("01112", "Bread", 9.5, 9.43, "differs"),
+              ("03111", "Clothing materials", 0.09, None, "differs")]
+    t = weights.spending_table([r], 2014, "v")
+    assert list(t.coicop) == ["households", "01111", "01112", "03111"]
+    head = t.iloc[0]
+    assert (head.group, head.published, head.ours, head.result) == (ALL, 4152372.0, 4136073.0, "differs")
+    assert list(t.result[1:]) == ["matched", "differs", "differs"] and list(t.item[1:]) == ["Rice", "Bread", "Clothing materials"]
+    assert t.ours.iloc[3] != t.ours.iloc[3]          # NaN: written as an empty cell
+    assert list(t.columns) == weights.SPENDING_COLUMNS

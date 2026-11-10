@@ -74,6 +74,32 @@ def import_file(archive: Archive, path: Path, *, source: str, dataset: str | Non
                               kind="manual", dedupe="any", extra=extra, move=False)
 
 
+# A Wayback Machine address for a capture's raw bytes: /web/<14-digit capture time>id_/<original address>.
+WAYBACK = re.compile(r"^https?://web\.archive\.org/web/(\d{14})id_/(https?://.+)$")
+
+
+def import_wayback(archive: Archive, path: Path, *, source: str, dataset: str, url: str,
+                   downloaded: date, note: str | None) -> StoreResult:
+    """Add a publisher's past file as kept by the Internet Archive's Wayback Machine.
+
+    The snapshot is stamped with the capture time, not the download time, so a 2010 copy
+    downloaded today sorts as a 2010 file. It goes into a dataset of its own ending in
+    "-wayback", so it is never read as the publisher's newest file: the job's datasets and
+    these copies never mix.
+    """
+    m = WAYBACK.match(url)
+    if m is None:
+        raise ValueError(f"not a Wayback raw-capture address (.../web/<YYYYMMDDhhmmss>id_/<url>): {url}")
+    if not dataset.endswith("-wayback"):
+        raise ValueError(f"a Wayback copy's dataset must end in '-wayback': {dataset}")
+    captured = datetime.strptime(m.group(1), "%Y%m%d%H%M%S").replace(tzinfo=UTC)
+    extra = {"original_name": path.name, "original_url": m.group(2),
+             "captured_at": captured.strftime("%Y-%m-%dT%H:%M:%SZ"), "downloaded": downloaded.isoformat(),
+             "copy_of": "web.archive.org", "note": note or "a past copy kept by the Internet Archive's Wayback Machine"}
+    return archive.store_file(source, dataset, path, url=url, retrieved_at=captured, ext=_ext(path),
+                              kind="wayback", dedupe="any", extra=extra, move=False)
+
+
 # -- seeding ----------------------------------------------------------------
 
 @dataclass

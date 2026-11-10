@@ -272,3 +272,67 @@ def test_root_sends_the_browser_to_its_language(site, locale):
         site.wait(lambda _: site.path == f"/{expected}/", f"the root did not send a {locale} browser to /{expected}/")
     finally:
         site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"})
+
+
+@pytest.mark.phone
+def test_topic_bar_rows_open_scrolled_to_their_current_item(phone):
+    """SEL-NAV-016: on a phone, each row of the topic bar opens scrolled to its current item
+
+    Given a phone-sized screen
+    And Greece's page of the consistency topic, whose row of topics is wider than the screen with the current topic last
+    When it is opened
+    Then in every row of the bar wider than the screen, the current item is wholly inside the row's visible part
+    """
+    phone.open("/en/gr/official-figures-consistency/")
+    wide = 0
+    for row in phone.all(".topic-bar nav ul"):
+        box = phone.driver.execute_script(
+            "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};", row)
+        if box["scroll"] <= box["client"]:
+            continue
+        wide += 1
+        item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
+                                           row.find_element("css selector", "[aria-current]"))
+        assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
+    assert wide > 0
+
+
+def test_method_option_strip_lists_every_option(site):
+    """SEL-NAV-017: on a method option's page, the bar's third row lists every option and marks the one being read
+
+    Given the method page, which lists every option, and one option's page
+    When the option's page is opened from the method page
+    Then the bar's third row lists the options in the method page's order, by their titles
+    And the option being read is plain text marked current; the others link to their pages
+    And the Method tab is marked as the current section
+    """
+    site.open("/en/gr/inflation-by-group/method/")
+    cards = site.all('nav[aria-labelledby="options-h"] a.card')
+    titles = [c.find_element("css selector", ".title").text.strip().removesuffix(" →") for c in cards]
+    hrefs = [c.get_attribute("href") for c in cards]
+    cards[1].click()
+    site.wait(lambda _: site.driver.current_url == hrefs[1], "the option's page did not open")
+    assert [li.text.strip() for li in site.all("nav[data-strip] li")] == titles
+    assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == titles[1]
+    links = {a.text.strip(): a.get_attribute("href") for a in site.all("nav[data-strip] a")}
+    assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs)) if i != 1}
+    tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.method"))
+    assert tab.get_attribute("aria-current") == "true"
+
+
+def test_topics_quick_list_names_every_live_topic(site):
+    """SEL-NAV-018: the Topics quick list names every live topic and leads to its page
+
+    Given Greece's page of the consistency topic
+    When the arrow beside Topics in the header is pressed
+    Then the list links to both live topics, inflation by household and the consistency of official figures, each to its page
+    And the consistency topic is marked as the current one
+    """
+    site.open("/en/gr/official-figures-consistency/")
+    _arrow(site, "en", "topics").click()
+    pop = site.find("#topic-menu")
+    site.wait(lambda _: site.popover_open(pop), "#topic-menu did not open")
+    links = {a.text.strip(): a for a in site.all("#topic-menu a")}
+    for slug in ("inflation-by-group", "official-figures-consistency"):
+        assert links[t("en", f"topic.{slug}")].get_attribute("href").endswith(f"/en/{slug}/")
+    assert links[t("en", "topic.official-figures-consistency")].get_attribute("aria-current") == "true"

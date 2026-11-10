@@ -6,6 +6,10 @@ EL = "GR"  # Greece
 UK = "GB"  # United Kingdom
 
 # Codes that are not ISO countries but are kept as published.
+[ec-empl.rename]
+EL = "GR"  # Greece: DG EMPL uses Eurostat's codes
+UK = "GB"  # United Kingdom
+
 [eurostat.keep]
 XK = "Kosovo (code used by the EU; not assigned in ISO 3166-1)"
 

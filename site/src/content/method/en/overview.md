@@ -46,7 +46,7 @@ The weights come from a sample, so each group's rates carry an error band: two s
 
 ## Checks
 
-- Rebuilt from Eurostat's own item indices and weights, our calculation gives Greece's official HICP within 0.1 points in every month; the same holds for ELSTAT's CPI from 2014 (2011–2013 used a fixed basket).
+- Rebuilt from Eurostat's own item indices and weights, our calculation gives Greece's official HICP within 0.1 points in every month; the same holds for ELSTAT's CPI from 2014 (2011–2013 used a fixed basket). Every month compared, and the cause of each difference, is in the topic [Consistency of official figures](/en/gr/official-figures-consistency/checks/).
 - Our reading of the survey files reproduces ELSTAT's published spending tables to the cent (except in 2014, 2015 and 2018; see below), and its published sampling errors for 2024 within 0.1 points.
 - With Bruegel's settings, we rebuild its published Greek series within 0.1 points. KEPE's published figures differ from ours for known reasons (survey timing and detail).
 - Our contributions code reproduces Eurostat's published euro-area contributions to two decimals (rounding apart).
@@ -64,7 +64,7 @@ Some points rest on our reading of the public evidence, because ELSTAT hasn't sa
 
 - **Cash help with energy and food bills.** The per-kWh electricity bill subsidy and the heating-oil subsidy lowered the price households paid, and ELSTAT's indices show it: in September 2022 its electricity index could only fit a price net of the subsidy. Power Pass, Fuel Pass and Market Pass were different: money paid to households, not lower prices. Under Eurostat's rules a price index leaves out such payments, so we take it that ELSTAT's indices do too, but ELSTAT has never said, and no public list of what each country included exists. So our figures, like the official ones, show what prices did, not how much households were helped.
 - **Items missing from the public files.** Tolls, life insurance, some "various services" and a few other items are not in the survey's public files. ELSTAT hasn't said why. We leave them out and publish the share that is missing.
-- **Survey weights in 2014, 2015 and 2018.** In these three years the household weights in the public files differ from the ones behind ELSTAT's published tables, and ELSTAT hasn't explained why. We use the files' weights as they are, since they are consistent within each file.
+- **Survey weights in 2014, 2015 and 2018.** In these three years the household weights in the public files differ from the ones behind ELSTAT's published tables, and ELSTAT hasn't explained why. We use the files' weights as they are, since they are consistent within each file. Every figure compared, year by year: [the finding in Consistency of official figures](/en/gr/official-figures-consistency/checks/hbs-spending/survey-weights/).
 - **Tutoring from 2026.** ELSTAT's 2026 CPI gives tutoring and language schools no weight, though it still collects their prices; it hasn't said why. See the tutoring option.
 - **Money paid to other households from 2024.** Whether the survey now takes it off income is not stated. See the income groups option.
 - **ELSTAT's own weights for 2021–2023.** For the COVID years, ELSTAT's published CPI weights for 2022 and 2023 fit a survey two years old moved forward to the year before, the timing our default uses, but ELSTAT hasn't described its method, and for 2021 the evidence doesn't settle it. This affects only how closely our default follows ELSTAT's practice, not our figures.

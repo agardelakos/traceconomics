@@ -25,10 +25,10 @@ def test_untouched_fixtures_match_their_published_hashes():
 
     Given the fixtures README, which lists the SHA-256 of each untouched fixture
     When each listed file is hashed
-    Then exactly 8 files are listed
+    Then exactly 10 files are listed
     And every file's SHA-256 matches the one listed
     """
     hashes = listed()
-    assert len(hashes) == 8
+    assert len(hashes) == 10
     for name, expected in hashes.items():
         assert hashlib.sha256((FIXTURES / name).read_bytes()).hexdigest() == expected, name

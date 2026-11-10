@@ -796,3 +796,33 @@ def test_module1_run_writes_the_default_setting(setup, run, monkeypatch, tmp_pat
     assert (folder / "availability.json").is_file() and (folder / "metadata.json").is_file()
     assert any(p.name.startswith("m1_index") for p in folder.rglob("*.parquet"))
     assert isinstance(json.loads(out.strip().splitlines()[-1]), dict)
+
+
+@pytest.mark.integration
+def test_module5_run_prints_each_check_and_writes_its_files(setup, run, monkeypatch, tmp_path):
+    """PY-CLI-044: module5 run prints each check's count and writes the results
+
+    Given the made-up store of the site's browser tests, and one check of three months with one difference to rounding
+    And no survey tables or questions in the store
+    When module5 run is run
+    Then it prints the check's count, its span and its differences by cause
+    And it says the survey tables and income limits aren't in the store yet
+    And it writes the check's CSV and checks.json under gr/m5, and exits with code 0
+    """
+    import sitedata
+    from traceconomics.module5 import run as m5
+    from traceconomics.module5.record import Check, Comparison
+
+    sitedata.write_store(setup.cfg.store_dir, sitedata.blocks(), sitedata.blocks(hicp=True))
+    check = Check("gr-x", "gr", "percent", 0.0, {"source": "a"}, {"source": "b"})
+    check.comparisons = [Comparison("2024-01", 1.0, 1.0, True), Comparison("2024-02", 1.0, 1.1, False, "rounding"),
+                         Comparison("2024-03", 2.0, 2.0, True)]
+    monkeypatch.setattr(m5, "all_checks", lambda con, archive, archive_dir, duck: [check])
+    monkeypatch.setattr(m5, "all_questions", lambda con: [])
+    out_dir = tmp_path / "outputs"
+    code, out = run("module5", "run", "--out", str(out_dir))
+    lines = out.splitlines()
+    assert code == 0
+    assert "gr-x: 2 of 3 agree (2024-01 to 2024-03); differ: {'rounding': 1}" in lines
+    assert any("survey tables or Eurostat's income limits not in the store yet" in line for line in lines)
+    assert (out_dir / "gr" / "m5" / "gr-x.csv").is_file() and (out_dir / "gr" / "m5" / "checks.json").is_file()

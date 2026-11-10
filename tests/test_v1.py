@@ -49,3 +49,35 @@ def test_v1_catches_a_broken_engine():
     result = chain(broken, prices, first_year=2015, last_year=int(max(official)[:4]),
                    base_value=official["2014-12"], periods=set(official))
     assert not compare("broken", result, official, rates).passed
+
+
+def test_v1_keeps_every_compared_month():
+    """PY-VONE-003: the comparison keeps every month it compared, consistent with its totals
+
+    Given the committed Greek extract
+    When V1 is run at the finest detail
+    Then it keeps one row per compared month, in period order, before rounding
+    And the rows rounded to one decimal give the same count of exact months and the same worst gap as the totals
+    """
+    weights, prices, official, rates = load()
+    r = {x.name: x for x in v1.run(weights, prices, official, rates, last_year=int(max(official)[:4]))}["finest detail"]
+    assert len(r.rows) == r.months and [p for p, _, _ in r.rows] == sorted(p for p, _, _ in r.rows)
+    gaps = [abs(round(ours, 1) - round(theirs, 1)) for _, ours, theirs in r.rows]
+    assert sum(g < 1e-9 for g in gaps) == r.exact
+    assert max(gaps) == pytest.approx(r.worst_rate_gap)
+
+
+def test_module5_labels_the_hicp_rebuild():
+    """PY-VONE-004: the published HICP check counts the months that agree and labels the rest as rounding
+
+    Given the committed Greek extract and V1's finest-detail comparison
+    When it is turned into the published check
+    Then it compares the same months, the same number agree, and every other month is labelled "rounding"
+    """
+    from traceconomics.module5.rebuilds import from_validation
+
+    weights, prices, official, rates = load()
+    r = {x.name: x for x in v1.run(weights, prices, official, rates, last_year=int(max(official)[:4]))}["finest detail"]
+    s = from_validation("gr-hicp-rebuilt-items", r, {"source": "a"}, {"source": "b"}, []).summary()
+    assert (s["compared"], s["agree"]) == (r.months, r.exact)
+    assert set(s["differ"]) <= {"rounding"}

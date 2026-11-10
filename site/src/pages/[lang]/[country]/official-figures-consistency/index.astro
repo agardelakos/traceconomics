@@ -1,0 +1,50 @@
+---
+// One country's overview, for a curious reader who may not know what a price index or a spending
+// survey is: why official figures should add up, three numbers on everything checked, then the way
+// into each part of the topic (its method, its checks, the questions several sources answer). The
+// checks and the questions themselves are on their own pages, so nothing here repeats them.
+import Base from "../../../../layouts/Base.astro";
+import { num } from "../../../../lib/format";
+import { LANGS, t, type Lang } from "../../../../lib/i18n";
+import { results } from "../../../../lib/m5";
+import { countryPaths, topicHref } from "../../../../lib/topics";
+
+export function getStaticPaths() {
+  return countryPaths("official-figures-consistency", LANGS);
+}
+
+const SLUG = "official-figures-consistency";
+const lang = Astro.params.lang as Lang;
+const country = Astro.params.country as string;
+const { checks, questions } = results(country);
+const compared = checks.reduce((n, c) => n + c.compared, 0);
+const agreeing = checks.reduce((n, c) => n + c.agree, 0);
+// Rounded down, so "100%" is never shown while a single figure differs.
+const share = compared ? Math.floor((agreeing / compared) * 100) : 0;
+const years = checks.flatMap((c) => Object.keys(c.by_year ?? {})).sort();
+const sections = [
+  { key: "method", text: t(lang, "m5.card.method") },
+  { key: "checks", text: t(lang, "m5.card.checks", { n: checks.length }) },
+  ...(questions.length ? [{ key: "same-question", text: t(lang, "m5.card.same", { n: questions.length }) }] : []),
+];
+---
+<Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG, country, section: "" }}>
+  <div class="stack-lg">
+    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <h1>{t(lang, `topic.${SLUG}.question`)}</h1>
+      <p style="font-size: var(--text-lg)">{t(lang, "m5.lead")}</p>
+    </header>
+    <div class="m5-stats" data-m5="stats">
+      <p><strong>{num(lang, checks.length, 0)}</strong><span>{t(lang, "m5.stat.checks")}</span></p>
+      <p><strong>{num(lang, compared, 0)}</strong><span>{years.length ? t(lang, "m5.stat.compared", { from: years[0], to: years[years.length - 1] }) : ""}</span></p>
+      <p><strong>{share}%</strong><span>{t(lang, "m5.stat.agree")}</span></p>
+    </div>
+    <div class="cards" data-m5="sections">
+      {sections.map((s) => (
+        <a class="card" href={topicHref(lang, SLUG, country, s.key)} data-m5-section={s.key}>
+          <span class="title">{t(lang, `nav.${s.key}`)}&nbsp;→</span><span class="text">{s.text}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>
