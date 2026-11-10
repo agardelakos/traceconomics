@@ -13,6 +13,7 @@
     {"id": "i18n:m1.offer.groups", "term": "quintile"},
     {"id": "i18n:m5.def.gr-unemployment.register", "term": "annual-average"},
     {"id": "i18n:reason.hospital", "term": "gap"},
+    {"id": "glossary/annual-average.md#intro", "term": "annual-rate"},
     {"id": "glossary/gap.md#intro", "term": "gap"},
     {"id": "glossary/percentage-point.md#intro", "term": "gap"},
     {"id": "glossary/price-updating.md#intro", "term": "weights"},
