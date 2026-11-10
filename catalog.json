@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "bd9bab0d7aeffe8f2cbc8feae06b8f88b6d9afa6",
- "generated": "2026-11-10T16:57:09Z",
+ "commit": "ff19ac17e8301b8bdbce3c019909b34524ada46f",
+ "generated": "2026-11-10T17:32:21Z",
  "missing": [],
  "cases": [
   {
@@ -2199,11 +2199,37 @@
    "named": false
   },
   {
+   "id": "PW-HOST-005",
+   "suite": "playwright",
+   "title": "security.txt is served as plain text",
+   "file": "site/tests/ui/host.ui.ts",
+   "line": 71,
+   "node": "site/tests/ui/host.ui.ts › security.txt is served as plain text",
+   "given": [
+    "a deployed copy of the site"
+   ],
+   "when": [
+    "/.well-known/security.txt is requested"
+   ],
+   "then": [
+    "it is served as plain text",
+    "it is the repository's file, byte for byte"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "smoke"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PW-HOST-004",
    "suite": "playwright",
    "title": "Explore redraws for other options within the policy",
    "file": "site/tests/ui/host.ui.ts",
-   "line": 78,
+   "line": 90,
    "node": "site/tests/ui/host.ui.ts › Explore with its default view draws within the policy",
    "given": [
     "a deployed copy of the site"
@@ -17008,6 +17034,84 @@
    "named": false
   },
   {
+   "id": "PY-SECTXT-001",
+   "suite": "pytest",
+   "title": "security.txt has the fields RFC 9116 requires, in its format",
+   "file": "tests/test_security_txt.py",
+   "line": 40,
+   "node": "tests/test_security_txt.py::test_follows_rfc_9116",
+   "given": [
+    "the site's security.txt"
+   ],
+   "when": [
+    "its lines are read as fields"
+   ],
+   "then": [
+    "every line that isn't a comment is a field",
+    "it has at least one Contact, each an https or mailto address",
+    "it has exactly one Expires, a date and time with a time zone",
+    "its Canonical is the address it is published at"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SECTXT-002",
+   "suite": "pytest",
+   "title": "security.txt and SECURITY.md name the same contacts",
+   "file": "tests/test_security_txt.py",
+   "line": 58,
+   "node": "tests/test_security_txt.py::test_contacts_match_security_md",
+   "given": [
+    "the site's security.txt and the repository's SECURITY.md"
+   ],
+   "when": [
+    "the contacts of each are collected (security.txt's Contact fields; SECURITY.md's email addresses and private reporting link)"
+   ],
+   "then": [
+    "both name the same contacts"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SECTXT-003",
+   "suite": "pytest",
+   "title": "security.txt's policy is SECURITY.md",
+   "file": "tests/test_security_txt.py",
+   "line": 72,
+   "node": "tests/test_security_txt.py::test_policy_is_security_md",
+   "given": [
+    "the site's security.txt"
+   ],
+   "when": [
+    "its Policy field is read"
+   ],
+   "then": [
+    "it is SECURITY.md on the repository's default branch, a file that exists"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-SITEDATA-001",
    "suite": "pytest",
    "title": "every setting gets its files, and the shared ones are there",
@@ -19905,7 +20009,7 @@
    "suite": "selenium",
    "title": "pages carry the security headers",
    "file": "tests/selenium/test_host.py",
-   "line": 37,
+   "line": 38,
    "node": "tests/selenium/test_host.py::test_pages_carry_the_security_headers",
    "given": [
     "a page served by a host that applies the site's headers file"
@@ -19935,7 +20039,7 @@
    "suite": "selenium",
    "title": "data files are open to other sites",
    "file": "tests/selenium/test_host.py",
-   "line": 52,
+   "line": 53,
    "node": "tests/selenium/test_host.py::test_data_files_are_open_to_other_sites",
    "given": [
     "the default setting's series file, served by the host"
@@ -19958,11 +20062,38 @@
    "named": false
   },
   {
+   "id": "SEL-HOST-005",
+   "suite": "selenium",
+   "title": "security.txt is served as plain text",
+   "file": "tests/selenium/test_host.py",
+   "line": 68,
+   "node": "tests/selenium/test_host.py::test_security_txt_is_served_as_plain_text",
+   "given": [
+    "a host that serves the site"
+   ],
+   "when": [
+    "/.well-known/security.txt is fetched"
+   ],
+   "then": [
+    "it is served as plain text",
+    "it is the repository's file, byte for byte"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "host",
+    "smoke"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "SEL-HOST-003",
    "suite": "selenium",
    "title": "no page breaks the Content Security Policy",
    "file": "tests/selenium/test_host.py",
-   "line": 67,
+   "line": 84,
    "node": "tests/selenium/test_host.py::test_no_policy_violation",
    "given": [
     "a page the sitemap lists, served by the host"
@@ -20063,7 +20194,7 @@
    "suite": "selenium",
    "title": "Explore breaks no policy after changes",
    "file": "tests/selenium/test_host.py",
-   "line": 81,
+   "line": 98,
    "node": "tests/selenium/test_host.py::test_no_policy_violation_on_explore_after_changes",
    "given": [
     "Explore, served by the host"
