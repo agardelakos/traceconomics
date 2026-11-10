@@ -94,3 +94,19 @@ def test_values_resting_on_the_original_tables_are_flagged():
     assert q("RCH_A", "2011-12") == "less certain" and q("RCH_A", "2012-01") == ""
     assert q("RCH_M", "2011-01") == "less certain" and q("RCH_M", "2011-02") == ""
     assert q("RCH_A_AVG", "2011") == "less certain" and q("RCH_A_AVG", "2012") == ""
+
+
+def test_an_income_fifth_is_built_without_the_2010_survey():
+    """PY-INDEX-005: an income fifth's series is built without the 2010 survey, the 2009 survey price-updated in its place
+
+    Given baskets for surveys 2008 to 2024 with none for the 2010 survey's fifths
+    When the B/Q1 series is built with the default rule
+    Then it runs from 2009 as usual, and 2011 uses survey 2009's basket
+    And that basket is price-updated from 2009, the stand-in's own year
+    """
+    k = baskets()
+    del k[(2010, "B", "Q1")], k[(2010, "B", "Q5")]
+    q1 = index.build(None, "B", "Q1", blocks=blocks(), baskets=k)
+    assert q1.schedule[0].year == 2009
+    entry = q1.used[2011].entry
+    assert entry.survey == 2009 and entry.price_update_from == 2009

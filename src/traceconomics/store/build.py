@@ -191,8 +191,11 @@ def _parse_into(con, spec: DatasetSpec, snap: Snapshot, table: str) -> None:
         cols = ", ".join(f'"{d}" VARCHAR' for d in (*dims, "measure"))
         con.execute(f"CREATE OR REPLACE TABLE {table} ({cols}, ref_period VARCHAR, value_text VARCHAR, "
                     "value DOUBLE, flags VARCHAR)")
-        con.executemany(f"INSERT INTO {table} VALUES ({', '.join('?' * (len(dims) + 4))}, NULL)",
-                        list(oet_local.rows(snap.path, spec.format)))
+        rows = list(oet_local.rows(snap.path, spec.format))
+        # A table with no rows is valid (the 2010 survey's income limits, which can't be built):
+        # it withdraws the dataset's earlier rows. DuckDB's executemany refuses an empty list.
+        if rows:
+            con.executemany(f"INSERT INTO {table} VALUES ({', '.join('?' * (len(dims) + 4))}, NULL)", rows)
     else:
         raise ValueError(f"no parser for {spec.format}")
 

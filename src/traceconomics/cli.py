@@ -53,11 +53,13 @@ def main(argv: list[str] | None = None) -> int:
 
     ck = sub.add_parser("check", help="rebuild official figures from their parts, to test the engine")
     ck.add_argument("which", choices=["v1", "v1-cpi", "v2", "mapping", "v3", "v4", "v5", "v6", "hospital", "prices", "seam",
-                                      "combos"],
+                                      "combos", "tenure"],
                     help="v1: all-items HICP from Eurostat sub-indices and weights; "
                          "v1-cpi: Greek CPI from ELSTAT's table 07; "
                          "v2: ELSTAT's household spending table from the survey microdata (needs the local extra); "
-                         "mapping: the surveys' old codes mapped to COICOP 2018, against the next year (needs the local extra)")
+                         "mapping: the surveys' old codes mapped to COICOP 2018, against the next year (needs the local extra); "
+                         "tenure: what calibrating the survey's weights to the census's tenure split changes in "
+                         "the series (needs the local extra)")
     ck.add_argument("--geo", default="GR", help="country (ISO code, default GR)")
     ck.add_argument("--outputs", type=Path, default=Path.home() / "traceconomics-outputs",
                     help="combos: the module 1 outputs folder (default ~/traceconomics-outputs)")
@@ -630,6 +632,31 @@ def _dispatch(args, cfg) -> int:
             for name, changes in r["series"].items():
                 print(f"  {name}: " + ", ".join(f"{y} {v:+.3f}" for y, v in changes.items()))
             print("Change in the Q1-Q5 gap (pp): " + ", ".join(f"{y} {v:+.3f}" for y, v in r["gap_change"].items()))
+            return 0
+        if args.which == "tenure":
+            from traceconomics.local import tenure_check
+            from traceconomics.store.db import connect
+            from traceconomics.store.query import open_views
+
+            con = connect(cfg.store_memory_limit, cfg.store_threads)
+            open_views(con, cfg.store_dir)
+            r = tenure_check.run(Archive(cfg.archive_dir), con)
+            print("Survey weights calibrated to the tenure target (renters' share of households, weight factors):")
+            for year, n in r["surveys"].items():
+                f = n["factors"]
+                print(f"  survey {year}: renters {n['renters_before']:.1%} -> {n['renters_after']:.1%} "
+                      f"(target {n['target']:.1%}: {n['basis']}); renters x{f['renter']:.3f}, owners x{f['owner']:.3f}, "
+                      f"housed free x{f['rent_free']:.3f}; rebuilt vs stored baskets {n['store_gap']:.1e}")
+            print("Change the calibration makes to the rates (pp), by group: annual average / December")
+            for name, changes in r["series"].items():
+                print(f"  {name}: " + ", ".join(
+                    f"{y} {v['annual_average']:+.3f}/" + ("n/a" if v["december"] is None else f"{v['december']:+.3f}")
+                    for y, v in changes.items()))
+            print("Rent's share of the basket, by survey: ELSTAT's weights -> calibrated")
+            for name, by_year in r["rent_share"].items():
+                print(f"  {name}: " + ", ".join(f"{y} {a:.1%}->{b:.1%}" for y, (a, b) in by_year.items()))
+            if "gap_change" in r:
+                print("Change in the Q1-Q5 gap (pp): " + ", ".join(f"{y} {v:+.3f}" for y, v in r["gap_change"].items()))
             return 0
         return _check_v1(cfg, args.geo) if args.which == "v1" else _check_v1_cpi(cfg)
 

@@ -15,6 +15,6 @@ Eurostat's HICP, the EU's common measure, also covers spending in Greece by visi
 
 ## How much it matters
 
-Very little: with the same weights, all households' annual average inflation differs by at most 0.06 points between the two, and the gap between the poorest and richest fifth by at most 0.1 points.
+Very little: with the same weights, all households' annual average inflation differs by at most 0.07 points between the two, and the gap between the poorest and richest fifth by at most 0.1 points.
 
 Before 2015 Eurostat's Greek HICP has indices only for broader categories, so items are priced at that level ("coarser detail"). Tested on later years, pricing at that level moves the gap by at most 0.04 points. Eurostat publishes the HICP's item indices about a week after ELSTAT's CPI, so these combinations update later in the month.
