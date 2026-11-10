@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 import { countryFacts } from "./context";
 import { calculator, latest, months, readJson, series, settings } from "./data";
 import { BASE_AMOUNT, BASE_MONTH, bandLine, headline } from "./headline";
+import { ordered, results, slugOf } from "./m5";
+import { checkStrip, questionStrip } from "./m5-strip";
 import { format, reference, references } from "./references";
+import { t } from "./i18n";
 
 describe("the data files", () => {
   it("name a default setting that exists", { meta: {
@@ -202,5 +205,35 @@ describe("the bibliography", () => {
     then: "the lookup throws an \"unknown bibliography key\" error",
   } }, () => {
     expect(() => reference("no-such-key")).toThrow(/unknown bibliography key/);
+  });
+
+  it("list the consistency topic's checks and questions in the bar's third row, the one being read marked", { meta: {
+    id: "VT-DATA-015",
+    given: "Greece's consistency results, read by the build",
+    when: "the third row of the bar is built for a check's page and for a question's page, in each language",
+    then: [
+      "the checks' row lists every check once, in the overview's order, each by its short name and linking to its page under checks/",
+      "the questions' row lists every question once, in file order, each by its short name and linking to its page under same-question/",
+      "only the page being read is marked current, and each row has its label",
+    ],
+  } }, () => {
+    const r = results("gr");
+    expect(r.checks.length, "the data have no checks: nothing to check").toBeGreaterThan(1);
+    expect(r.questions.length, "the data have no questions: nothing to check").toBeGreaterThan(1);
+    for (const lang of ["en", "el"] as const) {
+      const checks = ordered(r.checks), current = checks[1].id;
+      const c = checkStrip(lang, "gr", current);
+      expect(c.label).toBe(t(lang, "m5.strip.checks"));
+      expect(c.items.map((i) => i.label)).toEqual(checks.map((x) => t(lang, `m5.short.${x.id}`)));
+      expect(c.items.map((i) => i.href)).toEqual(checks.map((x) => `/${lang}/gr/official-figures-consistency/checks/${slugOf(x.id, "gr")}/`));
+      expect(c.items.filter((i) => i.current).map((i) => i.label)).toEqual([t(lang, `m5.short.${current}`)]);
+
+      const q = questionStrip(lang, "gr", r.questions[0].id);
+      expect(q.label).toBe(t(lang, "m5.strip.questions"));
+      expect(q.items.map((i) => i.label)).toEqual(r.questions.map((x) => t(lang, `m5.short.${x.id}`)));
+      expect(q.items.map((i) => i.href)).toEqual(r.questions.map((x) => `/${lang}/gr/official-figures-consistency/same-question/${slugOf(x.id, "gr")}/`));
+      expect(q.items.filter((i) => i.current)).toHaveLength(1);
+      expect(q.items[0].current).toBe(true);
+    }
   });
 });
