@@ -293,6 +293,11 @@ title = "Explore redraws after changes without breaking the Content Security Pol
 playwright = ["PW-HOST-004"]
 selenium = ["SEL-HOST-004"]
 
+[TC-HOST-005]
+title = "security.txt is served as plain text, as in the repository"
+playwright = ["PW-HOST-005"]
+selenium = ["SEL-HOST-005"]
+
 [TC-NAV-001]
 title = "a header quick list opens, ticks the current entry and closes with Escape"
 playwright = ["PW-NAV-001"]

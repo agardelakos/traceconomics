@@ -1,6 +1,7 @@
 """The host's own headers, on a server that applies site/public/_headers (the deployed site, or
 `npx wrangler dev` on the build): the security headers on every page, open CORS on the data
-files, and no Content Security Policy violation on any page, nor on Explore after changing options.
+files, security.txt served as plain text, and no Content Security Policy violation on any page, nor on
+Explore after changing options.
 Skipped without `--base-url`: the test process's own server sends none of these headers."""
 
 import re
@@ -62,6 +63,22 @@ def test_data_files_are_open_to_other_sites(host_url):
     got = _headers(f"{host_url}/data/v1/gr/m1/latest/series/{default_slug()}.json")
     assert got.get("access-control-allow-origin") == "*"
     assert got.get("x-content-type-options") == "nosniff"
+
+
+@pytest.mark.host
+@pytest.mark.smoke
+def test_security_txt_is_served_as_plain_text(host_url):
+    """SEL-HOST-005: security.txt is served as plain text
+
+    Given a host that serves the site
+    When /.well-known/security.txt is fetched
+    Then it is served as plain text
+    And it is the repository's file, byte for byte
+    """
+    with urllib.request.urlopen(f"{host_url}/.well-known/security.txt", timeout=30) as r:
+        assert r.headers.get("content-type", "").startswith("text/plain")
+        body = r.read()
+    assert body == (SITE / "public" / ".well-known" / "security.txt").read_bytes()
 
 
 @pytest.mark.host
