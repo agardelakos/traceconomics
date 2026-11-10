@@ -1,0 +1,8 @@
+# Where to report a security problem with traceconomics.com or its code (RFC 9116).
+# How to report, and what is in scope: the Policy page. Contacts in order of preference.
+Contact: https://github.com/agardelakos/traceconomics/security/advisories/new
+Contact: mailto:support@traceconomics.com
+Expires: 2027-10-31T23:59:59Z
+Policy: https://github.com/agardelakos/traceconomics/blob/main/SECURITY.md
+Preferred-Languages: en, el
+Canonical: https://traceconomics.com/.well-known/security.txt

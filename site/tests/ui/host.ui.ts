@@ -68,6 +68,18 @@ test("no page breaks the Content Security Policy", { ...smoke, ...gwt({
   expect(found).toEqual([]);
 });
 
+test("security.txt is served as plain text", { ...smoke, ...gwt({
+  id: "PW-HOST-005",
+  given: "a deployed copy of the site",
+  when: "/.well-known/security.txt is requested",
+  then: ["it is served as plain text", "it is the repository's file, byte for byte"],
+}) }, async ({ request }) => {
+  const response = await request.get("/.well-known/security.txt");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toMatch(/^text\/plain/);
+  expect(await response.text()).toBe(readFileSync(new URL("../../public/.well-known/security.txt", import.meta.url), "utf-8"));
+});
+
 // One page load per test: `watch` starts its list afresh on every new document, so a test that
 // opened three addresses in a row would only ever see the last one's violations.
 for (const [name, query, drawn] of [

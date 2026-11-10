@@ -2,8 +2,15 @@
 
 ## Reporting a vulnerability
 
-Please don't open a public issue for a security problem. Report it privately through GitHub: the
-repository's **Security** tab, then **Report a vulnerability**. Only the maintainer sees the report.
+Please don't open a public issue for a security problem. Report it privately, in either of two ways
+(the first is preferred):
+
+- through GitHub: the repository's **Security** tab, then **Report a vulnerability**
+  (https://github.com/agardelakos/traceconomics/security/advisories/new);
+- by email to support@traceconomics.com.
+
+Only the maintainer sees the report. The same contacts are published for the site at
+https://traceconomics.com/.well-known/security.txt.
 
 Useful to include: what you found, where (a page of the site, a file or a command), how to
 reproduce it, and what an attacker could do with it.

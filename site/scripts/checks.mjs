@@ -17,6 +17,9 @@
 //     every link of this site in llms.txt leads to a page or file that was built, and it links every
 //     topic's page for each country and every country's data page (it is written by hand, so a new
 //     topic or country fails here until it is described there).
+//  8. security.txt: built at /.well-known/security.txt with a Contact and exactly one Expires that
+//     parses as a date. An expiry less than 30 days away, or past, is only a warning: a release of
+//     new data must not be held back by a calendar date (renewing it is a yearly task).
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve, extname } from "node:path";
@@ -188,6 +191,18 @@ else {
     // A topic for one country is /en/{country}/{topic}/; a country's data, /en/data/{country}/.
     const needed = pages.filter((p) => /^\/en\/([a-z]{2}\/[a-z][a-z-]+|data\/[a-z]{2})\/$/.test(p));
     for (const p of needed) if (!links.includes(`${SITE}${p}`)) fail(`llms.txt: no link to ${SITE}${p}: describe it there`);
+  }
+
+  // 8. security.txt.
+  const securityTxt = join(dist, ".well-known", "security.txt");
+  if (!existsSync(securityTxt)) fail("no .well-known/security.txt");
+  else {
+    const text = readFileSync(securityTxt, "utf-8");
+    if (!/^Contact: \S+$/m.test(text)) fail("security.txt: no Contact");
+    const expires = [...text.matchAll(/^Expires: (.+)$/gm)].map((m) => m[1]);
+    const when = expires.length === 1 ? Date.parse(expires[0]) : NaN;
+    if (Number.isNaN(when)) fail("security.txt: needs exactly one Expires, a date");
+    else if (when - Date.now() < 30 * 24 * 3600 * 1000) console.warn(`WARN security.txt expires ${expires[0]}: renew it`);
   }
 
   sizes.sort((x, y) => y[0] - x[0]);
