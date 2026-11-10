@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "ff19ac17e8301b8bdbce3c019909b34524ada46f",
- "generated": "2026-11-10T17:32:21Z",
+ "commit": "dc0af94080b484644f3807505e20d90e2c5a221d",
+ "generated": "2026-11-10T21:45:53Z",
  "missing": [],
  "cases": [
   {
@@ -4288,7 +4288,7 @@
    "suite": "pytest",
    "title": "a source URL names its archive dataset",
    "file": "tests/test_backfill.py",
-   "line": 19,
+   "line": 21,
    "node": "tests/test_backfill.py::test_dataset_for_url",
    "given": [
     "ELSTAT document URLs in English and Greek, Eurostat full TSV, full SDMX-CSV and partial-extract URLs, and another publisher's URL"
@@ -4316,7 +4316,7 @@
    "suite": "pytest",
    "title": "seeding copies only files whose checksum matches the manifest",
    "file": "tests/test_backfill.py",
-   "line": 37,
+   "line": 39,
    "node": "tests/test_backfill.py::test_seed_copies_verified_files_only",
    "given": [
     "a research folder whose MANIFEST.md lists a matching ELSTAT file, a changed ELSTAT file and a file from another publisher"
@@ -4346,7 +4346,7 @@
    "suite": "pytest",
    "title": "seeding reads SHA256SUMS and takes the date from the folder name",
    "file": "tests/test_backfill.py",
-   "line": 71,
+   "line": 73,
    "node": "tests/test_backfill.py::test_seed_uses_sha256sums_and_folder_date",
    "given": [
     "a folder named for a date holding a Eurostat file, its SHA256SUMS line and a README table with its source URL"
@@ -4372,7 +4372,7 @@
    "suite": "pytest",
    "title": "a hand-downloaded file is imported as a manual snapshot",
    "file": "tests/test_backfill.py",
-   "line": 93,
+   "line": 95,
    "node": "tests/test_backfill.py::test_import_manual_download",
    "given": [
     "a file downloaded by hand, with no dataset or URL given"
@@ -4399,7 +4399,7 @@
    "suite": "pytest",
    "title": "publishers' pages that aren't data files get datasets named after their paths",
    "file": "tests/test_backfill.py",
-   "line": 110,
+   "line": 112,
    "node": "tests/test_backfill.py::test_other_pages_of_the_publishers_get_their_own_datasets",
    "given": [
     "an ELSTAT page without a document ID, a Eurostat dataflow definition and another Eurostat page"
@@ -4426,7 +4426,7 @@
    "suite": "pytest",
    "title": "seeding takes ELSTAT files saved with their HTTP response headers",
    "file": "tests/test_backfill.py",
-   "line": 136,
+   "line": 138,
    "node": "tests/test_backfill.py::test_seed_takes_elstat_files_saved_with_their_response_headers",
    "given": [
     "a research folder \"downloads_el\" holding \"585819__Table_GR.xls\" and its 585819.hdr: status 200, a Date, a matching length and a cookie",
@@ -4457,7 +4457,7 @@
    "suite": "pytest",
    "title": "seeding takes hand-downloaded microdata listed in their checksum file",
    "file": "tests/test_backfill.py",
-   "line": 169,
+   "line": 171,
    "node": "tests/test_backfill.py::test_seed_takes_hand_downloaded_microdata_from_their_checksum_list",
    "given": [
     "a folder elstat-puf/hbs/archives with HBS_2019.zip, a SHA256SUMS line for it and one for a file that isn't there"
@@ -4483,7 +4483,7 @@
    "suite": "pytest",
    "title": "seeding reports rows it can't vouch for, and copies a file listed twice only once",
    "file": "tests/test_backfill.py",
-   "line": 187,
+   "line": 189,
    "node": "tests/test_backfill.py::test_seed_skips_rows_it_cant_vouch_for_and_files_listed_twice",
    "given": [
     "a research folder without a date in its name, whose MANIFEST.md and README.md both list one good file with its date and checksum",
@@ -4512,7 +4512,7 @@
    "suite": "pytest",
    "title": "a Wayback copy is stored under its capture time, apart from the job's files",
    "file": "tests/test_backfill.py",
-   "line": 219,
+   "line": 221,
    "node": "tests/test_backfill.py::test_import_wayback_stamps_the_capture_time",
    "given": [
     "a newer copy of a table already archived by the job as elstat/doc-114837",
@@ -4541,7 +4541,7 @@
    "suite": "pytest",
    "title": "a Wayback import refuses an address that isn't a raw capture, and a job's dataset name",
    "file": "tests/test_backfill.py",
-   "line": 250,
+   "line": 252,
    "node": "tests/test_backfill.py::test_import_wayback_refuses_other_addresses_and_dataset_names",
    "given": [
     "a file and an archive"
@@ -4554,6 +4554,35 @@
    ],
    "notes": "",
    "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BACKFILL-011",
+   "suite": "pytest",
+   "title": "an AADE workbook imported by hand lands in the dataset a fetch would use",
+   "file": "tests/test_backfill.py",
+   "line": 270,
+   "node": "tests/test_backfill.py::test_import_names_an_aade_workbook_as_a_fetch_would",
+   "given": [
+    "an AADE workbook downloaded by hand under its published file name, with no dataset given"
+   ],
+   "when": [
+    "it is imported for AADE"
+   ],
+   "then": [
+    "it is stored under \"pit-\" plus the file's name in slug form, as the adapter names a fetched workbook",
+    "its original file name is kept in the manifest, which the store matches"
+   ],
+   "notes": "",
+   "examples": [
+    "SD_FP_22F_3.xlsx-pit-sd-fp-22f-3",
+    "etisio_stats_fysikwn_forologikou_2020 v3.xlsx-pit-etisio-stats-fysikwn-forologikou-2020-v3"
+   ],
    "defects": [],
    "tags": [
     "integration"
@@ -9588,11 +9617,37 @@
    "named": false
   },
   {
+   "id": "PY-JOB-021",
+   "suite": "pytest",
+   "title": "the daily run never asks AADE, so its CDN's refusal can't stop a release",
+   "file": "tests/test_job.py",
+   "line": 184,
+   "node": "tests/test_job.py::test_the_daily_run_never_asks_aade",
+   "given": [
+    "fake publishers that would serve AADE's statistics page, workbooks and terms page"
+   ],
+   "when": [
+    "the scheduled job runs"
+   ],
+   "then": [
+    "the run is ok",
+    "no address on www.aade.gr was requested"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-JOB-007",
    "suite": "pytest",
    "title": "changed reuse terms raise an alert",
    "file": "tests/test_job.py",
-   "line": 184,
+   "line": 198,
    "node": "tests/test_job.py::test_changed_terms_raise_an_alert",
    "given": [
     "a first run that stored a publisher's reuse terms page"
@@ -9618,7 +9673,7 @@
    "suite": "pytest",
    "title": "a new year in ELSTAT's microdata catalogue is reported",
    "file": "tests/test_job.py",
-   "line": 201,
+   "line": 215,
    "node": "tests/test_job.py::test_new_puf_year_raises_an_alert",
    "given": [
     "a first run that stored ELSTAT's microdata catalogue listing HBS 2008 - 2024"
@@ -9643,7 +9698,7 @@
    "suite": "pytest",
    "title": "a run with failures doesn't count as a good run",
    "file": "tests/test_job.py",
-   "line": 216,
+   "line": 230,
    "node": "tests/test_job.py::test_failures_keep_the_run_due",
    "given": [
     "fake publishers where the microdata catalogue page is missing"
@@ -9669,7 +9724,7 @@
    "suite": "pytest",
    "title": "a dry run plans but fetches and stores nothing",
    "file": "tests/test_job.py",
-   "line": 231,
+   "line": 245,
    "node": "tests/test_job.py::test_dry_run_stores_nothing",
    "given": [
     "fake publishers"
@@ -9696,7 +9751,7 @@
    "suite": "pytest",
    "title": "a morning run doesn't cover that day's release",
    "file": "tests/test_job.py",
-   "line": 247,
+   "line": 261,
    "node": "tests/test_job.py::test_morning_run_doesnt_cover_that_days_release",
    "given": [
     "fake publishers"
@@ -9721,7 +9776,7 @@
    "suite": "pytest",
    "title": "marking the backup done leaves nothing stored since the mark",
    "file": "tests/test_job.py",
-   "line": 259,
+   "line": 273,
    "node": "tests/test_job.py::test_backup_mark",
    "given": [
     "an archive filled by a run"
@@ -9746,7 +9801,7 @@
    "suite": "pytest",
    "title": "the heartbeat, backup and release build follow a run with new data",
    "file": "tests/test_job.py",
-   "line": 286,
+   "line": 300,
    "node": "tests/test_job.py::test_heartbeat_backup_and_release_follow_a_run_with_new_data",
    "given": [
     "release builds turned on, and stand-ins for the heartbeat, the backup and the release build"
@@ -9773,7 +9828,7 @@
    "suite": "pytest",
    "title": "a run with nothing new has no release and no backup",
    "file": "tests/test_job.py",
-   "line": 302,
+   "line": 316,
    "node": "tests/test_job.py::test_a_run_with_nothing_new_has_no_release_and_no_backup",
    "given": [
     "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
@@ -9800,7 +9855,7 @@
    "suite": "pytest",
    "title": "a day with no run due still sends its heartbeat",
    "file": "tests/test_job.py",
-   "line": 320,
+   "line": 334,
    "node": "tests/test_job.py::test_a_day_with_no_run_due_still_sends_its_heartbeat",
    "given": [
     "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
@@ -9826,7 +9881,7 @@
    "suite": "pytest",
    "title": "release builds are off by default",
    "file": "tests/test_job.py",
-   "line": 339,
+   "line": 353,
    "node": "tests/test_job.py::test_release_is_off_by_default",
    "given": [
     "a configuration with no release section"
@@ -9852,7 +9907,7 @@
    "suite": "pytest",
    "title": "a day with no run due still exports visit counts and backs them up",
    "file": "tests/test_job.py",
-   "line": 361,
+   "line": 375,
    "node": "tests/test_job.py::test_a_quiet_day_still_exports_visit_counts_and_backs_them_up",
    "given": [
     "a job state with no release due, an analytics stand-in that stores one day of visits and has downloads off, and stand-ins for the backup and heartbeat"
@@ -9880,7 +9935,7 @@
    "suite": "pytest",
    "title": "a lost analytics bookmark is rebuilt from the archive",
    "file": "tests/test_job.py",
-   "line": 394,
+   "line": 408,
    "node": "tests/test_job.py::test_the_bookmark_is_rebuilt_from_the_archive",
    "given": [
     "no bookmark in the job state, and stored visit days of which one was a later manual fill of an older day and one is today's"
@@ -9905,7 +9960,7 @@
    "suite": "pytest",
    "title": "a failing analytics export alerts only when days are running out",
    "file": "tests/test_job.py",
-   "line": 413,
+   "line": 427,
    "node": "tests/test_job.py::test_a_failing_export_alerts_only_when_days_are_running_out",
    "given": [
     "a visits bookmark that is recent, several days old, or missing",
@@ -9936,7 +9991,7 @@
    "suite": "pytest",
    "title": "each analytics feed has its own bookmark and alert",
    "file": "tests/test_job.py",
-   "line": 431,
+   "line": 445,
    "node": "tests/test_job.py::test_each_feed_has_its_own_bookmark_and_alert",
    "given": [
     "a visits bookmark, no downloads bookmark and a stored downloads day five days back",
