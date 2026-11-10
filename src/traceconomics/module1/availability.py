@@ -44,6 +44,12 @@ REASONS = {
                       "within one share its price movement.",
     "same_year_weights": "Same-year weights: not a Laspeyres-type index (its weights aren't from before the prices). "
                          "Shown to compare with studies made after the fact.",
+    # An option whose source starts later or publishes later than the others (today only the HICP:
+    # Eurostat's item indices come about a week after ELSTAT's CPI, so for that week every month the
+    # HICP settings end a month earlier). Every code `build` can give needs a text here and in the
+    # site's language files, or the site has nothing to show for it.
+    "starts_later": "Not available before {month}: this option's source starts later.",
+    "ends_earlier": "Not yet published for {month}: this option's source releases later than ELSTAT's CPI.",
     "hicp_later": "Eurostat publishes the HICP's item indices about a week after ELSTAT's CPI, so these combinations "
                   "update later in the month.",
 }
@@ -127,13 +133,14 @@ def build(summaries: list[Summary]) -> dict:
                 code = "rule_f_start" if (name, value) == ("weights_timing", "F") else "starts_later"
                 entry["greyed"].append({"annual_rates": [full_annual[0], _month_before(ann[0])],
                                         "index": [full_index[0], _month_before(idx[0])], "reason": code,
-                                        "text": REASONS.get(code, "")})
+                                        "text": REASONS[code].format(month=idx[0])})
             if ann and ann[1] < full_annual[1]:
                 last_survey = max(h for m in these for h, _ in m.surveys.values())
                 code = "rule_u_end" if (name, value) == ("weights_timing", "U") else "ends_earlier"
                 entry["greyed"].append({"annual_rates": [_month_after(ann[1]), full_annual[1]],
                                         "index": [_month_after(idx[1]), full_index[1]], "reason": code,
-                                        "text": REASONS.get(code, "").format(last_survey=last_survey, last_index=idx[1])})
+                                        "text": REASONS[code].format(last_survey=last_survey, last_index=idx[1],
+                                                                       month=_month_after(idx[1]))})
             options[name][value] = entry
     _note(options, "weights_timing", "F", "fixed_lag")
     _note(options, "weights_timing", "U", "same_year_weights")

@@ -509,3 +509,26 @@ def test_data_that_fails_to_load_says_so_and_retry_tries_again(site):
     retry.click()
     site.hidden("#explore [role=alert]")
     site.wait(lambda _: site.find("#explore [data-role=summary]").text != "", "the summary was never drawn after Retry")
+
+
+def test_a_price_source_that_publishes_later_says_which_month_it_doesnt_have_yet(site):
+    """SEL-EXPL-023: a price source that publishes later says which month it doesn't have yet
+
+    Given Explore in each language, and data whose HICP ends a month before the CPI, as for about a week every month
+    When the HICP is chosen as the price source
+    Then the option's note says the HICP isn't published yet for the CPI's last month, named in that language
+    And the chart's summary is written, for the HICP's own last month
+    And the page logs no error
+    """
+    hicp = data("availability.json")["options"]["price_source"]["hicp"]
+    greyed = [g for g in hicp["greyed"] if g["reason"] == "ends_earlier"]
+    assert len(greyed) == 1, "the data's HICP doesn't end earlier than the CPI: nothing to check"
+    for lang in ("en", "el"):
+        site.open(PAGE.format(lang=lang))
+        _ready(site)
+        _pick(site, "price_source", "hicp")
+        expected = t(lang, "reason.ends_earlier", month=month(lang, greyed[0]["index"][0], "acc"))
+        note = 'fieldset[data-option="price_source"] [data-role=note]'
+        site.wait(lambda _: expected in site.find(note).text)
+        last = month(lang, hicp["index"][1], "acc" if lang == "el" else "nom")
+        site.wait(lambda _: last in site.find("#explore [data-role=summary]").text)

@@ -77,3 +77,18 @@ def test_made_up_baskets_take_the_special_paths(data):
     assert any(c.endswith("_REST") for c, _ in used("all_excluded_cpi_N_priced", "true"))
     assert used("purchases_included_cpi_N_priced", "coicop18 = '0421'") == {("0421", "0411")}
     assert used("purchases_excluded_cpi_N_priced", "coicop18 = '1050'") == {("1050", "1020")}
+
+
+def test_the_hicp_ends_a_month_earlier_and_says_why(data):
+    """PY-SITEDATA-004: the made-up HICP ends a month earlier, and the availability table says why
+
+    Given the made-up site data, whose HICP ends a month before the CPI, as the real data do for about a week every month
+    When its availability table is read
+    Then the HICP's last month is the one before the CPI's last month
+    And the HICP is greyed for the CPI's last month with reason "ends_earlier"
+    """
+    table = json.loads((data / "availability.json").read_text(encoding="utf-8"))
+    hicp, cpi = table["options"]["price_source"]["hicp"], table["options"]["price_source"]["cpi"]
+    assert cpi["index"][1] == f"{sitedata.LAST}-{sitedata.LAST_MONTH:02d}"
+    assert hicp["index"][1] == f"{sitedata.LAST}-{sitedata.HICP_LAST_MONTH:02d}"
+    assert [(g["reason"], g["index"]) for g in hicp["greyed"]] == [("ends_earlier", [cpi["index"][1]] * 2)]

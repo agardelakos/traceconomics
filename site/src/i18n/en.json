@@ -252,6 +252,8 @@
   "reason.less_certain": "CPI prices for 2009–2010 come from ELSTAT's original tables, an older version of the prices.",
   "reason.coarser_detail": "Before 2015, Eurostat's Greek HICP has item indices only for broader categories, so the items within one share its price movement.",
   "reason.same_year_weights": "Same-year weights: not a Laspeyres-type index (its weights aren't from before the prices). Shown to compare with studies made after the fact.",
+  "reason.starts_later": "Not available before {month}: this option's source starts later.",
+  "reason.ends_earlier": "Not yet published for {month}: this option's source releases later than ELSTAT's CPI.",
   "reason.hicp_later": "Eurostat publishes the HICP's item indices about a week after ELSTAT's CPI, so these combinations update later in the month.",
   "reason.timing.N": "Newest survey up to the year before; revised once when that survey's microdata arrive.",
 

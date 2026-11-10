@@ -36,6 +36,9 @@ from traceconomics.sources.elstat.parse import TOTAL
 
 FIRST, LAST = 2008, 2026
 LAST_MONTH = 9                            # the made-up data end in September of the last year
+# The HICP ends a month earlier, as the real data do for about a week every month: Eurostat
+# publishes its item indices after ELSTAT's CPI. The site must say why those months are missing.
+HICP_LAST_MONTH = LAST_MONTH - 1
 SURVEYS = range(2008, 2025)
 PUBLISHED = datetime(2026, 10, 1)
 
@@ -95,7 +98,8 @@ def blocks(*, hicp: bool = False) -> dict[int, dict]:
     priced = [c for c in codes() if not c.startswith(tuple(u[:3] for u in UNPRICED))] + ([] if hicp else [TOTAL])
     out = {}
     for y in range(FIRST, LAST + 1):
-        months = [(y - 1, 12)] + [(y, m) for m in range(1, (LAST_MONTH if y == LAST else 12) + 1)]
+        last = HICP_LAST_MONTH if hicp else LAST_MONTH
+        months = [(y - 1, 12)] + [(y, m) for m in range(1, (last if y == LAST else 12) + 1)]
         out[y] = {c: {f"{yy}-{mm:02d}": level(c, yy, mm, hicp=hicp) for yy, mm in months} for c in priced}
     return out
 
@@ -191,8 +195,9 @@ BAND_DIMS = ["geo", "grouping", "group", "spending", "imputed_rent", "price_sour
 
 def _band_rows():
     gaps = [(g, site.GAP) for g in combinations.GROUPINGS]
-    months = [f"{y}-{m:02d}" for y in range(2010, LAST + 1) for m in range(1, 13) if (y, m) <= (LAST, LAST_MONTH)]
     for s in combinations.settings():
+        last = HICP_LAST_MONTH if s["price_source"] == "hicp" else LAST_MONTH
+        months = [f"{y}-{m:02d}" for y in range(2010, LAST + 1) for m in range(1, 13) if (y, m) <= (LAST, last)]
         for g, q in combinations.GROUPS + gaps:
             gap = q == site.GAP
             for unit, periods in ((("RCH_A_GAP", months), ("RCH_A_AVG_GAP", [str(y) for y in range(2010, LAST)]))
