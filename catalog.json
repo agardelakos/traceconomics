@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "3680b4e1a605b0b5a643e7ca1bdc2d109e9f93f8",
- "generated": "2026-11-08T10:39:26Z",
+ "commit": "1e6ea563cb0b88ef1a163e6a42e6201237a24684",
+ "generated": "2026-11-10T13:49:20Z",
  "missing": [],
  "cases": [
   {
@@ -1005,6 +1005,31 @@
    "then": [
     "a notice above the chart gives the reason, as the availability file names it",
     "the option's own note gives the same reason"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-023",
+   "suite": "playwright",
+   "title": "a price source that publishes later says which month it doesn't have yet",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 468,
+   "node": "site/tests/ui/explore.ui.ts › a price source that publishes later says which month it doesn't have yet",
+   "given": [
+    "Explore in each language, and data whose HICP ends a month before the CPI, as for about a week every month"
+   ],
+   "when": [
+    "the HICP is chosen as the price source"
+   ],
+   "then": [
+    "the option's note says the HICP isn't published yet for the CPI's last month, named in that language",
+    "the chart's summary is written, for the HICP's own last month",
+    "the page logs no error"
    ],
    "notes": "",
    "examples": [],
@@ -11874,7 +11899,7 @@
    "suite": "pytest",
    "title": "48 settings, with the default first",
    "file": "tests/test_module1_combinations.py",
-   "line": 30,
+   "line": 31,
    "node": "tests/test_module1_combinations.py::test_48_settings_with_the_default_first",
    "given": [
     "the module 1 options"
@@ -11901,7 +11926,7 @@
    "suite": "pytest",
    "title": "quality flags follow the price source",
    "file": "tests/test_module1_combinations.py",
-   "line": 45,
+   "line": 46,
    "node": "tests/test_module1_combinations.py::test_quality_flags_follow_the_price_source",
    "given": [
     "periods on each side of the price sources' limits"
@@ -11928,7 +11953,7 @@
    "suite": "pytest",
    "title": "small cells are published only inside a rest row",
    "file": "tests/test_module1_combinations.py",
-   "line": 62,
+   "line": 63,
    "node": "tests/test_module1_combinations.py::test_small_cells_are_published_only_inside_a_rest_row",
    "given": [
     "a year's weights where two small subclasses are priced with their class"
@@ -11955,7 +11980,7 @@
    "suite": "pytest",
    "title": "series carry their options, and rule U ends with its surveys",
    "file": "tests/test_module1_combinations.py",
-   "line": 81,
+   "line": 82,
    "node": "tests/test_module1_combinations.py::test_series_carry_their_options_and_rule_u_ends_with_its_surveys",
    "given": [
     "made-up prices and baskets for B/Q1"
@@ -11984,7 +12009,7 @@
    "suite": "pytest",
    "title": "availability greys out what a rule can't cover",
    "file": "tests/test_module1_combinations.py",
-   "line": 104,
+   "line": 105,
    "node": "tests/test_module1_combinations.py::test_availability_greys_out_what_a_rule_cannot_cover",
    "given": [
     "series for B/Q1 and B/Q5 under weights timing N, F and U"
@@ -12009,11 +12034,63 @@
    "named": false
   },
   {
+   "id": "PY-COMBO-018",
+   "suite": "pytest",
+   "title": "an option whose source publishes later is greyed for the months it lacks",
+   "file": "tests/test_module1_combinations.py",
+   "line": 138,
+   "node": "tests/test_module1_combinations.py::test_an_option_whose_source_publishes_later_is_greyed_for_the_months_it_lacks",
+   "given": [
+    "series for B/Q1 under the CPI to 2026-09 and under the HICP to 2026-08, as for the week every month between ELSTAT's CPI and Eurostat's item indices"
+   ],
+   "when": [
+    "the availability table is built"
+   ],
+   "then": [
+    "the HICP is greyed with reason \"ends_earlier\" for the index and annual rates of 2026-09",
+    "its text names 2026-09, the first month it doesn't have yet",
+    "the CPI is not greyed"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-019",
+   "suite": "pytest",
+   "title": "every reason the availability table can give has a text in both site languages",
+   "file": "tests/test_module1_combinations.py",
+   "line": 161,
+   "node": "tests/test_module1_combinations.py::test_every_reason_has_a_text_in_both_site_languages",
+   "given": [
+    "the reasons the availability table can give"
+   ],
+   "when": [
+    "the site's English and Greek language files are read"
+   ],
+   "then": [
+    "each language file has a \"reason.<code>\" text for every one of them"
+   ],
+   "notes": "The site looks a greyed option's reason up by its code and stops with \"missing text\" if there\nis none, so a reason without a text breaks the Explore page for that option.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "repository"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-COMBO-006",
    "suite": "pytest",
    "title": "a rest row with one cell is flagged low reliability",
    "file": "tests/test_module1_combinations.py",
-   "line": 137,
+   "line": 178,
    "node": "tests/test_module1_combinations.py::test_a_rest_row_with_one_cell_is_flagged_low_reliability",
    "given": [
     "a series whose 2015 weights have one small cell (10501) priced with its group"
@@ -12038,7 +12115,7 @@
    "suite": "pytest",
    "title": "the code fingerprint ignores line endings",
    "file": "tests/test_module1_combinations.py",
-   "line": 152,
+   "line": 193,
    "node": "tests/test_module1_combinations.py::test_code_fingerprint_ignores_line_endings",
    "given": [
     "a made-up package with one source file with LF line endings, and its fingerprint"
@@ -12065,7 +12142,7 @@
    "suite": "pytest",
    "title": "the published metadata has LF line endings",
    "file": "tests/test_module1_combinations.py",
-   "line": 179,
+   "line": 220,
    "node": "tests/test_module1_combinations.py::test_the_published_metadata_has_lf_line_endings",
    "given": [
     "an output folder"
@@ -12090,7 +12167,7 @@
    "suite": "pytest",
    "title": "Parquet is written with one thread",
    "file": "tests/test_module1_combinations.py",
-   "line": 196,
+   "line": 237,
    "node": "tests/test_module1_combinations.py::test_parquet_is_written_with_one_thread",
    "given": [
     "the connection used to write Parquet"
@@ -15228,6 +15305,32 @@
    "named": false
   },
   {
+   "id": "PY-SITEDATA-004",
+   "suite": "pytest",
+   "title": "the made-up HICP ends a month earlier, and the availability table says why",
+   "file": "tests/test_sitedata.py",
+   "line": 82,
+   "node": "tests/test_sitedata.py::test_the_hicp_ends_a_month_earlier_and_says_why",
+   "given": [
+    "the made-up site data, whose HICP ends a month before the CPI, as the real data do for about a week every month"
+   ],
+   "when": [
+    "its availability table is read"
+   ],
+   "then": [
+    "the HICP's last month is the one before the CPI's last month",
+    "the HICP is greyed for the CPI's last month with reason \"ends_earlier\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-ARCHIVE-001",
    "suite": "pytest",
    "title": "a file is stored, then the same bytes are unchanged",
@@ -16947,6 +17050,31 @@
    "tags": [
     "console_errors"
    ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "SEL-EXPL-023",
+   "suite": "selenium",
+   "title": "a price source that publishes later says which month it doesn't have yet",
+   "file": "tests/selenium/test_explore.py",
+   "line": 514,
+   "node": "tests/selenium/test_explore.py::test_a_price_source_that_publishes_later_says_which_month_it_doesnt_have_yet",
+   "given": [
+    "Explore in each language, and data whose HICP ends a month before the CPI, as for about a week every month"
+   ],
+   "when": [
+    "the HICP is chosen as the price source"
+   ],
+   "then": [
+    "the option's note says the HICP isn't published yet for the CPI's last month, named in that language",
+    "the chart's summary is written, for the HICP's own last month",
+    "the page logs no error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
    "problems": [],
    "named": false
   },
