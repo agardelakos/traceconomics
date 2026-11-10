@@ -128,6 +128,11 @@ title = "months an option leaves out are noted, with the reason, above the chart
 playwright = ["PW-EXPL-020"]
 selenium = ["SEL-EXPL-015"]
 
+[TC-EXPL-016]
+title = "a price source that publishes later says, on its option, which month it doesn't have yet"
+playwright = ["PW-EXPL-023"]
+selenium = ["SEL-EXPL-023"]
+
 [TC-GRP-001]
 title = "with scripts, the finder's form shows and asks for an income first"
 playwright = ["PW-GRP-001"]

@@ -2,6 +2,7 @@
 availability table, on made-up prices and baskets."""
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -132,6 +133,46 @@ def test_availability_greys_out_what_a_rule_cannot_cover(tmp_path):
     paths = availability.write(tmp_path, table)
     assert json.loads(paths[0].read_text(encoding="utf-8"))["fixed"]
     assert "rule_u_end" in paths[1].read_text(encoding="utf-8")
+
+
+def test_an_option_whose_source_publishes_later_is_greyed_for_the_months_it_lacks():
+    """PY-COMBO-018: an option whose source publishes later is greyed for the months it lacks
+
+    Given series for B/Q1 under the CPI to 2026-09 and under the HICP to 2026-08, as for the week every month between ELSTAT's CPI and Eurostat's item indices
+    When the availability table is built
+    Then the HICP is greyed with reason "ends_earlier" for the index and annual rates of 2026-09
+    And its text names 2026-09, the first month it doesn't have yet
+    And the CPI is not greyed
+    """
+    cpi = blocks()
+    hicp = {y: {c: {p: v for p, v in s.items() if p != "2026-09"} for c, s in b.items()} for y, b in blocks().items()}
+    k = baskets()
+    summaries = [availability.Summary.of(index.build(None, "B", "Q1", blocks=b, baskets=k, first_year=None,
+                                                     options={"price_source": src}))
+                 for src, b in (("cpi", cpi), ("hicp", hicp))]
+    table = availability.build(summaries)
+    h, c = table["options"]["price_source"]["hicp"], table["options"]["price_source"]["cpi"]
+    assert [g["reason"] for g in h["greyed"]] == ["ends_earlier"]
+    assert h["greyed"][0]["index"] == ["2026-09", "2026-09"] and h["greyed"][0]["annual_rates"] == ["2026-09", "2026-09"]
+    assert "2026-09" in h["greyed"][0]["text"]
+    assert c["greyed"] == []
+
+
+@pytest.mark.repository
+def test_every_reason_has_a_text_in_both_site_languages():
+    """PY-COMBO-019: every reason the availability table can give has a text in both site languages
+
+    Given the reasons the availability table can give
+    When the site's English and Greek language files are read
+    Then each language file has a "reason.<code>" text for every one of them
+
+    The site looks a greyed option's reason up by its code and stops with "missing text" if there
+    is none, so a reason without a text breaks the Explore page for that option.
+    """
+    root = Path(__file__).resolve().parents[1] / "site" / "src" / "i18n"
+    for lang in ("en", "el"):
+        texts = json.loads((root / f"{lang}.json").read_text(encoding="utf-8"))
+        assert sorted(c for c in availability.REASONS if f"reason.{c}" not in texts) == [], lang
 
 
 def test_a_rest_row_with_one_cell_is_flagged_low_reliability():

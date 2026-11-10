@@ -174,7 +174,16 @@ export function start(root: HTMLElement): void {
       const end = cfg.availability.weights_timing.U.index[1];
       return t("reason.rule_u_end", { survey: end.slice(0, 4), month: month(L, end, "acc") });
     }
+    // An option whose source starts or publishes later than the others: the month it starts, or
+    // the first month it doesn't have yet (the greyed span's first month).
+    if (code === "ends_earlier") return t("reason.ends_earlier", { month: month(L, r.index[0], "acc") });
+    if (code === "starts_later") return t("reason.starts_later", { month: month(L, nextMonth(r.index[1]), "acc") });
     return t(`reason.${code}`);
+  }
+
+  function nextMonth(p: string): string {
+    const y = Number(p.slice(0, 4)), m = Number(p.slice(5, 7));
+    return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
   }
 
   function optionNotes(k: string): string[] {

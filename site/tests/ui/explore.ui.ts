@@ -464,3 +464,26 @@ test("months an option leaves out are noted, with the reason", gwt({
   const note = root(page).locator('fieldset[data-option="weights_timing"] [data-role="note"]');
   for (const r of reasons) await expect(note).toContainText(r);
 });
+
+test("a price source that publishes later says which month it doesn't have yet", gwt({
+  id: "PW-EXPL-023",
+  given: "Explore in each language, and data whose HICP ends a month before the CPI, as for about a week every month",
+  when: "the HICP is chosen as the price source",
+  then: [
+    "the option's note says the HICP isn't published yet for the CPI's last month, named in that language",
+    "the chart's summary is written, for the HICP's own last month",
+    "the page logs no error",
+  ],
+}), async ({ page, request }) => {
+  const hicp = (await json(request, `${DATA}/availability.json`)).options.price_source.hicp;
+  const greyed = hicp.greyed.filter((g: { reason: string }) => g.reason === "ends_earlier");
+  expect(greyed.length, "the data's HICP doesn't end earlier than the CPI: nothing to check").toBe(1);
+  for (const lang of LANGS) {
+    await page.goto(m1(lang, "explore/"));
+    await openOptions(page, lang);
+    await radio(page, "price_source", "hicp").check();
+    const note = root(page).locator('fieldset[data-option="price_source"] [data-role="note"]');
+    await expect(note).toContainText(t(lang, "reason.ends_earlier", { month: month(lang, greyed[0].index[0], "acc") }));
+    await expect(summary(page)).toContainText(month(lang, hicp.index[1], lang === "el" ? "acc" : "nom"));
+  }
+});
