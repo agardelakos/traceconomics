@@ -14,8 +14,8 @@ and explains it in plain language. Greece comes first; the design allows many co
 
 ## What is live
 
-The site, [traceconomics.com](https://traceconomics.com), offered in English; the Greek version
-is built alongside and opens after a native speaker's review.
+The site, [traceconomics.com](https://traceconomics.com), in English and Greek; the Greek was
+reviewed by a native speaker before it was offered.
 
 - **Inflation by household for Greece**: did prices rise the same for everyone? Monthly from 2010,
   by income fifth, renters and owners, and pensioner households, under every combination of the

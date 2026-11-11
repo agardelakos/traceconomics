@@ -17,7 +17,7 @@ const LANGS = ["el", "en"];
 const SKIP = new Set(["a", "h1", "h2", "h3", "h4", "h5", "h6", "code", "pre", "button", "script", "style"]);
 
 // Case and the Greek final sigma don't matter when comparing forms.
-const norm = (s) => s.toLowerCase().replace(/ς/g, "σ");
+export const norm = (s) => s.toLowerCase().replace(/ς/g, "σ");
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** The terms of one language: slug, name, short text and forms, read from the Markdown files. */

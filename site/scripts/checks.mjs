@@ -20,11 +20,20 @@
 //  8. security.txt: built at /.well-known/security.txt with a Contact and exactly one Expires that
 //     parses as a date. An expiry less than 30 days away, or past, is only a warning: a release of
 //     new data must not be held back by a calendar date (renewing it is a yearly task).
+//  9. Terms: where the English uses a glossary term, its Greek twin uses the same term in one of
+//     its Greek forms (src/lib/twin-terms.mjs), so one concept is never said two ways. Only the
+//     pairs on src/i18n/terms-allow.json may miss, and an entry that no longer misses fails too,
+//     so that list only shrinks. `npm run terms:report` lists every miss with both texts.
+// 10. The final ν in the Greek (src/lib/final-n.mjs): «δεν», «την», «στην» keep it before a vowel
+//     or κ, π, τ, ξ, ψ, μπ, ντ, γκ and drop it before other consonants; «μην» and «αυτήν» drop it
+//     there too.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 import { BEACON, TOKEN } from "../src/lib/analytics.ts";
+import { compare, loadAllowList, loadGlossary, loadPairs, misses, visible } from "../src/lib/twin-terms.mjs";
+import { finalN } from "../src/lib/final-n.mjs";
 
 // The one address a page may show (see 3. above).
 const PUBLIC_EMAIL = "support@traceconomics.com";
@@ -208,6 +217,19 @@ else {
   sizes.sort((x, y) => y[0] - x[0]);
   console.log("heaviest pages (HTML, CSS, scripts; compressed):", sizes.slice(0, 3).map(([b, n]) => `${n} ${Math.round(b / 1024)} KB`).join(", "));
   console.log(`${files.length} files, ${files.filter((f) => f.endsWith(".html")).length} pages checked`);
+}
+
+// 9. Terms (source only, like 1. and 2.).
+{
+  const src = join(site, "src");
+  const { fresh, stale } = compare(misses(loadPairs(src), loadGlossary(src)), loadAllowList(join(src, "i18n", "terms-allow.json")));
+  for (const m of fresh) fail(`${m.id}: the English uses the glossary term "${m.term}", the Greek none of its forms: use the term, or add its missing form to the Greek glossary (npm run terms:report)`);
+  for (const m of stale) fail(`src/i18n/terms-allow.json: ${m.id} now uses "${m.term}" in both languages: delete its entry`);
+}
+
+// 10. The final ν (source only).
+for (const p of loadPairs(join(site, "src"))) {
+  for (const f of finalN(visible(p.el))) fail(`${p.id}: «${f.found}» should be «${f.want}» (the final ν)`);
 }
 
 if (failures.length) {

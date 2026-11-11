@@ -4,6 +4,7 @@ skip link and the breadcrumbs."""
 import json
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 
 import pytest
 from selenium.webdriver.common.keys import Keys
@@ -12,6 +13,8 @@ from helpers import ROOT, t
 
 # The languages offered to readers, as the site's own list has them.
 OFFERED = json.loads((ROOT / "site/src/i18n/languages.json").read_text(encoding="utf-8"))["offered"]
+# The languages the site is built in: one interface file each (en.json, el.json).
+BUILT = sorted(p.stem for p in (ROOT / "site/src/i18n").glob("??.json"))
 
 TOPIC_PAGE = "/{lang}/gr/inflation-by-group/explore/"
 
@@ -160,14 +163,22 @@ def test_language_switch_on_english_pages(site, path):
     Given an English page: the home page, About or Explore
     When the language switch is read
     Then English is linked and marked current
-    And Greek is shown but not linked, as it isn't offered
+    And each other offered language links to the same page in that language
+    And a language not yet offered is shown but not linked
     """
     site.open(path)
     box = site.find(f'.lang-switch[role=group][aria-label="{t("en", "lang.switch")}"]')
     en = site.find('a[lang="en"]', box)
     assert en.get_attribute("aria-current") == "true"
-    el = site.find('[lang="el"]', box)
-    assert el.tag_name == "span" and el.get_attribute("aria-disabled") == "true", "Greek is linked though not offered"
+    for lang in BUILT:
+        if lang == "en":
+            continue
+        other = site.find(f'[lang="{lang}"]', box)
+        if lang in OFFERED:
+            assert other.tag_name == "a", f"{lang} is offered but not linked"
+            assert urlsplit(other.get_attribute("href")).path == path.replace("/en/", f"/{lang}/", 1)
+        else:
+            assert other.tag_name == "span" and other.get_attribute("aria-disabled") == "true", f"{lang} is linked though not offered"
 
 
 def test_language_switch_from_greek_page(site):

@@ -14,9 +14,9 @@ ELSTAT publishes the household budget survey twice: as tables (table 1.03 gives 
 
 | Year | Households, published table | Households, public file | Difference |
 |---|---|---|---|
-| 2014 | 4,152,372 | 4,136,073 | −0.4% |
-| 2015 | 4,124,095 | 4,134,481 | +0.3% |
-| 2018 | 4,085,310 | 4,048,749 | −0.9% |
+| 2014 | 4 152 372 | 4 136 073 | −0.4% |
+| 2015 | 4 124 095 | 4 134 481 | +0.3% |
+| 2018 | 4 085 310 | 4 048 749 | −0.9% |
 
 - In those years most items differ, by little: half of the differences are under 1% of the item's value (under 2% in 2018), typically 4 to 7 cents a month. Two items of 2015 (clothing materials and furniture repair) have no column in the file at all.
 

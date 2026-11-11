@@ -4,6 +4,8 @@
 
 Live today: **inflation by household group, for Greece**: how much consumer prices rose for poorer and richer households, renters and owners, household types (one adult, couples, households with children) and pensioner households, month by month, from ELSTAT's and Eurostat's price indices and ELSTAT's Household Budget Survey. Updated each month after ELSTAT publishes the consumer price index. Also live: **consistency of official figures, for Greece**: whether each official figure follows from the inputs the same office publishes (the CPI's rates against its own index, the CPI and HICP rebuilt from their items, household types in the spending survey), how often they agree, and why they differ where they do. More topics and countries will follow.
 
+Every page is also in Greek: replace `/en/` with `/el/` in its address.
+
 Prefer the data files over the pages for numbers: they hold every value at full precision, with the options each one was computed under. The pages state the same numbers in plain words, with the method behind them.
 
 ## Inflation by household group: Greece
