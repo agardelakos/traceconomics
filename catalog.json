@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "2e7dd094fcac18eeb1c3a7fed447666d698cd16c",
- "generated": "2026-11-10T21:53:33Z",
+ "commit": "c8f0fcd5bd042c1882b749960365be8651f6dfe5",
+ "generated": "2026-11-11T08:59:32Z",
  "missing": [],
  "cases": [
   {
@@ -2259,7 +2259,7 @@
    "suite": "playwright",
    "title": "the sitemap lists the pages",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 16,
+   "line": 18,
    "node": "site/tests/ui/links.ui.ts › the sitemap lists the pages",
    "given": [
     "a built site"
@@ -2282,10 +2282,10 @@
    "suite": "playwright",
    "title": "every page in the sitemap loads, with a heading, and logs no error",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 27,
-   "node": "site/tests/ui/links.ui.ts › /en/ loads, with a heading, and logs no error",
+   "line": 29,
+   "node": "site/tests/ui/links.ui.ts › /el/ loads, with a heading, and logs no error",
    "given": [
-    "a page listed in the sitemap, or the Greek twin of an English one"
+    "a page listed in the sitemap, or the twin of an English one in a language not yet offered"
    ],
    "when": [
     "it is opened and has finished loading its data"
@@ -2297,80 +2297,6 @@
    ],
    "notes": "",
    "examples": [
-    "/en/ loads, with a heading, and logs no error",
-    "/en/about/ loads, with a heading, and logs no error",
-    "/en/countries/ loads, with a heading, and logs no error",
-    "/en/data/ loads, with a heading, and logs no error",
-    "/en/data/gr/ loads, with a heading, and logs no error",
-    "/en/glossary/ loads, with a heading, and logs no error",
-    "/en/glossary/actual-rent/ loads, with a heading, and logs no error",
-    "/en/glossary/annual-average/ loads, with a heading, and logs no error",
-    "/en/glossary/annual-rate/ loads, with a heading, and logs no error",
-    "/en/glossary/bootstrap/ loads, with a heading, and logs no error",
-    "/en/glossary/chain-linking/ loads, with a heading, and logs no error",
-    "/en/glossary/coicop/ loads, with a heading, and logs no error",
-    "/en/glossary/consumer-price-index/ loads, with a heading, and logs no error",
-    "/en/glossary/contribution/ loads, with a heading, and logs no error",
-    "/en/glossary/democratic-weighting/ loads, with a heading, and logs no error",
-    "/en/glossary/dependent-child/ loads, with a heading, and logs no error",
-    "/en/glossary/equivalence-scale/ loads, with a heading, and logs no error",
-    "/en/glossary/equivalised-income/ loads, with a heading, and logs no error",
-    "/en/glossary/gap/ loads, with a heading, and logs no error",
-    "/en/glossary/hicp/ loads, with a heading, and logs no error",
-    "/en/glossary/household-budget-survey/ loads, with a heading, and logs no error",
-    "/en/glossary/imputed-rent/ loads, with a heading, and logs no error",
-    "/en/glossary/inflation/ loads, with a heading, and logs no error",
-    "/en/glossary/laspeyres-index/ loads, with a heading, and logs no error",
-    "/en/glossary/microdata/ loads, with a heading, and logs no error",
-    "/en/glossary/monthly-rate/ loads, with a heading, and logs no error",
-    "/en/glossary/pensioner-household/ loads, with a heading, and logs no error",
-    "/en/glossary/percentage-point/ loads, with a heading, and logs no error",
-    "/en/glossary/plutocratic-weighting/ loads, with a heading, and logs no error",
-    "/en/glossary/price-index/ loads, with a heading, and logs no error",
-    "/en/glossary/price-updating/ loads, with a heading, and logs no error",
-    "/en/glossary/purchasing-power-standard/ loads, with a heading, and logs no error",
-    "/en/glossary/quintile/ loads, with a heading, and logs no error",
-    "/en/glossary/reliability/ loads, with a heading, and logs no error",
-    "/en/glossary/spending-concept/ loads, with a heading, and logs no error",
-    "/en/glossary/standard-error/ loads, with a heading, and logs no error",
-    "/en/glossary/tenure/ loads, with a heading, and logs no error",
-    "/en/glossary/tutoring/ loads, with a heading, and logs no error",
-    "/en/glossary/weights-timing/ loads, with a heading, and logs no error",
-    "/en/glossary/weights/ loads, with a heading, and logs no error",
-    "/en/gr/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/calculator/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/explore/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/groups/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/grouping/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/imputed-rent/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/price-source/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/spending/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/tutoring/ loads, with a heading, and logs no error",
-    "/en/gr/inflation-by-group/method/weights-timing/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/cpi-rates-rebuilt/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/cpi-rebuilt-items/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/hbs-household-types/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/hbs-spending/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/checks/hbs-spending/survey-weights/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/method/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/household-income/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/income-limits/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/rent-change/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/rent-paid/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/rent-weight/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/renters/ loads, with a heading, and logs no error",
-    "/en/gr/official-figures-consistency/same-question/unemployment/ loads, with a heading, and logs no error",
-    "/en/inflation-by-group/ loads, with a heading, and logs no error",
-    "/en/official-figures-consistency/ loads, with a heading, and logs no error",
-    "/en/topics/ loads, with a heading, and logs no error",
     "/el/ loads, with a heading, and logs no error",
     "/el/about/ loads, with a heading, and logs no error",
     "/el/countries/ loads, with a heading, and logs no error",
@@ -2444,7 +2370,81 @@
     "/el/gr/official-figures-consistency/same-question/unemployment/ loads, with a heading, and logs no error",
     "/el/inflation-by-group/ loads, with a heading, and logs no error",
     "/el/official-figures-consistency/ loads, with a heading, and logs no error",
-    "/el/topics/ loads, with a heading, and logs no error"
+    "/el/topics/ loads, with a heading, and logs no error",
+    "/en/ loads, with a heading, and logs no error",
+    "/en/about/ loads, with a heading, and logs no error",
+    "/en/countries/ loads, with a heading, and logs no error",
+    "/en/data/ loads, with a heading, and logs no error",
+    "/en/data/gr/ loads, with a heading, and logs no error",
+    "/en/glossary/ loads, with a heading, and logs no error",
+    "/en/glossary/actual-rent/ loads, with a heading, and logs no error",
+    "/en/glossary/annual-average/ loads, with a heading, and logs no error",
+    "/en/glossary/annual-rate/ loads, with a heading, and logs no error",
+    "/en/glossary/bootstrap/ loads, with a heading, and logs no error",
+    "/en/glossary/chain-linking/ loads, with a heading, and logs no error",
+    "/en/glossary/coicop/ loads, with a heading, and logs no error",
+    "/en/glossary/consumer-price-index/ loads, with a heading, and logs no error",
+    "/en/glossary/contribution/ loads, with a heading, and logs no error",
+    "/en/glossary/democratic-weighting/ loads, with a heading, and logs no error",
+    "/en/glossary/dependent-child/ loads, with a heading, and logs no error",
+    "/en/glossary/equivalence-scale/ loads, with a heading, and logs no error",
+    "/en/glossary/equivalised-income/ loads, with a heading, and logs no error",
+    "/en/glossary/gap/ loads, with a heading, and logs no error",
+    "/en/glossary/hicp/ loads, with a heading, and logs no error",
+    "/en/glossary/household-budget-survey/ loads, with a heading, and logs no error",
+    "/en/glossary/imputed-rent/ loads, with a heading, and logs no error",
+    "/en/glossary/inflation/ loads, with a heading, and logs no error",
+    "/en/glossary/laspeyres-index/ loads, with a heading, and logs no error",
+    "/en/glossary/microdata/ loads, with a heading, and logs no error",
+    "/en/glossary/monthly-rate/ loads, with a heading, and logs no error",
+    "/en/glossary/pensioner-household/ loads, with a heading, and logs no error",
+    "/en/glossary/percentage-point/ loads, with a heading, and logs no error",
+    "/en/glossary/plutocratic-weighting/ loads, with a heading, and logs no error",
+    "/en/glossary/price-index/ loads, with a heading, and logs no error",
+    "/en/glossary/price-updating/ loads, with a heading, and logs no error",
+    "/en/glossary/purchasing-power-standard/ loads, with a heading, and logs no error",
+    "/en/glossary/quintile/ loads, with a heading, and logs no error",
+    "/en/glossary/reliability/ loads, with a heading, and logs no error",
+    "/en/glossary/spending-concept/ loads, with a heading, and logs no error",
+    "/en/glossary/standard-error/ loads, with a heading, and logs no error",
+    "/en/glossary/tenure/ loads, with a heading, and logs no error",
+    "/en/glossary/tutoring/ loads, with a heading, and logs no error",
+    "/en/glossary/weights-timing/ loads, with a heading, and logs no error",
+    "/en/glossary/weights/ loads, with a heading, and logs no error",
+    "/en/gr/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/calculator/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/explore/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/groups/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/grouping/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/imputed-rent/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/price-source/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/spending/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/tutoring/ loads, with a heading, and logs no error",
+    "/en/gr/inflation-by-group/method/weights-timing/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-rebuilt/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/cpi-rebuilt-items/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/hbs-household-types/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/hbs-spending/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/checks/hbs-spending/survey-weights/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/method/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/household-income/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/income-limits/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/rent-change/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/rent-paid/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/rent-weight/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/renters/ loads, with a heading, and logs no error",
+    "/en/gr/official-figures-consistency/same-question/unemployment/ loads, with a heading, and logs no error",
+    "/en/inflation-by-group/ loads, with a heading, and logs no error",
+    "/en/official-figures-consistency/ loads, with a heading, and logs no error",
+    "/en/topics/ loads, with a heading, and logs no error"
    ],
    "defects": [],
    "tags": [],
@@ -2456,10 +2456,10 @@
    "suite": "playwright",
    "title": "every link to this site answers, and every #spot exists on its page",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 58,
+   "line": 60,
    "node": "site/tests/ui/links.ui.ts › every link to this site answers, and every #spot exists on its page",
    "given": [
-    "every page in the sitemap, and the Greek twin of every English one"
+    "every page in the sitemap, and the twin of every English one in a language not yet offered"
    ],
    "when": [
     "every link on them to this site (page links, and the page's own canonical, language and other links) is followed"
@@ -2481,7 +2481,7 @@
    "suite": "playwright",
    "title": "the sitemap lists only pages in offered languages",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 97,
+   "line": 99,
    "node": "site/tests/ui/links.ui.ts › the sitemap lists only pages in offered languages",
    "given": [
     "a built site"
@@ -2504,10 +2504,10 @@
    "suite": "playwright",
    "title": "each page has exactly one canonical link, to its own address",
    "file": "site/tests/ui/links.ui.ts",
-   "line": 108,
+   "line": 110,
    "node": "site/tests/ui/links.ui.ts › each page has exactly one canonical link, to its own address",
    "given": [
-    "every page in the sitemap, and the Greek twin of every English one"
+    "every page in the sitemap, and the twin of every English one in a language not yet offered"
    ],
    "when": [
     "its canonical links are read"
@@ -20521,6 +20521,80 @@
    ],
    "notes": "",
    "examples": [
+    "/el/",
+    "/el/about/",
+    "/el/countries/",
+    "/el/data/",
+    "/el/data/gr/",
+    "/el/glossary/",
+    "/el/glossary/actual-rent/",
+    "/el/glossary/annual-average/",
+    "/el/glossary/annual-rate/",
+    "/el/glossary/bootstrap/",
+    "/el/glossary/chain-linking/",
+    "/el/glossary/coicop/",
+    "/el/glossary/consumer-price-index/",
+    "/el/glossary/contribution/",
+    "/el/glossary/democratic-weighting/",
+    "/el/glossary/dependent-child/",
+    "/el/glossary/equivalence-scale/",
+    "/el/glossary/equivalised-income/",
+    "/el/glossary/gap/",
+    "/el/glossary/hicp/",
+    "/el/glossary/household-budget-survey/",
+    "/el/glossary/imputed-rent/",
+    "/el/glossary/inflation/",
+    "/el/glossary/laspeyres-index/",
+    "/el/glossary/microdata/",
+    "/el/glossary/monthly-rate/",
+    "/el/glossary/pensioner-household/",
+    "/el/glossary/percentage-point/",
+    "/el/glossary/plutocratic-weighting/",
+    "/el/glossary/price-index/",
+    "/el/glossary/price-updating/",
+    "/el/glossary/purchasing-power-standard/",
+    "/el/glossary/quintile/",
+    "/el/glossary/reliability/",
+    "/el/glossary/spending-concept/",
+    "/el/glossary/standard-error/",
+    "/el/glossary/tenure/",
+    "/el/glossary/tutoring/",
+    "/el/glossary/weights-timing/",
+    "/el/glossary/weights/",
+    "/el/gr/",
+    "/el/gr/inflation-by-group/",
+    "/el/gr/inflation-by-group/calculator/",
+    "/el/gr/inflation-by-group/explore/",
+    "/el/gr/inflation-by-group/groups/",
+    "/el/gr/inflation-by-group/method/",
+    "/el/gr/inflation-by-group/method/grouping/",
+    "/el/gr/inflation-by-group/method/imputed-rent/",
+    "/el/gr/inflation-by-group/method/price-source/",
+    "/el/gr/inflation-by-group/method/spending/",
+    "/el/gr/inflation-by-group/method/tutoring/",
+    "/el/gr/inflation-by-group/method/weights-timing/",
+    "/el/gr/official-figures-consistency/",
+    "/el/gr/official-figures-consistency/checks/",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-rebuilt/",
+    "/el/gr/official-figures-consistency/checks/cpi-rebuilt-items/",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/survey-weights/",
+    "/el/gr/official-figures-consistency/method/",
+    "/el/gr/official-figures-consistency/same-question/",
+    "/el/gr/official-figures-consistency/same-question/household-income/",
+    "/el/gr/official-figures-consistency/same-question/income-limits/",
+    "/el/gr/official-figures-consistency/same-question/rent-change/",
+    "/el/gr/official-figures-consistency/same-question/rent-paid/",
+    "/el/gr/official-figures-consistency/same-question/rent-weight/",
+    "/el/gr/official-figures-consistency/same-question/renters/",
+    "/el/gr/official-figures-consistency/same-question/unemployment/",
+    "/el/inflation-by-group/",
+    "/el/official-figures-consistency/",
+    "/el/topics/",
     "/en/",
     "/en/about/",
     "/en/countries/",
@@ -20637,7 +20711,7 @@
    "suite": "selenium",
    "title": "each listed page loads with no console error",
    "file": "tests/selenium/test_links.py",
-   "line": 61,
+   "line": 62,
    "node": "tests/selenium/test_links.py::test_page_has_no_console_error",
    "given": [
     "a page the sitemap lists, or its Greek twin"
@@ -20651,6 +20725,80 @@
    ],
    "notes": "",
    "examples": [
+    "/el/0",
+    "/el/about/0",
+    "/el/countries/0",
+    "/el/data/0",
+    "/el/data/gr/0",
+    "/el/glossary/0",
+    "/el/glossary/actual-rent/0",
+    "/el/glossary/annual-average/0",
+    "/el/glossary/annual-rate/0",
+    "/el/glossary/bootstrap/0",
+    "/el/glossary/chain-linking/0",
+    "/el/glossary/coicop/0",
+    "/el/glossary/consumer-price-index/0",
+    "/el/glossary/contribution/0",
+    "/el/glossary/democratic-weighting/0",
+    "/el/glossary/dependent-child/0",
+    "/el/glossary/equivalence-scale/0",
+    "/el/glossary/equivalised-income/0",
+    "/el/glossary/gap/0",
+    "/el/glossary/hicp/0",
+    "/el/glossary/household-budget-survey/0",
+    "/el/glossary/imputed-rent/0",
+    "/el/glossary/inflation/0",
+    "/el/glossary/laspeyres-index/0",
+    "/el/glossary/microdata/0",
+    "/el/glossary/monthly-rate/0",
+    "/el/glossary/pensioner-household/0",
+    "/el/glossary/percentage-point/0",
+    "/el/glossary/plutocratic-weighting/0",
+    "/el/glossary/price-index/0",
+    "/el/glossary/price-updating/0",
+    "/el/glossary/purchasing-power-standard/0",
+    "/el/glossary/quintile/0",
+    "/el/glossary/reliability/0",
+    "/el/glossary/spending-concept/0",
+    "/el/glossary/standard-error/0",
+    "/el/glossary/tenure/0",
+    "/el/glossary/tutoring/0",
+    "/el/glossary/weights-timing/0",
+    "/el/glossary/weights/0",
+    "/el/gr/0",
+    "/el/gr/inflation-by-group/0",
+    "/el/gr/inflation-by-group/calculator/0",
+    "/el/gr/inflation-by-group/explore/0",
+    "/el/gr/inflation-by-group/groups/0",
+    "/el/gr/inflation-by-group/method/0",
+    "/el/gr/inflation-by-group/method/grouping/0",
+    "/el/gr/inflation-by-group/method/imputed-rent/0",
+    "/el/gr/inflation-by-group/method/price-source/0",
+    "/el/gr/inflation-by-group/method/spending/0",
+    "/el/gr/inflation-by-group/method/tutoring/0",
+    "/el/gr/inflation-by-group/method/weights-timing/0",
+    "/el/gr/official-figures-consistency/0",
+    "/el/gr/official-figures-consistency/checks/0",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/0",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/0",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-rebuilt/0",
+    "/el/gr/official-figures-consistency/checks/cpi-rebuilt-items/0",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/0",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/0",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/0",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/survey-weights/0",
+    "/el/gr/official-figures-consistency/method/0",
+    "/el/gr/official-figures-consistency/same-question/0",
+    "/el/gr/official-figures-consistency/same-question/household-income/0",
+    "/el/gr/official-figures-consistency/same-question/income-limits/0",
+    "/el/gr/official-figures-consistency/same-question/rent-change/0",
+    "/el/gr/official-figures-consistency/same-question/rent-paid/0",
+    "/el/gr/official-figures-consistency/same-question/rent-weight/0",
+    "/el/gr/official-figures-consistency/same-question/renters/0",
+    "/el/gr/official-figures-consistency/same-question/unemployment/0",
+    "/el/inflation-by-group/0",
+    "/el/official-figures-consistency/0",
+    "/el/topics/0",
     "/en/",
     "/en/about/",
     "/en/countries/",
@@ -20725,80 +20873,80 @@
     "/en/inflation-by-group/",
     "/en/official-figures-consistency/",
     "/en/topics/",
-    "/el/",
-    "/el/about/",
-    "/el/countries/",
-    "/el/data/",
-    "/el/data/gr/",
-    "/el/glossary/",
-    "/el/glossary/actual-rent/",
-    "/el/glossary/annual-average/",
-    "/el/glossary/annual-rate/",
-    "/el/glossary/bootstrap/",
-    "/el/glossary/chain-linking/",
-    "/el/glossary/coicop/",
-    "/el/glossary/consumer-price-index/",
-    "/el/glossary/contribution/",
-    "/el/glossary/democratic-weighting/",
-    "/el/glossary/dependent-child/",
-    "/el/glossary/equivalence-scale/",
-    "/el/glossary/equivalised-income/",
-    "/el/glossary/gap/",
-    "/el/glossary/hicp/",
-    "/el/glossary/household-budget-survey/",
-    "/el/glossary/imputed-rent/",
-    "/el/glossary/inflation/",
-    "/el/glossary/laspeyres-index/",
-    "/el/glossary/microdata/",
-    "/el/glossary/monthly-rate/",
-    "/el/glossary/pensioner-household/",
-    "/el/glossary/percentage-point/",
-    "/el/glossary/plutocratic-weighting/",
-    "/el/glossary/price-index/",
-    "/el/glossary/price-updating/",
-    "/el/glossary/purchasing-power-standard/",
-    "/el/glossary/quintile/",
-    "/el/glossary/reliability/",
-    "/el/glossary/spending-concept/",
-    "/el/glossary/standard-error/",
-    "/el/glossary/tenure/",
-    "/el/glossary/tutoring/",
-    "/el/glossary/weights-timing/",
-    "/el/glossary/weights/",
-    "/el/gr/",
-    "/el/gr/inflation-by-group/",
-    "/el/gr/inflation-by-group/calculator/",
-    "/el/gr/inflation-by-group/explore/",
-    "/el/gr/inflation-by-group/groups/",
-    "/el/gr/inflation-by-group/method/",
-    "/el/gr/inflation-by-group/method/grouping/",
-    "/el/gr/inflation-by-group/method/imputed-rent/",
-    "/el/gr/inflation-by-group/method/price-source/",
-    "/el/gr/inflation-by-group/method/spending/",
-    "/el/gr/inflation-by-group/method/tutoring/",
-    "/el/gr/inflation-by-group/method/weights-timing/",
-    "/el/gr/official-figures-consistency/",
-    "/el/gr/official-figures-consistency/checks/",
-    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/",
-    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/",
-    "/el/gr/official-figures-consistency/checks/cpi-rates-rebuilt/",
-    "/el/gr/official-figures-consistency/checks/cpi-rebuilt-items/",
-    "/el/gr/official-figures-consistency/checks/hbs-household-types/",
-    "/el/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/",
-    "/el/gr/official-figures-consistency/checks/hbs-spending/",
-    "/el/gr/official-figures-consistency/checks/hbs-spending/survey-weights/",
-    "/el/gr/official-figures-consistency/method/",
-    "/el/gr/official-figures-consistency/same-question/",
-    "/el/gr/official-figures-consistency/same-question/household-income/",
-    "/el/gr/official-figures-consistency/same-question/income-limits/",
-    "/el/gr/official-figures-consistency/same-question/rent-change/",
-    "/el/gr/official-figures-consistency/same-question/rent-paid/",
-    "/el/gr/official-figures-consistency/same-question/rent-weight/",
-    "/el/gr/official-figures-consistency/same-question/renters/",
-    "/el/gr/official-figures-consistency/same-question/unemployment/",
-    "/el/inflation-by-group/",
-    "/el/official-figures-consistency/",
-    "/el/topics/"
+    "/el/1",
+    "/el/about/1",
+    "/el/countries/1",
+    "/el/data/1",
+    "/el/data/gr/1",
+    "/el/glossary/1",
+    "/el/glossary/actual-rent/1",
+    "/el/glossary/annual-average/1",
+    "/el/glossary/annual-rate/1",
+    "/el/glossary/bootstrap/1",
+    "/el/glossary/chain-linking/1",
+    "/el/glossary/coicop/1",
+    "/el/glossary/consumer-price-index/1",
+    "/el/glossary/contribution/1",
+    "/el/glossary/democratic-weighting/1",
+    "/el/glossary/dependent-child/1",
+    "/el/glossary/equivalence-scale/1",
+    "/el/glossary/equivalised-income/1",
+    "/el/glossary/gap/1",
+    "/el/glossary/hicp/1",
+    "/el/glossary/household-budget-survey/1",
+    "/el/glossary/imputed-rent/1",
+    "/el/glossary/inflation/1",
+    "/el/glossary/laspeyres-index/1",
+    "/el/glossary/microdata/1",
+    "/el/glossary/monthly-rate/1",
+    "/el/glossary/pensioner-household/1",
+    "/el/glossary/percentage-point/1",
+    "/el/glossary/plutocratic-weighting/1",
+    "/el/glossary/price-index/1",
+    "/el/glossary/price-updating/1",
+    "/el/glossary/purchasing-power-standard/1",
+    "/el/glossary/quintile/1",
+    "/el/glossary/reliability/1",
+    "/el/glossary/spending-concept/1",
+    "/el/glossary/standard-error/1",
+    "/el/glossary/tenure/1",
+    "/el/glossary/tutoring/1",
+    "/el/glossary/weights-timing/1",
+    "/el/glossary/weights/1",
+    "/el/gr/1",
+    "/el/gr/inflation-by-group/1",
+    "/el/gr/inflation-by-group/calculator/1",
+    "/el/gr/inflation-by-group/explore/1",
+    "/el/gr/inflation-by-group/groups/1",
+    "/el/gr/inflation-by-group/method/1",
+    "/el/gr/inflation-by-group/method/grouping/1",
+    "/el/gr/inflation-by-group/method/imputed-rent/1",
+    "/el/gr/inflation-by-group/method/price-source/1",
+    "/el/gr/inflation-by-group/method/spending/1",
+    "/el/gr/inflation-by-group/method/tutoring/1",
+    "/el/gr/inflation-by-group/method/weights-timing/1",
+    "/el/gr/official-figures-consistency/1",
+    "/el/gr/official-figures-consistency/checks/1",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/1",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/1",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-rebuilt/1",
+    "/el/gr/official-figures-consistency/checks/cpi-rebuilt-items/1",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/1",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/1",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/1",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/survey-weights/1",
+    "/el/gr/official-figures-consistency/method/1",
+    "/el/gr/official-figures-consistency/same-question/1",
+    "/el/gr/official-figures-consistency/same-question/household-income/1",
+    "/el/gr/official-figures-consistency/same-question/income-limits/1",
+    "/el/gr/official-figures-consistency/same-question/rent-change/1",
+    "/el/gr/official-figures-consistency/same-question/rent-paid/1",
+    "/el/gr/official-figures-consistency/same-question/rent-weight/1",
+    "/el/gr/official-figures-consistency/same-question/renters/1",
+    "/el/gr/official-figures-consistency/same-question/unemployment/1",
+    "/el/inflation-by-group/1",
+    "/el/official-figures-consistency/1",
+    "/el/topics/1"
    ],
    "defects": [],
    "tags": [],
@@ -20810,7 +20958,7 @@
    "suite": "selenium",
    "title": "the sitemap lists only offered languages",
    "file": "tests/selenium/test_links.py",
-   "line": 74,
+   "line": 75,
    "node": "tests/selenium/test_links.py::test_sitemap_lists_only_offered_languages",
    "given": [
     "the built sitemap"
@@ -20820,7 +20968,7 @@
    ],
    "then": [
     "it lists at least one page",
-    "every page it lists is in English"
+    "every page it lists is in a language the site offers"
    ],
    "notes": "",
    "examples": [],
@@ -20834,7 +20982,7 @@
    "suite": "selenium",
    "title": "every internal link answers",
    "file": "tests/selenium/test_links.py",
-   "line": 86,
+   "line": 89,
    "node": "tests/selenium/test_links.py::test_internal_links_answer",
    "given": [
     "every page the sitemap lists and its Greek twin, each answering 200"
@@ -20859,7 +21007,7 @@
    "suite": "selenium",
    "title": "canonical and alternate links point to built pages",
    "file": "tests/selenium/test_links.py",
-   "line": 122,
+   "line": 125,
    "node": "tests/selenium/test_links.py::test_canonical_and_alternates_point_to_built_pages",
    "given": [
     "every page the sitemap lists and its Greek twin"
@@ -20883,7 +21031,7 @@
    "suite": "selenium",
    "title": "the sitemap lists more than 20 pages",
    "file": "tests/selenium/test_links.py",
-   "line": 145,
+   "line": 148,
    "node": "tests/selenium/test_links.py::test_sitemap_lists_the_pages",
    "given": [
     "a built site"
@@ -20906,7 +21054,7 @@
    "suite": "selenium",
    "title": "a quick list opens, ticks the current entry and closes with Escape",
    "file": "tests/selenium/test_nav.py",
-   "line": 24,
+   "line": 27,
    "node": "tests/selenium/test_nav.py::test_quick_list_opens_ticks_current_and_closes_with_escape",
    "given": [
     "Explore, in English or Greek"
@@ -20937,7 +21085,7 @@
    "suite": "selenium",
    "title": "a quick list entry goes to its page",
    "file": "tests/selenium/test_nav.py",
-   "line": 50,
+   "line": 53,
    "node": "tests/selenium/test_nav.py::test_quick_list_entry_goes_to_its_page",
    "given": [
     "the About page"
@@ -20960,7 +21108,7 @@
    "suite": "selenium",
    "title": "the country list keeps the page the reader is on",
    "file": "tests/selenium/test_nav.py",
-   "line": 64,
+   "line": 67,
    "node": "tests/selenium/test_nav.py::test_country_list_keeps_the_page_the_reader_is_on",
    "given": [
     "the calculator for Greece"
@@ -20984,7 +21132,7 @@
    "suite": "selenium",
    "title": "on a section's own page, its link alone is marked as the current page",
    "file": "tests/selenium/test_nav.py",
-   "line": 80,
+   "line": 83,
    "node": "tests/selenium/test_nav.py::test_section_is_marked_current",
    "given": [
     "the glossary"
@@ -21007,7 +21155,7 @@
    "suite": "selenium",
    "title": "on a page inside a section, the section is marked current",
    "file": "tests/selenium/test_nav.py",
-   "line": 92,
+   "line": 95,
    "node": "tests/selenium/test_nav.py::test_a_page_inside_a_section_marks_the_section",
    "given": [
     "the topic page for Greece, which is inside Countries"
@@ -21030,7 +21178,7 @@
    "suite": "selenium",
    "title": "a desktop shows the navigation as a row",
    "file": "tests/selenium/test_nav.py",
-   "line": 104,
+   "line": 107,
    "node": "tests/selenium/test_nav.py::test_desktop_shows_the_navigation_as_a_row",
    "given": [
     "a desktop"
@@ -21054,7 +21202,7 @@
    "suite": "selenium",
    "title": "the phone menu opens and closes",
    "file": "tests/selenium/test_nav.py",
-   "line": 118,
+   "line": 121,
    "node": "tests/selenium/test_nav.py::test_phone_menu_opens_and_closes",
    "given": [
     "the About page on a phone"
@@ -21082,7 +21230,7 @@
    "suite": "selenium",
    "title": "a link in the phone menu goes to its page",
    "file": "tests/selenium/test_nav.py",
-   "line": 142,
+   "line": 145,
    "node": "tests/selenium/test_nav.py::test_phone_menu_link_navigates",
    "given": [
     "the home page on a phone, with the menu open"
@@ -21107,7 +21255,7 @@
    "suite": "selenium",
    "title": "the language switch on an English page",
    "file": "tests/selenium/test_nav.py",
-   "line": 156,
+   "line": 159,
    "node": "tests/selenium/test_nav.py::test_language_switch_on_english_pages",
    "given": [
     "an English page: the home page, About or Explore"
@@ -21117,7 +21265,8 @@
    ],
    "then": [
     "English is linked and marked current",
-    "Greek is shown but not linked, as it isn't offered"
+    "each other offered language links to the same page in that language",
+    "a language not yet offered is shown but not linked"
    ],
    "notes": "",
    "examples": [
@@ -21135,7 +21284,7 @@
    "suite": "selenium",
    "title": "the language switch on a Greek page",
    "file": "tests/selenium/test_nav.py",
-   "line": 173,
+   "line": 184,
    "node": "tests/selenium/test_nav.py::test_language_switch_from_greek_page",
    "given": [
     "the Greek About page"
@@ -21159,7 +21308,7 @@
    "suite": "selenium",
    "title": "the skip link moves to the content",
    "file": "tests/selenium/test_nav.py",
-   "line": 188,
+   "line": 199,
    "node": "tests/selenium/test_nav.py::test_skip_link_moves_to_the_content",
    "given": [
     "the About page"
@@ -21184,7 +21333,7 @@
    "suite": "selenium",
    "title": "the breadcrumbs show the trail and lead home",
    "file": "tests/selenium/test_nav.py",
-   "line": 206,
+   "line": 217,
    "node": "tests/selenium/test_nav.py::test_breadcrumbs",
    "given": [
     "a page below the home page"
@@ -21212,7 +21361,7 @@
    "suite": "selenium",
    "title": "a missing page answers 404",
    "file": "tests/selenium/test_nav.py",
-   "line": 228,
+   "line": 239,
    "node": "tests/selenium/test_nav.py::test_missing_page_is_404",
    "given": [
     "an address the site doesn't have"
@@ -21235,7 +21384,7 @@
    "suite": "selenium",
    "title": "opening one quick list closes the other",
    "file": "tests/selenium/test_nav.py",
-   "line": 240,
+   "line": 251,
    "node": "tests/selenium/test_nav.py::test_opening_one_quick_list_closes_the_other",
    "given": [
     "the home page, with the Topics quick list open"
@@ -21259,7 +21408,7 @@
    "suite": "selenium",
    "title": "the root address sends the visitor to the browser's language if offered, else English",
    "file": "tests/selenium/test_nav.py",
-   "line": 257,
+   "line": 268,
    "node": "tests/selenium/test_nav.py::test_root_sends_the_browser_to_its_language",
    "given": [
     "a browser set to Greek, US English or German"
@@ -21286,7 +21435,7 @@
    "suite": "selenium",
    "title": "on a phone, each row of the topic bar opens scrolled to its current item",
    "file": "tests/selenium/test_nav.py",
-   "line": 277,
+   "line": 288,
    "node": "tests/selenium/test_nav.py::test_topic_bar_rows_open_scrolled_to_their_current_item",
    "given": [
     "a phone-sized screen",
@@ -21312,7 +21461,7 @@
    "suite": "selenium",
    "title": "on a method option's page, the bar's third row lists every option and marks the one being read",
    "file": "tests/selenium/test_nav.py",
-   "line": 300,
+   "line": 311,
    "node": "tests/selenium/test_nav.py::test_method_option_strip_lists_every_option",
    "given": [
     "the method page, which lists every option, and one option's page"
@@ -21337,7 +21486,7 @@
    "suite": "selenium",
    "title": "the Topics quick list names every live topic and leads to its page",
    "file": "tests/selenium/test_nav.py",
-   "line": 323,
+   "line": 334,
    "node": "tests/selenium/test_nav.py::test_topics_quick_list_names_every_live_topic",
    "given": [
     "Greece's page of the consistency topic"
@@ -22808,6 +22957,124 @@
    "named": false
   },
   {
+   "id": "VT-FINALN-001",
+   "suite": "vitest",
+   "title": "knows which sounds keep the ν",
+   "file": "site/src/lib/final-n.test.ts",
+   "line": 6,
+   "node": "site/src/lib/final-n.test.ts › the final ν › knows which sounds keep the ν",
+   "given": [
+    "words starting with a vowel, an accented vowel, κ π τ ξ ψ, μπ ντ γκ, and other consonants"
+   ],
+   "when": [
+    "each is asked whether a ν stays before it"
+   ],
+   "then": [
+    "vowels (accented or capital too) and κ π τ ξ ψ μπ ντ γκ keep it",
+    "θ, φ, σ, μ (not μπ), ν (not ντ), γ (not γκ) and λ drop it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FINALN-002",
+   "suite": "vitest",
+   "title": "accepts the rule's own examples and finds the breaks of «δε(ν)» both ways",
+   "file": "site/src/lib/final-n.test.ts",
+   "line": 19,
+   "node": "site/src/lib/final-n.test.ts › the final ν › accepts the rule's own examples and finds the breaks of «δε(ν)» both ways",
+   "given": [
+    "«δεν κάνει τίποτα» and «δε θέλω», then «δεν θέλω» and «δε κάνει», one capitalised"
+   ],
+   "when": [
+    "the text is checked"
+   ],
+   "then": [
+    "the first two pass",
+    "«δεν θέλω» should be «δε θέλω» and «Δε κάνει» should be «Δεν κάνει», at their offsets"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FINALN-003",
+   "suite": "vitest",
+   "title": "checks the article «τη(ν)» and «στη(ν)» both ways",
+   "file": "site/src/lib/final-n.test.ts",
+   "line": 36,
+   "node": "site/src/lib/final-n.test.ts › the final ν › checks the article «τη(ν)» and «στη(ν)» both ways",
+   "given": [
+    "«την πόλη», «τη μέρα», «στην αρχή», «στη Θεσσαλονίκη», then «την μέρα» and «στη αρχή»"
+   ],
+   "when": [
+    "the text is checked"
+   ],
+   "then": [
+    "only «την μέρα» (→ «τη μέρα») and «στη αρχή» (→ «στην αρχή») are found"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FINALN-004",
+   "suite": "vitest",
+   "title": "judges «μη(ν)» and «αυτή(ν)» only where a ν is too many",
+   "file": "site/src/lib/final-n.test.ts",
+   "line": 47,
+   "node": "site/src/lib/final-n.test.ts › the final ν › judges «μη(ν)» and «αυτή(ν)» only where a ν is too many",
+   "given": [
+    "«μην φύγεις», «αυτήν τη φορά» before consonants that drop the ν, and «μη επιλέξιμος», «αυτή είναι» without one before vowels"
+   ],
+   "when": [
+    "the text is checked"
+   ],
+   "then": [
+    "«μην φύγεις» → «μη φύγεις» is found",
+    "«μη επιλέξιμος» and «αυτή είναι» pass: without ν they are right in other uses"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FINALN-005",
+   "suite": "vitest",
+   "title": "leaves the contrast particle and words in other scripts alone",
+   "file": "site/src/lib/final-n.test.ts",
+   "line": 60,
+   "node": "site/src/lib/final-n.test.ts › the final ν › leaves the contrast particle and words in other scripts alone",
+   "given": [
+    "«ο δε Γιάννης», «την Eurostat» and «την 1η»"
+   ],
+   "when": [
+    "the text is checked"
+   ],
+   "then": [
+    "nothing is found: «δε» after an article is the contrast particle, and only Greek words are judged"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "VT-FMT-001",
    "suite": "vitest",
    "title": "keeps each language's decimal mark",
@@ -24121,6 +24388,198 @@
    ],
    "then": [
     "it is an https address on static.cloudflareinsights.com"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-001",
+   "suite": "vitest",
+   "title": "accepts a Greek twin that uses the term in any form, case or final sigma",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 23,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › accepts a Greek twin that uses the term in any form, case or final sigma",
+   "given": [
+    "an English text about inflation and its Greek twin with the term inflected, capitalised and ending in a final sigma"
+   ],
+   "when": [
+    "the pairs are checked from English to Greek"
+   ],
+   "then": [
+    "no pair misses"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-002",
+   "suite": "vitest",
+   "title": "reports a Greek twin that says the concept another way",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 37,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › reports a Greek twin that says the concept another way",
+   "given": [
+    "an English text naming the income fifth, whose Greek twin says «εισοδηματική ομάδα»"
+   ],
+   "when": [
+    "the pairs are checked from English to Greek"
+   ],
+   "then": [
+    "the pair is reported once, with its id and the term's slug"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-003",
+   "suite": "vitest",
+   "title": "finds terms as the popovers do: longest form first, whole words only",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 47,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › finds terms as the popovers do: longest form first, whole words only",
+   "given": [
+    "an English text with \"annual average rate\" only, and a Greek twin using «μέσος ετήσιος ρυθμός», plus an English word that merely contains a form"
+   ],
+   "when": [
+    "the pairs are checked in both directions"
+   ],
+   "then": [
+    "\"annual average rate\" does not also count as \"annual rate\", so nothing misses",
+    "\"reinflationary\" is not a use of \"inflation\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-004",
+   "suite": "vitest",
+   "title": "ignores what readers never see: link targets, tags, code and placeholders",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 61,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › ignores what readers never see: link targets, tags, code and placeholders",
+   "given": [
+    "texts where \"inflation\" appears only in a link's address, an HTML attribute, inline code and a placeholder"
+   ],
+   "when": [
+    "the visible text is taken and the pair is checked"
+   ],
+   "then": [
+    "the link's words stay, its address goes",
+    "no term is found, so nothing misses"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-005",
+   "suite": "vitest",
+   "title": "pairs a content page by its shown fields and by section",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 76,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › pairs a content page by its shown fields and by section",
+   "given": [
+    "an English and a Greek page with the same headings, a title, a glossary-style forms field and two headings that share a slug"
+   ],
+   "when": [
+    "the page is split into pairs"
+   ],
+   "then": [
+    "the title, the text before the first heading and each section become pairs, in order",
+    "the forms field is not a pair, since it holds the term itself",
+    "a second heading with the same slug gets \"-2\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-006",
+   "suite": "vitest",
+   "title": "pairs a page whole when its headings differ in number",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 95,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › pairs a page whole when its headings differ in number",
+   "given": [
+    "an English page with two headings whose Greek twin has one, the term only in the English second section and the Greek first"
+   ],
+   "when": [
+    "the page is split into pairs and checked"
+   ],
+   "then": [
+    "the body is one pair, \"#all\"",
+    "the term is found in both, so nothing misses"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-007",
+   "suite": "vitest",
+   "title": "lists Greek terms the English lacks when asked for that direction",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 111,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › lists Greek terms the English lacks when asked for that direction",
+   "given": [
+    "a Greek twin that names the annual rate where the English says only \"the rate\""
+   ],
+   "when": [
+    "the pairs are checked from English to Greek, then from Greek to English"
+   ],
+   "then": [
+    "English to Greek: nothing misses",
+    "Greek to English: the pair is listed under the annual rate"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-008",
+   "suite": "vitest",
+   "title": "lets the allow-list only shrink: new misses and stale entries both fail",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 125,
+   "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › lets the allow-list only shrink: new misses and stale entries both fail",
+   "given": [
+    "today's misses a and b, and an allow-list holding a and c"
+   ],
+   "when": [
+    "they are compared"
+   ],
+   "then": [
+    "b is fresh: a miss not on the list",
+    "c is stale: an entry that no longer misses",
+    "a, still missing and listed, is neither"
    ],
    "notes": "",
    "examples": [],
