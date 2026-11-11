@@ -34,9 +34,10 @@ from traceconomics import __version__
 from traceconomics.archive.store import Archive
 from traceconomics.checks import require
 from traceconomics.engine.chain import _price_ratio, link_month, months
-from traceconomics.local import bootstrap, mapping, puf
-from traceconomics.local.groups import RANKED, assign, quintile_matrix, ranking
+from traceconomics.local import bootstrap
+from traceconomics.local.groups import RANKED, quintile_matrix, ranking
 from traceconomics.local.shares import basket, group_shares, memberships
+from traceconomics.local.weights import prepare
 from traceconomics.module1.index import Series
 from traceconomics.module1.prices import update_factor
 from traceconomics.module1.weights_used import BY_LEVEL, CODED_2018_FROM, EXCLUDED, NOT_BY_LEVEL, TUTORING_EXCLUDED_FROM
@@ -47,9 +48,11 @@ GAP = ("Q1", "Q5")
 
 
 def replicate_leaf_shares(survey, groups: pd.DataFrame, wanted, spending: str = "purchases",
-                          replicates: int = bootstrap.REPLICATES, seed: int = bootstrap.SEED, option: int = 1):
+                          replicates: int = bootstrap.REPLICATES, seed: int = bootstrap.SEED, option: int = 1,
+                          calibrate: bootstrap.Calibrate | None = None):
     """(design, leaves, {(grouping, group): leaves x replicates shares}); None shares without a design.
-    `option`: the imputed-rent option (1 drops it, 2 keeps it)."""
+    `option`: the imputed-rent option (1 drops it, 2 keeps it). `calibrate`: how the survey's weights
+    were calibrated, applied again to each replicate's (as for the shares' standard errors)."""
     d = bootstrap.design(survey)
     tree, x = basket(survey, spending, option)
     leaf_rows = [tree.codes.index(c) for c in tree.leaves]
@@ -65,7 +68,7 @@ def replicate_leaf_shares(survey, groups: pd.DataFrame, wanted, spending: str = 
     out = {k: np.empty((len(tree.leaves), replicates)) for k in wanted}
     for start in range(0, replicates, bootstrap.CHUNK):
         cols = slice(start, start + bootstrap.CHUNK)
-        rw = w[:, None] * factors[:, cols]
+        rw = bootstrap.replicate(w, factors[:, cols], calibrate)
         members = {k: m[:, None] for k, m in fixed.items()}
         for g in {g for g, _ in wanted if g in RANKED}:
             value, by_people, parts, prefix = RANKED[g]
@@ -197,10 +200,10 @@ def run(archive: Archive, con, replicates: int = bootstrap.REPLICATES, only=None
         surveys = sorted({e.survey for _, series, _ in built for s in series for e in s.schedule})
         sets = {}
         for year in surveys:
-            survey = puf.read(archive, year)
-            groups = assign(survey)
-            d, leaves, reps = replicate_leaf_shares(mapping.to_2018(survey), groups, wanted, spending, replicates,
-                                                    option=2 if rent == "included" else 1)
+            # The survey as the weights run prepares it: weights calibrated to the tenure target.
+            p = prepare(archive, year)
+            d, leaves, reps = replicate_leaf_shares(p.mapped, p.groups, wanted, spending, replicates,
+                                                    option=2 if rent == "included" else 1, calibrate=p.recalibrate)
             sets[year] = (leaves, reps)
             designs[year] = d.status
         log(f"{spending}/{rent}: replicate shares for {len(surveys)} surveys")

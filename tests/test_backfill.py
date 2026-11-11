@@ -1,10 +1,12 @@
 import hashlib
 from datetime import date
+from urllib.parse import quote
 
 import pytest
 
 from traceconomics.archive.store import Archive
 from traceconomics.backfill import dataset_for_url, import_file, import_wayback, seed
+from traceconomics.sources import aade
 
 pytestmark = pytest.mark.integration
 
@@ -263,3 +265,24 @@ def test_import_wayback_refuses_other_addresses_and_dataset_names(tmp_path):
         with pytest.raises(ValueError):
             import_wayback(archive, f, source="elstat", dataset=dataset, url=url, downloaded=date(2026, 11, 8), note=None)
     assert archive.datasets() == []
+
+
+@pytest.mark.parametrize("name, dataset", [
+    ("SD_FP_22F_3.xlsx", "pit-sd-fp-22f-3"),
+    ("etisio_stats_fysikwn_forologikou_2020 v3.xlsx", "pit-etisio-stats-fysikwn-forologikou-2020-v3"),
+])
+def test_import_names_an_aade_workbook_as_a_fetch_would(tmp_path, name, dataset):
+    """PY-BACKFILL-011: an AADE workbook imported by hand lands in the dataset a fetch would use
+
+    Given an AADE workbook downloaded by hand under its published file name, with no dataset given
+    When it is imported for AADE
+    Then it is stored under "pit-" plus the file's name in slug form, as the adapter names a fetched workbook
+    And its original file name is kept in the manifest, which the store matches
+    """
+    f = tmp_path / name
+    f.write_bytes(b"xlsx")
+    archive = Archive(tmp_path / "archive")
+    r = import_file(archive, f, source="aade", dataset=None, url=None, downloaded=date(2026, 11, 8), note=None)
+    assert r.status == "stored" and r.dataset == dataset
+    assert r.dataset == aade.dataset_for("https://www.aade.gr/sites/default/files/2024-05/" + quote(name))
+    assert archive.manifest(archive.latest("aade", dataset))["original_name"] == name

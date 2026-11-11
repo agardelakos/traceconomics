@@ -15,11 +15,11 @@ import numpy as np
 import pandas as pd
 
 from traceconomics.archive.store import Archive
-from traceconomics.local import mapping, puf, v2
-from traceconomics.local.groups import assign
-from traceconomics.local.shares import shares
+from traceconomics.local import v2
+from traceconomics.local.sensitivity import baskets_from
+from traceconomics.local.weights import prepare
 from traceconomics.module1 import index
-from traceconomics.module1.weights_used import Basket, load_baskets
+from traceconomics.module1.weights_used import load_baskets
 from traceconomics.sources.elstat import hbs_tables
 
 HOSPITAL_OLD = "06311"        # in the 2008-2014 tables
@@ -38,22 +38,18 @@ def with_hospital(survey, table) -> tuple[pd.Series, str]:
 
 
 def baskets_with_hospital(archive: Archive, year: int, groups_wanted) -> tuple[dict, str, float]:
-    survey = puf.read(archive, year)
-    groups = assign(survey)
+    prepared = prepare(archive, year)
+    survey, groups, mapped = prepared.calibrated, prepared.groups, prepared.mapped
     table = hbs_tables.parse(v2.archived_tables(archive)[year], year)
-    euros, how = with_hospital(survey, table)
-    mapped = mapping.to_2018(survey)
+    # Bands as ELSTAT's table draws them: on the survey as read (the bands are income or size
+    # classes, so the weights don't place a household; they only count it).
+    euros, how = with_hospital(prepared.survey, table)
     p = mapped.purchases.copy()
     p[HOSPITAL_2018] = p.get(HOSPITAL_2018, 0.0) + euros.to_numpy()
     for parent in ("0631", "063", "06"):
         p[parent] = p.get(parent, 0.0) + euros.to_numpy()
     mapped.purchases = p
-    t = shares(mapped, groups, "purchases")
-    t = t[(t.imputed_rent == 1)]
-    out = {}
-    for (g, label), part in t.groupby(["grouping", "group"]):
-        if (g, label) in groups_wanted:
-            out[(year, g, label)] = Basket(dict(zip(part.code, part.share)), dict(zip(part.code, part.reliability)))
+    out = baskets_from(year, mapped, groups, groups_wanted)
     w = survey.households.weight
     share = float((euros * w).sum() / (mapped.purchases[[c for c in mapped.purchases if len(c) == 2]].sum(axis=1) * w).sum())
     return out, how, share

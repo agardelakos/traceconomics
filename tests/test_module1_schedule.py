@@ -105,3 +105,23 @@ def test_a_missing_survey_ends_rule_f_rather_than_skipping_a_year():
     from traceconomics.module1.schedule import rule_f
     s = rule_f(range(2011, 2020), {2008, 2009, 2011, 2012})
     assert [e.year for e in s] == [2011, 2012]                  # 2013 needs 2010
+
+
+@pytest.mark.parametrize("rule, year", [("N", 2011), ("F", 2013), ("U", 2010)])
+def test_the_2009_survey_stands_in_for_2010s_income_groups(rule, year):
+    """PY-SCHED-010: wherever a rule would use the 2010 survey for a grouping ranked by income, the 2009 survey stands in
+
+    Given surveys 2008 to 2024, the 2010 survey's income groups not built (its incomes can't rank households)
+    When rules N, F and U are applied for the income fifths (B) and for tenure
+    Then the index year each rule weighs with survey 2010 (2011, 2013, 2010) uses survey 2009 for the fifths, its basis saying why
+    And the tenure groups still use survey 2010 there, and no other year changes
+    """
+    from traceconomics.module1.schedule import RULES, held_for_rule, with_stand_ins
+
+    held = set(range(2008, 2025))
+    income = with_stand_ins("B", RULES[rule](range(2009, 2026), held_for_rule("B", held - {2010})))
+    tenure = with_stand_ins("tenure", RULES[rule](range(2009, 2026), held_for_rule("tenure", held)))
+    by_income, by_tenure = {e.year: e for e in income}, {e.year: e for e in tenure}
+    assert by_income[year].survey == 2009 and "standing in for survey 2010" in by_income[year].basis
+    assert by_tenure[year].survey == 2010
+    assert {y: e.survey for y, e in by_income.items() if y != year} == {y: e.survey for y, e in by_tenure.items() if y != year}

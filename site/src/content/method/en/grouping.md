@@ -27,8 +27,12 @@ Together, property tax and money paid to other households move Eurostat's limits
 - **Households, by total income.** Households, not people, ranked by their money income after taxes, without adjusting for household size.
 - **People, by equivalised spending.** People ranked by their household's total spending per adult equivalent, as in ELSTAT's own survey press release. It counts all spending, including imputed rent, whichever spending concept the basket uses, so switching the concept never changes who is in a group.
 
+## The 2010 survey
+
+Its incomes can't be used to rank households: the incomes of households living on wages are far too low in it, in ELSTAT's own published table too. So both income rankings use the 2009 survey wherever the 2010 survey would apply (2011 under the default timing). The ranking by spending still uses the 2010 survey.
+
 ## How much it matters
 
-In September 2026 the poorest fifth's annual rate was 5.0% by default, 5.4% with households ranked by total income and 5.7% with people ranked by spending. The groupings sort different people into the "poorest" fifth, so their baskets differ.
+In September 2026 the poorest fifth's annual rate was 4.9% by default, 5.4% with households ranked by total income and 5.6% with people ranked by spending. The groupings sort different people into the "poorest" fifth, so their baskets differ.
 
 The tenure, pensioner and all-households groups don't depend on this option.

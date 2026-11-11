@@ -30,6 +30,7 @@ Per year the design is what the files support:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -43,6 +44,8 @@ from traceconomics.local.shares import PUBLISHED, basket, group_shares, membersh
 REPLICATES = 1000
 SEED = 20261019          # fixed, so a rerun gives the same errors; the year is mixed in per survey
 CHUNK = 100              # replicates computed at a time, to bound memory
+# Calibration of weights (households x replicates -> the same, calibrated column by column).
+Calibrate = Callable[[np.ndarray], np.ndarray]
 HIGH_RSE = 0.25          # relative standard error at which a share is flagged (BLS/ABS practice)
 
 
@@ -85,10 +88,19 @@ def replicate_factors(d: Design, replicates: int, rng: np.random.Generator) -> n
     return factors[area_index]
 
 
+def replicate(w: np.ndarray, factors: np.ndarray, calibrate: Calibrate | None) -> np.ndarray:
+    """Replicate weights: the survey's weights rescaled by each replicate's draws, then calibrated
+    again where the survey's own weights were (each replicate is a survey of its own)."""
+    rw = w[:, None] * factors
+    return calibrate(rw) if calibrate is not None else rw
+
+
 def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPLICATES,
-                    seed: int = SEED, spending: str = "purchases") -> tuple[Design, pd.DataFrame]:
+                    seed: int = SEED, spending: str = "purchases",
+                    calibrate: Calibrate | None = None) -> tuple[Design, pd.DataFrame]:
     """(the design used, a table grouping, group, imputed_rent, code, se) for the published
-    groupings. The table is empty when the design is unavailable."""
+    groupings. The table is empty when the design is unavailable. `calibrate`: how the survey's
+    weights were calibrated, applied again to each replicate's weights."""
     d = design(survey)
     if d.status == "unavailable":
         return d, pd.DataFrame(columns=["grouping", "group", "imputed_rent", "code", "se"])
@@ -111,7 +123,7 @@ def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPL
     s2 = {k: np.zeros_like(v) for k, v in point.items()}
 
     for start in range(0, replicates, CHUNK):
-        rw = w[:, None] * factors[:, start:start + CHUNK]                    # households x chunk
+        rw = replicate(w, factors[:, start:start + CHUNK], calibrate)       # households x chunk
         members = [(g, label, m[:, None]) for g, label, m in fixed]
         for g in ranked:
             value, by_people, parts, prefix = RANKED[g]
@@ -139,7 +151,7 @@ def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPL
 
 
 def limit_errors(survey: Survey, grouping: str = "B", replicates: int = REPLICATES,
-                 seed: int = SEED) -> tuple[Design, np.ndarray | None]:
+                 seed: int = SEED, calibrate: Calibrate | None = None) -> tuple[Design, np.ndarray | None]:
     """(the design used, the standard error of each limit between the grouping's parts, or None
     when the design is unavailable). The same replicates as `standard_errors` (same seed and
     draws): in each one the households are ranked again and the limits recomputed."""
@@ -150,8 +162,9 @@ def limit_errors(survey: Survey, grouping: str = "B", replicates: int = REPLICAT
     w = survey.households.weight.to_numpy(float)
     values, size = ranking(survey)
     value, by_people, parts, _ = RANKED[grouping]
-    basis = w * np.nan_to_num(size.to_numpy(float)) if by_people else w
-    cuts = np.concatenate([cut_points(values[value], basis[:, None] * factors[:, s:s + CHUNK], survey.households.hh, parts)
+    scale = np.nan_to_num(size.to_numpy(float))[:, None] if by_people else 1.0
+    cuts = np.concatenate([cut_points(values[value], replicate(w, factors[:, s:s + CHUNK], calibrate) * scale,
+                                      survey.households.hh, parts)
                            for s in range(0, replicates, CHUNK)], axis=1)
     return d, cuts.std(axis=1, ddof=1)
 

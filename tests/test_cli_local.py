@@ -195,3 +195,29 @@ def test_check_hospital_prints_the_effect_of_putting_hospitals_back(run, monkeyp
     assert code == 0
     assert "survey 2010: 1.2% of purchases; 5 bands" in out
     assert "B Q1: 2011 +0.012" in out and "Change in the Q1-Q5 gap (pp): 2011 -0.004" in out
+
+
+def test_check_tenure_prints_what_the_calibration_changes(run, monkeypatch, no_store):
+    """PY-CLI-045: check tenure prints each survey's calibration and the change it makes
+
+    Given a tenure check with one survey, one group's change, its rent share and the gap's change
+    When check tenure is run
+    Then it prints the survey's renters before and after, the target with how it was set, and the weight factors
+    And the group's change in the annual average and in December, with three decimals and a sign
+    And rent's share before and after, and the gap's change
+    And it exits with code 0 (a report)
+    """
+    from traceconomics.local import tenure_check
+
+    monkeypatch.setattr(tenure_check, "run", lambda archive, con: {
+        "surveys": {2021: {"renters_before": 0.168, "renters_after": 0.245, "target": 0.245, "store_gap": 0.0,
+                           "basis": "EU-SILC's split for the year plus 1.0 of its step",
+                           "factors": {"renter": 1.46, "owner": 0.92, "rent_free": 0.97}}},
+        "series": {"all/all": {2022: {"annual_average": 0.0123, "december": None}}},
+        "rent_share": {"all/all": {2021: (0.04, 0.052)}}, "gap_change": {2022: -0.004}})
+    code, out = run("check", "tenure")
+    assert code == 0
+    assert ("survey 2021: renters 16.8% -> 24.5% (target 24.5%: EU-SILC's split for the year plus 1.0 of its step); "
+            "renters x1.460, owners x0.920") in out
+    assert "all/all: 2022 +0.012/n/a" in out and "all/all: 2021 4.0%->5.2%" in out
+    assert "Change in the Q1-Q5 gap (pp): 2022 -0.004" in out

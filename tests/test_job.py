@@ -181,6 +181,20 @@ def test_full_run_then_second_run_stores_nothing(tmp_path, fake_http):
     assert len(tsv) == len(eurostat.LIVE) + len(eurostat.FROZEN) + len(ec_empl.LIVE)
 
 
+def test_the_daily_run_never_asks_aade(tmp_path, fake_http):
+    """PY-JOB-021: the daily run never asks AADE, so its CDN's refusal can't stop a release
+
+    Given fake publishers that would serve AADE's statistics page, workbooks and terms page
+    When the scheduled job runs
+    Then the run is ok
+    And no address on www.aade.gr was requested
+    """
+    c = cfg(tmp_path)
+    assert job.run(c, now=at(2026, 10, 18, 14))["result"] == "ok"
+    assert fake_http.requested
+    assert not [u for u in fake_http.requested if "aade.gr" in u]
+
+
 def test_changed_terms_raise_an_alert(tmp_path, fake_http):
     """PY-JOB-007: changed reuse terms raise an alert
 

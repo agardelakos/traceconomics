@@ -18,7 +18,7 @@ from traceconomics.checks import require
 from traceconomics.engine import ChainResult, chain, rebase
 from traceconomics.engine.rates import annual_average_rate, annual_rate, monthly_rate
 from traceconomics.module1.prices import cpi_blocks  # noqa: F401  (re-exported for callers)
-from traceconomics.module1.schedule import RULES, Entry
+from traceconomics.module1.schedule import RULES, Entry, held_for_rule, with_stand_ins
 from traceconomics.module1.weights_used import CODED_2018_FROM, PRICED, Used, load_baskets, tutoring_fraction, weights_used
 
 FIRST_YEAR = 2009          # linked at December 2008; 2009-2010 come from ELSTAT's original tables (`originals`)
@@ -86,7 +86,7 @@ def build(con, grouping: str, group: str, *, spending: str = "purchases", when=N
     baskets = load_baskets(con, spending=spending) if baskets is None else baskets
     surveys = {year for (year, g, label) in baskets if (g, label) == (grouping, group)}
     last = max(blocks)
-    schedule = rule(range(first_year or FIRST_YEAR, last + 1), surveys)
+    schedule = with_stand_ins(grouping, rule(range(first_year or FIRST_YEAR, last + 1), held_for_rule(grouping, surveys)))
     require(bool(schedule), f"{grouping}/{group}: no weights in any year")
     first_year = first_year or schedule[0].year
     require(schedule[0].year == first_year, f"{grouping}/{group}: no weights for {first_year}")

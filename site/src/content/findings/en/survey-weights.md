@@ -36,6 +36,6 @@ ELSTAT saying which weights are final, or a later version of either the file or 
 
 ## What we do
 
-Our groups' spending shares use the file's weights as they are, since each file is consistent with itself. The inflation-by-group method lists this among the points ELSTAT has not confirmed. Every figure compared is in the check's download.
+Our groups' spending shares start from the file's weights, since each file is consistent with itself, and only scale them so renters make up the census's share (see the method). The inflation-by-group method lists this among the points ELSTAT has not confirmed. Every figure compared is in the check's download.
 
 Have an idea, or know of a document we missed? Write to [support@traceconomics.com](mailto:support@traceconomics.com).
