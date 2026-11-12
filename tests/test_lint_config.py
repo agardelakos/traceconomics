@@ -53,8 +53,9 @@ def test_prettier_ignores_every_protected_path():
 
     Given the site's .prettierignore
     When its entries are read
-    Then it lists the fixtures, the Code of Conduct, the served files, the build output, the
-      coverage reports and the files npm writes
+    Then it lists the fixtures and the Code of Conduct
+    And it lists the served files, the build output and the coverage reports
+    And it lists the files npm writes
     """
     required = {
         "../tests/fixtures/",
@@ -74,8 +75,7 @@ def test_prettier_scripts_check_what_they_write():
     Given the site's npm scripts
     When format and format:check are compared
     Then they differ only in --write against --check
-    And both name the config file and the ignore file explicitly (files outside site/ would
-      otherwise find neither)
+    And both name the config file and the ignore file (files outside site/ would find neither)
     And none of their file patterns reaches the reference data tables
     """
     fmt, check = scripts()["format"], scripts()["format:check"]
