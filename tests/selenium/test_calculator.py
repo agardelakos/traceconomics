@@ -135,7 +135,11 @@ def test_slider_changes_the_result_and_reset_restores_it(site):
     site.wait(lambda _: "edited" in site.find("#calculator [data-role=result]").get_attribute("class"))
     assert float(first.get_attribute("value")) == pytest.approx(float(before[0]) + 5, abs=0.05)
     others = [float(s.get_attribute("value")) for s in sliders[1:]]
-    assert sum(others) + float(first.get_attribute("value")) == pytest.approx(100, abs=0.2), (
+    # The page keeps the exact shares (they add up to 100) and shows each slider rounded to 0.1, so
+    # each shown value is off by at most 0.05 and their sum by at most 0.05 per slider: with 13
+    # categories that is 0.65, more than a fixed 0.2 allows on some baskets (99.8 on real data).
+    rounding = 0.05 * len(sliders) + 1e-9
+    assert sum(others) + float(first.get_attribute("value")) == pytest.approx(100, abs=rounding), (
         "the shares no longer add up to 100%"
     )
     assert others != [float(v) for v in before[1:]], "the other categories were not rescaled"
