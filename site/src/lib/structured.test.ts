@@ -1,7 +1,11 @@
 // The descriptions for search engines: the dataset block and the sitemap.
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { dataset, ldJson } from "./structured";
-import { sitemapXml } from "./sitemap.mjs";
+import { sitemap, sitemapXml } from "./sitemap.mjs";
 
 const site = new URL("https://example.org");
 const input = {
@@ -80,5 +84,48 @@ describe("sitemapXml", () => {
     const xml = sitemapXml("https://example.org", ["", "en/", "el/", "en/data/gr/", "/en/about", "el/about/", "en/"], ["en"]);
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(locs).toEqual(["https://example.org/en/", "https://example.org/en/about/", "https://example.org/en/data/gr/"]);
+  });
+});
+
+describe("the sitemap step of the build", () => {
+  type Hooks = { "astro:config:done": (o: { config: { site?: string } }) => void; "astro:build:done": (o: { pages: { pathname: string }[]; dir: URL }) => void };
+  const pages = [{ pathname: "" }, { pathname: "en/" }, { pathname: "el/data/gr/" }, { pathname: "fr/" }];
+  const outDir = () => pathToFileURL(fs.mkdtempSync(path.join(os.tmpdir(), "sitemap-")) + path.sep);
+
+  it("writes sitemap.xml into the build's folder for the languages the site offers", { meta: {
+    id: "VT-STRUCT-005",
+    given: [
+      "the site's address from the Astro config",
+      "built pages: the root, the English home, a Greek data page and a page in a language the site has no file for",
+      "the site's own list of offered languages",
+    ],
+    when: "the build finishes",
+    then: "the build's folder holds sitemap.xml with the same text the sitemap gives for those pages and the offered languages",
+  } }, () => {
+    const { hooks } = sitemap() as { hooks: Hooks };
+    const dir = outDir();
+    hooks["astro:config:done"]({ config: { site: "https://example.org" } });
+    hooks["astro:build:done"]({ pages, dir });
+    const { offered } = JSON.parse(fs.readFileSync(path.resolve("src/i18n/languages.json"), "utf-8"));
+    const written = fs.readFileSync(new URL("sitemap.xml", dir), "utf-8");
+    expect(written).toBe(sitemapXml("https://example.org", pages.map((p) => p.pathname), offered));
+    expect(written).toContain("<loc>https://example.org/en/</loc>");
+    expect(written).not.toContain("/fr/");
+  });
+
+  it("stops the build when the Astro config has no site address", { meta: {
+    id: "VT-STRUCT-006",
+    given: "an Astro config without a site address",
+    when: "the build finishes",
+    then: [
+      "the step throws an error naming the missing setting",
+      "no sitemap.xml is written",
+    ],
+  } }, () => {
+    const { hooks } = sitemap() as { hooks: Hooks };
+    const dir = outDir();
+    hooks["astro:config:done"]({ config: {} });
+    expect(() => hooks["astro:build:done"]({ pages, dir })).toThrow(/no `site` in the Astro config/);
+    expect(fs.existsSync(new URL("sitemap.xml", dir))).toBe(false);
   });
 });
