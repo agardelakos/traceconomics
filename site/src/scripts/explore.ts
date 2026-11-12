@@ -4,6 +4,7 @@
 
 import { mount, type ChartSpec } from "./chart";
 import { fill, month, num, type Lang } from "../lib/format";
+import type { ContributionsFile, Footnotes, OptionAvailability, SeriesFile } from "../lib/data";
 
 interface Config {
   lang: Lang;
@@ -15,10 +16,7 @@ interface Config {
   defaults: Record<string, string>;
   colors: Record<string, string>;
   dash: Record<string, string>;
-  availability: Record<
-    string,
-    Record<string, { index: string[]; annual_rates: string[] | null; greyed: any[]; notes: any[] }>
-  >;
+  availability: Record<string, Record<string, OptionAvailability>>;
   dataPage: string;
   country: string;
   divisions: Record<string, string>;
@@ -75,8 +73,9 @@ export function start(root: HTMLElement): void {
   const inSentence = (g: string) => t(`group.in.${g}`);
 
   // Files, fetched once each.
-  const cache = new Map<string, Promise<any>>();
-  const load = (rel: string) => {
+  const cache = new Map<string, Promise<unknown>>();
+  // The type is the file's, as the export writes it (lib/data.ts): fetched JSON can't be checked.
+  const load = <T>(rel: string): Promise<T> => {
     if (!cache.has(rel)) {
       cache.set(
         rel,
@@ -91,7 +90,7 @@ export function start(root: HTMLElement): void {
           }),
       );
     }
-    return cache.get(rel)!;
+    return cache.get(rel)! as Promise<T>;
   };
 
   // Controls.
@@ -220,7 +219,14 @@ export function start(root: HTMLElement): void {
     gapReason.textContent = t(parts ? "explore.gap_parts" : "explore.gap_annual_only");
   }
 
-  function reasonText(r: any): string {
+  /** One footnote as [kind, its fields], so a check of the kind narrows the fields. */
+  type FootnoteEntry = {
+    [K in keyof Footnotes]-?: [K, NonNullable<Footnotes[K]>];
+  }[keyof Footnotes];
+
+  type Reason = OptionAvailability["greyed"][number] | OptionAvailability["notes"][number];
+
+  function reasonText(r: Reason): string {
     const code = r.reason;
     if (code === "rule_u_end") {
       const end = cfg.availability.weights_timing.U.index[1];
@@ -229,9 +235,10 @@ export function start(root: HTMLElement): void {
     // An option whose source starts or publishes later than the others: the month it starts, or
     // the first month it doesn't have yet (the greyed span's first month).
     if (code === "ends_earlier")
-      return t("reason.ends_earlier", { month: month(L, r.index[0], "acc") });
+      // Only greyed spans carry these codes, and a greyed span always has its months.
+      return t("reason.ends_earlier", { month: month(L, r.index![0], "acc") });
     if (code === "starts_later")
-      return t("reason.starts_later", { month: month(L, nextMonth(r.index[1]), "acc") });
+      return t("reason.starts_later", { month: month(L, nextMonth(r.index![1]), "acc") });
     return t(`reason.${code}`);
   }
 
@@ -271,9 +278,9 @@ export function start(root: HTMLElement): void {
     const mine = ++seq;
     $("loading").hidden = false;
     $("failed").hidden = true;
-    let data: any;
+    let data: SeriesFile;
     try {
-      data = await load(`series/${slug()}.json`);
+      data = await load<SeriesFile>(`series/${slug()}.json`);
     } catch {
       if (mine !== seq) return;
       $("loading").hidden = true;
@@ -301,7 +308,7 @@ export function start(root: HTMLElement): void {
     }
   }
 
-  function draw(data: any) {
+  function draw(data: SeriesFile) {
     const axis = axisOf(data.start, data.end);
     const field = measure === "index" ? "index" : measure;
     const lines = groups.map((g) => ({
@@ -400,7 +407,8 @@ export function start(root: HTMLElement): void {
     const seen = new Set<string>();
     for (const g of groups) {
       const f = data.footnotes[dataKey(g)] ?? {};
-      for (const [code, v] of Object.entries<any>(f)) {
+      // Typed per kind of note: Object.entries alone would type every note as `any`.
+      for (const [code, v] of Object.entries(f) as FootnoteEntry[]) {
         const text =
           code === "hospital"
             ? `${t("reason.hospital", { first: 2008, last: 2014 })} (${v.annual_rates[0]} – ${v.annual_rates[1]})`
@@ -462,9 +470,9 @@ export function start(root: HTMLElement): void {
       $("contrib-none").hidden = false;
       $("contrib-title").textContent = "";
     };
-    let data: any;
+    let data: ContributionsFile;
     try {
-      data = await load(`contributions/${slug()}.json`);
+      data = await load<ContributionsFile>(`contributions/${slug()}.json`);
     } catch {
       none();
       return;

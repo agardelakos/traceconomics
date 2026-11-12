@@ -50,11 +50,17 @@ describe("dataset", () => {
       },
     },
     () => {
-      const d = dataset(input) as any;
+      // The fields this test reads, as the JSON-LD names them.
+      const d = dataset(input) as {
+        url: string;
+        license: string;
+        temporalCoverage: string;
+        distribution: { encodingFormat: string; contentUrl: string }[];
+      };
       expect(d.url).toBe("https://example.org/en/data/gr/#inflation-by-group");
       expect(d.license).toBe("https://creativecommons.org/licenses/by/4.0/");
       expect(d.temporalCoverage).toBe("2008-12/2026-09");
-      expect(d.distribution.map((f: any) => f.encodingFormat)).toEqual([
+      expect(d.distribution.map((f) => f.encodingFormat)).toEqual([
         "text/csv",
         "application/vnd.apache.parquet",
         "application/json",

@@ -2,19 +2,20 @@
 // the same view; the chart's summary, its data table, the breakdown, the files link and the
 // citation follow the choice. Expected numbers come from the published files for that setting.
 import type { APIRequestContext, Locator, Page } from "@playwright/test";
+import type { Availability, ContributionsFile, SeriesFile, Settings } from "../../src/lib/data";
 import { expect, gwt, json, LANGS, m1, month, num, t, test, type Lang } from "./helpers";
 
 const DATA = "/data/v1/gr/m1/latest";
 const DEFAULT_GROUPS = ["Q1", "Q5", "all/all"];
 type Measure = "rch_a" | "rch_m" | "index";
 
-const settings = (request: APIRequestContext) => json(request, `${DATA}/settings.json`);
+const settings = (request: APIRequestContext) => json<Settings>(request, `${DATA}/settings.json`);
 const series = (request: APIRequestContext, slug: string) =>
-  json(request, `${DATA}/series/${slug}.json`);
+  json<SeriesFile>(request, `${DATA}/series/${slug}.json`);
 const dataKey = (g: string) => (g.startsWith("Q") ? `B/${g}` : g);
 const SLUG_KEYS = ["spending", "imputed_rent", "price_source", "weights_timing", "tutoring"];
-const slugOf = (s: any, change: Record<string, string> = {}) => {
-  const base = s.settings.find((x: any) => x.default);
+const slugOf = (s: Settings, change: Record<string, string> = {}) => {
+  const base = s.settings.find((x) => x.default)!;
   return SLUG_KEYS.map((k) => change[k] ?? base[k]).join("_");
 };
 
@@ -32,7 +33,7 @@ function axisOf(start: string, end: string): string[] {
 }
 
 /** The chart's one-sentence summary, as the page should write it from the file. */
-function summaryOf(lang: Lang, file: any, groups: string[], measure: Measure): string {
+function summaryOf(lang: Lang, file: SeriesFile, groups: string[], measure: Measure): string {
   const axis = axisOf(file.start, file.end);
   const digits = measure === "index" ? 2 : 1;
   const ends = groups.map((g) => {
@@ -222,7 +223,7 @@ test(
     const s = await settings(request);
     const [option, value] = [
       "price_source",
-      s.options.price_source.find((v: string) => v !== "cpi"),
+      s.options.price_source.find((v: string) => v !== "cpi")!,
     ];
     const slug = slugOf(s, { [option]: value });
     const file = await series(request, slug);
@@ -490,10 +491,11 @@ test.describe("the breakdown view", () => {
     }),
     async ({ page, request }) => {
       const s = await settings(request);
-      const c = await json(request, `${DATA}/contributions/${s.default}.json`);
+      const c = await json<ContributionsFile>(request, `${DATA}/contributions/${s.default}.json`);
       const byMonth = c.groups["B/Q1"];
-      const parts: Record<string, number> = byMonth[Object.keys(byMonth).sort().at(-1)!];
-      const total = Object.values(parts).reduce((a, v) => a + v, 0);
+      const parts = byMonth[Object.keys(byMonth).sort().at(-1)!];
+      // A missing value is null in the file; it adds nothing.
+      const total = Object.values(parts).reduce((a: number, v) => a + (v ?? 0), 0);
       await page.goto(`${m1("en", "explore/")}?groups=Q1`);
       await root(page)
         .getByRole("button", { name: t("en", "explore.view.parts") })
@@ -691,8 +693,9 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const greyed: { reason: string }[] = (await json(request, `${DATA}/availability.json`)).options
-      .weights_timing.F.greyed;
+    const greyed: { reason: string }[] = (
+      await json<Availability>(request, `${DATA}/availability.json`)
+    ).options.weights_timing.F.greyed;
     const reasons = greyed.map((g) => t("en", `reason.${g.reason}`));
     expect(
       reasons.length,
@@ -724,7 +727,8 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const hicp = (await json(request, `${DATA}/availability.json`)).options.price_source.hicp;
+    const hicp = (await json<Availability>(request, `${DATA}/availability.json`)).options
+      .price_source.hicp;
     const greyed = hicp.greyed.filter((g: { reason: string }) => g.reason === "ends_earlier");
     expect(
       greyed.length,

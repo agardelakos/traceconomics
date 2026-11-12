@@ -68,8 +68,8 @@ const COVERAGE = process.env.TRACECONOMICS_COVERAGE === "on" && !REMOTE;
 /** Module 1's pages for a language: m1("en", "explore/") → "/en/gr/inflation-by-group/explore/". */
 export const m1 = (lang: string, rest = "") => `/${lang}/gr/inflation-by-group/${rest}`;
 
-/** A published data file, parsed. */
-export async function json<T = any>(request: APIRequestContext, path: string): Promise<T> {
+/** A published data file, parsed. `T` is its shape, as declared in src/lib/data.ts. */
+export async function json<T = unknown>(request: APIRequestContext, path: string): Promise<T> {
   const response = await request.get(path);
   expect(response.status(), path).toBe(200);
   return response.json();
@@ -123,7 +123,7 @@ export const test = base.extend<Fixtures>({
         await use({ flush: async () => {} });
         return;
       }
-      const entries: any[] = [];
+      const entries: Awaited<ReturnType<Page["coverage"]["stopJSCoverage"]>> = [];
       let running = false;
       const stop = async () => {
         if (!running) return;

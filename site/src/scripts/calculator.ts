@@ -17,7 +17,8 @@ import { fill, month, num, type Lang } from "../lib/format";
 import { eur, parseAmount } from "../lib/income";
 import { mount, type ChartSpec } from "./chart";
 
-interface Config {
+/** The page's settings, in its data-config attribute (the browser tests read it too). */
+export interface Config {
   lang: Lang;
   locale: string;
   src: string;

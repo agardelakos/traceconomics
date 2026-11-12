@@ -3,6 +3,8 @@
 // own latest rate (it reproduces the official numbers); changed, it must show what the engine gives
 // for those shares (the engine has its own unit and parity tests: here we check the page's wiring).
 import type { APIRequestContext, Page } from "@playwright/test";
+import type { SeriesFile, Settings } from "../../src/lib/data";
+import type { Config as CalculatorConfig } from "../../src/scripts/calculator";
 import {
   annualRate,
   chain,
@@ -22,8 +24,8 @@ const role = (page: Page, r: string) => root(page).locator(`[data-role="${r}"]`)
 
 /** The published series' latest annual rate for a group, and its month. */
 async function publishedRate(request: APIRequestContext, group: string) {
-  const s = await json(request, `${DATA}/settings.json`);
-  const file = await json(request, `${DATA}/series/${s.default}.json`);
+  const s = await json<Settings>(request, `${DATA}/settings.json`);
+  const file = await json<SeriesFile>(request, `${DATA}/series/${s.default}.json`);
   const values: (number | null)[] = file.groups[group].rch_a;
   let i = values.length - 1;
   while (values[i] === null) i--;
@@ -48,7 +50,8 @@ function presetShares(data: CalculatorData, preset: string): Shares {
   const w = presetWeights(data, preset);
   return divisionShares(w.get(Math.max(...w.keys()))!);
 }
-const config = async (page: Page) => JSON.parse((await root(page).getAttribute("data-config"))!);
+const config = async (page: Page): Promise<CalculatorConfig> =>
+  JSON.parse((await root(page).getAttribute("data-config"))!);
 const pct = (lang: Lang, v: number) => `${num(lang, v)}%`;
 
 for (const lang of LANGS) {
@@ -78,7 +81,7 @@ for (const lang of LANGS) {
       );
       await expect(role(page, "preset-rate")).toHaveText(pct(lang, q1.value));
       await expect(role(page, "all-rate")).toHaveText(pct(lang, all.value));
-      const name = (await config(page)).presets.find((p: any) => p.key === "B/Q1").name;
+      const name = (await config(page)).presets.find((p) => p.key === "B/Q1")!.name;
       await expect(role(page, "same")).toHaveText(t(lang, "calc.same", { preset: name }));
       await expect(role(page, "diff")).toBeHidden();
       await expect(role(page, "reset")).toBeHidden();
@@ -196,7 +199,7 @@ test(
     await root(page).getByLabel(cfg.divisions[d], { exact: true }).fill("40");
     await expect(role(page, "yours")).toHaveText(pct("en", yours));
     const gap = roundHalfEven(yours - theirs, 1);
-    const name = cfg.presets.find((p: any) => p.key === "B/Q1").name;
+    const name = cfg.presets.find((p) => p.key === "B/Q1")!.name;
     await expect(role(page, "diff")).toHaveText(
       t("en", gap >= 0 ? "calc.diff_up" : "calc.diff_down", {
         points: num("en", Math.abs(gap)),
@@ -374,7 +377,7 @@ test(
     await page.goto(m1("en", "calculator/"));
     await expect(role(page, "result")).toBeVisible();
     const cfg = await config(page);
-    const name = cfg.presets.find((p: any) => p.key === "B/Q1").name;
+    const name = cfg.presets.find((p) => p.key === "B/Q1")!.name;
     await expect(role(page, "chart")).toHaveAttribute(
       "aria-label",
       `${t("en", "calc.over_time")}: ${name}`,

@@ -14,17 +14,24 @@ const SITEMAP = new URL("../../dist/sitemap.xml", import.meta.url);
 
 test.skip(!REMOTE, "needs BASE_URL: a local server sends none of the host's headers");
 
+// Where the page keeps the violations it saw, for the test to read back.
+declare global {
+  interface Window {
+    __csp: string[];
+  }
+}
+
 /** Every Content Security Policy violation on the page, as the browser reports it. */
 async function watch(page: Page): Promise<() => Promise<string[]>> {
   await page.addInitScript(() => {
-    (window as any).__csp = [];
+    window.__csp = [];
     document.addEventListener("securitypolicyviolation", (e) =>
-      (window as any).__csp.push(
+      window.__csp.push(
         `${e.violatedDirective}: ${e.blockedURI || "inline"} (${e.sourceFile}:${e.lineNumber})`,
       ),
     );
   });
-  return () => page.evaluate(() => (window as any).__csp as string[]);
+  return () => page.evaluate(() => window.__csp);
 }
 
 test(

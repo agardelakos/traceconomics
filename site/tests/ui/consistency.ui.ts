@@ -1,12 +1,18 @@
 // The consistency topic: the overview of every check, a check's page with its differences, a
 // written finding, a question across sources, and the ways in (the country card, the Groups page,
 // the data page). Expected values come from the published checks.json, not from the page.
+import type { APIRequestContext } from "@playwright/test";
+import type { Check, Results } from "../../src/lib/m5";
 import { expect, gwt, num, t, test } from "./helpers";
 
 const M5 = (lang: string, rest = "") => `/${lang}/gr/official-figures-consistency/${rest}`;
 const DATA = "/data/v1/gr/m5/latest";
 
-function status(c: any): string {
+/** The published checks file; its shape is the site's own (src/lib/m5.ts). */
+const results = async (request: APIRequestContext): Promise<Results> =>
+  (await request.get(`${DATA}/checks.json`)).json();
+
+function status(c: Pick<Check, "differ" | "compared" | "agree">): string {
   const unknown = c.differ["not-known"] ?? 0;
   const differ = c.compared - c.agree;
   return differ === (c.differ.rounding ?? 0)
@@ -19,7 +25,7 @@ function status(c: any): string {
 }
 
 const ORDER = ["explained", "partly", "unknown", "agree"];
-const byStatus = (checks: any[]) => ORDER.flatMap((st) => checks.filter((c) => status(c) === st));
+const byStatus = (checks: Check[]) => ORDER.flatMap((st) => checks.filter((c) => status(c) === st));
 
 for (const lang of ["en", "el"] as const) {
   test(
@@ -37,13 +43,13 @@ for (const lang of ["en", "el"] as const) {
       ],
     }),
     async ({ page, request }) => {
-      const r = await (await request.get(`${DATA}/checks.json`)).json();
+      const r = await results(request);
       await page.goto(M5(lang));
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
         t(lang, "topic.official-figures-consistency.question"),
       );
-      const sum = (k: string) => r.checks.reduce((n: number, c: any) => n + c[k], 0);
-      const years = r.checks.flatMap((c: any) => Object.keys(c.by_year)).sort();
+      const sum = (k: "compared" | "agree") => r.checks.reduce((n: number, c) => n + c[k], 0);
+      const years = r.checks.flatMap((c) => Object.keys(c.by_year)).sort();
       const stats = page.locator('[data-m5="stats"] p');
       await expect(stats.nth(0).locator("strong")).toHaveText(num(lang, r.checks.length, 0));
       await expect(stats.nth(1).locator("strong")).toHaveText(num(lang, sum("compared"), 0));
@@ -84,8 +90,8 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const c = r.checks.find((x: any) => x.id === "gr-cpi-rates-own-index");
+    const r = await results(request);
+    const c = r.checks.find((x) => x.id === "gr-cpi-rates-own-index")!;
     await page.goto(M5("en", "checks/cpi-rates-own-index/"));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       t("en", "m5.check.gr-cpi-rates-own-index.question"),
@@ -158,8 +164,8 @@ test(
     ],
   }),
   async ({ page, request, coverage }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const q = r.questions.find((x: any) => x.id === "gr-income-limits");
+    const r = await results(request);
+    const q = r.questions.find((x) => x.id === "gr-income-limits")!;
     await page.goto("/en/gr/inflation-by-group/groups/");
     await coverage.flush();
     await page.locator('[data-income-role="compare-link"] a').click();
@@ -195,7 +201,7 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     await page.goto("/en/");
     await expect(page.locator('[data-m5="card-link"] a')).toHaveAttribute("href", M5("en"));
     await page.goto("/en/data/gr/");
@@ -221,8 +227,8 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const q = r.questions.find((x: any) => x.id === "gr-rent-paid");
+    const r = await results(request);
+    const q = r.questions.find((x) => x.id === "gr-rent-paid")!;
     await page.goto(M5("en", "same-question/rent-paid/"));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       t("en", "m5.question.gr-rent-paid.title"),
@@ -230,10 +236,10 @@ test(
     const table = page.locator('[data-m5="question"]');
     await expect(table.locator("thead th")).toHaveCount(1 + q.sources.length);
     const periods = [
-      ...new Set(q.sources.flatMap((s: any) => Object.keys(q.values[s.label]))),
+      ...new Set(q.sources.flatMap((s) => Object.keys(q.values[s.label]))),
     ].sort() as string[];
     await expect(table.locator("tbody tr")).toHaveCount(periods.length);
-    const na = q.sources.findIndex((s: any) => s.label === "national_accounts");
+    const na = q.sources.findIndex((s) => s.label === "national_accounts");
     const row = table
       .locator("tbody tr")
       .filter({ has: page.locator("th", { hasText: periods[0] }) });
@@ -255,7 +261,7 @@ test(
     await expect(published).toHaveCount(aade.length);
     await expect(published.first().locator("td")).toHaveText(num("en", aade[0][1] as number, 2));
     const notices = ["aade", "ec-empl"].filter((p) =>
-      q.sources.some((s: any) => s.source.startsWith(`${p}:`)),
+      q.sources.some((s) => s.source.startsWith(`${p}:`)),
     );
     expect(notices).toContain("aade");
     await expect(page.locator('[data-m5="notice"]')).toHaveText(
@@ -278,8 +284,8 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const q = r.questions.find((x: any) => x.id === "gr-renters");
+    const r = await results(request);
+    const q = r.questions.find((x) => x.id === "gr-renters")!;
     await page.goto(M5("en", "same-question/renters/"));
     const chart = page.locator('[data-m5="chart"]');
     await expect(chart.locator("svg")).toHaveAttribute(
@@ -287,13 +293,13 @@ test(
       `${t("en", "m5.question.gr-renters.title")} (${t("en", "m5.unit.percent")})`,
     );
     await expect(chart.locator(".m5-legend li")).toHaveText(
-      q.sources.map((s: any) => t("en", `m5.src.gr-renters.${s.label}`)),
+      q.sources.map((s) => t("en", `m5.src.gr-renters.${s.label}`)),
     );
-    const values = q.sources.flatMap((s: any) =>
+    const values = q.sources.flatMap((s) =>
       Object.entries(q.values[s.label]).filter(([, v]) => v != null),
     );
     await expect(chart.locator("circle")).toHaveCount(values.length);
-    const consecutive = q.sources.reduce((n: number, s: any) => {
+    const consecutive = q.sources.reduce((n: number, s) => {
       const ys = Object.keys(q.values[s.label])
         .filter((y) => q.values[s.label][y] != null)
         .map(Number)
@@ -318,8 +324,8 @@ test(
     ],
   }),
   async ({ page, request, coverage }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const ids = [...r.checks, ...r.questions].map((x: any) => x.id);
+    const r = await results(request);
+    const ids = [...r.checks, ...r.questions].map((x) => x.id);
     expect(ids).toEqual(
       expect.arrayContaining(["gr-renters", "gr-rent-weight", "gr-hbs-household-types"]),
     );
@@ -354,11 +360,11 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const c = r.checks.find((x: any) => x.id === "gr-hbs-spending");
+    const r = await results(request);
+    const c = r.checks.find((x) => x.id === "gr-hbs-spending")!;
     await page.goto(M5("en", "checks/hbs-spending/"));
     const open = page.locator('[data-m5="open"]');
-    await expect(open).toContainText(t("en", "m5.open.count", { n: c.differ["not-known"] }));
+    await expect(open).toContainText(t("en", "m5.open.count", { n: c.differ["not-known"]! }));
     await expect(open.locator('a[href$="/checks/hbs-spending/survey-weights/"]')).toHaveCount(1);
     await expect(open.locator('a[href="mailto:support@traceconomics.com"]')).toHaveCount(1);
   },
@@ -377,7 +383,7 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     await page.goto(M5("en", "same-question/"));
     const cards = page.locator('[data-m5="questions"] a.card');
     await expect(cards).toHaveCount(r.questions.length);
@@ -417,10 +423,10 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     const order = byStatus(r.checks);
     const strip = page.locator("nav[data-strip]");
-    const expectRow = async (items: any[], kind: string, current: string) => {
+    const expectRow = async (items: { id: string }[], kind: string, current: string) => {
       await expect(strip.locator("li")).toHaveText(items.map((x) => t("en", `m5.short.${x.id}`)));
       await expect(strip.locator('[aria-current="page"]')).toHaveText(
         t("en", `m5.short.${current}`),
@@ -519,12 +525,12 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     await page.goto(M5("en", "checks/"));
     const cards = page.locator('[data-m5="checks"] [data-m5-card]');
     const group = page.getByRole("group", { name: t("en", "m5.filter.label") });
-    const present = ORDER.filter((st) => r.checks.some((c: any) => status(c) === st));
-    const n = (st: string) => r.checks.filter((c: any) => status(c) === st).length;
+    const present = ORDER.filter((st) => r.checks.some((c) => status(c) === st));
+    const n = (st: string) => r.checks.filter((c) => status(c) === st).length;
     await expect(group.locator("button")).toHaveText([
       t("en", "m5.filter.count", { label: t("en", "m5.filter.all"), n: r.checks.length }),
       ...present.map((st) =>
@@ -571,7 +577,7 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     await page.goto(M5("en", "checks/"));
     const cards = page.locator('[data-m5="checks"] [data-m5-card]');
     await expect(cards).toHaveCount(r.checks.length);
@@ -598,7 +604,7 @@ test(
         );
       else await expect(card.locator('[data-m5="note"]')).toHaveCount(0);
     }
-    expect(r.checks.some((c: any) => status(c) === "agree" && c.agree < c.compared)).toBe(true);
+    expect(r.checks.some((c) => status(c) === "agree" && c.agree < c.compared)).toBe(true);
   },
 );
 
@@ -614,7 +620,7 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     await page.goto("/en/official-figures-consistency/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       t("en", "topic.official-figures-consistency"),
@@ -672,12 +678,12 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const c = r.checks.find((x: any) => x.id === "gr-hbs-household-types");
+    const r = await results(request);
+    const c = r.checks.find((x) => x.id === "gr-hbs-household-types")!;
     await page.goto(M5("en", "checks/hbs-household-types/"));
     const rows = page.locator('[data-m5="differences"] tbody tr th');
     await expect(rows).toHaveText(
-      c.differences.map((d: any) => {
+      c.differences.map((d) => {
         const [year, group] = d.period.split("/");
         return `${year} · ${t("en", `group.hhtype/${group}`)}`;
       }),
@@ -702,8 +708,8 @@ test(
     ],
   }),
   async ({ page, request, coverage }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
-    const c = r.checks.find((x: any) => x.id === "gr-hbs-spending");
+    const r = await results(request);
+    const c = r.checks.find((x) => x.id === "gr-hbs-spending")!;
     await page.goto(M5("en", "checks/hbs-spending/"));
     const years = Object.keys(c.by_year).sort();
     await expect(page.locator('[data-m5="count"]')).toContainText(
@@ -717,10 +723,10 @@ test(
         page.getByText(t("en", "m5.diff.more", { shown: SHOWN, total: c.differences.length })),
       ).toBeVisible();
     await expect(rows).toHaveText(
-      c.differences.slice(0, SHOWN).map((d: any) => {
+      c.differences.slice(0, SHOWN).map((d) => {
         const [year, column, code] = d.period.split("/");
         const where = column === "all" ? t("en", "m5.period.all") : column;
-        return `${year} · ${where} · ${code} ${c.extra.item_names[code]}`;
+        return `${year} · ${where} · ${code} ${c.extra!.item_names[code]}`;
       }),
     );
     await coverage.flush();
@@ -742,7 +748,7 @@ test(
     ],
   }),
   async ({ page, request }) => {
-    const r = await (await request.get(`${DATA}/checks.json`)).json();
+    const r = await results(request);
     const refs = (await (await request.get("/data/v1/references.json")).json()).references;
     await page.goto("/en/data/gr/");
     const blocks = await page.locator('script[type="application/ld+json"]').allTextContents();
@@ -754,14 +760,16 @@ test(
           d.name.includes(t("en", "topic.official-figures-consistency")),
       );
     expect(sets).toHaveLength(1);
-    const urls = sets[0].distribution.map((d: any) => new URL(d.contentUrl).pathname);
+    const urls = sets[0].distribution.map(
+      (d: { contentUrl: string }) => new URL(d.contentUrl).pathname,
+    );
     expect(urls).toEqual([
       `${DATA}/checks.json`,
-      ...[...r.checks, ...r.questions].map((c: any) => `${DATA}/downloads/${c.id}.csv`),
+      ...[...r.checks, ...r.questions].map((c) => `${DATA}/downloads/${c.id}.csv`),
     ]);
     const sources = r.questions
-      .flatMap((q: any) => q.sources)
-      .filter((s: any) => /^(aade|ec-empl):/.test(s.source));
+      .flatMap((q) => q.sources)
+      .filter((s) => /^(aade|ec-empl):/.test(s.source));
     expect(sources.length).toBeGreaterThan(0);
     for (const s of sources) expect(sets[0].isBasedOn).toContain(refs[s.reference].url);
   },

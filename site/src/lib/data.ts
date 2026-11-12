@@ -4,6 +4,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import type { CalculatorData } from "./engine/calculator";
+
 // Relative to the site folder, where `npm run build` runs: pages run from a bundled copy during
 // the build, so a path relative to this file would point elsewhere.
 export const DATA_ROOT = path.join(process.cwd(), "public", "data", "v1");
@@ -11,7 +13,9 @@ export const DATA_ROOT = path.join(process.cwd(), "public", "data", "v1");
 /** A country's current release of the inflation-by-group files, relative to DATA_ROOT. */
 export const m1Dir = (country: string) => `${country}/m1/latest`;
 
-export function readJson<T = any>(rel: string): T {
+/** One data file, parsed. `T` is its shape: name it at every call (the default, `unknown`, can't be used
+ * without a check), so the type checker holds the code to what the export writes. */
+export function readJson<T = unknown>(rel: string): T {
   const file = path.join(DATA_ROOT, rel);
   if (!fs.existsSync(file)) {
     throw new Error(
@@ -46,7 +50,40 @@ export interface SeriesFile {
       se_avg: Record<string, number>;
     }
   >;
-  footnotes: Record<string, Record<string, any>>;
+  /** "grouping/group" -> the notes that apply to that series (module1/availability.py, footnotes). */
+  footnotes: Record<string, Footnotes>;
+}
+
+/** contributions/<setting>.json: "grouping/group" -> month -> division -> percentage points. */
+export interface ContributionsFile {
+  format: string;
+  setting: Record<string, string>;
+  unit: string;
+  groups: Record<string, Record<string, Record<string, number | null>>>;
+}
+
+/** A span of months or years, first and last ("YYYY-MM", or "YYYY" for annual averages). */
+export type Span = [string, string];
+
+export interface Footnotes {
+  hospital?: { annual_rates: Span; annual_averages: Span | null; text: string };
+  lockdown?: { index_years: number[]; text: string };
+  first_estimate?: { index_years: number[]; text: string };
+}
+
+/** availability.json: which periods each option value covers, what is greyed out and why. */
+export interface Availability {
+  periods: { index: Span; annual_rates: Span };
+  options: Record<string, Record<string, OptionAvailability>>;
+  fixed: { option: string; value: string; status: string; text: string }[];
+}
+
+export interface OptionAvailability {
+  default: boolean;
+  index: Span;
+  annual_rates: Span | null;
+  greyed: { index: Span; annual_rates: Span; reason: string; text: string }[];
+  notes: { reason: string; text: string; index?: Span; annual_rates?: Span }[];
 }
 
 export interface Settings {
@@ -59,8 +96,9 @@ export const settings = (country: string) => readJson<Settings>(`${m1Dir(country
 export const series = (country: string, slug: string) =>
   readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
 export const availability = (country: string) =>
-  readJson<any>(`${m1Dir(country)}/availability.json`);
-export const calculator = (country: string) => readJson<any>(`${m1Dir(country)}/calculator.json`);
+  readJson<Availability>(`${m1Dir(country)}/availability.json`);
+export const calculator = (country: string) =>
+  readJson<CalculatorData>(`${m1Dir(country)}/calculator.json`);
 /** One source's upper limit of each income fifth (Q1-Q4), euros a year per adult equivalent. */
 export interface IncomeLimits {
   survey_year: number;
