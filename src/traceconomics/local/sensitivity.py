@@ -33,6 +33,6 @@ def baskets_from(year: int, mapped: Survey, groups: pd.DataFrame, wanted) -> dic
     for (grouping, label), part in t.groupby(["grouping", "group"]):
         if (grouping, label) in wanted and not unusable(grouping, year):
             out[(year, grouping, label)] = Basket(
-                dict(zip(part.code, part.share)), dict(zip(part.code, part.reliability))
+                dict(zip(part.code, part.share, strict=True)), dict(zip(part.code, part.reliability, strict=True))
             )
     return out

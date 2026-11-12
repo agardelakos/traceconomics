@@ -81,7 +81,7 @@ def test_calculator_keeps_the_euros_in_the_page(site):
     site.visible("[data-role=result]")
     site.find("[data-mode=euros]").click()
     site.visible("[data-role=pane-euros]")
-    for box, amount in zip(site.all("[data-role=euros] input")[:2], EUROS):
+    for box, amount in zip(site.all("[data-role=euros] input")[:2], EUROS, strict=True):
         box.send_keys(amount)
     site.wait(lambda _: "€1" in site.find("[data-role=euros-total]").text)
     assert not [k for k in site.query if k != "from"], "the address carries more than the starting group"

@@ -120,7 +120,7 @@ def shares(survey: Survey, groups: pd.DataFrame | None = None, spending: str = "
             share = group_shares(x, (w * member)[:, None], tree)[:, 0]
             # Households that reported anything under each code (at a leaf: on the item itself).
             n = ((reporting[member] @ tree.incidence.T) > 0).sum(axis=0)
-            for code, s, k in zip(tree.codes, share, n):
+            for code, s, k in zip(tree.codes, share, n, strict=True):
                 rows.append(
                     {
                         "grouping": grouping,

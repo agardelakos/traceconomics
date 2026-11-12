@@ -185,7 +185,10 @@ def _md_tables(text: str) -> list[list[dict[str, str]]]:
             if header is None:
                 header = [c.lower() for c in cells]
             elif not all(set(c) <= set("-: ") for c in cells):
-                rows.append(dict(zip(header, cells)))
+                # Not strict: these are hand-written tables, and a row with a stray "|" in a cell is
+                # read as far as its header reaches. Every file seeded from them is checked against
+                # its recorded checksum first, so a misread row can't bring in the wrong file.
+                rows.append(dict(zip(header, cells, strict=False)))
         elif header is not None:
             tables.append(rows)
             rows, header = [], None

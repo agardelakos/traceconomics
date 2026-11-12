@@ -99,7 +99,7 @@ def parse(path: Path, year: int) -> Table103:
         code, label = _text(r[code_col]), _text(r[label_col])
         values = r[first_value : first_value + len(groups)]
         if ALL in (label, code) and not CODE.match(code):
-            t.households = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values)}
+            t.households = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values, strict=True)}
             continue
         if new_layout:
             if not CODE.match(code) or _text(r[4]) != "1":
@@ -132,7 +132,7 @@ def parse(path: Path, year: int) -> Table103:
             require(len(code) > 5, f"{path.name} row {i}: code {code} twice in the purchases block")
             t.anomalies.append(f"row {i}: code {code} ({label}) repeated; the first occurrence is kept")
             continue
-        t.purchases[code] = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values)}
+        t.purchases[code] = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values, strict=True)}
         t.labels[code] = label
 
     require(t.households.get(ALL), f"{path.name}: no 'All households' count")

@@ -2,6 +2,7 @@
 written finding, a question across sources, and the ways in (the country card, the Groups page,
 the data page). Expected values come from the exported checks.json."""
 
+import itertools
 import json
 import urllib.request
 
@@ -65,7 +66,7 @@ def test_overview_says_why_and_leads_to_each_part(site, lang):
     assert stats[2].find_element("css selector", "strong").text.strip() == f"{agree * 100 // compared}%"
     sections = site.all('[data-m5="sections"] a.card')
     assert len(sections) == 3
-    for card, key in zip(sections, ["method", "checks", "same-question"]):
+    for card, key in zip(sections, ["method", "checks", "same-question"], strict=True):
         assert card.get_attribute("href").endswith(M5.format(lang=lang) + f"{key}/")
         assert (
             card.find_element("css selector", ".title").text.replace("\xa0", " ").strip()
@@ -97,7 +98,7 @@ def test_check_page_lists_differences_and_offers_csv(site, base_url):
     assert t("en", "m5.count", agree=c["agree"], compared=c["compared"]) in site.find('[data-m5="count"]').text
     rows = site.all('[data-m5="differences"] tbody tr')
     assert len(rows) == len(c["differences"])
-    for row, d in zip(rows, c["differences"]):
+    for row, d in zip(rows, c["differences"], strict=True):
         assert row.find_elements("css selector", "td")[-1].text.strip() == t("en", f"m5.cat.{d['explanation']}")
     compared = site.all('[data-m5="compared"] tbody tr')
     assert compared[0].find_element("css selector", "th").text.strip().startswith(min(c["by_year"]))
@@ -251,7 +252,7 @@ def test_question_chart_draws_every_value_without_joining_years_apart(site):
     consecutive = 0
     for s in q["sources"]:
         ys = sorted(int(y) for y, v in q["values"][s["label"]].items() if v is not None)
-        consecutive += any(b == a + 1 for a, b in zip(ys, ys[1:]))
+        consecutive += any(b == a + 1 for a, b in itertools.pairwise(ys))
     assert len(site.all('[data-m5="chart"] path')) == consecutive
 
 
@@ -306,7 +307,7 @@ def test_questions_page_gives_cards_with_teasers_and_source_chips(site):
     site.open(M5.format(lang="en") + "same-question/")
     cards = site.all('[data-m5="questions"] a.card')
     assert len(cards) == len(r["questions"])
-    for card, q in zip(cards, r["questions"]):
+    for card, q in zip(cards, r["questions"], strict=True):
         assert card.get_attribute("href").endswith(M5.format(lang="en") + f"same-question/{q['id'][3:]}/")
         assert (
             card.find_element("css selector", ".title").text.strip() == t("en", f"m5.question.{q['id']}.title") + " →"
@@ -441,7 +442,7 @@ def test_checks_page_gives_every_check_as_a_card(site):
     site.open(M5.format(lang="en") + "checks/")
     cards = site.all('[data-m5="checks"] [data-m5-card]')
     assert len(cards) == len(r["checks"])
-    for card, c in zip(cards, _by_status(r["checks"])):
+    for card, c in zip(cards, _by_status(r["checks"]), strict=True):
         assert card.get_attribute("data-m5-card") == c["id"]
         link = card.find_element("css selector", "a.title")
         assert link.text.replace("\xa0", " ").strip() == t("en", f"m5.check.{c['id']}.question") + " →"

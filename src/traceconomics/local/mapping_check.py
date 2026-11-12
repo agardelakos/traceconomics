@@ -24,6 +24,7 @@ lag them, so they can't be held to a tolerance.
 
 from __future__ import annotations
 
+import itertools
 import tomllib
 from dataclasses import dataclass, field
 from importlib import resources
@@ -156,7 +157,7 @@ def usual_change(archive) -> pd.Series:
     """Median absolute year-to-year change per code (pp), over the mapped 2016-2023 surveys."""
     series = {y: all_households(mapping.to_2018(puf.read(archive, y))).share for y in BASELINE_YEARS}
     years = list(BASELINE_YEARS)
-    return pd.concat([(series[b] - series[a]).abs() for a, b in zip(years, years[1:])], axis=1).median(axis=1)
+    return pd.concat([(series[b] - series[a]).abs() for a, b in itertools.pairwise(years)], axis=1).median(axis=1)
 
 
 def cpi_report(archive, con, lags=(1, 2)) -> pd.DataFrame:

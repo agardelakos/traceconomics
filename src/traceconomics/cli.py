@@ -628,7 +628,9 @@ def _dispatch(args, cfg) -> int:
             & (t.grouping == "B")
         )
         gap = t[default & (t.unit == "RCH_A_AVG_GAP")]
-        print("Q1-Q5 gap, annual averages: standard error (pp) by year:", dict(zip(gap.ref_period, gap.se)))
+        print(
+            "Q1-Q5 gap, annual averages: standard error (pp) by year:", dict(zip(gap.ref_period, gap.se, strict=True))
+        )
         return 0
 
     if args.command == "mapping":

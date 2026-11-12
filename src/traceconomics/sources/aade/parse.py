@@ -58,7 +58,8 @@ def rows(path: Path) -> list[tuple[str, str, str, str, float]]:
         f"{Path(path).name}: the header row 'Μετρήσιμο - Περιγραφή' isn't where expected",
     )
     regions, sub = table[heads[0] - 1], table[heads[0]]
-    cols = [i for i, (g, s) in enumerate(zip(regions, sub)) if g == ALL_REGIONS and s == PER_RETURN]
+    require(len(regions) == len(sub), f"{Path(path).name}: the two header rows differ in length")
+    cols = [i for i, (g, s) in enumerate(zip(regions, sub, strict=True)) if g == ALL_REGIONS and s == PER_RETURN]
     require(
         len(cols) == 1, f"{Path(path).name}: expected one '{ALL_REGIONS}' / '{PER_RETURN}' column, found {len(cols)}"
     )

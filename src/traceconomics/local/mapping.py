@@ -159,7 +159,7 @@ def ras(
             x = parent[x]
         return x
 
-    for a, b in zip("r" + live.v1, "c" + live.v2):
+    for a, b in zip("r" + live.v1, "c" + live.v2, strict=True):
         parent[find(a)] = find(b)
     live["component"] = ["r" + v for v in live.v1]
     live["component"] = live.component.map(find)
@@ -210,7 +210,7 @@ def build_v1_to_2018(links: pd.DataFrame, w1: pd.Series, w2: pd.Series) -> tuple
             shares, method = list(cols_w[targets] / cols_w[targets].sum()), "targets' 2025 weights (source has none)"
         else:
             shares, method = [1 / len(targets)] * len(targets), "equal split (no 2025 weights)"
-        for t, s in zip(targets, shares):
+        for t, s in zip(targets, shares, strict=True):
             if s > 0:
                 out.append({"from_code": v1, "to_code": t, "share": s, "method": method, "note": note})
     table = pd.DataFrame(out)

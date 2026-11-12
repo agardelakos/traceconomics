@@ -40,7 +40,7 @@ def _summary(lang, series, groups, grouping="B", measure="rch_a"):
             value=num(lang, v, digits) + ("" if measure == "index" else "%"),
             group=t(lang, f"group.in.{g}"),
         )
-        for g, (_, v) in zip(groups, ends)
+        for g, (_, v) in zip(groups, ends, strict=True)
     ]
     joined = f"{', '.join(items[:-1])} {t(lang, 'summary.and')} {items[-1]}" if len(items) > 1 else items[0]
     if measure == "rch_a":

@@ -24,6 +24,7 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import re
 from collections import defaultdict
@@ -75,7 +76,7 @@ def flakiness(results: list[str]) -> float | None:
     seq = [r for r in results if r != "skipped"]
     if len(seq) < MIN_FOR_RATE:
         return None
-    changes = sum(1 for a, b in zip(seq, seq[1:]) if a != b and not (a == "flaky" and b == "passed"))
+    changes = sum(1 for a, b in itertools.pairwise(seq) if a != b and not (a == "flaky" and b == "passed"))
     return changes / (len(seq) - 1)
 
 

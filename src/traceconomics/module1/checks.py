@@ -147,7 +147,8 @@ def v6(con, archive, first_year: int = 2016, last_year: int = 2025) -> V6Result:
         _, unit, coicop, geo = key.split(",")
         if unit != "PC_PNT" or geo != "EA" or len(coicop) != 4:
             continue
-        for period, cell in zip(head, cells):
+        require(len(cells) == len(head), f"prc_hicp_ctrb: {key} has {len(cells)} values for {len(head)} periods")
+        for period, cell in zip(head, cells, strict=True):
             text = cell.strip().split(" ")[0]
             if text and text != ":":
                 official[(period, coicop[2:])] = float(text)

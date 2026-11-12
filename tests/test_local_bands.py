@@ -98,7 +98,9 @@ def test_bands_for_same_year_weights_and_tutoring_left_out_match_a_plain_loop():
         shares = np.vstack([food, 1 - food - tut, tut])
         sets[h] = (leaves, {("B", "Q1"): shares})
         for r in range(reps):
-            by_rep[r][(h, "B", "Q1")] = Basket(dict(zip(leaves, shares[:, r])), dict.fromkeys(leaves, "normal"))
+            by_rep[r][(h, "B", "Q1")] = Basket(
+                dict(zip(leaves, shares[:, r], strict=True)), dict.fromkeys(leaves, "normal")
+            )
     point = {
         (h, "B", "Q1"): Basket({"01": 0.45, "04": 0.52, "10501": 0.03}, dict.fromkeys(leaves, "normal"))
         for h in range(2008, 2027)

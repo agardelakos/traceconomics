@@ -123,9 +123,9 @@ def standard_errors(
     fixed = [(g, label, m) for g, label, m in memberships(groups, PUBLISHED) if g not in RANKED]
     ranked = [g for g in PUBLISHED if g in RANKED]
 
-    trees, xs = zip(*(basket(survey, spending, option) for option in (1, 2)))
+    trees, xs = zip(*(basket(survey, spending, option) for option in (1, 2)), strict=True)
     point = {}  # the estimate, from the full-sample weights
-    for t, x in zip(trees, xs):
+    for t, x in zip(trees, xs, strict=True):
         for g, label, m in memberships(groups, PUBLISHED):
             point[(g, label, t.option)] = group_shares(x, (w * m)[:, None], t)[:, 0]
     # Sums of deviations from the estimate, and of their squares, per cell.
@@ -140,7 +140,7 @@ def standard_errors(
             basis = rw * np.nan_to_num(size)[:, None] if by_people else rw
             q = quintile_matrix(values[value], basis, ids, parts)
             members += [(g, f"{prefix}{k}", q == k) for k in range(1, parts + 1)]
-        for t, x in zip(trees, xs):
+        for t, x in zip(trees, xs, strict=True):
             for g, label, m in members:
                 key = (g, label, t.option)
                 if key not in point:
@@ -154,7 +154,7 @@ def standard_errors(
         for g, label, _ in memberships(groups, PUBLISHED):
             key = (g, label, t.option)
             var = (s2[key] - s1[key] ** 2 / replicates) / (replicates - 1)
-            for code, v in zip(t.codes, var):
+            for code, v in zip(t.codes, var, strict=True):
                 rows.append(
                     {
                         "grouping": g,

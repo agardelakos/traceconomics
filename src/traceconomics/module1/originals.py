@@ -61,7 +61,7 @@ def on_base_2009(tables: dict[int, Original07]) -> dict[int, dict[str, dict[str,
                 if not avg:
                     continue
                 scale = 100.0 / avg
-            series[code] = {p: v * scale for p, v in zip(months(year), values) if v}
+            series[code] = {p: v * scale for p, v in zip(months(year), values, strict=True) if v}
         out[year] = series
     return out
 

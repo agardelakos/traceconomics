@@ -370,7 +370,7 @@ def test_the_browser_tests_run_before_upload_and_again_on_the_preview(tmp_path):
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=fake)
     folder = cfg.release.releases_dir / rec["id"]
     assert "BASE_URL" not in fake.envs["ui-test"]  # a local server on the built files
-    argv = dict(zip(fake.ran, fake.argvs))
+    argv = dict(zip(fake.ran, fake.argvs, strict=True))
     assert "--grep" not in argv["ui-test"]  # the full suite before upload
     assert argv["smoke"][-2:] == ("--grep", "@smoke")  # the short set on the preview
     assert fake.envs["smoke"]["BASE_URL"] == rec["preview_url"]

@@ -291,7 +291,7 @@ def _group_count_rows():
             d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "measure": "n_households"}
             yield "oet-local/hbs-groups-gr", d, str(year), 900 + 37 * k + (year % 7)
         weights = [26, 2, 28, 24, 14, 6]  # made-up shares of households, in %
-        for t, w in zip(types, weights):
+        for t, w in zip(types, weights, strict=True):
             for measure, v in (("n_households", 60 * w), ("households_weighted", 41000 * w)):
                 yield (
                     "oet-local/hbs-groups-gr",

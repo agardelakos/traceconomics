@@ -338,7 +338,7 @@ def test_method_option_strip_lists_every_option(site):
     assert [li.text.strip() for li in site.all("nav[data-strip] li")] == titles
     assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == titles[1]
     links = {a.text.strip(): a.get_attribute("href") for a in site.all("nav[data-strip] a")}
-    assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs)) if i != 1}
+    assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs, strict=True)) if i != 1}
     tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.method"))
     assert tab.get_attribute("aria-current") == "true"
 

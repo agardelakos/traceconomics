@@ -42,7 +42,7 @@ DEFAULT = {"spending": "purchases", **DEFAULT_OPTIONS}
 def settings() -> list[dict[str, str]]:
     """All 48 settings, the default first."""
     names = list(OPTIONS)
-    out = [dict(zip(names, values)) for values in itertools.product(*OPTIONS.values())]
+    out = [dict(zip(names, values, strict=True)) for values in itertools.product(*OPTIONS.values())]
     out.sort(key=lambda s: s != DEFAULT)
     return out
 

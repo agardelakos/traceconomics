@@ -24,7 +24,7 @@ pytestmark = pytest.mark.unit
 INCOME = [6000, 9000, 12000, 15000, 18000, 24000, 30000, 36000, 48000, 60000]  # euros a year
 BANDS = ["up to 750", "751-1100", "1101-1800", "1801-2800", "2801 and over"]  # euros a month
 SIZES = ["1 member", "2 members", "3 members and over"]
-HOSPITAL = dict(zip(BANDS, (10.0, 20.0, 30.0, 40.0, 50.0)))  # euros a month
+HOSPITAL = dict(zip(BANDS, (10.0, 20.0, 30.0, 40.0, 50.0), strict=True))  # euros a month
 
 
 # Rent paid, imputed rent and housed free, in each era's code list (tenure is read from them).
@@ -678,7 +678,9 @@ def _bands_inputs(monkeypatch, surveys):
         t = t[t.imputed_rent == 1]
         codes |= set(t.code)
         for (g, label), part in t.groupby(["grouping", "group"]):
-            baskets[(year, g, label)] = Basket(dict(zip(part.code, part.share)), dict(zip(part.code, part.reliability)))
+            baskets[(year, g, label)] = Basket(
+                dict(zip(part.code, part.share, strict=True)), dict(zip(part.code, part.reliability, strict=True))
+            )
     blocks = {
         y: {
             c: {

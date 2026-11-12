@@ -568,8 +568,12 @@ def test_every_household_lies_between_its_fifths_limits():
     weight = rng.uniform(50, 900, n).round(3).tolist()
     members = np.where(rng.random(n) < 2 / 3, 1, rng.integers(2, 6, n))
     s = survey(
-        [(h, w, inc, "1", {}) for h, w, inc in zip(ids, weight, income)],
-        [(h, 40 if k == 0 else int(rng.integers(1, 80))) for h, m in zip(ids, members) for k in range(int(m))],
+        [(h, w, inc, "1", {}) for h, w, inc in zip(ids, weight, income, strict=True)],
+        [
+            (h, 40 if k == 0 else int(rng.integers(1, 80)))
+            for h, m in zip(ids, members, strict=True)
+            for k in range(int(m))
+        ],
     )
     g = assign(s)
     values, size = ranking(s)

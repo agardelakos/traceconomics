@@ -28,7 +28,7 @@ GR,2016,all,all,6000,4100000.5,10300000,0.0355,full,2016: strata HA06,x
 
 def named(rows, fmt):
     cols = [*oet_local.FORMATS[fmt]["dims"], "measure", "ref_period", "value_text", "value"]
-    return [dict(zip(cols, r)) for r in rows]
+    return [dict(zip(cols, r, strict=True)) for r in rows]
 
 
 def test_rows_are_one_value_each_and_keep_text(tmp_path):
