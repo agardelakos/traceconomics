@@ -17,9 +17,17 @@ pytestmark = pytest.mark.integration
 
 D = combinations.DEFAULT
 # The tutoring identity compares every priced setting with its excluded twin, so each comes in both.
-SETTINGS = [s | {"tutoring": t} for s in (D, D | {"price_source": "hicp"}, D | {"imputed_rent": "included"},
-                                         D | {"weights_timing": "F"}, D | {"weights_timing": "U"})
-            for t in ("priced", "excluded")]
+SETTINGS = [
+    s | {"tutoring": t}
+    for s in (
+        D,
+        D | {"price_source": "hicp"},
+        D | {"imputed_rent": "included"},
+        D | {"weights_timing": "F"},
+        D | {"weights_timing": "U"},
+    )
+    for t in ("priced", "excluded")
+]
 GROUPS = [("all", "all")] + [("B", f"Q{k}") for k in range(1, 6)] + [("tenure", "renter")]
 
 
@@ -28,9 +36,14 @@ def built(tmp_path_factory):
     """Module 1's outputs folder (gr/m1) for SETTINGS and GROUPS."""
     folder = tmp_path_factory.mktemp("outputs") / "gr" / "m1"
     writer, summaries = output.Writer(folder), []
-    for _, series, used in combinations.iterate(None, None, only=SETTINGS, groups=GROUPS,
-                                                blocks={"cpi": sitedata.blocks(), "hicp": sitedata.blocks(hicp=True)},
-                                                baskets=sitedata.baskets()):
+    for _, series, used in combinations.iterate(
+        None,
+        None,
+        only=SETTINGS,
+        groups=GROUPS,
+        blocks={"cpi": sitedata.blocks(), "hicp": sitedata.blocks(hicp=True)},
+        baskets=sitedata.baskets(),
+    ):
         writer.add(series, used)
         summaries += [availability.Summary.of(s) for s in series]
     writer.close()
@@ -70,8 +83,12 @@ def test_the_identities_hold_on_outputs_written_by_the_real_code(built):
     And the default equals the earlier build
     """
     results = cc.identities(built, built)
-    assert verdicts(results) == {"tutoring options before 2026": True, "contributions add up": True,
-                                 "availability table": True, "default against the earlier build": True}
+    assert verdicts(results) == {
+        "tutoring options before 2026": True,
+        "contributions add up": True,
+        "availability table": True,
+        "default against the earlier build": True,
+    }
     detail = dict((name, text) for name, _, text in results)
     assert detail["availability table"] == f"{len(SETTINGS) * len(GROUPS)} series, all listed"
 
@@ -84,12 +101,19 @@ def test_a_tutoring_difference_before_2026_breaks_its_identity(outputs):
     Then the tutoring identity fails and names the rates file
     And the contributions and availability identities still hold
     """
-    n = rewrite(outputs, "m1_rates", "value_text = value_text || '9'",
-                f"{cc.where(tutoring='excluded')} AND unit = 'RCH_A_AVG' AND ref_period = '2020' AND grouping = 'all'")
+    n = rewrite(
+        outputs,
+        "m1_rates",
+        "value_text = value_text || '9'",
+        f"{cc.where(tutoring='excluded')} AND unit = 'RCH_A_AVG' AND ref_period = '2020' AND grouping = 'all'",
+    )
     assert n == 1
     results = cc.identities(outputs)
-    assert verdicts(results) == {"tutoring options before 2026": False, "contributions add up": True,
-                                 "availability table": True}
+    assert verdicts(results) == {
+        "tutoring options before 2026": False,
+        "contributions add up": True,
+        "availability table": True,
+    }
     assert "m1_rates" in results[0][2]
 
 
@@ -101,8 +125,12 @@ def test_contributions_that_dont_add_up_break_their_identity(outputs):
     Then the contributions identity fails, its largest difference about 1 pp
     And the tutoring identity still holds (the change is after 2025)
     """
-    n = rewrite(outputs, "m1_contributions", "value = CAST(CAST(value AS DOUBLE) + 1 AS VARCHAR)",
-                f"{cc.where()} AND grouping = 'all' AND unit = 'PC_PNT' AND ref_period = '2026-03' AND coicop18 = '01'")
+    n = rewrite(
+        outputs,
+        "m1_contributions",
+        "value = CAST(CAST(value AS DOUBLE) + 1 AS VARCHAR)",
+        f"{cc.where()} AND grouping = 'all' AND unit = 'PC_PNT' AND ref_period = '2026-03' AND coicop18 = '01'",
+    )
     assert n == 1
     results = cc.identities(outputs)
     assert verdicts(results)["contributions add up"] is False
@@ -146,8 +174,15 @@ def test_the_default_against_an_earlier_build(built, outputs, tmp_path):
         shutil.move(f"{path}.tmp", path)
     assert cc.baseline_identity(cc._con(built), fewer) == (True, "equal to the earlier build")
 
-    assert rewrite(outputs, "m1_index", "value_text = value_text || '9'",
-                   f"{cc.where()} AND grouping = 'all' AND ref_period = '2020-01' AND coicop18 = 'TOTAL'") == 1
+    assert (
+        rewrite(
+            outputs,
+            "m1_index",
+            "value_text = value_text || '9'",
+            f"{cc.where()} AND grouping = 'all' AND ref_period = '2020-01' AND coicop18 = 'TOTAL'",
+        )
+        == 1
+    )
     ok, text = cc.baseline_identity(cc._con(built), outputs)
     assert not ok and "m1_index" in text
 
@@ -160,8 +195,12 @@ def test_the_default_against_an_earlier_build(built, outputs, tmp_path):
 
 def _avg(folder, where, unit="RCH_A_AVG"):
     con = duckdb.connect()
-    return {int(p): float(v) for p, v in con.execute(
-        f"SELECT ref_period, value FROM '{(folder / 'm1_rates.parquet').as_posix()}' WHERE unit = '{unit}' AND {where}").fetchall()}
+    return {
+        int(p): float(v)
+        for p, v in con.execute(
+            f"SELECT ref_period, value FROM '{(folder / 'm1_rates.parquet').as_posix()}' WHERE unit = '{unit}' AND {where}"
+        ).fetchall()
+    }
 
 
 def test_the_price_source_and_timing_reports(built):

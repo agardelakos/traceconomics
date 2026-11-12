@@ -35,7 +35,7 @@ from traceconomics.module1.weights_used import CODED_2018_FROM, SUPPRESSED, Bask
 from traceconomics.sources.elstat.parse import TOTAL
 
 FIRST, LAST = 2008, 2026
-LAST_MONTH = 9                            # the made-up data end in September of the last year
+LAST_MONTH = 9  # the made-up data end in September of the last year
 # The HICP ends a month earlier, as the real data do for about a week every month: Eurostat
 # publishes its item indices after ELSTAT's CPI. The site must say why those months are missing.
 HICP_LAST_MONTH = LAST_MONTH - 1
@@ -58,16 +58,23 @@ TREE = {
     "12": {"121": ["1211"]},
     "13": {"131": ["1311"]},
 }
-IMPUTED_RENT, TUTORING = "0421", "1050"   # no price index of their own: priced with 04.1.1 and 10.2.0
+IMPUTED_RENT, TUTORING = "0421", "1050"  # no price index of their own: priced with 04.1.1 and 10.2.0
 UNPRICED = {IMPUTED_RENT, TUTORING}
-SMALL = "0114"                            # reported by too few households in the poorest groups
+SMALL = "0114"  # reported by too few households in the poorest groups
 NAMES = {
-    "01": ("Food and drinks", "Τρόφιμα και ποτά"), "02": ("Tobacco", "Καπνός"),
-    "03": ("Clothing", "Ένδυση"), "04": ("Housing and energy", "Στέγαση και ενέργεια"),
-    "05": ("Furnishings", "Επίπλωση"), "06": ("Health", "Υγεία"), "07": ("Transport", "Μεταφορές"),
-    "08": ("Communication", "Επικοινωνία"), "09": ("Recreation", "Αναψυχή"), "10": ("Education", "Εκπαίδευση"),
+    "01": ("Food and drinks", "Τρόφιμα και ποτά"),
+    "02": ("Tobacco", "Καπνός"),
+    "03": ("Clothing", "Ένδυση"),
+    "04": ("Housing and energy", "Στέγαση και ενέργεια"),
+    "05": ("Furnishings", "Επίπλωση"),
+    "06": ("Health", "Υγεία"),
+    "07": ("Transport", "Μεταφορές"),
+    "08": ("Communication", "Επικοινωνία"),
+    "09": ("Recreation", "Αναψυχή"),
+    "10": ("Education", "Εκπαίδευση"),
     "11": ("Restaurants", "Εστιατόρια"),
-    "12": ("Insurance and finance", "Ασφάλιση και χρηματοοικονομικά"), "13": ("Personal care", "Προσωπική φροντίδα"),
+    "12": ("Insurance and finance", "Ασφάλιση και χρηματοοικονομικά"),
+    "13": ("Personal care", "Προσωπική φροντίδα"),
 }
 
 
@@ -139,15 +146,31 @@ def baskets() -> dict[tuple[str, str], dict]:
     out = {}
     for spending in combinations.OPTIONS["spending"]:
         for imputed in combinations.OPTIONS["imputed_rent"]:
-            out[(spending, imputed)] = {(h, g, q): basket(h, g, q, spending=spending, imputed_rent=imputed)
-                                        for h in SURVEYS for g, q in combinations.GROUPS}
+            out[(spending, imputed)] = {
+                (h, g, q): basket(h, g, q, spending=spending, imputed_rent=imputed)
+                for h in SURVEYS
+                for g, q in combinations.GROUPS
+            }
     return out
 
 
 # The store: Parquet files in the store's layout, read through the real `open_views`.
 
-COLUMNS = ["dataset", "archive_dataset", "key", "ref_period", "published_at", "published_at_quality",
-           "retrieved_at", "value", "value_text", "status", "flags", "raw_sha256", "parser_version"]
+COLUMNS = [
+    "dataset",
+    "archive_dataset",
+    "key",
+    "ref_period",
+    "published_at",
+    "published_at_quality",
+    "retrieved_at",
+    "value",
+    "value_text",
+    "status",
+    "flags",
+    "raw_sha256",
+    "parser_version",
+]
 
 
 def _write_dataset(store: Path, dataset: str, dims: list[str], rows) -> None:
@@ -160,15 +183,33 @@ def _write_dataset(store: Path, dataset: str, dims: list[str], rows) -> None:
     sha = hashlib.sha256(dataset.encode()).hexdigest()
     for archive_dataset, d, period, value in rows:
         key = ",".join(f"{k}={d[k]}" for k in dims)
-        w.writerow([dataset, archive_dataset, key, *(d[k] for k in dims), period, PUBLISHED.isoformat(sep=" "),
-                    "first_seen", PUBLISHED.isoformat(sep=" "), value, repr(value), "final", None, sha, "1"])
+        w.writerow(
+            [
+                dataset,
+                archive_dataset,
+                key,
+                *(d[k] for k in dims),
+                period,
+                PUBLISHED.isoformat(sep=" "),
+                "first_seen",
+                PUBLISHED.isoformat(sep=" "),
+                value,
+                repr(value),
+                "final",
+                None,
+                sha,
+                "1",
+            ]
+        )
     part = folder / "rows.csv"
     part.write_text(text.getvalue(), encoding="utf-8", newline="\n")
     types = {c: "VARCHAR" for c in COLUMNS[:3] + dims + COLUMNS[3:]}
     types.update(published_at="TIMESTAMP", retrieved_at="TIMESTAMP", value="DOUBLE")
     con = duckdb.connect()
-    con.execute(f"COPY (SELECT * FROM read_csv('{part.as_posix()}', header = true, columns = {types!r})) "
-                f"TO '{(folder / '00001-made-up.parquet').as_posix()}' (FORMAT parquet)")
+    con.execute(
+        f"COPY (SELECT * FROM read_csv('{part.as_posix()}', header = true, columns = {types!r})) "
+        f"TO '{(folder / '00001-made-up.parquet').as_posix()}' (FORMAT parquet)"
+    )
     part.unlink()
 
 
@@ -189,8 +230,18 @@ def _published_rates(cpi):
             yield "elstat/doc-cpi05", {"freq": "M", "unit": "RCH_A_FR", "geo": "GR"}, period, total[period] / before - 1
 
 
-BAND_DIMS = ["geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",
-             "unit", "measure"]
+BAND_DIMS = [
+    "geo",
+    "grouping",
+    "group",
+    "spending",
+    "imputed_rent",
+    "price_source",
+    "weights_timing",
+    "tutoring",
+    "unit",
+    "measure",
+]
 
 
 def _band_rows():
@@ -200,16 +251,24 @@ def _band_rows():
         months = [f"{y}-{m:02d}" for y in range(2010, LAST + 1) for m in range(1, 13) if (y, m) <= (LAST, last)]
         for g, q in combinations.GROUPS + gaps:
             gap = q == site.GAP
-            for unit, periods in ((("RCH_A_GAP", months), ("RCH_A_AVG_GAP", [str(y) for y in range(2010, LAST)]))
-                                  if gap else (("RCH_A", months), ("RCH_A_AVG", [str(y) for y in range(2010, LAST)]))):
+            for unit, periods in (
+                (("RCH_A_GAP", months), ("RCH_A_AVG_GAP", [str(y) for y in range(2010, LAST)]))
+                if gap
+                else (("RCH_A", months), ("RCH_A_AVG", [str(y) for y in range(2010, LAST)]))
+            ):
                 d = {"geo": "GR", "grouping": g, "group": q, **s, "unit": unit, "measure": "se"}
                 for n, p in enumerate(periods):
-                    yield "oet-local/hbs-bands-gr", d, p, round(0.08 + 0.04 * math.sin(n / 9) ** 2 + (0.05 if gap else 0), 4)
+                    yield (
+                        "oet-local/hbs-bands-gr",
+                        d,
+                        p,
+                        round(0.08 + 0.04 * math.sin(n / 9) ** 2 + (0.05 if gap else 0), 4),
+                    )
 
 
 LIMIT_DIMS = ["geo", "grouping", "group", "unit", "measure"]
 SILC_DIMS = ["freq", "quant_inc", "statinfo", "unit", "geo"]
-PPS_PER_EUR = 1 / 0.86                    # a made-up purchasing power factor, the same every year
+PPS_PER_EUR = 1 / 0.86  # a made-up purchasing power factor, the same every year
 
 
 def _limit(year: int, k: int) -> float:
@@ -231,12 +290,22 @@ def _group_count_rows():
         for k in range(1, 6):
             d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "measure": "n_households"}
             yield "oet-local/hbs-groups-gr", d, str(year), 900 + 37 * k + (year % 7)
-        weights = [26, 2, 28, 24, 14, 6]                              # made-up shares of households, in %
+        weights = [26, 2, 28, 24, 14, 6]  # made-up shares of households, in %
         for t, w in zip(types, weights):
             for measure, v in (("n_households", 60 * w), ("households_weighted", 41000 * w)):
-                yield "oet-local/hbs-groups-gr", {"geo": "GR", "grouping": "hhtype", "group": t, "measure": measure}, str(year), v
+                yield (
+                    "oet-local/hbs-groups-gr",
+                    {"geo": "GR", "grouping": "hhtype", "group": t, "measure": measure},
+                    str(year),
+                    v,
+                )
         for measure, v in (("n_households", 6000), ("households_weighted", 4100000)):
-            yield "oet-local/hbs-groups-gr", {"geo": "GR", "grouping": "all", "group": "all", "measure": measure}, str(year), v
+            yield (
+                "oet-local/hbs-groups-gr",
+                {"geo": "GR", "grouping": "all", "group": "all", "measure": measure},
+                str(year),
+                v,
+            )
 
 
 def _silc_rows():
@@ -246,22 +315,48 @@ def _silc_rows():
         for k in range(1, 5):
             eur = round(_limit(survey - 1, k) * 0.96)
             for unit, v in (("EUR", eur), ("PPS", round(eur * PPS_PER_EUR))):
-                yield "eurostat/ilc_di01", {"freq": "A", "quant_inc": f"QU{k}", "statinfo": "TC", "unit": unit,
-                                            "geo": "GR"}, str(survey), v
+                yield (
+                    "eurostat/ilc_di01",
+                    {"freq": "A", "quant_inc": f"QU{k}", "statinfo": "TC", "unit": unit, "geo": "GR"},
+                    str(survey),
+                    v,
+                )
 
 
 def write_store(store: Path, cpi, hicp) -> None:
-    _write_dataset(store, "elstat:cpi07", ["freq", "unit", "coicop18", "geo"],
-                   (r for r in _cpi_rows(cpi) if int(r[0][-4:]) >= 2011))   # table 07 from 2011, as ELSTAT re-issued it
+    _write_dataset(
+        store,
+        "elstat:cpi07",
+        ["freq", "unit", "coicop18", "geo"],
+        (r for r in _cpi_rows(cpi) if int(r[0][-4:]) >= 2011),
+    )  # table 07 from 2011, as ELSTAT re-issued it
     _write_dataset(store, "elstat:cpi05", ["freq", "unit", "geo"], _published_rates(cpi))
-    _write_dataset(store, "eurostat:prc_hicp_minr", ["freq", "unit", "coicop18", "geo"],
-                   (("eurostat/prc_hicp_minr", {"freq": "M", "unit": "I25", "coicop18": c, "geo": "GR"}, p, v)
-                    for block in hicp.values() for c, series in block.items() for p, v in series.items()))
-    _write_dataset(store, "oet-local:hbs_weights", ["geo", "grouping", "group", "coicop18", "measure"],
-                   (("oet-local/hbs-weights-gr", {"geo": "GR", "grouping": "all", "group": "all", "coicop18": c,
-                                                  "measure": "share"}, str(h), v)
-                    for h in SURVEYS for c, v in basket(h, "all", "all", spending="purchases",
-                                                         imputed_rent="excluded").shares.items()))
+    _write_dataset(
+        store,
+        "eurostat:prc_hicp_minr",
+        ["freq", "unit", "coicop18", "geo"],
+        (
+            ("eurostat/prc_hicp_minr", {"freq": "M", "unit": "I25", "coicop18": c, "geo": "GR"}, p, v)
+            for block in hicp.values()
+            for c, series in block.items()
+            for p, v in series.items()
+        ),
+    )
+    _write_dataset(
+        store,
+        "oet-local:hbs_weights",
+        ["geo", "grouping", "group", "coicop18", "measure"],
+        (
+            (
+                "oet-local/hbs-weights-gr",
+                {"geo": "GR", "grouping": "all", "group": "all", "coicop18": c, "measure": "share"},
+                str(h),
+                v,
+            )
+            for h in SURVEYS
+            for c, v in basket(h, "all", "all", spending="purchases", imputed_rent="excluded").shares.items()
+        ),
+    )
     _write_dataset(store, "oet-local:hbs_bands", BAND_DIMS, _band_rows())
     _write_dataset(store, "oet-local:hbs_limits", LIMIT_DIMS, _limit_rows())
     _write_dataset(store, "oet-local:hbs_groups", ["geo", "grouping", "group", "measure"], _group_count_rows())
@@ -269,6 +364,7 @@ def write_store(store: Path, cpi, hicp) -> None:
 
 
 # The archive: the label files the export reads, made up in their publishers' formats.
+
 
 def _labels_csv() -> bytes:
     text = io.StringIO()
@@ -281,7 +377,14 @@ def _labels_csv() -> bytes:
         notation = code[:2] + "".join(f".{d}" for d in code[2:])
         # Only items carry a marker of the kind of product, as in the real file.
         kind = (" (S)", " (Υ)") if len(code) == 4 else ("", "")
-        w.writerow([f"http://data.europa.eu/ed1/ecoicop2/{code}", notation, f"{notation} {en}{kind[0]}", f"{notation} {el}{kind[1]}"])
+        w.writerow(
+            [
+                f"http://data.europa.eu/ed1/ecoicop2/{code}",
+                notation,
+                f"{notation} {en}{kind[0]}",
+                f"{notation} {el}{kind[1]}",
+            ]
+        )
     return text.getvalue().encode("utf-8")
 
 
@@ -301,8 +404,15 @@ def write_archive(root: Path) -> Archive:
     when = PUBLISHED.replace(tzinfo=UTC)
     archive.store_bytes("eu-vocabularies", "ecoicop2-labels", _labels_csv(), url=None, retrieved_at=when, ext=".csv")
     for n, lang in enumerate(("EN", "GR")):
-        archive.store_bytes("elstat", f"doc-10{n}", _table_103(lang), url=None, retrieved_at=when, ext=".xlsx",
-                            extra={"original_name": f"SFA05_TB_AN_00_2024_103_F_{lang}.xlsx"})
+        archive.store_bytes(
+            "elstat",
+            f"doc-10{n}",
+            _table_103(lang),
+            url=None,
+            retrieved_at=when,
+            ext=".xlsx",
+            extra={"original_name": f"SFA05_TB_AN_00_2024_103_F_{lang}.xlsx"},
+        )
     return archive
 
 
@@ -315,8 +425,9 @@ def module1_outputs(outputs: Path, store_con, cpi, hicp, kept) -> None:
         summaries += [availability.Summary.of(s) for s in series]
     writer.close()
     availability.write(folder, availability.build(summaries))
-    output.write_metadata(folder, first_period=writer.first_period, last_period=writer.last_period,
-                          manifest=output.manifest(store_con))
+    output.write_metadata(
+        folder, first_period=writer.first_period, last_period=writer.last_period, manifest=output.manifest(store_con)
+    )
 
 
 def module5_outputs(outputs: Path, store_con) -> None:
@@ -329,53 +440,127 @@ def module5_outputs(outputs: Path, store_con) -> None:
     from traceconomics.module5.record import Check, Comparison
 
     def check(cid, unit, rows):
-        c = Check(cid, "gr", unit, 1e-9, {"source": "elstat:cpi05", "reference": "elstat-cpi-rates", "label": "published"},
-                  {"source": "elstat:cpi05", "reference": "elstat-cpi-rates", "label": "rebuilt"})
+        c = Check(
+            cid,
+            "gr",
+            unit,
+            1e-9,
+            {"source": "elstat:cpi05", "reference": "elstat-cpi-rates", "label": "published"},
+            {"source": "elstat:cpi05", "reference": "elstat-cpi-rates", "label": "rebuilt"},
+        )
         c.comparisons = rows
         return c
 
-    months = [f"{2000 + (6 + i) // 12}-{(6 + i) % 12 + 1:02d}" for i in range(24)]      # 2000-07 to 2002-06
+    months = [f"{2000 + (6 + i) // 12}-{(6 + i) % 12 + 1:02d}" for i in range(24)]  # 2000-07 to 2002-06
     own = [Comparison(p, 3.0 + i / 100, 3.0 + i / 100, True) for i, p in enumerate(months)]
-    own[7] = Comparison(months[7], 3.1, 3.07, False, "rounding")                             # 2001-02
-    own[11] = Comparison(months[11], 3.9332, 3.9239, False, "revision", "june-2001")         # 2001-06
-    rebuilt = [Comparison(p, 2.0, 2.0 + (0.13 if i % 4 == 3 else 0.0), i % 4 != 3, "" if i % 4 != 3 else "not-known")
-               for i, p in enumerate(months[:12])]
+    own[7] = Comparison(months[7], 3.1, 3.07, False, "rounding")  # 2001-02
+    own[11] = Comparison(months[11], 3.9332, 3.9239, False, "revision", "june-2001")  # 2001-06
+    rebuilt = [
+        Comparison(p, 2.0, 2.0 + (0.13 if i % 4 == 3 else 0.0), i % 4 != 3, "" if i % 4 != 3 else "not-known")
+        for i, p in enumerate(months[:12])
+    ]
     items = [Comparison(p, 1.5, 1.5, True) for p in months[:12]]
-    items[5] = Comparison(months[5], 1.5, 1.6, False, "rounding")    # consistent, with one difference to rounding
-    types = {year: {g: {"share_households": (None, s), "elstat_share_households": (None, s + (0.02 if year == 2023 else 0.003)),
-                        "agreement": (None, 0.27 if year == 2023 else 0.98),
-                        "elstat_status": ("unusable: made up" if year == 2023 else "compared", None)}
-                    for g, s in (("A1", 0.26), ("A2", 0.28))} for year in (2022, 2023)}
+    items[5] = Comparison(months[5], 1.5, 1.6, False, "rounding")  # consistent, with one difference to rounding
+    types = {
+        year: {
+            g: {
+                "share_households": (None, s),
+                "elstat_share_households": (None, s + (0.02 if year == 2023 else 0.003)),
+                "agreement": (None, 0.27 if year == 2023 else 0.98),
+                "elstat_status": ("unusable: made up" if year == 2023 else "compared", None),
+            }
+            for g, s in (("A1", 0.26), ("A2", 0.28))
+        }
+        for year in (2022, 2023)
+    }
+
     # The spending table: 2013 matches to the cent (with one band and one excused item), 2014's
     # household totals differ, so its differing item links to the survey-weights finding.
     def column(households, items):
-        return {"households": {"published": (None, households[0]), "ours": (None, households[1]),
-                               "result": ("matched" if households[0] == households[1] else "differs", None)},
-                **{code: {"item": (f"Item {code}", None), "published": (None, pub), "ours": (None, ours), "result": (res, None)}
-                   for code, pub, ours, res in items}}
-    spending = {2013: {"All households": column((4178116, 4178116), [("01111", 12.34, 12.3412, "matched"),
-                                                                     ("07242", 17.5, 1.02, "excused")]),
-                       "1 member": column((1072760, 1072760), [("01111", 7.1, 7.1, "matched")])},
-                2014: {"All households": column((4152372, 4136073), [("01111", 12.0, 12.0, "matched"),
-                                                                     ("01112", 3.2, 3.25, "differs")])}}
-    checks = [check("gr-cpi-rates-own-index", "percent", own), check("gr-cpi-rates-rebuilt", "percent", rebuilt),
-              check("gr-cpi-rebuilt-items", "percent, one decimal", items), hbs.household_types(types, []),
-              hbs.spending(spending)]
+        return {
+            "households": {
+                "published": (None, households[0]),
+                "ours": (None, households[1]),
+                "result": ("matched" if households[0] == households[1] else "differs", None),
+            },
+            **{
+                code: {
+                    "item": (f"Item {code}", None),
+                    "published": (None, pub),
+                    "ours": (None, ours),
+                    "result": (res, None),
+                }
+                for code, pub, ours, res in items
+            },
+        }
+
+    spending = {
+        2013: {
+            "All households": column(
+                (4178116, 4178116), [("01111", 12.34, 12.3412, "matched"), ("07242", 17.5, 1.02, "excused")]
+            ),
+            "1 member": column((1072760, 1072760), [("01111", 7.1, 7.1, "matched")]),
+        },
+        2014: {
+            "All households": column(
+                (4152372, 4136073), [("01111", 12.0, 12.0, "matched"), ("01112", 3.2, 3.25, "differs")]
+            )
+        },
+    }
+    checks = [
+        check("gr-cpi-rates-own-index", "percent", own),
+        check("gr-cpi-rates-rebuilt", "percent", rebuilt),
+        check("gr-cpi-rebuilt-items", "percent, one decimal", items),
+        hbs.household_types(types, []),
+        hbs.spending(spending),
+    ]
     made_up = [
-        ("gr-renters", "percent", {"census": {"2011": 21.7, "2021": 24.5}, "hbs": {"2011": 20.8, "2021": 16.8, "2022": 17.2, "2023": 18.3, "2024": 18.9},
-                                   "silc": {"2024": 24.5}}),
-        ("gr-rent-paid", "EUR", {"national_accounts": {"2021": 7.233e9, "2022": 7.775e9}, "hbs": {"2021": 2.77e9},
-                                 "aade": {"2022": 7857453360.18}}),
+        (
+            "gr-renters",
+            "percent",
+            {
+                "census": {"2011": 21.7, "2021": 24.5},
+                "hbs": {"2011": 20.8, "2021": 16.8, "2022": 17.2, "2023": 18.3, "2024": 18.9},
+                "silc": {"2024": 24.5},
+            },
+        ),
+        (
+            "gr-rent-paid",
+            "EUR",
+            {
+                "national_accounts": {"2021": 7.233e9, "2022": 7.775e9},
+                "hbs": {"2021": 2.77e9},
+                "aade": {"2022": 7857453360.18},
+            },
+        ),
         ("gr-household-income", "EUR", {"national_accounts": {"2022": 140.001e9}, "aade": {"2022": 91674362821.89}}),
-        ("gr-rent-weight", "percent", {"cpi": {"2023": 3.53, "2024": 3.63}, "hicp": {"2023": 3.15, "2024": 3.11},
-                                       "hbs": {"2023": 4.0, "2024": 4.23}}),
-        ("gr-rent-change", "index", {"cpi": {"2015": 100.0, "2020": 92.2, "2021": 92.3, "2022": 93.5},
-                                     "hbs": {"2015": 100.0, "2020": 115.1, "2021": 119.4, "2022": 120.1},
-                                     "silc": {"2015": 100.0, "2020": 103.2, "2021": 110.8, "2022": 117.1}}),
-        ("gr-unemployment", "persons", {"lfs": {"2023": 470000.0, "2024": 400000.0}, "register": {"2023": 954795.0, "2024": 896099.0}}),
+        (
+            "gr-rent-weight",
+            "percent",
+            {
+                "cpi": {"2023": 3.53, "2024": 3.63},
+                "hicp": {"2023": 3.15, "2024": 3.11},
+                "hbs": {"2023": 4.0, "2024": 4.23},
+            },
+        ),
+        (
+            "gr-rent-change",
+            "index",
+            {
+                "cpi": {"2015": 100.0, "2020": 92.2, "2021": 92.3, "2022": 93.5},
+                "hbs": {"2015": 100.0, "2020": 115.1, "2021": 119.4, "2022": 120.1},
+                "silc": {"2015": 100.0, "2020": 103.2, "2021": 110.8, "2022": 117.1},
+            },
+        ),
+        (
+            "gr-unemployment",
+            "persons",
+            {"lfs": {"2023": 470000.0, "2024": 400000.0}, "register": {"2023": 954795.0, "2024": 896099.0}},
+        ),
     ]
     # Each source as the real question describes it (dataset, reference, definition): only the values are made up.
     from traceconomics.module5.questions import SOURCES
+
     extra = []
     for qid, unit, values in made_up:
         q = hbs.Question(qid, "gr", unit, [{"label": k, **SOURCES[qid][k]} for k in values])
@@ -396,8 +581,7 @@ def generate(out: Path, work: Path, *, log=print) -> list[Path]:
     open_views(con, work / "store")
     module1_outputs(work / "outputs", con, cpi, hicp, kept)
     module5_outputs(work / "outputs", con)
-    return site.export(con, archive, work / "outputs", out, log=log,
-                       blocks={"cpi": cpi, "hicp": hicp}, baskets=kept)
+    return site.export(con, archive, work / "outputs", out, log=log, blocks={"cpi": cpi, "hicp": hicp}, baskets=kept)
 
 
 if __name__ == "__main__":

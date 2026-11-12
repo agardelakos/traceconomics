@@ -28,11 +28,23 @@ def test_dataset_for_url():
     And a full SDMX-CSV is "<code>-full-sdmx-csv" and a partial extract "<code>-extract-sdmx-csv"
     And another publisher's URL gives None
     """
-    assert dataset_for_url("https://www.statistics.gr:443/en/statistics?x=1&_documentID=585819&_locale=en") == ("elstat", "doc-585819")
-    assert dataset_for_url("https://www.statistics.gr/el/statistics?_documentID=114834&_locale=el") == ("elstat", "doc-114834-el")
+    assert dataset_for_url("https://www.statistics.gr:443/en/statistics?x=1&_documentID=585819&_locale=en") == (
+        "elstat",
+        "doc-585819",
+    )
+    assert dataset_for_url("https://www.statistics.gr/el/statistics?_documentID=114834&_locale=el") == (
+        "elstat",
+        "doc-114834-el",
+    )
     assert dataset_for_url(EUROSTAT_DATA + "prc_hicp_fp?format=TSV&compressed=true") == ("eurostat", "prc_hicp_fp")
-    assert dataset_for_url(EUROSTAT_DATA + "prc_hicp_fp?format=SDMX-CSV&compressed=true") == ("eurostat", "prc_hicp_fp-full-sdmx-csv")
-    assert dataset_for_url(EUROSTAT_DATA + "prc_hicp_manr/M.RCH_A.CP00.EL/?format=SDMX-CSV")[1] == "prc_hicp_manr-extract-sdmx-csv"
+    assert dataset_for_url(EUROSTAT_DATA + "prc_hicp_fp?format=SDMX-CSV&compressed=true") == (
+        "eurostat",
+        "prc_hicp_fp-full-sdmx-csv",
+    )
+    assert (
+        dataset_for_url(EUROSTAT_DATA + "prc_hicp_manr/M.RCH_A.CP00.EL/?format=SDMX-CSV")[1]
+        == "prc_hicp_manr-extract-sdmx-csv"
+    )
     assert dataset_for_url("https://www.bankofgreece.gr/paper.pdf") is None
 
 
@@ -118,18 +130,25 @@ def test_other_pages_of_the_publishers_get_their_own_datasets():
     And the dataflow is "<code>-dataflow"
     And the other Eurostat page is named by its path in slug form, without "/eurostat"
     """
-    assert dataset_for_url("https://www.statistics.gr/en/statistics/-/publication/DKT87") == \
-        ("elstat", "en-statistics-publication-dkt87")
-    assert dataset_for_url("https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/PRC_HICP_MINR/1.0") == \
-        ("eurostat", "prc_hicp_minr-dataflow")
+    assert dataset_for_url("https://www.statistics.gr/en/statistics/-/publication/DKT87") == (
+        "elstat",
+        "en-statistics-publication-dkt87",
+    )
+    assert dataset_for_url(
+        "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/dataflow/ESTAT/PRC_HICP_MINR/1.0"
+    ) == ("eurostat", "prc_hicp_minr-dataflow")
     assert dataset_for_url("https://ec.europa.eu/eurostat/web/hicp/database") == ("eurostat", "web-hicp-database")
 
 
 def _hdr(folder, doc, name, body, *, status=200, length=None, date_line=True):
     folder.mkdir(parents=True, exist_ok=True)
     (folder / f"{doc}__{name}").write_bytes(body)
-    lines = [f"HTTP/1.1 {status} OK", f"Content-Length: {len(body) if length is None else length}",
-             "Content-Type: application/vnd.ms-excel", "Set-Cookie: session=1"]
+    lines = [
+        f"HTTP/1.1 {status} OK",
+        f"Content-Length: {len(body) if length is None else length}",
+        "Content-Type: application/vnd.ms-excel",
+        "Set-Cookie: session=1",
+    ]
     if date_line:
         lines.append("Date: Tue, 14 Oct 2026 10:30:00 GMT")
     (folder / f"{doc}.hdr").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -163,9 +182,12 @@ def test_seed_takes_elstat_files_saved_with_their_response_headers(tmp_path):
     assert snap["retrieved_at"] == "2026-10-14T10:30:00Z"
     m = archive.manifest(snap)
     assert "_documentID=585819" in m["url"] and "locale=el" in m["url"]
-    assert m["http"]["headers"] == {"content-length": "5", "content-type": "application/vnd.ms-excel",
-                                    "date": "Tue, 14 Oct 2026 10:30:00 GMT"}
-    assert rep.unrecorded == 6     # the five files the headers don't vouch for, and the extra copy
+    assert m["http"]["headers"] == {
+        "content-length": "5",
+        "content-type": "application/vnd.ms-excel",
+        "date": "Tue, 14 Oct 2026 10:30:00 GMT",
+    }
+    assert rep.unrecorded == 6  # the five files the headers don't vouch for, and the extra copy
 
 
 def test_seed_takes_hand_downloaded_microdata_from_their_checksum_list(tmp_path):
@@ -206,10 +228,13 @@ def test_seed_skips_rows_it_cant_vouch_for_and_files_listed_twice(tmp_path):
     (folder / "MANIFEST.md").write_text(
         head + row + f"| missing.xlsx | {ELSTAT_DOC.format(2)} | 2026-10-17 | {_sha(b'm')} |\n"
         f"| undated.xlsx | {ELSTAT_DOC.format(3)} | unknown | {_sha(b'u')} |\n"
-        "| local.xlsx | (none) | 2026-10-17 | |\n", encoding="utf-8")
+        "| local.xlsx | (none) | 2026-10-17 | |\n",
+        encoding="utf-8",
+    )
     (folder / "README.md").write_text(head + row, encoding="utf-8")
-    (folder / "notes.md").write_text(head + f"| notes.xlsx | {ELSTAT_DOC.format(4)} | 2026-10-17 | {_sha(b'n')} |\n",
-                                     encoding="utf-8")
+    (folder / "notes.md").write_text(
+        head + f"| notes.xlsx | {ELSTAT_DOC.format(4)} | 2026-10-17 | {_sha(b'n')} |\n", encoding="utf-8"
+    )
     rep = seed(Archive(tmp_path / "archive"), tmp_path / "research", dry_run=True)
     assert rep.stored == ["elstat/doc-1 <- good.xlsx (2026-10-17)"]
     assert sorted(s.split(": ")[0].rsplit("/", 1)[1] for s in rep.skipped) == ["missing.xlsx", "undated.xlsx"]
@@ -232,20 +257,29 @@ def test_import_wayback_stamps_the_capture_time(tmp_path):
     archive = Archive(tmp_path / "archive")
     job = tmp_path / "new.xlsx"
     job.write_bytes(b"new")
-    import_file(archive, job, source="elstat", dataset="doc-114837", url=ELSTAT_DOC.format(114837),
-                downloaded=date(2026, 10, 13), note=None)
+    import_file(
+        archive,
+        job,
+        source="elstat",
+        dataset="doc-114837",
+        url=ELSTAT_DOC.format(114837),
+        downloaded=date(2026, 10, 13),
+        note=None,
+    )
     old = tmp_path / "doc114837_20210724233349.xls"
     old.write_bytes(b"old")
-    r = import_wayback(archive, old, source="elstat", dataset="cpi05-wayback", url=WAYBACK_URL,
-                       downloaded=date(2026, 11, 8), note=None)
+    r = import_wayback(
+        archive, old, source="elstat", dataset="cpi05-wayback", url=WAYBACK_URL, downloaded=date(2026, 11, 8), note=None
+    )
     assert r.status == "stored" and r.path.parent.name == "20210724T233349Z"
     m = archive.manifest(archive.latest("elstat", "cpi05-wayback"))
     assert m["kind"] == "wayback" and m["retrieved_at"] == "2021-07-24T23:33:49Z"
     assert m["original_url"] == "https://www.statistics.gr/en/statistics?_documentID=114837&_locale=en"
     assert m["captured_at"] == "2021-07-24T23:33:49Z" and m["downloaded"] == "2026-11-08"
     assert len(archive.snapshots("elstat", "doc-114837")) == 1
-    again = import_wayback(archive, old, source="elstat", dataset="cpi05-wayback", url=WAYBACK_URL,
-                           downloaded=date(2026, 11, 8), note=None)
+    again = import_wayback(
+        archive, old, source="elstat", dataset="cpi05-wayback", url=WAYBACK_URL, downloaded=date(2026, 11, 8), note=None
+    )
     assert again.status == "unchanged"
 
 
@@ -259,18 +293,25 @@ def test_import_wayback_refuses_other_addresses_and_dataset_names(tmp_path):
     archive = Archive(tmp_path / "archive")
     f = tmp_path / "copy.xls"
     f.write_bytes(b"x")
-    for url, dataset in [(ELSTAT_DOC.format(114837), "cpi05-wayback"),
-                         (WAYBACK_URL.replace("id_/", "/"), "cpi05-wayback"),
-                         (WAYBACK_URL, "doc-114837")]:
+    for url, dataset in [
+        (ELSTAT_DOC.format(114837), "cpi05-wayback"),
+        (WAYBACK_URL.replace("id_/", "/"), "cpi05-wayback"),
+        (WAYBACK_URL, "doc-114837"),
+    ]:
         with pytest.raises(ValueError):
-            import_wayback(archive, f, source="elstat", dataset=dataset, url=url, downloaded=date(2026, 11, 8), note=None)
+            import_wayback(
+                archive, f, source="elstat", dataset=dataset, url=url, downloaded=date(2026, 11, 8), note=None
+            )
     assert archive.datasets() == []
 
 
-@pytest.mark.parametrize("name, dataset", [
-    ("SD_FP_22F_3.xlsx", "pit-sd-fp-22f-3"),
-    ("etisio_stats_fysikwn_forologikou_2020 v3.xlsx", "pit-etisio-stats-fysikwn-forologikou-2020-v3"),
-])
+@pytest.mark.parametrize(
+    "name, dataset",
+    [
+        ("SD_FP_22F_3.xlsx", "pit-sd-fp-22f-3"),
+        ("etisio_stats_fysikwn_forologikou_2020 v3.xlsx", "pit-etisio-stats-fysikwn-forologikou-2020-v3"),
+    ],
+)
 def test_import_names_an_aade_workbook_as_a_fetch_would(tmp_path, name, dataset):
     """PY-BACKFILL-011: an AADE workbook imported by hand lands in the dataset a fetch would use
 

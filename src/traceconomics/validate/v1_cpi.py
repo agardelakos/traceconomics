@@ -29,7 +29,11 @@ def archived_files(archive: Archive) -> dict[int, Path]:
     """The newest archived English table 07 per year."""
     newest: dict[str, dict] = {}
     for rec in archive.index():
-        if rec.get("status") == "stored" and rec.get("source") == "elstat" and rec.get("dataset", "").startswith("doc-"):
+        if (
+            rec.get("status") == "stored"
+            and rec.get("source") == "elstat"
+            and rec.get("dataset", "").startswith("doc-")
+        ):
             newest[rec["dataset"]] = rec
     out: dict[int, tuple[str, Path]] = {}
     for rec in newest.values():
@@ -62,12 +66,13 @@ def assemble(tables: list[Table07]):
     return weights, prices, official, disagreements
 
 
-CHECKED_FROM = 2014   # first year linked at December; see the module docstring
+CHECKED_FROM = 2014  # first year linked at December; see the module docstring
 
 
 def _compare(name, weights, prices, official, first, last):
-    result = chain(weights, prices, first_year=first, last_year=last,
-                   base_value=official[f"{first - 1}-12"], periods=set(official))
+    result = chain(
+        weights, prices, first_year=first, last_year=last, base_value=official[f"{first - 1}-12"], periods=set(official)
+    )
     return compare(name, result, official)
 
 
@@ -79,8 +84,14 @@ def run(tables: list[Table07]) -> tuple[Comparison, Comparison | None, int]:
     checked = _compare(f"CPI, finest detail, {first} on", weights, prices, official, first, last)
     earlier = None
     if min(weights) < CHECKED_FROM - 1:
-        earlier = _compare(f"CPI, {min(weights) + 1}-{CHECKED_FROM - 1} (report only: fixed basket then)",
-                           weights, prices, official, min(weights) + 1, CHECKED_FROM - 1)
+        earlier = _compare(
+            f"CPI, {min(weights) + 1}-{CHECKED_FROM - 1} (report only: fixed basket then)",
+            weights,
+            prices,
+            official,
+            min(weights) + 1,
+            CHECKED_FROM - 1,
+        )
     return checked, earlier, disagreements
 
 

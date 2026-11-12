@@ -77,12 +77,16 @@ def fetch_years(ctx: RunContext, years: list[int]) -> list[str]:
             if ctx.archive.latest(SOURCE, dataset):
                 notes.append(f"{year} {locale}: {dataset} already archived")
                 continue
-            res, _ = ctx.fetch_and_store(SOURCE, dataset, doc_url(doc, locale),
-                                         extra={"title": title, "listed_on": url})
+            res, _ = ctx.fetch_and_store(
+                SOURCE, dataset, doc_url(doc, locale), extra={"title": title, "listed_on": url}
+            )
             if res is None or res.path is None:
                 continue
-            problems = check_table07(res.path, year) if res.path.suffix == ".xls" else \
-                [f"unexpected file type: {res.path.name}"]
+            problems = (
+                check_table07(res.path, year)
+                if res.path.suffix == ".xls"
+                else [f"unexpected file type: {res.path.name}"]
+            )
             if problems:
                 ctx.alerts.append(f"{SOURCE}/{dataset} ({year} {locale}): " + "; ".join(problems))
             else:

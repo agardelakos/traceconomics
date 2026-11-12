@@ -31,9 +31,11 @@ from server import StaticServer
 
 DESKTOP = (1280, 900)
 # Pixel 7, as Chrome's device list has it.
-PHONE = {"deviceMetrics": {"width": 412, "height": 915, "pixelRatio": 2.625, "touch": True, "mobile": True},
-         "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/156.0.0.0 Mobile Safari/537.36"}
+PHONE = {
+    "deviceMetrics": {"width": 412, "height": 915, "pixelRatio": 2.625, "touch": True, "mobile": True},
+    "userAgent": "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/156.0.0.0 Mobile Safari/537.36",
+}
 
 
 def pytest_configure(config):
@@ -55,8 +57,13 @@ def _options(*, phone=False, scripts=True) -> webdriver.ChromeOptions:
     o.add_argument("--no-first-run")
     o.add_argument("--disable-search-engine-choice-screen")
     o.add_argument("--lang=en-GB")
-    o.add_experimental_option("prefs", {"intl.accept_languages": "en-GB,en",
-                                        **({} if scripts else {"profile.managed_default_content_settings.javascript": 2})})
+    o.add_experimental_option(
+        "prefs",
+        {
+            "intl.accept_languages": "en-GB,en",
+            **({} if scripts else {"profile.managed_default_content_settings.javascript": 2}),
+        },
+    )
     o.set_capability("goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"})
     if phone:
         o.add_experimental_option("mobileEmulation", PHONE)
@@ -64,7 +71,9 @@ def _options(*, phone=False, scripts=True) -> webdriver.ChromeOptions:
         o.add_argument(f"--window-size={DESKTOP[0]},{DESKTOP[1]}")
         # Headless Chrome reports no pointer at all ("hover: none"), unlike a desktop with a mouse,
         # and the site's mouse-only behaviour (terms open on hover) would never run.
-        o.add_argument("--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4")
+        o.add_argument(
+            "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4"
+        )
     return o
 
 
@@ -77,8 +86,10 @@ class _Pool:
     def get(self, kind: str) -> webdriver.Chrome:
         if kind not in self._drivers:
             # With both paths given, Selenium doesn't call Selenium Manager again.
-            d = webdriver.Chrome(service=Service(chrome.paths()["driver_path"]),
-                                 options=_options(phone=kind == "phone", scripts=kind != "noscript"))
+            d = webdriver.Chrome(
+                service=Service(chrome.paths()["driver_path"]),
+                options=_options(phone=kind == "phone", scripts=kind != "noscript"),
+            )
             d.set_page_load_timeout(30)
             d.execute_cdp_cmd("Network.enable", {})
             self._drivers[kind] = d
@@ -142,8 +153,9 @@ def _save_failure(item, site: Site, console: list[dict]):
         (out / "url.txt").write_text(d.current_url + "\n", encoding="utf-8", newline="\n")
     except Exception as e:  # a broken page must not hide the test's own failure
         (out / "capture-error.txt").write_text(repr(e) + "\n", encoding="utf-8", newline="\n")
-    (out / "console.json").write_text(json.dumps(console, indent=1, ensure_ascii=False) + "\n",
-                                      encoding="utf-8", newline="\n")
+    (out / "console.json").write_text(
+        json.dumps(console, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
+    )
 
 
 def _site_fixture(kind):
@@ -160,6 +172,7 @@ def _site_fixture(kind):
         errors = [e for e in console if e["level"] == "SEVERE"]
         if errors and not request.node.get_closest_marker("console_errors") and (call is None or call.passed):
             pytest.fail("errors in the browser's console:\n" + "\n".join(e["message"] for e in errors), pytrace=False)
+
     return fixture
 
 

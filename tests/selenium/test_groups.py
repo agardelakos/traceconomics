@@ -28,6 +28,7 @@ def _type_income(site, text):
 
 # --- the finder ---------------------------------------------------------------------------------
 
+
 def test_finder_shows_once_scripts_run(site):
     """SEL-GRP-001: the finder shows once scripts run
 
@@ -47,12 +48,15 @@ def test_finder_shows_once_scripts_run(site):
 
 
 @pytest.mark.parametrize("lang", ["en", "el"])
-@pytest.mark.parametrize("older,children,typed,amount,per", [
-    (1, 0, "9000", 9000, "year"),
-    (2, 1, "1500", 1500, "month"),
-    (2, 2, "45000", 45000, "year"),
-    (3, 0, "2.000", 2000, "month"),
-])
+@pytest.mark.parametrize(
+    "older,children,typed,amount,per",
+    [
+        (1, 0, "9000", 9000, "year"),
+        (2, 1, "1500", 1500, "month"),
+        (2, 2, "45000", 45000, "year"),
+        (3, 0, "2.000", 2000, "month"),
+    ],
+)
 def test_finder_places_the_income(site, lang, older, children, typed, amount, per):
     """SEL-GRP-002: the finder places the income in its fifth
 
@@ -92,7 +96,7 @@ def test_finder_warns_near_a_limit(site):
     site.open(PAGE.format(lang="en"))
     site.visible("[data-find=form]")
     q2 = cutoffs()["top_cutoffs"]["Q2"]
-    _type_income(site, str(round(q2 * 0.98)))      # 2% under the line between the 2nd and 3rd fifths
+    _type_income(site, str(round(q2 * 0.98)))  # 2% under the line between the 2nd and 3rd fifths
     site.text("[data-find=income-value]", t("en", "group.Q2"))
     site.text("[data-find=near]", t("en", "find.near", group=t("en", "group.in.Q3")))
 
@@ -120,7 +124,8 @@ def test_finder_home_and_pension_and_links(site):
     assert starts == [f"B%2F{fifth}", "hhtype%2FA1", "tenure%2Frenter", "pensioners%2Fpensioners"]
     compare = site.find("[data-find=compare]")
     assert compare.get_attribute("href").endswith(
-        f"/explore/?groups={fifth}%2Chhtype%2FA1%2Ctenure%2Frenter%2Cpensioners%2Fpensioners")
+        f"/explore/?groups={fifth}%2Chhtype%2FA1%2Ctenure%2Frenter%2Cpensioners%2Fpensioners"
+    )
     compare.click()
     site.wait(lambda _: site.path == "/en/gr/inflation-by-group/explore/")
     assert site.query["groups"].split(",") == [fifth, "hhtype/A1", "tenure/renter", "pensioners/pensioners"]
@@ -168,11 +173,12 @@ def test_finder_keeps_out_of_range_counts_in_bounds(site):
     """
     site.open(PAGE.format(lang="en"))
     site.visible("[data-find=form]")
-    _set_number(site, "[data-find=older]", 40)      # max 12
+    _set_number(site, "[data-find=older]", 40)  # max 12
     site.text("[data-find=size]", t("en", "income.size", size=num("en", equivalent_size(12, 0))))
 
 
 # --- the income panel ---------------------------------------------------------------------------
+
 
 def _expected(lang, size, unit, source="ours"):
     cuts = cutoffs(source)["top_cutoffs" if unit == "eur" else "top_cutoffs_pps"]
@@ -201,25 +207,42 @@ def _same(site, expected):
     def check(_):
         seen[:] = _cells(site)
         return seen == expected
+
     try:
         site.wait(check)
     except Exception:
-        wrong = [f"Q{i + 1} {per}: {seen[i][per]!r}, expected {expected[i][per]!r}"
-                 for i in range(5) for per in ("year", "month") if seen and seen[i][per] != expected[i][per]]
+        wrong = [
+            f"Q{i + 1} {per}: {seen[i][per]!r}, expected {expected[i][per]!r}"
+            for i in range(5)
+            for per in ("year", "month")
+            if seen and seen[i][per] != expected[i][per]
+        ]
         raise AssertionError("\n".join(wrong) or "no table") from None
 
 
 def _cells(site):
     # textContent, not .text: WebDriver's text turns the no-break space before "PPS" into a plain one.
-    return [{"year": site.find(f'td[data-income-year="Q{i}"]').get_property("textContent"),
-             "month": site.find(f'td[data-income-month="Q{i}"]').get_property("textContent")}
-            for i in range(1, 6)]
+    return [
+        {
+            "year": site.find(f'td[data-income-year="Q{i}"]').get_property("textContent"),
+            "month": site.find(f'td[data-income-month="Q{i}"]').get_property("textContent"),
+        }
+        for i in range(1, 6)
+    ]
 
 
 @pytest.mark.parametrize("lang", ["en", "el"])
-@pytest.mark.parametrize("household,older,children", [
-    ("one", 1, 0), ("two", 2, 0), ("two_child", 2, 1), ("two_children", 2, 2), ("one_child", 1, 1), ("three", 3, 0),
-])
+@pytest.mark.parametrize(
+    "household,older,children",
+    [
+        ("one", 1, 0),
+        ("two", 2, 0),
+        ("two_child", 2, 1),
+        ("two_children", 2, 2),
+        ("one_child", 1, 1),
+        ("three", 3, 0),
+    ],
+)
 def test_income_panel_household_types(site, lang, household, older, children):
     """SEL-GRP-008: the income panel for each listed household
 
@@ -283,19 +306,35 @@ def test_income_panel_starts_from_our_limits_and_says_how_they_are_made(site):
     assert site.find('input[name="income-source"][value="ours"]').is_selected()
     assert site.find('input[name="income-source"][value="eurostat"]').is_enabled()
     ses = [v for v in ours["se"].values() if v is not None]
-    site.text("[data-income-role=ours-note]", t("en", "income.source.ours_note", survey=ours["survey_year"],
-              income=ours["income_year"], se_from=eur(min(ses)), se_to=eur(max(ses))))
-    site.text("[data-income-role=eurostat-note]", t("en", "income.source.eurostat_note", survey=eu["survey_year"],
-              income=eu["income_year"]))
+    site.text(
+        "[data-income-role=ours-note]",
+        t(
+            "en",
+            "income.source.ours_note",
+            survey=ours["survey_year"],
+            income=ours["income_year"],
+            se_from=eur(min(ses)),
+            se_to=eur(max(ses)),
+        ),
+    )
+    site.text(
+        "[data-income-role=eurostat-note]",
+        t("en", "income.source.eurostat_note", survey=eu["survey_year"], income=eu["income_year"]),
+    )
     if eu["income_year"] == ours["income_year"]:
         # The gap between the two sources is shown in numbers, whichever way it goes.
         a, b = eu["top_cutoffs"]["Q1"], ours["top_cutoffs"]["Q1"]
-        diff = t("en", "income.compare.lower" if a <= b else "income.compare.higher", pct=pct("en", abs(a - b) / b * 100))
-        site.text("[data-income-role=compare]", t("en", "income.source.compare", income=ours["income_year"],
-                  eurostat=eur(a), ours=eur(b), diff=diff))
+        diff = t(
+            "en", "income.compare.lower" if a <= b else "income.compare.higher", pct=pct("en", abs(a - b) / b * 100)
+        )
+        site.text(
+            "[data-income-role=compare]",
+            t("en", "income.source.compare", income=ours["income_year"], eurostat=eur(a), ours=eur(b), diff=diff),
+        )
 
 
 # --- household types ----------------------------------------------------------------------------
+
 
 def _household(site, older, children, dependents):
     site.open(PAGE.format(lang="en"))

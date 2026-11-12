@@ -54,8 +54,11 @@ def test_lock_files_match_pyproject():
     base = pins(project["dependencies"])
     # The Selenium browser tests have a lock of their own (with the dev extra), so their
     # dependencies never enter the other two.
-    locks = [("requirements-dev.txt", ["dev"]), ("requirements-local.txt", ["local"]),
-             ("requirements-selenium.txt", ["dev", "selenium"])]
+    locks = [
+        ("requirements-dev.txt", ["dev"]),
+        ("requirements-local.txt", ["local"]),
+        ("requirements-selenium.txt", ["dev", "selenium"]),
+    ]
     for name, extras in locks:
         have, text = locked(name)
         wanted = dict(base)

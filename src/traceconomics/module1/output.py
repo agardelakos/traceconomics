@@ -33,14 +33,44 @@ import duckdb
 from traceconomics import __version__, references
 from traceconomics.module1.index import DEFAULT_OPTIONS, Series
 
-KEY = ["geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",
-       "hh_weighting", "coicop18", "unit"]
+KEY = [
+    "geo",
+    "grouping",
+    "group",
+    "spending",
+    "imputed_rent",
+    "price_source",
+    "weights_timing",
+    "tutoring",
+    "hh_weighting",
+    "coicop18",
+    "unit",
+]
 DEFAULTS = {"geo": "GR", **DEFAULT_OPTIONS, "hh_weighting": "plutocratic"}
-SOURCES = ["hicp-manual-2024", "reg-2020-1148", "reg-2016-792", "cpi-manual-2020", "elstat-cpi-qr-2026",
-           "elstat-cpi-sims-2026", "eurostat-equivalence-scale", "reg-1982-2003", "preston-2009"]
-CODE = {"traceconomics.module1": ("schedule.py", "prices.py", "weights_used.py", "index.py", "output.py", "contributions.py",
-                        "combinations.py", "originals.py"),
-        "traceconomics.engine": ("chain.py", "tree.py", "rates.py")}
+SOURCES = [
+    "hicp-manual-2024",
+    "reg-2020-1148",
+    "reg-2016-792",
+    "cpi-manual-2020",
+    "elstat-cpi-qr-2026",
+    "elstat-cpi-sims-2026",
+    "eurostat-equivalence-scale",
+    "reg-1982-2003",
+    "preston-2009",
+]
+CODE = {
+    "traceconomics.module1": (
+        "schedule.py",
+        "prices.py",
+        "weights_used.py",
+        "index.py",
+        "output.py",
+        "contributions.py",
+        "combinations.py",
+        "originals.py",
+    ),
+    "traceconomics.engine": ("chain.py", "tree.py", "rates.py"),
+}
 GAP = ("Q1", "Q5")
 
 
@@ -85,9 +115,8 @@ def quality(unit: str, period: str, price_source: str = "cpi") -> str:
 
 TABLES = ("m1_index", "m1_rates", "m1_weights_used", "m1_contributions")
 VALUE_COLS = ["ref_period", "value", "value_text", "status", "quality", "weights_status"]
-COLUMNS = {name: KEY + VALUE_COLS + (["survey", "priced_with"] if name == "m1_weights_used" else [])
-           for name in TABLES}
-REST = "_REST"     # suffix of a "rest of" row: a parent's small cells, together
+COLUMNS = {name: KEY + VALUE_COLS + (["survey", "priced_with"] if name == "m1_weights_used" else []) for name in TABLES}
+REST = "_REST"  # suffix of a "rest of" row: a parent's small cells, together
 LOW_RELIABILITY = "low reliability"
 
 
@@ -96,8 +125,15 @@ def is_default_row(r: dict) -> bool:
 
 
 def _key(s: Series, unit: str, group: str | None = None, code: str = "TOTAL") -> dict:
-    return {**DEFAULTS, **s.options, "grouping": s.grouping, "group": group or s.group, "spending": s.spending,
-            "coicop18": code, "unit": unit}
+    return {
+        **DEFAULTS,
+        **s.options,
+        "grouping": s.grouping,
+        "group": group or s.group,
+        "spending": s.spending,
+        "coicop18": code,
+        "unit": unit,
+    }
 
 
 def published_weights(u) -> dict[str, tuple[float, str, int]]:
@@ -119,9 +155,15 @@ def series_rows(s: Series, contrib=None):
     status = {e.year: e.status for e in s.schedule}
 
     def row(unit, period, value, text, code="TOTAL", wstatus=None):
-        return {**_key(s, unit, code=code), "ref_period": period, "value": value, "value_text": text,
-                "status": "backcast", "quality": quality(unit, period, src),
-                "weights_status": status.get(int(period[:4]), "") if wstatus is None else wstatus}
+        return {
+            **_key(s, unit, code=code),
+            "ref_period": period,
+            "value": value,
+            "value_text": text,
+            "status": "backcast",
+            "quality": quality(unit, period, src),
+            "weights_status": status.get(int(period[:4]), "") if wstatus is None else wstatus,
+        }
 
     for period, v in sorted(s.published.items()):
         yield "m1_index", row(s.index_unit, period, v, f"{v:.2f}")
@@ -148,8 +190,15 @@ def gap_rows(lo: Series, hi: Series, clo=None, chi=None):
     gap_group = f"{GAP[0]}-{GAP[1]}"
 
     def row(unit, period, value, text, code="TOTAL"):
-        return {**_key(lo, unit, gap_group, code), "ref_period": period, "value": value, "value_text": text,
-                "status": "backcast", "quality": quality(unit, period, src), "weights_status": ""}
+        return {
+            **_key(lo, unit, gap_group, code),
+            "ref_period": period,
+            "value": value,
+            "value_text": text,
+            "status": "backcast",
+            "quality": quality(unit, period, src),
+            "weights_status": "",
+        }
 
     a, b = lo.rates(), hi.rates()
     for period in sorted(set(a) & set(b)):
@@ -179,6 +228,7 @@ def iter_rows(series: list[Series], blocks=None):
     contrib = {}
     if blocks is not None:
         from traceconomics.module1.contributions import ribe
+
         by_source = set(blocks) <= set(FLAGS)
         for s in series:
             contrib[id(s)] = ribe(s, blocks[s.options["price_source"]] if by_source else blocks)
@@ -234,8 +284,10 @@ class Writer:
         for name in TABLES:
             part = self.folder / f"{name}.all.csv.part"
             parquet = self.folder / f"{name}.parquet"
-            con.execute(f"COPY (SELECT * FROM read_csv('{part.as_posix()}', header = true, all_varchar = true)) "
-                        f"TO '{parquet.as_posix()}' (FORMAT parquet, COMPRESSION zstd)")
+            con.execute(
+                f"COPY (SELECT * FROM read_csv('{part.as_posix()}', header = true, all_varchar = true)) "
+                f"TO '{parquet.as_posix()}' (FORMAT parquet, COMPRESSION zstd)"
+            )
             part.unlink()
             written += [self.folder / f"{name}.csv", parquet]
         return written
@@ -258,8 +310,10 @@ def _write(folder: Path, name: str, table: list[dict]) -> list[Path]:
         w.writerows(table)
     parquet = folder / f"{name}.parquet"
     con = parquet_connection()
-    con.execute(f"COPY (SELECT * FROM read_csv('{csv_path.as_posix()}', header = true, all_varchar = true)) "
-                f"TO '{parquet.as_posix()}' (FORMAT parquet, COMPRESSION zstd)")
+    con.execute(
+        f"COPY (SELECT * FROM read_csv('{csv_path.as_posix()}', header = true, all_varchar = true)) "
+        f"TO '{parquet.as_posix()}' (FORMAT parquet, COMPRESSION zstd)"
+    )
     return [csv_path, parquet]
 
 
@@ -271,15 +325,19 @@ def write_validation(folder: Path, validation: list[Series], blocks=None) -> lis
     return written
 
 
-UNITS = {"I25": "index, 2025 = 100", "I24": "index, 2024 = 100 (a series that ends before 2025)",
-         "RCH_A": "percent change on the same month a year earlier",
-         "RCH_M": "percent change on the previous month", "RCH_A_AVG": "percent change in the annual average",
-         "RCH_A_GAP": "Q1's annual rate minus Q5's, percentage points (rates as shown)",
-         "RCH_A_AVG_GAP": "the same for annual averages",
-         "SHARE": f"weight used, share of 1; a code ending {REST} holds a parent's cells with fewer than 20 "
-                  "reporting households, together",
-         "PC_PNT": "contribution to the annual rate, percentage points (Ribe, HICP Manual 2024 eq. 8.42)",
-         "PC_PNT_GAP": "contribution to the Q1-Q5 gap: Q1's contribution minus Q5's"}
+UNITS = {
+    "I25": "index, 2025 = 100",
+    "I24": "index, 2024 = 100 (a series that ends before 2025)",
+    "RCH_A": "percent change on the same month a year earlier",
+    "RCH_M": "percent change on the previous month",
+    "RCH_A_AVG": "percent change in the annual average",
+    "RCH_A_GAP": "Q1's annual rate minus Q5's, percentage points (rates as shown)",
+    "RCH_A_AVG_GAP": "the same for annual averages",
+    "SHARE": f"weight used, share of 1; a code ending {REST} holds a parent's cells with fewer than 20 "
+    "reporting households, together",
+    "PC_PNT": "contribution to the annual rate, percentage points (Ribe, HICP Manual 2024 eq. 8.42)",
+    "PC_PNT_GAP": "contribution to the Q1-Q5 gap: Q1's contribution minus Q5's",
+}
 
 NOTES = [
     "Every combination of the options is in the Parquet files; availability.json says which periods each covers, "
@@ -302,27 +360,32 @@ def write_metadata(folder: Path, *, first_period, last_period, manifest: dict, n
         "key": KEY,
         "defaults": DEFAULTS,
         "units": UNITS,
-        "quality": {LESS_CERTAIN: "CPI prices: rests on ELSTAT's original 2008-2010 price tables, an older version "
-                                  "of the prices than the re-issued series used from 2011",
-                    COARSER: "HICP prices: before 2015 Eurostat's Greek item indices exist only for classes and "
-                             "groups, so the items within one share its price movement"},
+        "quality": {
+            LESS_CERTAIN: "CPI prices: rests on ELSTAT's original 2008-2010 price tables, an older version "
+            "of the prices than the re-issued series used from 2011",
+            COARSER: "HICP prices: before 2015 Eurostat's Greek item indices exist only for classes and "
+            "groups, so the items within one share its price movement",
+        },
         "files": {"csv": "the default combination only", "parquet": "every combination"},
         "first_period": first_period,
         "last_period": last_period,
         "notes": notes,
         "sources": SOURCES,
-        "code_version": __version__, "code_fingerprint": code_fingerprint(),
+        "code_version": __version__,
+        "code_fingerprint": code_fingerprint(),
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "manifest": manifest,
         "licence": "CC BY 4.0",
         # The publishers' reuse terms ask for the source, a clear statement that the data were
         # modified, and that they bear no responsibility for the result (SOURCES.md).
-        "attribution": ("Computed by TracEconomics from data of the Hellenic Statistical Authority (ELSTAT, "
-                        "www.statistics.gr) and Eurostat: prices from ELSTAT's Consumer Price Index (table 07) "
-                        "and Eurostat's HICP item indices (prc_hicp_minr, doi:10.2908/PRC_HICP_MINR), weights "
-                        "from ELSTAT's Household Budget Survey public use files. The data have been modified: "
-                        "these are our own calculations, not official statistics. ELSTAT and Eurostat bear no "
-                        "responsibility for the result of the modification."),
+        "attribution": (
+            "Computed by TracEconomics from data of the Hellenic Statistical Authority (ELSTAT, "
+            "www.statistics.gr) and Eurostat: prices from ELSTAT's Consumer Price Index (table 07) "
+            "and Eurostat's HICP item indices (prc_hicp_minr, doi:10.2908/PRC_HICP_MINR), weights "
+            "from ELSTAT's Household Budget Survey public use files. The data have been modified: "
+            "these are our own calculations, not official statistics. ELSTAT and Eurostat bear no "
+            "responsibility for the result of the modification."
+        ),
     }
     path = Path(folder) / "metadata.json"
     path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
@@ -343,7 +406,9 @@ def manifest(con) -> dict:
     """Which archived files the inputs came from, and how fresh they were."""
     out = {}
     for dataset in ("elstat:cpi07", "eurostat:prc_hicp_minr", "oet-local:hbs_weights"):
-        shas = con.execute("SELECT DISTINCT raw_sha256 FROM observations WHERE dataset = ? ORDER BY 1", [dataset]).fetchall()
+        shas = con.execute(
+            "SELECT DISTINCT raw_sha256 FROM observations WHERE dataset = ? ORDER BY 1", [dataset]
+        ).fetchall()
         newest = con.execute("SELECT max(published_at) FROM observations WHERE dataset = ?", [dataset]).fetchone()[0]
         out[dataset] = {"files": [s[0] for s in shas], "newest_published_at": str(newest)}
     return out

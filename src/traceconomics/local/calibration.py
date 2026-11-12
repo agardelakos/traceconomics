@@ -51,20 +51,21 @@ from traceconomics.sources import oet_local
 SOURCE = "oet-local"
 SILC = "silc-tenure-gr-{year}"
 TENURES = ("renter", "owner", "rent_free")
-SUM_TOLERANCE = 1e-9               # renters, owners and housed free make up all of EU-SILC's households
-CENSUS = 2011                      # the census EU-SILC is fitted to until ...
-LAST_ON_OLD = 2022                 # ... its 2022 survey
-FIRST_ON_NEW = 2023                # the first EU-SILC survey fitted to the next census (2021)
+SUM_TOLERANCE = 1e-9  # renters, owners and housed free make up all of EU-SILC's households
+CENSUS = 2011  # the census EU-SILC is fitted to until ...
+LAST_ON_OLD = 2022  # ... its 2022 survey
+FIRST_ON_NEW = 2023  # the first EU-SILC survey fitted to the next census (2021)
 NEXT_CENSUS = 2021
 
 
 @dataclass(frozen=True)
 class Target:
     """One survey year's target: tenure -> share of households, and how it was set."""
+
     shares: dict[str, float]
     basis: str
-    silc: dict[str, float]           # EU-SILC's own split for the year
-    sources: tuple[str, ...]         # the archived EU-SILC tables used, with their hashes
+    silc: dict[str, float]  # EU-SILC's own split for the year
+    sources: tuple[str, ...]  # the archived EU-SILC tables used, with their hashes
 
 
 def _silc_table(archive: Archive, year: int) -> tuple[dict[str, float], str]:
@@ -82,7 +83,9 @@ def _silc_table(archive: Archive, year: int) -> tuple[dict[str, float], str]:
         raise FormatError(f"EU-SILC {year}: no households for {missing or ['all']}")
     shares = {t: households[t] / households["all"] for t in TENURES}
     if abs(sum(shares.values()) - 1) > SUM_TOLERANCE:
-        raise FormatError(f"EU-SILC {year}: renters, owners and housed free add up to {sum(shares.values()):.6f} of households")
+        raise FormatError(
+            f"EU-SILC {year}: renters, owners and housed free add up to {sum(shares.values()):.6f} of households"
+        )
     return shares, f"{SOURCE}/{dataset}@{rec['sha256'][:12]}"
 
 
@@ -101,9 +104,13 @@ def target(archive: Archive, year: int) -> Target:
     part = census_part(year)
     shares = {t: silc[t] + part * (new[t] - old[t]) for t in TENURES}
     require(all(s > 0 for s in shares.values()), f"{year}: a tenure's target share is not positive: {shares}")
-    return Target(shares, f"EU-SILC's split for the year plus {part:.1f} of its step from {LAST_ON_OLD} to "
-                          f"{FIRST_ON_NEW} (the change between the {CENSUS} and {NEXT_CENSUS} censuses)",
-                  silc, tuple(sorted({source, old_source, new_source})))
+    return Target(
+        shares,
+        f"EU-SILC's split for the year plus {part:.1f} of its step from {LAST_ON_OLD} to "
+        f"{FIRST_ON_NEW} (the change between the {CENSUS} and {NEXT_CENSUS} censuses)",
+        silc,
+        tuple(sorted({source, old_source, new_source})),
+    )
 
 
 def member(tenure: pd.Series, label: str) -> np.ndarray:
@@ -123,7 +130,7 @@ def calibrate(weights: np.ndarray, tenure: pd.Series, shares: dict[str, float]) 
     out = w.copy()
     for t, m in members.items():
         if shares[t] == 0 and not m.any():
-            continue                 # a class the target leaves out and the survey has none of
+            continue  # a class the target leaves out and the survey has none of
         current = w[m].sum(axis=0)
         require(bool((current > 0).all()), f"no weighted households with tenure {t}")
         out[m] = w[m] * (shares[t] * total / current)

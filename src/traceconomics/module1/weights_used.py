@@ -44,14 +44,15 @@ NOT_BY_LEVEL, SECONDARY = "105", "1020"
 BY_LEVEL = ("101", "102")
 IMPUTED_RENT, ACTUAL_RENTS = "042", "0411"
 PRICED, EXCLUDED = "priced", "excluded"
-TUTORING_EXCLUDED_FROM = 2026      # the first year ELSTAT's CPI gives 10.5 no weight
-CODED_2018_FROM = 2024             # the first survey coded in COICOP 2018, with tutoring in 10.5
+TUTORING_EXCLUDED_FROM = 2026  # the first year ELSTAT's CPI gives 10.5 no weight
+CODED_2018_FROM = 2024  # the first survey coded in COICOP 2018, with tutoring in 10.5
 SUPPRESSED = "suppressed"
 
 
 @dataclass(frozen=True)
 class Basket:
     """One group's survey basket: code -> share (every level) and code -> reliability tier."""
+
     shares: dict[str, float]
     reliability: dict[str, str]
 
@@ -85,9 +86,9 @@ def pricing_map(basket: Basket, block: Prices) -> dict[str, str]:
 @dataclass
 class Used:
     entry: Entry
-    weights: dict[str, float]                  # leaf -> price-updated weight (sums to 1; dropped leaves absent)
+    weights: dict[str, float]  # leaf -> price-updated weight (sums to 1; dropped leaves absent)
     price_with: dict[str, str]
-    dropped: dict[str, float] = field(default_factory=dict)   # leaf -> survey share removed (all or part)
+    dropped: dict[str, float] = field(default_factory=dict)  # leaf -> survey share removed (all or part)
     update_paths: dict[str, list[str]] = field(default_factory=dict)
     # leaf -> the nearest ancestor whose cell has 20+ reporting households, for leaves whose own
     # cell has fewer: published only inside a "rest of" that ancestor, never alone.
@@ -124,8 +125,14 @@ def exclude_tutoring(leaves: dict[str, float], fraction: float | None) -> tuple[
     return out, removed
 
 
-def weights_used(basket: Basket, entry: Entry, blocks: dict[int, Prices], *, tutoring: str = PRICED,
-                 tutoring_split: float | None = None) -> Used:
+def weights_used(
+    basket: Basket,
+    entry: Entry,
+    blocks: dict[int, Prices],
+    *,
+    tutoring: str = PRICED,
+    tutoring_split: float | None = None,
+) -> Used:
     """`tutoring_split`: the group's `tutoring_fraction` in the first survey coded in COICOP 2018,
     needed only to leave tutoring out with an older survey."""
     require(tutoring in (PRICED, EXCLUDED), f"unknown tutoring option {tutoring}")
@@ -134,8 +141,10 @@ def weights_used(basket: Basket, entry: Entry, blocks: dict[int, Prices], *, tut
     raw, paths, dropped = {}, {}, {}
     if tutoring == EXCLUDED and entry.year >= TUTORING_EXCLUDED_FROM:
         old = entry.survey < CODED_2018_FROM
-        require(not old or tutoring_split is not None,
-                f"{entry.year}: survey {entry.survey} needs the group's tutoring split to leave tutoring out")
+        require(
+            not old or tutoring_split is not None,
+            f"{entry.year}: survey {entry.survey} needs the group's tutoring split to leave tutoring out",
+        )
         leaves, dropped = exclude_tutoring(leaves, tutoring_split if old else None)
     for leaf, share in leaves.items():
         start = pmap.get(leaf, leaf)
@@ -152,27 +161,34 @@ def weights_used(basket: Basket, entry: Entry, blocks: dict[int, Prices], *, tut
         raw[leaf] = share * f[0]
         paths[leaf] = f[1]
     total = sum(raw.values())
-    small = {leaf: next((a for a in ancestors(leaf) if basket.reliability.get(a) != SUPPRESSED), "")
-             for leaf in raw if basket.reliability.get(leaf) == SUPPRESSED}
+    small = {
+        leaf: next((a for a in ancestors(leaf) if basket.reliability.get(a) != SUPPRESSED), "")
+        for leaf in raw
+        if basket.reliability.get(leaf) == SUPPRESSED
+    }
     return Used(entry, {c: v / total for c, v in raw.items()}, pmap, dropped, paths, small)
 
 
-def load_baskets(con: duckdb.DuckDBPyConnection, *, spending: str, imputed_rent: str = "excluded",
-                 geo: str = "GR") -> dict[tuple[int, str, str], Basket]:
+def load_baskets(
+    con: duckdb.DuckDBPyConnection, *, spending: str, imputed_rent: str = "excluded", geo: str = "GR"
+) -> dict[tuple[int, str, str], Basket]:
     """{(survey year, grouping, group): Basket} from the store's weights tables.
 
     DuckDB reads in parallel, so rows come back in a different order on each run unless the
     query fixes it. The order becomes the order of the dicts and so of every sum over them, and
     floating-point sums depend on order in the last digits: without ORDER BY, two runs on the same
     data would not give byte-identical files."""
-    rows = con.execute("""
+    rows = con.execute(
+        """
         SELECT ref_period, grouping, "group", coicop18, measure, value, value_text FROM observations
         WHERE dataset = 'oet-local:hbs_weights' AND geo = $geo AND spending = $sp AND imputed_rent = $ir
           AND measure IN ('share', 'reliability')
         QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
         ORDER BY ref_period, grouping, "group", measure, coicop18
-    """, {"geo": geo, "sp": spending, "ir": imputed_rent}).fetchall()
+    """,
+        {"geo": geo, "sp": spending, "ir": imputed_rent},
+    ).fetchall()
     shares: dict[tuple, dict] = {}
     tiers: dict[tuple, dict] = {}
     for year, grouping, group, code, measure, value, text in rows:

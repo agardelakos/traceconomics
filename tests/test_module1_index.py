@@ -17,14 +17,13 @@ def flat_year(y, start, end):
 def blocks(first=2008, last=2026):
     b = {}
     for y in range(first, last + 1):
-        b[y] = {"01": flat_year(y, 100.0, 110.0 if y == 2022 else 100.0),
-                "04": flat_year(y, 100.0, 100.0)}
+        b[y] = {"01": flat_year(y, 100.0, 110.0 if y == 2022 else 100.0), "04": flat_year(y, 100.0, 100.0)}
     return b
 
 
 def baskets(food_q1=0.6, food_q5=0.2):
     out = {}
-    for y in range(2008, 2025):                      # surveys 2008-2024, as held today
+    for y in range(2008, 2025):  # surveys 2008-2024, as held today
         for g, f in (("Q1", food_q1), ("Q5", food_q5)):
             out[(y, "B", g)] = Basket({"01": f, "04": 1 - f}, {"01": "normal", "04": "normal"})
     return out
@@ -62,7 +61,7 @@ def test_an_item_with_no_index_anywhere_fails_the_run():
     """
     b = blocks()
     k = {key: Basket({"01": 0.5, "05": 0.5}, {"01": "normal", "05": "normal"}) for key in baskets()}
-    for y in b:                                      # 05 has an index only for price-updating years, not after
+    for y in b:  # 05 has an index only for price-updating years, not after
         b[y]["05"] = flat_year(y, 100.0, 100.0) if y < 2015 else {}
     with pytest.raises(FormatError):
         index.build(None, "B", "Q1", blocks=b, baskets=k)

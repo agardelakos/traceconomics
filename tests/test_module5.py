@@ -76,8 +76,12 @@ def test_explanations_file_refuses_what_it_cannot_vouch_for():
     And the shipped explanations file loads, with June 2001 in table 05 explained as a revision
     """
     base = 'check = "c"\nperiods = ["2001-01"]\ncategory = "revision"\nevidence = "k"\n'
-    for bad in [base.replace('evidence = "k"\n', ""), base.replace('["2001-01"]', "[]"),
-                base.replace('"revision"', '"rounding"'), base.replace('"revision"', '"error"')]:
+    for bad in [
+        base.replace('evidence = "k"\n', ""),
+        base.replace('["2001-01"]', "[]"),
+        base.replace('"revision"', '"rounding"'),
+        base.replace('"revision"', '"error"'),
+    ]:
         with pytest.raises(FormatError):
             load_explanations("[[explanation]]\n" + bad)
     shipped = load_explanations()
@@ -128,13 +132,24 @@ def test_rebuild_months_off_by_more_than_rounding_are_findings():
     v = Validation(name="x", rows=[("2020-01", 1.04, 1.01), ("2020-02", 1.06, 0.96), ("2020-03", 1.3, 1.0)])
     s = from_validation("gr-x", v, {"source": "a"}, {"source": "b"}, []).summary()
     assert (s["compared"], s["agree"]) == (3, 1)
-    assert [(d["period"], d["explanation"]) for d in s["differences"]] == [("2020-02", "rounding"), ("2020-03", "not-known")]
+    assert [(d["period"], d["explanation"]) for d in s["differences"]] == [
+        ("2020-02", "rounding"),
+        ("2020-03", "not-known"),
+    ]
 
 
 def _types(year, rows, agreement, status="compared"):
-    return {year: {g: {"share_households": (None, ours), "elstat_share_households": (None, theirs),
-                       "agreement": (None, agreement), "elstat_status": (status, None)}
-                   for g, ours, theirs in rows}}
+    return {
+        year: {
+            g: {
+                "share_households": (None, ours),
+                "elstat_share_households": (None, theirs),
+                "agreement": (None, agreement),
+                "elstat_status": (status, None),
+            }
+            for g, ours, theirs in rows
+        }
+    }
 
 
 def test_household_types_compare_shares_and_keep_unusable_years():
@@ -150,8 +165,10 @@ def test_household_types_compare_shares_and_keep_unusable_years():
     """
     from traceconomics.module5.hbs import TYPES_FINDING, household_types
 
-    years = {**_types(2022, [("A1", 0.200, 0.205), ("A2", 0.300, 0.280)], 0.98),
-             **_types(2023, [("A1", 0.25, 0.25), ("A2", 0.30, 0.30)], 0.27, "unusable: broken")}
+    years = {
+        **_types(2022, [("A1", 0.200, 0.205), ("A2", 0.300, 0.280)], 0.98),
+        **_types(2023, [("A1", 0.25, 0.25), ("A2", 0.30, 0.30)], 0.27, "unusable: broken"),
+    }
     s = household_types(years, []).summary()
     assert (s["compared"], s["agree"]) == (4, 1)
     assert [d["period"] for d in s["differences"]] == ["2022/A2", "2023/A1", "2023/A2"]
@@ -170,8 +187,9 @@ def test_income_limits_line_up_by_the_year_the_incomes_describe(tmp_path):
     """
     from traceconomics.module5.hbs import income_limits
 
-    q = income_limits({2024: {"Q1": 8000.0, "Q2": 10800.0}}, {2024: {"Q1": 6653.0, "Q2": 9513.0},
-                                                             2025: {"Q1": 7110.0, "Q2": 10269.0}})
+    q = income_limits(
+        {2024: {"Q1": 8000.0, "Q2": 10800.0}}, {2024: {"Q1": 6653.0, "Q2": 9513.0}, 2025: {"Q1": 7110.0, "Q2": 10269.0}}
+    )
     s = q.summary()
     assert s["values"]["hbs"]["2024/Q1"] == 8000.0 and s["values"]["silc"]["2024/Q1"] == 7110.0
     assert s["values"]["silc"]["2023/Q1"] == 6653.0 and s["values"]["hbs"]["2023/Q1"] is None
@@ -183,22 +201,47 @@ def test_income_limits_line_up_by_the_year_the_incomes_describe(tmp_path):
     assert all(x["definition"] for x in doc["questions"][0]["sources"])
 
 
-DIMS = ("geo", "hhcomp", "unit", "tenure", "rskpovth", "measure", "coicop", "direct", "na_item", "sector", "age",
-        "sex", "regis_es", "stk_flow", "coicop18", "grouping", "spending", "imputed_rent")
+DIMS = (
+    "geo",
+    "hhcomp",
+    "unit",
+    "tenure",
+    "rskpovth",
+    "measure",
+    "coicop",
+    "direct",
+    "na_item",
+    "sector",
+    "age",
+    "sex",
+    "regis_es",
+    "stk_flow",
+    "coicop18",
+    "grouping",
+    "spending",
+    "imputed_rent",
+)
 
 
 def _store(rows):
     """An in-memory stand-in for the store's observations view: (dataset, period, value, {dimension: code})."""
     import duckdb
+
     con = duckdb.connect()
-    con.execute("CREATE TABLE observations (dataset VARCHAR, key VARCHAR, ref_period VARCHAR, value DOUBLE, "
-                "value_text VARCHAR, published_at VARCHAR, retrieved_at VARCHAR, status VARCHAR, "
-                + ", ".join(f"{d} VARCHAR" for d in DIMS) + ")")
+    con.execute(
+        "CREATE TABLE observations (dataset VARCHAR, key VARCHAR, ref_period VARCHAR, value DOUBLE, "
+        "value_text VARCHAR, published_at VARCHAR, retrieved_at VARCHAR, status VARCHAR, "
+        + ", ".join(f"{d} VARCHAR" for d in DIMS)
+        + ")"
+    )
     for ds, period, value, dims in rows:
         key = ",".join(f"{k}={dims[k]}" for k in sorted(dims))
-        con.execute(f"INSERT INTO observations VALUES (?, ?, ?, ?, ?, '2026-11-08', '2026-11-08', 'new', "
-                    + ", ".join("?" * len(DIMS)) + ")",
-                    [ds, key, period, value, repr(value), *[dims.get(d) for d in DIMS]])
+        con.execute(
+            f"INSERT INTO observations VALUES (?, ?, ?, ?, ?, '2026-11-08', '2026-11-08', 'new', "
+            + ", ".join("?" * len(DIMS))
+            + ")",
+            [ds, key, period, value, repr(value), *[dims.get(d) for d in DIMS]],
+        )
     return con
 
 
@@ -212,18 +255,32 @@ def test_renters_line_up_households_and_persons_by_source():
     And each line carries its definition and reference key
     """
     from traceconomics.module5 import questions
+
     g = {"geo": "GR"}
-    rows = [("eurostat:cens_21hhct_r3", "2021", 1062653, {**g, "hhcomp": "TOTAL", "unit": "NR", "tenure": "RENT"}),
-            ("eurostat:cens_21hhct_r3", "2021", 4332446, {**g, "hhcomp": "TOTAL", "unit": "NR", "tenure": "TOTAL"}),
-            ("eurostat:ilc_lvho02", "2021", 20.3, {**g, "hhcomp": "TOTAL", "rskpovth": "TOTAL", "unit": "PC", "tenure": "RENT_MKT"})]
+    rows = [
+        ("eurostat:cens_21hhct_r3", "2021", 1062653, {**g, "hhcomp": "TOTAL", "unit": "NR", "tenure": "RENT"}),
+        ("eurostat:cens_21hhct_r3", "2021", 4332446, {**g, "hhcomp": "TOTAL", "unit": "NR", "tenure": "TOTAL"}),
+        (
+            "eurostat:ilc_lvho02",
+            "2021",
+            20.3,
+            {**g, "hhcomp": "TOTAL", "rskpovth": "TOTAL", "unit": "PC", "tenure": "RENT_MKT"},
+        ),
+    ]
     for ds, renters, total in (("oet-local:silc_tenure", 24.0, 100.0), ("oet-local:hbs_rent", 16.8, 100.0)):
-        rows += [(ds, "2021", renters, {**g, "tenure": "renter", "measure": "households_weighted"}),
-                 (ds, "2021", total, {**g, "tenure": "all", "measure": "households_weighted"})]
-    rows += [("oet-local:hbs_rent", "2021", 15.0, {**g, "tenure": "renter", "measure": "people_weighted"}),
-             ("oet-local:hbs_rent", "2021", 100.0, {**g, "tenure": "all", "measure": "people_weighted"})]
+        rows += [
+            (ds, "2021", renters, {**g, "tenure": "renter", "measure": "households_weighted"}),
+            (ds, "2021", total, {**g, "tenure": "all", "measure": "households_weighted"}),
+        ]
+    rows += [
+        ("oet-local:hbs_rent", "2021", 15.0, {**g, "tenure": "renter", "measure": "people_weighted"}),
+        ("oet-local:hbs_rent", "2021", 100.0, {**g, "tenure": "all", "measure": "people_weighted"}),
+    ]
     s = questions.renters(_store(rows)).summary()
     v = s["values"]
-    assert round(v["census"]["2021"], 1) == 24.5 and v["silc"]["2021"] == 24.0 and v["hbs"]["2021"] == pytest.approx(16.8)
+    assert (
+        round(v["census"]["2021"], 1) == 24.5 and v["silc"]["2021"] == 24.0 and v["hbs"]["2021"] == pytest.approx(16.8)
+    )
     assert v["silc_persons"]["2021"] == 20.3 and v["hbs_persons"]["2021"] == 15.0
     assert all(x["definition"] and x["reference"] for x in s["sources"])
 
@@ -238,11 +295,18 @@ def test_a_question_needs_two_sources_and_keeps_aades_text():
     And the national accounts line reads 140,001,000,000 euros and AADE's exactly 91,674,362,821.89
     """
     from traceconomics.module5 import questions
+
     lfs = [("eurostat:une_rt_a", "2024", 450.0, {"geo": "GR", "age": "Y15-74", "unit": "THS_PER", "sex": "T"})]
     assert questions.unemployment(_store(lfs)) is None
-    rows = [("eurostat:nasa_10_nf_tr", "2022", 140001.0,
-             {"geo": "GR", "unit": "CP_MEUR", "direct": "RECV", "na_item": "B6G", "sector": "S14_S15"}),
-            ("aade:pit_stats", "2022", 91674362821.89, {"geo": "GR", "measure": "declared_income", "unit": "EUR"})]
+    rows = [
+        (
+            "eurostat:nasa_10_nf_tr",
+            "2022",
+            140001.0,
+            {"geo": "GR", "unit": "CP_MEUR", "direct": "RECV", "na_item": "B6G", "sector": "S14_S15"},
+        ),
+        ("aade:pit_stats", "2022", 91674362821.89, {"geo": "GR", "measure": "declared_income", "unit": "EUR"}),
+    ]
     v = questions.household_income(_store(rows)).summary()["values"]
     assert v["national_accounts"]["2022"] == 140001e6 and v["aade"]["2022"] == 91674362821.89
 
@@ -255,12 +319,26 @@ def test_rent_weight_puts_every_source_in_percent_of_spending():
     Then the CPI reads 3.63%, the HICP 3.11%, the national accounts 4.78% and the HBS 4.23%
     """
     from traceconomics.module5 import questions
-    rows = [("elstat:cpi07", "2024", 36.3, {"unit": "PM", "coicop18": "041"}),
-            ("eurostat:prc_hicp_iw", "2024", 31.1, {"geo": "GR", "coicop18": "041"}),
-            ("eurostat:nama_10_co3_p3", "2023", 8116.4, {"geo": "GR", "unit": "CP_MEUR", "coicop": "CP041"}),
-            ("eurostat:nama_10_co3_p3", "2023", 169881.8, {"geo": "GR", "unit": "CP_MEUR", "coicop": "TOTAL"}),
-            ("oet-local:hbs_weights", "2024", 0.0423, {"geo": "GR", "grouping": "all", "spending": "purchases",
-                                                       "imputed_rent": "excluded", "coicop18": "041", "measure": "share"})]
+
+    rows = [
+        ("elstat:cpi07", "2024", 36.3, {"unit": "PM", "coicop18": "041"}),
+        ("eurostat:prc_hicp_iw", "2024", 31.1, {"geo": "GR", "coicop18": "041"}),
+        ("eurostat:nama_10_co3_p3", "2023", 8116.4, {"geo": "GR", "unit": "CP_MEUR", "coicop": "CP041"}),
+        ("eurostat:nama_10_co3_p3", "2023", 169881.8, {"geo": "GR", "unit": "CP_MEUR", "coicop": "TOTAL"}),
+        (
+            "oet-local:hbs_weights",
+            "2024",
+            0.0423,
+            {
+                "geo": "GR",
+                "grouping": "all",
+                "spending": "purchases",
+                "imputed_rent": "excluded",
+                "coicop18": "041",
+                "measure": "share",
+            },
+        ),
+    ]
     v = questions.rent_weight(_store(rows)).summary()["values"]
     assert round(v["cpi"]["2024"], 2) == 3.63 and round(v["hicp"]["2024"], 2) == 3.11
     assert round(v["national_accounts"]["2023"], 2) == 4.78 and round(v["hbs"]["2024"], 2) == 4.23
@@ -276,11 +354,17 @@ def test_rent_change_indexes_average_rents_to_2015():
     And a line without a 2015 value gives no index
     """
     from traceconomics.module5 import questions
+
     rows = []
-    for ds, (r15, r20, r21) in (("oet-local:hbs_rent", (3600.0, 3700.0, 3780.0)), ("oet-local:silc_tenure", (3000.0, 3100.0, 3300.0))):
+    for ds, (r15, r20, r21) in (
+        ("oet-local:hbs_rent", (3600.0, 3700.0, 3780.0)),
+        ("oet-local:silc_tenure", (3000.0, 3100.0, 3300.0)),
+    ):
         for year, rent in (("2015", r15), ("2020", r20), ("2021", r21)):
-            rows += [(ds, year, rent * 100, {"geo": "GR", "tenure": "all", "measure": "rent_paid_eur"}),
-                     (ds, year, 100.0, {"geo": "GR", "tenure": "renter", "measure": "households_weighted"})]
+            rows += [
+                (ds, year, rent * 100, {"geo": "GR", "tenure": "all", "measure": "rent_paid_eur"}),
+                (ds, year, 100.0, {"geo": "GR", "tenure": "renter", "measure": "households_weighted"}),
+            ]
     con = _store(rows)
     con.execute("ALTER TABLE observations ADD COLUMN archive_dataset VARCHAR")
     q = questions.rent_change(con)
@@ -304,12 +388,23 @@ def test_attribution_names_every_publisher_and_dataset_the_questions_use(tmp_pat
     import re
     from pathlib import Path
     from traceconomics.module5 import questions
-    write([], tmp_path, [Question("gr-x", "gr", "EUR", [{"label": "a", "source": "aade:pit_stats", "reference": "r", "definition": "d"}])])
+
+    write(
+        [],
+        tmp_path,
+        [
+            Question(
+                "gr-x", "gr", "EUR", [{"label": "a", "source": "aade:pit_stats", "reference": "r", "definition": "d"}]
+            )
+        ],
+    )
     text = json.loads((tmp_path / "gr" / "m5" / "checks.json").read_text(encoding="utf-8"))["attribution"]
     for name in ("ELSTAT", "Eurostat", "AADE", "European Commission", "DG EMPL"):
         assert name in text, name
     assert "shown as published" in text
-    used = set(re.findall(r'"source": "(?:eurostat|ec-empl):(\w+)"', Path(questions.__file__).read_text(encoding="utf-8")))
+    used = set(
+        re.findall(r'"source": "(?:eurostat|ec-empl):(\w+)"', Path(questions.__file__).read_text(encoding="utf-8"))
+    )
     assert used and not {d for d in used if d not in text}
 
 
@@ -325,17 +420,24 @@ def test_spending_check_counts_figures_to_the_cent_and_links_years_with_other_we
     """
     import duckdb
     from traceconomics.module5 import hbs
+
     con = duckdb.connect()
-    con.execute('CREATE TABLE observations (dataset VARCHAR, key VARCHAR, ref_period VARCHAR, value DOUBLE, value_text VARCHAR, '
-                'published_at VARCHAR, retrieved_at VARCHAR, status VARCHAR, geo VARCHAR, "group" VARCHAR, coicop VARCHAR, '
-                'measure VARCHAR)')
+    con.execute(
+        "CREATE TABLE observations (dataset VARCHAR, key VARCHAR, ref_period VARCHAR, value DOUBLE, value_text VARCHAR, "
+        'published_at VARCHAR, retrieved_at VARCHAR, status VARCHAR, geo VARCHAR, "group" VARCHAR, coicop VARCHAR, '
+        "measure VARCHAR)"
+    )
 
     def add(year, column, code, published, ours, result):
         for m, v in (("published", published), ("ours", ours), ("result", result)):
             if v is None:
                 continue
-            con.execute("INSERT INTO observations VALUES ('oet-local:hbs_spending', ?, ?, ?, ?, '2026-11-08', '2026-11-08', "
-                        "'new', 'GR', ?, ?, ?)", [f"{column}|{code}|{m}", year, v if m != "result" else None, str(v), column, code, m])
+            con.execute(
+                "INSERT INTO observations VALUES ('oet-local:hbs_spending', ?, ?, ?, ?, '2026-11-08', '2026-11-08', "
+                "'new', 'GR', ?, ?, ?)",
+                [f"{column}|{code}|{m}", year, v if m != "result" else None, str(v), column, code, m],
+            )
+
     all_ = hbs.ALL_HOUSEHOLDS
     add("2013", all_, "households", 4178116.0, 4178116.0, "matched")
     add("2013", all_, "01111", 12.34, 12.3412, "matched")
@@ -345,8 +447,11 @@ def test_spending_check_counts_figures_to_the_cent_and_links_years_with_other_we
     add("2014", all_, "households", 4152372.0, 4136073.0, "differs")
     add("2014", all_, "01111", 12.0, 12.0, "matched")
     add("2014", all_, "01112", 3.2, 3.25, "differs")
-    con.execute("INSERT INTO observations VALUES ('oet-local:hbs_spending', 'i', '2014', NULL, 'Bread', '2026-11-08', "
-                "'2026-11-08', 'new', 'GR', ?, '01112', 'item')", [all_])
+    con.execute(
+        "INSERT INTO observations VALUES ('oet-local:hbs_spending', 'i', '2014', NULL, 'Bread', '2026-11-08', "
+        "'2026-11-08', 'new', 'GR', ?, '01112', 'item')",
+        [all_],
+    )
     add("2014", all_, "03111", 0.09, None, "differs")
     c = hbs.spending(hbs.load_spending(con))
     s = c.summary()
@@ -363,6 +468,7 @@ def test_spending_check_counts_figures_to_the_cent_and_links_years_with_other_we
 def _validation(rows, name="finest detail"):
     """A stand-in for the engine's validation result: its name and (period, ours, theirs) rows."""
     from types import SimpleNamespace
+
     return SimpleNamespace(name=name, rows=rows)
 
 
@@ -376,12 +482,16 @@ def test_cpi_rebuild_labels_each_month_from_the_validation(monkeypatch):
     """
     from traceconomics.module5 import rebuilds
     from traceconomics.validate import v1_cpi
+
     rows = [("2015-01", 1.02, 1.04), ("2015-02", 1.06, 1.16), ("2015-03", 2.0, 2.3)]
     monkeypatch.setattr(v1_cpi, "run_archive", lambda archive: (_validation(rows), None, 0, {}))
     c = rebuilds.cpi(None, [])
     assert c.id == rebuilds.CPI and c.published["reference"] == c.rebuilt["reference"] == "elstat-cpi-items"
     assert [(x.period, x.agree, x.explanation) for x in c.comparisons] == [
-        ("2015-01", True, ""), ("2015-02", False, "rounding"), ("2015-03", False, "not-known")]
+        ("2015-01", True, ""),
+        ("2015-02", False, "rounding"),
+        ("2015-03", False, "not-known"),
+    ]
 
 
 def test_hicp_rebuild_uses_the_finest_detail_and_is_left_out_without_its_files(monkeypatch, tmp_path):
@@ -397,12 +507,16 @@ def test_hicp_rebuild_uses_the_finest_detail_and_is_left_out_without_its_files(m
     from types import SimpleNamespace
     from traceconomics.module5 import rebuilds
     from traceconomics.validate import v1
+
     held = {"prc_hicp_minr": {"path": "minr.tsv"}}
     archive = SimpleNamespace(latest=lambda source, name: held.get(name))
     assert rebuilds.hicp(archive, tmp_path, None, []) is None
     held["prc_hicp_iw"] = {"path": "iw.tsv"}
     monkeypatch.setattr(v1, "load", lambda duck, minr, iw, geo: ({}, {}, {"2024-12": 2.9}, {}))
-    found = [_validation([("2024-12", 2.0, 2.0)], "two digits"), _validation([("2024-11", 3.0, 3.0), ("2024-12", 2.9, 2.9)])]
+    found = [
+        _validation([("2024-12", 2.0, 2.0)], "two digits"),
+        _validation([("2024-11", 3.0, 3.0), ("2024-12", 2.9, 2.9)]),
+    ]
     monkeypatch.setattr(v1, "run", lambda *a, **k: found)
     c = rebuilds.hicp(archive, tmp_path, None, [])
     assert c.id == rebuilds.HICP and [x.period for x in c.comparisons] == ["2024-11", "2024-12"]
@@ -419,6 +533,7 @@ def test_all_checks_in_order_without_missing_parts_and_never_two_with_one_id(mon
     And two checks sharing an id stop the run with a FormatError naming the ids
     """
     from traceconomics.module5 import cpi as m5cpi, hbs, rebuilds, run
+
     made = lambda cid: Check(cid, "gr", "percent", 0.0, {}, {})
     monkeypatch.setattr(m5cpi, "checks", lambda con, ex: [made("gr-a"), made("gr-b")])
     monkeypatch.setattr(rebuilds, "cpi", lambda archive, ex: made("gr-c"))
@@ -436,12 +551,17 @@ def test_all_checks_in_order_without_missing_parts_and_never_two_with_one_id(mon
 def _cpi05_store(rows):
     """A stand-in store holding table 05: (unit, period, value, status, published_at)."""
     import duckdb
+
     con = duckdb.connect()
-    con.execute("CREATE TABLE observations (dataset VARCHAR, key VARCHAR, freq VARCHAR, unit VARCHAR, ref_period VARCHAR, "
-                "value DOUBLE, status VARCHAR, published_at VARCHAR, retrieved_at VARCHAR)")
+    con.execute(
+        "CREATE TABLE observations (dataset VARCHAR, key VARCHAR, freq VARCHAR, unit VARCHAR, ref_period VARCHAR, "
+        "value DOUBLE, status VARCHAR, published_at VARCHAR, retrieved_at VARCHAR)"
+    )
     for unit, period, value, status, published in rows:
-        con.execute("INSERT INTO observations VALUES ('elstat:cpi05', ?, 'M', ?, ?, ?, ?, ?, ?)",
-                    [f"unit={unit}", unit, period, value, status, published, published])
+        con.execute(
+            "INSERT INTO observations VALUES ('elstat:cpi05', ?, 'M', ?, ?, ?, ?, ?, ?)",
+            [f"unit={unit}", unit, period, value, status, published, published],
+        )
     return con
 
 
@@ -454,9 +574,16 @@ def test_table05_reads_the_newest_rows_rates_in_percent():
     And the rate is in percent, from the newest version
     And the withdrawn month is in neither
     """
-    con = _cpi05_store([("I20", "2001-06", 80.0, "new", "2026-01"), ("I20", "2001-06", 80.5, "changed", "2026-02"),
-                        ("RCH_A_FR", "2001-06", 0.039332, "new", "2026-01"), ("RCH_A_FR", "2001-06", 0.039239, "changed", "2026-02"),
-                        ("I20", "2001-07", 81.0, "new", "2026-01"), ("I20", "2001-07", 81.0, "withdrawn", "2026-02")])
+    con = _cpi05_store(
+        [
+            ("I20", "2001-06", 80.0, "new", "2026-01"),
+            ("I20", "2001-06", 80.5, "changed", "2026-02"),
+            ("RCH_A_FR", "2001-06", 0.039332, "new", "2026-01"),
+            ("RCH_A_FR", "2001-06", 0.039239, "changed", "2026-02"),
+            ("I20", "2001-07", 81.0, "new", "2026-01"),
+            ("I20", "2001-07", 81.0, "withdrawn", "2026-02"),
+        ]
+    )
     index, rate = cpi.table05(con)
     assert index == {"2001-06": 80.5}
     assert rate == {"2001-06": pytest.approx(3.9239)}
@@ -472,12 +599,25 @@ def test_household_types_are_read_by_year_type_and_measure():
     """
     import duckdb
     from traceconomics.module5 import hbs
+
     con = duckdb.connect()
-    con.execute('CREATE TABLE observations (dataset VARCHAR, key VARCHAR, geo VARCHAR, "group" VARCHAR, measure VARCHAR, '
-                'ref_period VARCHAR, value DOUBLE, value_text VARCHAR, status VARCHAR, published_at VARCHAR, retrieved_at VARCHAR)')
-    for geo, group, measure, text, value in [("GR", "A1", "share_households", "0.25", 0.25), ("GR", "A2", "share_households", "0.3", 0.3),
-                                             ("GR", "A1", "elstat_status", "unusable: broken", None), ("CY", "A1", "share_households", "0.2", 0.2)]:
-        con.execute("INSERT INTO observations VALUES ('oet-local:hbs_hhtypes', ?, ?, ?, ?, '2023', ?, ?, 'new', 'p', 'r')",
-                    [f"{geo}|{group}|{measure}", geo, group, measure, value, text])
-    assert hbs.load_types(con) == {2023: {"A1": {"share_households": ("0.25", 0.25), "elstat_status": ("unusable: broken", None)},
-                                          "A2": {"share_households": ("0.3", 0.3)}}}
+    con.execute(
+        'CREATE TABLE observations (dataset VARCHAR, key VARCHAR, geo VARCHAR, "group" VARCHAR, measure VARCHAR, '
+        "ref_period VARCHAR, value DOUBLE, value_text VARCHAR, status VARCHAR, published_at VARCHAR, retrieved_at VARCHAR)"
+    )
+    for geo, group, measure, text, value in [
+        ("GR", "A1", "share_households", "0.25", 0.25),
+        ("GR", "A2", "share_households", "0.3", 0.3),
+        ("GR", "A1", "elstat_status", "unusable: broken", None),
+        ("CY", "A1", "share_households", "0.2", 0.2),
+    ]:
+        con.execute(
+            "INSERT INTO observations VALUES ('oet-local:hbs_hhtypes', ?, ?, ?, ?, '2023', ?, ?, 'new', 'p', 'r')",
+            [f"{geo}|{group}|{measure}", geo, group, measure, value, text],
+        )
+    assert hbs.load_types(con) == {
+        2023: {
+            "A1": {"share_households": ("0.25", 0.25), "elstat_status": ("unusable: broken", None)},
+            "A2": {"share_households": ("0.3", 0.3)},
+        }
+    }

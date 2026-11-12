@@ -16,8 +16,11 @@ def setup(tmp_path, monkeypatch):
     monkeypatch.setenv(config_mod.CONFIG_ENV, "unset")
     monkeypatch.delenv(config_mod.CONFIG_ENV)
     path = tmp_path / "config.toml"
-    path.write_text('[archive]\ndir = "archive"\n[fetch]\nuser_agent = "test"\n[store]\ndir = "store"\n'
-                    '[release]\ndir = "releases"\n', encoding="utf-8")
+    path.write_text(
+        '[archive]\ndir = "archive"\n[fetch]\nuser_agent = "test"\n[store]\ndir = "store"\n'
+        '[release]\ndir = "releases"\n',
+        encoding="utf-8",
+    )
     cfg = config_mod.load(path)
 
     def run(*args):
@@ -29,9 +32,11 @@ def setup(tmp_path, monkeypatch):
 @pytest.fixture
 def run(setup, capsys):
     """`run(*args)`: the command line with the temporary config; (exit code, what it printed)."""
+
     def go(*args):
         code = setup.run(*args)
         return code, capsys.readouterr().out
+
     return go
 
 

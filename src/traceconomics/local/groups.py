@@ -44,18 +44,20 @@ import pandas as pd
 from traceconomics.local.puf import Survey
 from traceconomics.module1.index import HOUSEHOLD_TYPES  # noqa: F401  (the groups `household_type` gives)
 
-PENSION = "4"   # HI11: main income source "Pensions, retirement benefits" (every year's codebook)
+PENSION = "4"  # HI11: main income source "Pensions, retirement benefits" (every year's codebook)
 
 
 def household_size(survey: Survey) -> pd.DataFrame:
     """hh -> size and modified-OECD scale. Households without person records get NaN."""
     p = survey.persons
-    g = p.assign(adult=p.age >= 14, child=p.age < 14).groupby("hh").agg(adults=("adult", "sum"), children=("child", "sum"))
+    g = (
+        p.assign(adult=p.age >= 14, child=p.age < 14)
+        .groupby("hh")
+        .agg(adults=("adult", "sum"), children=("child", "sum"))
+    )
     g["size"] = g.adults + g.children
     # 1 for the first adult; with no adult at all (not seen in the data), the first child counts 1.
-    g["scale"] = np.where(g.adults > 0,
-                          1 + 0.5 * (g.adults - 1) + 0.3 * g.children,
-                          1 + 0.3 * (g.children - 1))
+    g["scale"] = np.where(g.adults > 0, 1 + 0.5 * (g.adults - 1) + 0.3 * g.children, 1 + 0.3 * (g.children - 1))
     return survey.households[["hh"]].join(g, on="hh").set_index("hh")[["size", "scale"]]
 
 
@@ -149,6 +151,7 @@ def total_spending(survey: Survey) -> pd.Series:
     describe. (The files' own division columns aren't always that sum: in 2008-2010 division 04
     is larger by an amount that isn't in any housing group nor in ELSTAT's published table.)"""
     from traceconomics.local.shares import leaves
+
     s = survey.spending
     return s[leaves(s.columns)].sum(axis=1)
 
@@ -160,11 +163,13 @@ def ranking(survey: Survey) -> tuple[pd.DataFrame, pd.Series]:
     theirs is the household weight times the household's size (`PEOPLE`)."""
     h = survey.households
     size = household_size(survey).reindex(h.hh).reset_index(drop=True)
-    values = pd.DataFrame({
-        "A": h.money_income,
-        "B": h.money_income / size.scale,
-        "C": total_spending(survey) / size.scale,
-    })
+    values = pd.DataFrame(
+        {
+            "A": h.money_income,
+            "B": h.money_income / size.scale,
+            "C": total_spending(survey) / size.scale,
+        }
+    )
     return values, size["size"]
 
 
@@ -191,17 +196,22 @@ def assign(survey: Survey) -> pd.DataFrame:
     values, size = ranking(survey)
     people = h.weight * size
     ids = h.hh
-    groups = pd.DataFrame({
-        **{g: quintiles(values[v], people if by_people else h.weight, ids, parts)
-           for g, (v, by_people, parts, _) in RANKED.items()},
-        "tenure": tenure(survey),
-        "pensioners": pd.Series(np.where(h.main_income_source == PENSION, "pensioners", "other"))
-                        .where(h.main_income_source != "", pd.NA),
-        "hhtype": household_type(survey),
-        "all": "all",
-    })
+    groups = pd.DataFrame(
+        {
+            **{
+                g: quintiles(values[v], people if by_people else h.weight, ids, parts)
+                for g, (v, by_people, parts, _) in RANKED.items()
+            },
+            "tenure": tenure(survey),
+            "pensioners": pd.Series(np.where(h.main_income_source == PENSION, "pensioners", "other")).where(
+                h.main_income_source != "", pd.NA
+            ),
+            "hhtype": household_type(survey),
+            "all": "all",
+        }
+    )
     for g, (_, _, _, prefix) in RANKED.items():
-        groups[g] = prefix + groups[g].astype("string")   # NA stays NA
+        groups[g] = prefix + groups[g].astype("string")  # NA stays NA
     groups["size"] = size
     groups["people_weight"] = people
     return groups

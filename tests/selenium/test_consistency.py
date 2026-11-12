@@ -20,8 +20,15 @@ def _results() -> dict:
 
 def _status(c: dict) -> str:
     unknown, differ = c["differ"].get("not-known", 0), c["compared"] - c["agree"]
-    return ("agree" if differ == c["differ"].get("rounding", 0) else "explained" if unknown == 0
-            else "partly" if unknown < differ else "unknown")
+    return (
+        "agree"
+        if differ == c["differ"].get("rounding", 0)
+        else "explained"
+        if unknown == 0
+        else "partly"
+        if unknown < differ
+        else "unknown"
+    )
 
 
 def _get(base_url: str, path: str) -> tuple[int, bytes]:
@@ -61,10 +68,14 @@ def test_overview_says_why_and_leads_to_each_part(site, lang):
     assert len(sections) == 3
     for card, key in zip(sections, ["method", "checks", "same-question"]):
         assert card.get_attribute("href").endswith(M5.format(lang=lang) + f"{key}/")
-        assert card.find_element("css selector", ".title").text.replace("\xa0", " ").strip() == t(lang, f"nav.{key}") + " →"
+        assert (
+            card.find_element("css selector", ".title").text.replace("\xa0", " ").strip()
+            == t(lang, f"nav.{key}") + " →"
+        )
     assert site.all("[data-m5-card]") == []
     assert [li.text.strip() for li in site.all(".topic-nav.sub li")] == [
-        t(lang, k) for k in ("nav.overview", "nav.method", "nav.checks", "nav.same-question")]
+        t(lang, k) for k in ("nav.overview", "nav.method", "nav.checks", "nav.same-question")
+    ]
 
 
 def test_check_page_lists_differences_and_offers_csv(site, base_url):
@@ -91,7 +102,10 @@ def test_check_page_lists_differences_and_offers_csv(site, base_url):
         assert row.find_elements("css selector", "td")[-1].text.strip() == t("en", f"m5.cat.{d['explanation']}")
     compared = site.all('[data-m5="compared"] tbody tr')
     assert compared[0].find_element("css selector", "th").text.strip().startswith(min(c["by_year"]))
-    assert sum(int("".join(ch for ch in r.find_elements("css selector", "td")[0].text if ch.isdigit())) for r in compared) == c["compared"]
+    assert (
+        sum(int("".join(ch for ch in r.find_elements("css selector", "td")[0].text if ch.isdigit())) for r in compared)
+        == c["compared"]
+    )
     assert site.find('a.card[href$="/june-2001/"]').is_displayed()
     assert site.find('[data-m5="files"] a').get_attribute("href").endswith("/en/data/gr/#official-figures-consistency")
     path = f"{DATA}/downloads/gr-cpi-rates-own-index.csv"
@@ -116,7 +130,9 @@ def test_finding_page_links_back_and_lists_sources(site):
     site.find('a.card[href$="/june-2001/"]').click()
     site.wait(lambda _: site.path.endswith("/checks/cpi-rates-own-index/june-2001/"), "the finding's page did not open")
     assert "June 2001" in site.find("h1").text
-    back = next(a for a in site.all("header a") if a.text.strip() == t("en", "m5.check.gr-cpi-rates-own-index.question"))
+    back = next(
+        a for a in site.all("header a") if a.text.strip() == t("en", "m5.check.gr-cpi-rates-own-index.question")
+    )
     assert back.get_attribute("href").endswith(M5.format(lang="en") + "checks/cpi-rates-own-index/")
     summary = next(s for s in site.all("details.panel summary") if s.text.strip() == t("en", "m5.finding.sources"))
     summary.click()
@@ -137,9 +153,14 @@ def test_question_reached_from_groups_lines_up_sources(site):
     site.find('[data-income-role="compare-link"] a').click()
     site.wait(lambda _: site.path.endswith("/same-question/income-limits/"), "the question's page did not open")
     assert site.find("h1").text.strip() == t("en", "m5.question.gr-income-limits.title")
-    years = sorted({p.split("/")[0] for p in q["values"]["hbs"]
-                    if q["values"]["hbs"].get(f"{p.split('/')[0]}/Q1") is not None
-                    or q["values"]["silc"].get(f"{p.split('/')[0]}/Q1") is not None})
+    years = sorted(
+        {
+            p.split("/")[0]
+            for p in q["values"]["hbs"]
+            if q["values"]["hbs"].get(f"{p.split('/')[0]}/Q1") is not None
+            or q["values"]["silc"].get(f"{p.split('/')[0]}/Q1") is not None
+        }
+    )
     rows = site.all('[data-m5="question"] tbody tr')
     assert len(rows) == len(years)
     last = years[-1]
@@ -167,7 +188,7 @@ def test_country_card_and_data_page_lead_to_topic(site, base_url):
     assert len(links) == 2 + len(r["checks"]) + len(r["questions"])
     for a in links:
         href = a.get_attribute("href")
-        assert _get(base_url, href[href.index("/data/"):])[0] == 200, href
+        assert _get(base_url, href[href.index("/data/") :])[0] == 200, href
 
 
 def test_question_across_sources_lists_values_definitions_and_aade_as_published(site):
@@ -221,7 +242,9 @@ def test_question_chart_draws_every_value_without_joining_years_apart(site):
     q = next(x for x in _results()["questions"] if x["id"] == "gr-renters")
     site.open(M5.format(lang="en") + "same-question/renters/")
     svg = site.find('[data-m5="chart"] svg')
-    assert svg.get_attribute("aria-label") == f'{t("en", "m5.question.gr-renters.title")} ({t("en", "m5.unit.percent")})'
+    assert (
+        svg.get_attribute("aria-label") == f"{t('en', 'm5.question.gr-renters.title')} ({t('en', 'm5.unit.percent')})"
+    )
     legend = [li.text.strip() for li in site.all('[data-m5="chart"] .m5-legend li')]
     assert legend == [t("en", f"m5.src.gr-renters.{s['label']}") for s in q["sources"]]
     values = [v for s in q["sources"] for v in q["values"][s["label"]].values() if v is not None]
@@ -249,7 +272,7 @@ def test_groups_page_leads_to_tenure_and_household_type_pages(site):
         href = site.find(f'#tenure [data-m5-link="{qid}"] a').get_attribute("href")
         assert href.endswith(M5.format(lang="en") + f"same-question/{qid}/")
     types = site.find('#household [data-m5-link="hbs-household-types"] a')
-    assert types.text.strip() == f'{t("en", "m5.link.hbs-household-types")} →'
+    assert types.text.strip() == f"{t('en', 'm5.link.hbs-household-types')} →"
     types.click()
     site.wait(lambda _: site.path.endswith("/checks/hbs-household-types/"), "the check's page did not open")
     assert site.find("h1").text.strip() == t("en", "m5.check.gr-hbs-household-types.question")
@@ -286,7 +309,9 @@ def test_questions_page_gives_cards_with_teasers_and_source_chips(site):
     assert len(cards) == len(r["questions"])
     for card, q in zip(cards, r["questions"]):
         assert card.get_attribute("href").endswith(M5.format(lang="en") + f"same-question/{q['id'][3:]}/")
-        assert card.find_element("css selector", ".title").text.strip() == t("en", f"m5.question.{q['id']}.title") + " →"
+        assert (
+            card.find_element("css selector", ".title").text.strip() == t("en", f"m5.question.{q['id']}.title") + " →"
+        )
         assert card.find_element("css selector", ".text").text.strip() == t("en", f"m5.question.{q['id']}.teaser")
         names = [c.text.strip() for c in card.find_elements("css selector", ".source-chip")]
         assert names and len(set(names)) == len(names)
@@ -308,7 +333,9 @@ def test_section_strip_lists_pages_and_marks_the_current_one(site):
     order = _by_status(r["checks"])
 
     def row(items, kind, current):
-        assert [li.text.strip() for li in site.all("nav[data-strip] li")] == [t("en", f"m5.short.{x['id']}") for x in items]
+        assert [li.text.strip() for li in site.all("nav[data-strip] li")] == [
+            t("en", f"m5.short.{x['id']}") for x in items
+        ]
         assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == t("en", f"m5.short.{current}")
         links = {a.text.strip(): a.get_attribute("href") for a in site.all("nav[data-strip] a")}
         for x in items:
@@ -338,10 +365,14 @@ def test_section_strip_opens_scrolled_to_the_current_page_on_a_phone(phone):
     phone.open(M5.format(lang="en") + "same-question/renters/")
     row = phone.find("nav[data-strip] ul")
     box = phone.driver.execute_script(
-        "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};", row)
+        "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};",
+        row,
+    )
     assert box["scroll"] > box["client"]
-    item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
-                                       phone.find('nav[data-strip] [aria-current="page"]'))
+    item = phone.driver.execute_script(
+        "const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
+        phone.find('nav[data-strip] [aria-current="page"]'),
+    )
     assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
 
 
@@ -379,8 +410,9 @@ def test_status_buttons_show_one_status_at_a_time(site):
     n = {st: sum(_status(c) == st for c in r["checks"]) for st in ORDER}
     site.open(M5.format(lang="en") + "checks/")
     buttons = site.all('[data-m5="filter"] button')
-    assert [b.text.strip() for b in buttons] == [t("en", "m5.filter.count", label=t("en", "m5.filter.all"), n=len(r["checks"]))] + [
-        t("en", "m5.filter.count", label=t("en", f"m5.status.{st}"), n=n[st]) for st in ORDER if n[st]]
+    assert [b.text.strip() for b in buttons] == [
+        t("en", "m5.filter.count", label=t("en", "m5.filter.all"), n=len(r["checks"]))
+    ] + [t("en", "m5.filter.count", label=t("en", f"m5.status.{st}"), n=n[st]) for st in ORDER if n[st]]
     assert site.find('[data-m5="filter"] button[data-filter="all"]').get_attribute("aria-pressed") == "true"
     shown = lambda: [c for c in site.all('[data-m5="checks"] [data-m5-card]') if c.is_displayed()]
     assert len(shown()) == len(r["checks"])
@@ -389,7 +421,9 @@ def test_status_buttons_show_one_status_at_a_time(site):
     site.wait(lambda _: explained.get_attribute("aria-pressed") == "true", "the button was not pressed")
     assert len(shown()) == n["explained"] and all(c.get_attribute("data-status") == "explained" for c in shown())
     assert len([k for k in site.all('[data-m5="key"] [data-key]') if k.is_displayed()]) == 1
-    assert site.find('[data-m5="shown"]').get_attribute("textContent") == t("en", "m5.filter.shown", n=n["explained"], total=len(r["checks"]))
+    assert site.find('[data-m5="shown"]').get_attribute("textContent") == t(
+        "en", "m5.filter.shown", n=n["explained"], total=len(r["checks"])
+    )
     explained.click()
     site.wait(lambda _: len(shown()) == len(r["checks"]), "the cards did not all come back")
     assert site.find('[data-m5="filter"] button[data-filter="all"]').get_attribute("aria-pressed") == "true"
@@ -415,12 +449,15 @@ def test_checks_page_gives_every_check_as_a_card(site):
         assert link.get_attribute("href").endswith(M5.format(lang="en") + f"checks/{c['id'][3:]}/")
         assert card.find_element("css selector", ".chip-status").text.strip() == t("en", f"m5.status.{_status(c)}")
         assert card.find_element("css selector", '[data-m5="count"]').text.strip() == t(
-            "en", "m5.count", agree=num("en", c["agree"], 0), compared=num("en", c["compared"], 0))
+            "en", "m5.count", agree=num("en", c["agree"], 0), compared=num("en", c["compared"], 0)
+        )
         span = sorted(c["by_year"])
         assert t("en", "m5.checked", **{"from": span[0], "to": span[-1]}) in card.text
         rounding = c["compared"] - c["agree"] if _status(c) == "agree" else 0
         notes = card.find_elements("css selector", '[data-m5="note"]')
-        assert [n.text.strip() for n in notes] == ([t("en", "m5.note.rounding", n=num("en", rounding, 0))] if rounding else [])
+        assert [n.text.strip() for n in notes] == (
+            [t("en", "m5.note.rounding", n=num("en", rounding, 0))] if rounding else []
+        )
     assert any(_status(c) == "agree" and c["agree"] < c["compared"] for c in r["checks"])
 
 
@@ -438,7 +475,9 @@ def test_topic_page_across_countries(site):
     assert t("en", "topic.official-figures-consistency.question") in site.find("main header").text
     card = site.find(f'a.card[href$="{M5.format(lang="en")}"]')
     assert card.find_element("css selector", ".title").text.strip() == t("en", "country.gr") + " →"
-    assert card.find_element("css selector", ".text").text.strip() == t("en", "m5.landing.country_text", n=len(r["checks"]))
+    assert card.find_element("css selector", ".text").text.strip() == t(
+        "en", "m5.landing.country_text", n=len(r["checks"])
+    )
 
 
 def test_method_page_explains_and_lists_sources(site):
@@ -472,7 +511,10 @@ def test_household_types_check_names_differences_and_links_finding(site):
     c = next(x for x in _results()["checks"] if x["id"] == "gr-hbs-household-types")
     site.open(M5.format(lang="en") + "checks/hbs-household-types/")
     labels = [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')]
-    assert labels == [f'{d["period"].split("/")[0]} · {t("en", "group.hhtype/" + d["period"].split("/")[1])}' for d in c["differences"]]
+    assert labels == [
+        f"{d['period'].split('/')[0]} · {t('en', 'group.hhtype/' + d['period'].split('/')[1])}"
+        for d in c["differences"]
+    ]
     assert len(site.all('a.card[href$="/checks/hbs-household-types/household-type-rules/"]')) == 1
     assert len(site.all('[data-m5="open"] a[href$="/household-type-rules/"]')) == 1
 
@@ -493,9 +535,12 @@ def test_spending_check_names_items_and_opens_its_finding(site):
 
     def label(period):
         year, column, code = period.split("/")
-        return f'{year} · {t("en", "m5.period.all") if column == "all" else column} · {code} {c["extra"]["item_names"][code]}'
-    shown = 60     # the page lists the first 60 differences and says where the rest are
-    assert [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')] == [label(d["period"]) for d in c["differences"][:shown]]
+        return f"{year} · {t('en', 'm5.period.all') if column == 'all' else column} · {code} {c['extra']['item_names'][code]}"
+
+    shown = 60  # the page lists the first 60 differences and says where the rest are
+    assert [th.text.strip() for th in site.all('[data-m5="differences"] tbody tr th')] == [
+        label(d["period"]) for d in c["differences"][:shown]
+    ]
     if len(c["differences"]) > shown:
         assert t("en", "m5.diff.more", shown=shown, total=len(c["differences"])) in site.find("main").text
     site.find('a.card[href$="/survey-weights/"]').click()
@@ -512,11 +557,14 @@ def test_data_page_describes_topic_files_naming_every_publisher(site, base_url):
     And its sources include AADE's and the European Commission's datasets, by their cited addresses
     """
     from urllib.parse import urlparse
+
     r = _results()
     refs = json.loads(_get(base_url, "/data/v1/references.json")[1])["references"]
     site.open("/en/data/gr/")
     blocks = [json.loads(b.get_attribute("textContent")) for b in site.all('script[type="application/ld+json"]')]
-    sets = [d for d in blocks if d.get("@type") == "Dataset" and t("en", "topic.official-figures-consistency") in d["name"]]
+    sets = [
+        d for d in blocks if d.get("@type") == "Dataset" and t("en", "topic.official-figures-consistency") in d["name"]
+    ]
     assert len(sets) == 1
     urls = [urlparse(d["contentUrl"]).path for d in sets[0]["distribution"]]
     assert urls == [f"{DATA}/checks.json"] + [f"{DATA}/downloads/{c['id']}.csv" for c in r["checks"] + r["questions"]]

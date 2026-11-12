@@ -29,7 +29,9 @@ from traceconomics.store.query import as_of
 
 MONTHLY_PP = 0.2
 ANNUAL_TARGET_PP, ANNUAL_LIMIT_PP = 0.1, 0.2
-MONTHS = {m: i for i, m in enumerate(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"), 1)}
+MONTHS = {
+    m: i for i, m in enumerate(("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"), 1)
+}
 
 
 def hbs_structure(archive, wave: str = "2020", geo: str = "EL") -> dict[str, dict[str, float]]:
@@ -56,7 +58,7 @@ def bruegel_published(archive, geo: str = "EL") -> dict[str, dict[str, float]]:
     rec = archive.latest("bruegel", "inflation-inequality")
     require(rec is not None, "no archived Bruegel dataset")
     with zipfile.ZipFile(archive.root / rec["path"]) as z:
-        data = z.read("data_figure1.xls")              # an xlsx file under an .xls name
+        data = z.read("data_figure1.xls")  # an xlsx file under an .xls name
     ws = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)[geo]
     out: dict[str, dict[str, float]] = {"QU1": {}, "QU5": {}, "TOTAL": {}, "HICP": {}}
     for row in ws.iter_rows(min_row=2, values_only=True):
@@ -74,8 +76,8 @@ def bruegel_published(archive, geo: str = "EL") -> dict[str, dict[str, float]]:
 class V4Result:
     name: str
     months: int = 0
-    provisional: list[str] = field(default_factory=list)      # months Bruegel built on provisional data
-    worst_month: tuple[str, float, float] | None = None       # period, ours, theirs
+    provisional: list[str] = field(default_factory=list)  # months Bruegel built on provisional data
+    worst_month: tuple[str, float, float] | None = None  # period, ours, theirs
     annual: dict[int, tuple[float, float]] = field(default_factory=dict)
 
     @property
@@ -94,8 +96,11 @@ class V4Result:
 def bruegel_rebuild(con, archive, geo: str = "GR") -> dict[str, dict[str, float]]:
     """{"QU1"|"QU5": {period: rate}}: Bruegel's method with Bruegel's inputs."""
     prices: dict[str, dict[str, float]] = {}
-    for code, period, value in as_of(con, "eurostat:prc_hicp_midx", where=f"geo = '{geo}' AND unit = 'I15'") \
-            .project("coicop, ref_period, value").fetchall():
+    for code, period, value in (
+        as_of(con, "eurostat:prc_hicp_midx", where=f"geo = '{geo}' AND unit = 'I15'")
+        .project("coicop, ref_period, value")
+        .fetchall()
+    ):
         if value is not None and code.isdigit() and len(code) in (2, 3):
             prices.setdefault(code, {})[period] = value
     out = {}
@@ -122,10 +127,17 @@ def bruegel_rebuild(con, archive, geo: str = "GR") -> dict[str, dict[str, float]
 def v4_bruegel(con, archive, geo: str = "GR") -> list[V4Result]:
     ours = bruegel_rebuild(con, archive)
     theirs = bruegel_published(archive)
-    official = {p: v for p, v in as_of(con, "eurostat:prc_hicp_midx", where=f"geo = '{geo}' AND unit = 'I15' "
-                                       "AND coicop = 'TOTAL'").project("ref_period, value").fetchall()}
-    provisional = sorted(p for p, v in theirs["HICP"].items()
-                         if annual_rate(official, p) is None or abs(annual_rate(official, p) - v) > 0.005)
+    official = {
+        p: v
+        for p, v in as_of(con, "eurostat:prc_hicp_midx", where=f"geo = '{geo}' AND unit = 'I15' AND coicop = 'TOTAL'")
+        .project("ref_period, value")
+        .fetchall()
+    }
+    provisional = sorted(
+        p
+        for p, v in theirs["HICP"].items()
+        if annual_rate(official, p) is None or abs(annual_rate(official, p) - v) > 0.005
+    )
     results = []
     for q in ("QU1", "QU5"):
         r = V4Result(f"Bruegel {q}", provisional=provisional)
@@ -145,16 +157,21 @@ def v4_bruegel(con, archive, geo: str = "GR") -> list[V4Result]:
 
 # -- KEPE ----------------------------------------------------------------------------------------
 
+
 def kepe_published() -> dict:
     import tomllib
     from importlib import resources
-    data = tomllib.loads(resources.files("traceconomics.data").joinpath("benchmarks_gr.toml").read_text(encoding="utf-8"))
+
+    data = tomllib.loads(
+        resources.files("traceconomics.data").joinpath("benchmarks_gr.toml").read_text(encoding="utf-8")
+    )
     return data["kepe-2025"]
 
 
 def kepe_rule(years, surveys, release_dates=None):
     """KEPE's timing: the same year's survey for 2016-2022, ELSTAT's rule (survey y-2) after."""
     from traceconomics.module1.schedule import FINAL, Entry
+
     out = []
     for y in years:
         h = y if y <= 2022 else y - 2
@@ -167,8 +184,13 @@ def kepe_rule(years, surveys, release_dates=None):
 def divisions_only(baskets: dict) -> dict:
     """The same baskets cut to the 2-digit divisions (KEPE prices the 12 divisions)."""
     from traceconomics.module1.weights_used import Basket
-    return {k: Basket({c: s for c, s in b.shares.items() if len(c) == 2},
-                      {c: r for c, r in b.reliability.items() if len(c) == 2}) for k, b in baskets.items()}
+
+    return {
+        k: Basket(
+            {c: s for c, s in b.shares.items() if len(c) == 2}, {c: r for c, r in b.reliability.items() if len(c) == 2}
+        )
+        for k, b in baskets.items()
+    }
 
 
 def v4_kepe(con) -> dict:
@@ -186,10 +208,15 @@ def v4_kepe(con) -> dict:
         for ranking, (q, d) in {"people": ("B", "B10"), "households": ("BH", "BH10")}.items():
             rates = {}
             for name, (g, label) in {"P20": (q, "Q1"), "R20": (q, "Q5"), "R10": (d, "D10")}.items():
-                s = index.build(None, g, label, spending=spending, blocks=blocks, baskets=baskets,
-                                rule=kepe_rule, first_year=2016)
+                s = index.build(
+                    None, g, label, spending=spending, blocks=blocks, baskets=baskets, rule=kepe_rule, first_year=2016
+                )
                 rates[name] = {y: round(v, 2) for y, v in s.annual_average_rates().items() if 2021 <= y <= 2024}
-            gaps = [abs(rates[k][int(y)] - v) for k in ("P20", "R20", "R10") for y, v in pub[k].items()
-                    if int(y) in rates[k]]
+            gaps = [
+                abs(rates[k][int(y)] - v)
+                for k in ("P20", "R20", "R10")
+                for y, v in pub[k].items()
+                if int(y) in rates[k]
+            ]
             variants[(spending, ranking)] = {"rates": rates, "max_gap": max(gaps), "mean_gap": sum(gaps) / len(gaps)}
     return variants

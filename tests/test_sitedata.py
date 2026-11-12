@@ -32,7 +32,14 @@ def test_every_setting_gets_its_files_and_the_shared_ones_are_there(data):
     for s in combinations.settings():
         slug = site.slug(s)
         assert (data / "series" / f"{slug}.json").is_file() and (data / "contributions" / f"{slug}.json").is_file()
-    for name in ("calculator.json", "availability.json", "official.json", "settings.json", "metadata.json", "SHA256SUMS"):
+    for name in (
+        "calculator.json",
+        "availability.json",
+        "official.json",
+        "settings.json",
+        "metadata.json",
+        "SHA256SUMS",
+    ):
         assert (data / name).is_file()
     assert (data.parents[2] / "labels" / "coicop18.json").is_file() and (data.parents[2] / "references.json").is_file()
 

@@ -31,10 +31,10 @@ def test_real_file_september_2026():
     t = parse(REAL)
     assert t.last == "2026-09"
     assert min(t.index) == "1959-01" and max(t.index) == "2026-09" and len(t.index) == 67 * 12 + 9
-    assert min(t.rate) == "1960-01" and len(t.rate) == 66 * 12 + 9          # no rate in the first year
-    assert t.rate["2026-09"] == 0.05049184623573861                          # full precision, a fraction
-    assert t.index["2026-09"] == 128.223356317791                            # the same level as table 07
-    assert "2026" not in t.annual_index and "2027" not in t.annual_index     # no average before December
+    assert min(t.rate) == "1960-01" and len(t.rate) == 66 * 12 + 9  # no rate in the first year
+    assert t.rate["2026-09"] == 0.05049184623573861  # full precision, a fraction
+    assert t.index["2026-09"] == 128.223356317791  # the same level as table 07
+    assert "2026" not in t.annual_index and "2027" not in t.annual_index  # no average before December
     assert t.annual_rate["2025"] == pytest.approx(0.024816205454631677)
 
 
@@ -72,8 +72,14 @@ def rate_pct(t, period):
     return round(t.rate[period] * 100, 10)
 
 
-def made_up(tmp_path, *, title="TableV. Evolution of the twelve-month rates of change of the Overall CPI,"
-            "during the years 1959-1960 (March)", base="Base Year :2020=100,0", header="Rate of change", months=None):
+def made_up(
+    tmp_path,
+    *,
+    title="TableV. Evolution of the twelve-month rates of change of the Overall CPI,during the years 1959-1960 (March)",
+    base="Base Year :2020=100,0",
+    header="Rate of change",
+    months=None,
+):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.append([None, title])
@@ -101,13 +107,16 @@ def test_made_up_file_parses(tmp_path):
     assert t.last == "1960-03" and len(t.index) == 15 and sorted(t.rate) == ["1960-01", "1960-02", "1960-03"]
 
 
-@pytest.mark.parametrize("change", [
-    {"title": "Table IV. Monthly evolution of the Overall Consumer Price Index 1959-1960 (March)"},
-    {"base": "Base Year :2009=100,0"},
-    {"header": "Change"},
-    {"months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 11]},
-    {"title": "TableV. Evolution of the twelve-month rates of change of the Overall CPI, 1959-1960 (February)"},
-])
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"title": "Table IV. Monthly evolution of the Overall Consumer Price Index 1959-1960 (March)"},
+        {"base": "Base Year :2009=100,0"},
+        {"header": "Change"},
+        {"months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 11]},
+        {"title": "TableV. Evolution of the twelve-month rates of change of the Overall CPI, 1959-1960 (February)"},
+    ],
+)
 def test_refuses_a_changed_layout(tmp_path, change):
     """PY-TFIVE-004: a changed layout is refused
 

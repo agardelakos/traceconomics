@@ -30,7 +30,7 @@ def _braced(src: str, i: int) -> tuple[str, int]:
         elif src[j] == "}" and src[j - 1] != "\\":
             depth -= 1
             if depth == 0:
-                return src[i + 1:j], j + 1
+                return src[i + 1 : j], j + 1
         j += 1
     raise ValueError(f"unbalanced braces from {i}")
 
@@ -45,7 +45,7 @@ def parse(src: str) -> dict[str, dict[str, str]]:
     out: dict[str, dict[str, str]] = {}
     for m in ENTRY.finditer(src):
         _, end = _braced(src, src.index("{", m.start()))
-        body = src[m.end():end - 1]
+        body = src[m.end() : end - 1]
         fields: dict[str, str] = {"entrytype": m.group(1).lower()}
         i = 0
         while True:
@@ -57,7 +57,7 @@ def parse(src: str) -> dict[str, dict[str, str]]:
                 value, j = _braced(body, j)
             else:
                 k = body.find(",", j)
-                value, j = body[j:k if k >= 0 else len(body)], (k if k >= 0 else len(body))
+                value, j = body[j : k if k >= 0 else len(body)], (k if k >= 0 else len(body))
             fields[f.group(1).lower()] = value if f.group(1).lower() == "url" else plain(value)
             i = body.find(",", j)
             if i < 0:
@@ -72,6 +72,9 @@ def export(out: Path) -> Path:
     require(set(entries) == set(references.entries()), "the bibliography parser and the key reader disagree")
     path = Path(out) / "v1" / "references.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"format": "v1", "references": entries}, ensure_ascii=False, indent=1) + "\n", newline="\n",
-                    encoding="utf-8")
+    path.write_text(
+        json.dumps({"format": "v1", "references": entries}, ensure_ascii=False, indent=1) + "\n",
+        newline="\n",
+        encoding="utf-8",
+    )
     return path

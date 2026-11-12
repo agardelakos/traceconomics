@@ -143,7 +143,8 @@ class Archive:
     def stored_since(self, logged_after: str | None) -> list[dict]:
         """Index entries stored after a given log time (ISO, UTC), for backup lists."""
         return [
-            r for r in self.index()
+            r
+            for r in self.index()
             if r.get("status") == "stored" and (logged_after is None or r["logged_at"] > logged_after)
         ]
 
@@ -187,10 +188,17 @@ class Archive:
         if any(s.get("content_sha256", s["sha256"]) == content for s in compare):
             if move:
                 tmp_file.unlink(missing_ok=True)
-            self._log({
-                "status": "unchanged", "source": source, "dataset": dataset, "url": url,
-                "sha256": sha, "content_sha256": content, "retrieved_at": iso(retrieved_at),
-            })
+            self._log(
+                {
+                    "status": "unchanged",
+                    "source": source,
+                    "dataset": dataset,
+                    "url": url,
+                    "sha256": sha,
+                    "content_sha256": content,
+                    "retrieved_at": iso(retrieved_at),
+                }
+            )
             return StoreResult("unchanged", source, dataset, sha, None)
 
         folder = self._new_folder(source, dataset, retrieved_at)
@@ -217,11 +225,19 @@ class Archive:
         if extra:
             manifest.update(extra)
         _write_atomic(folder / "manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
-        rec = self._log({
-            "status": "stored", "source": source, "dataset": dataset, "url": url,
-            "sha256": sha, "content_sha256": content, "retrieved_at": iso(retrieved_at),
-            "path": payload.relative_to(self.root).as_posix(), "kind": kind,
-        })
+        rec = self._log(
+            {
+                "status": "stored",
+                "source": source,
+                "dataset": dataset,
+                "url": url,
+                "sha256": sha,
+                "content_sha256": content,
+                "retrieved_at": iso(retrieved_at),
+                "path": payload.relative_to(self.root).as_posix(),
+                "kind": kind,
+            }
+        )
         self._snapshots.setdefault((source, dataset), []).append(rec)
         return StoreResult("stored", source, dataset, sha, payload)
 

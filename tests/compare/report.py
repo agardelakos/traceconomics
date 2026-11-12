@@ -25,10 +25,11 @@ from pathlib import Path
 @dataclass
 class Results:
     """One run of one suite."""
-    status: dict[str, str] = field(default_factory=dict)          # test -> passed | failed | skipped
-    errors: dict[str, str] = field(default_factory=dict)          # failed test -> first line of its error
+
+    status: dict[str, str] = field(default_factory=dict)  # test -> passed | failed | skipped
+    errors: dict[str, str] = field(default_factory=dict)  # failed test -> first line of its error
     files: dict[str, dict[str, float]] = field(default_factory=dict)  # file -> passed, failed, skipped, seconds
-    duration: float = 0.0                                          # the suite's own run time, seconds
+    duration: float = 0.0  # the suite's own run time, seconds
 
     def count(self, kind: str) -> int:
         return sum(1 for s in self.status.values() if s == kind)
@@ -40,7 +41,7 @@ ANSI = re.compile(r"\x1b\[[0-9;]*m")
 def _first_line(text) -> str:
     """An error message on one line, shortened: its lines joined, so a message whose first line is
     only a heading ("errors in the browser's console:") still says what went wrong."""
-    plain = ANSI.sub("", str(text or ""))                         # no terminal colour codes
+    plain = ANSI.sub("", str(text or ""))  # no terminal colour codes
     line = " ".join(x.strip() for x in plain.splitlines() if x.strip())
     return (line[:199] + "…" if len(line) > 200 else line).replace("|", "\\|")
 
@@ -74,6 +75,7 @@ def playwright(path: Path) -> Results | None:
                 _tally(r, file, status, sum(x.get("duration", 0) for x in runs) / 1000)
         for child in suite.get("suites", []):
             walk(child, file, titles)
+
     for suite in data.get("suites", []):
         walk(suite)
     for e in data.get("errors", []):
@@ -108,18 +110,35 @@ def selenium_section(r: Results | None) -> str:
     lines = ["## Browser tests (Selenium)", ""]
     if r is None:
         return "\n".join(lines + ["No results: it didn't run (an earlier step failed).", ""])
-    lines += ["| Passed | Failed | Skipped | Time |", "|---:|---:|---:|---:|",
-              f"| {r.count('passed')} | {_bold(r.count('failed'))} | {r.count('skipped')} | {r.duration:.0f} s |"]
+    lines += [
+        "| Passed | Failed | Skipped | Time |",
+        "|---:|---:|---:|---:|",
+        f"| {r.count('passed')} | {_bold(r.count('failed'))} | {r.count('skipped')} | {r.duration:.0f} s |",
+    ]
     if r.count("skipped"):
-        lines += ["", "Skipped: the tests of the host's own headers, which need a server that applies them (`--base-url`)."]
-    lines += ["", "<details><summary>By test file</summary>", "", "| File | Passed | Failed | Skipped | Summed test time |",
-              "|---|---:|---:|---:|---:|"]
-    lines += [f"| {f} | {c['passed']} | {_bold(c['failed'])} | {c['skipped']} | {c['seconds']:.1f} s |" for f, c in sorted(r.files.items())]
+        lines += [
+            "",
+            "Skipped: the tests of the host's own headers, which need a server that applies them (`--base-url`).",
+        ]
+    lines += [
+        "",
+        "<details><summary>By test file</summary>",
+        "",
+        "| File | Passed | Failed | Skipped | Summed test time |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    lines += [
+        f"| {f} | {c['passed']} | {_bold(c['failed'])} | {c['skipped']} | {c['seconds']:.1f} s |"
+        for f, c in sorted(r.files.items())
+    ]
     lines += ["", "</details>"]
     if r.errors:
         lines += ["", "### Failures", ""] + [f"- {name}: {error}" for name, error in r.errors.items()]
-    lines += ["", "Every test with its time, and for a failure its screenshot, page and console, is attached to this run as "
-              "`selenium-report` (kept 7 days)."]
+    lines += [
+        "",
+        "Every test with its time, and for a failure its screenshot, page and console, is attached to this run as "
+        "`selenium-report` (kept 7 days).",
+    ]
     return "\n".join(lines) + "\n"
 
 
@@ -141,21 +160,29 @@ def compare_section(pw: Results | None, se: Results | None) -> str:
     for name, r in (("Playwright", pw), ("Selenium", se)):
         slow = sorted(r.files.items(), key=lambda kv: -kv[1]["seconds"])[:3]
         lines += ["", f"{name}, slowest files: " + ", ".join(f"{f} ({c['seconds']:.0f} s)" for f, c in slow)]
-    lines += ["", "Not like for like: each suite ran in its own job on its own runner. Playwright ran the coverage "
-              "build, and the runners may differ in CPUs and therefore in workers. "
-              "For a fair comparison (several runs, the same machine, the same build and workers), "
-              "run the `compare` workflow."]
-    lines += ["", "<details><summary>What the rows mean</summary>", "",
-              "- **Passed, Failed, Skipped**: the tests with each result in this run. Failed counts errors too. "
-              "Selenium's skipped tests are the host tests (security headers, CORS, the content security policy), "
-              "which need a server that sends the site's headers (`--base-url`).",
-              "- **Suite time**: the real time the suite took, as each tool reports it, from its first test to its "
-              "last. It includes starting the browsers, but not installing anything.",
-              "- **Summed test time**: every test's own duration added up: total work, not elapsed time. Above the "
-              "suite time when tests ran in parallel.",
-              "- **Test files**: the files that held at least one test.",
-              "- **Slowest files**: the three files with the largest summed test time.",
-              "", "</details>"]
+    lines += [
+        "",
+        "Not like for like: each suite ran in its own job on its own runner. Playwright ran the coverage "
+        "build, and the runners may differ in CPUs and therefore in workers. "
+        "For a fair comparison (several runs, the same machine, the same build and workers), "
+        "run the `compare` workflow.",
+    ]
+    lines += [
+        "",
+        "<details><summary>What the rows mean</summary>",
+        "",
+        "- **Passed, Failed, Skipped**: the tests with each result in this run. Failed counts errors too. "
+        "Selenium's skipped tests are the host tests (security headers, CORS, the content security policy), "
+        "which need a server that sends the site's headers (`--base-url`).",
+        "- **Suite time**: the real time the suite took, as each tool reports it, from its first test to its "
+        "last. It includes starting the browsers, but not installing anything.",
+        "- **Summed test time**: every test's own duration added up: total work, not elapsed time. Above the "
+        "suite time when tests ran in parallel.",
+        "- **Test files**: the files that held at least one test.",
+        "- **Slowest files**: the three files with the largest summed test time.",
+        "",
+        "</details>",
+    ]
     return "\n".join(lines) + "\n"
 
 

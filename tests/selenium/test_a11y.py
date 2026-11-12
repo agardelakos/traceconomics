@@ -5,18 +5,38 @@ Pages that draw with a script are checked once they have drawn."""
 import pytest
 
 PATHS = [
-    "", "about/", "countries/", "topics/", "glossary/", "glossary/quintile/", "data/", "data/gr/",
-    "inflation-by-group/", "gr/", "gr/inflation-by-group/", "gr/inflation-by-group/method/",
-    "gr/inflation-by-group/method/weights-timing/", "gr/inflation-by-group/groups/",
-    "gr/inflation-by-group/explore/", "gr/inflation-by-group/calculator/",
+    "",
+    "about/",
+    "countries/",
+    "topics/",
+    "glossary/",
+    "glossary/quintile/",
+    "data/",
+    "data/gr/",
+    "inflation-by-group/",
+    "gr/",
+    "gr/inflation-by-group/",
+    "gr/inflation-by-group/method/",
+    "gr/inflation-by-group/method/weights-timing/",
+    "gr/inflation-by-group/groups/",
+    "gr/inflation-by-group/explore/",
+    "gr/inflation-by-group/calculator/",
     # The consistency topic: its page across countries, Greece's overview and Method, the check cards,
     # a check, a finding, the questions, a question with its chart and one with its source popovers.
-    "official-figures-consistency/", "gr/official-figures-consistency/", "gr/official-figures-consistency/method/",
-    "gr/official-figures-consistency/checks/", "gr/official-figures-consistency/checks/cpi-rates-own-index/",
-    "gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/", "gr/official-figures-consistency/same-question/",
-    "gr/official-figures-consistency/same-question/renters/", "gr/official-figures-consistency/same-question/rent-paid/",
+    "official-figures-consistency/",
+    "gr/official-figures-consistency/",
+    "gr/official-figures-consistency/method/",
+    "gr/official-figures-consistency/checks/",
+    "gr/official-figures-consistency/checks/cpi-rates-own-index/",
+    "gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/",
+    "gr/official-figures-consistency/same-question/",
+    "gr/official-figures-consistency/same-question/renters/",
+    "gr/official-figures-consistency/same-question/rent-paid/",
 ]
-DRAWN = {"gr/inflation-by-group/explore/": "#explore [data-role=chart]", "gr/inflation-by-group/calculator/": "#calculator [data-role=chart]"}
+DRAWN = {
+    "gr/inflation-by-group/explore/": "#explore [data-role=chart]",
+    "gr/inflation-by-group/calculator/": "#calculator [data-role=chart]",
+}
 
 
 def _check(site, path, theme):
@@ -111,6 +131,7 @@ def test_consistency_filter_and_definition_open(site, lang, theme):
     Then axe finds no serious or critical problem in each state
     """
     from selenium.webdriver.common.keys import Keys
+
     _check(site, f"/{lang}/gr/official-figures-consistency/checks/", theme)
     for button in site.all('[data-m5="filter"] button[data-filter]:not([data-filter="all"])'):
         button.click()
@@ -119,7 +140,7 @@ def test_consistency_filter_and_definition_open(site, lang, theme):
         assert not problems, _report(problems)
     site.open(f"/{lang}/gr/official-figures-consistency/same-question/rent-paid/")
     term = site.find('[data-m5="question"] th[data-m5-source] button.term')
-    term.send_keys(Keys.ENTER)     # opens the definition on every device (a mouse click follows the link)
+    term.send_keys(Keys.ENTER)  # opens the definition on every device (a mouse click follows the link)
     pop = site.find('[data-m5="question"] th[data-m5-source] .term-popover')
     site.wait(lambda _: pop.is_displayed(), "the definition did not open")
     problems = site.axe()

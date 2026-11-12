@@ -66,11 +66,13 @@ DOCS = {
 def run_playwright(workers: int, out: Path, fully_parallel: bool = False) -> tuple[float, report.Results]:
     path = out / "playwright.json"
     env = {**os.environ, "PLAYWRIGHT_JSON_OUTPUT_FILE": str(path)}
-    env.pop("TRACECONOMICS_COVERAGE", None)    # a plain build, as the Selenium suite gets
+    env.pop("TRACECONOMICS_COVERAGE", None)  # a plain build, as the Selenium suite gets
     if not fully_parallel:
-        env["UI_PER_FILE"] = "on"                # the config spreads single tests unless told otherwise
+        env["UI_PER_FILE"] = "on"  # the config spreads single tests unless told otherwise
     npm = shutil.which("npm") or "npm"
-    args = [npm, "run", "test:ui", "--", "--reporter=json", f"--workers={workers}"] + (["--fully-parallel"] if fully_parallel else [])
+    args = [npm, "run", "test:ui", "--", "--reporter=json", f"--workers={workers}"] + (
+        ["--fully-parallel"] if fully_parallel else []
+    )
     start = time.monotonic()
     subprocess.run(args, cwd=SITE, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
     return time.monotonic() - start, report.playwright(path) or report.Results()
@@ -82,9 +84,25 @@ def run_selenium(workers: int, out: Path, by_file: bool = False) -> tuple[float,
     # 0 workers: xdist off, every test in the main process, one after another.
     spread = ["-n", "0"] if workers == 0 else ["-n", str(workers), "--dist", "loadfile" if by_file else "load"]
     start = time.monotonic()
-    subprocess.run([sys.executable, "-I", "-m", "pytest", "tests/selenium", "--selenium", *spread,
-                    "-q", "-p", "no:cacheprovider", f"--junitxml={path}"], cwd=ROOT,
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+    subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-m",
+            "pytest",
+            "tests/selenium",
+            "--selenium",
+            *spread,
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            f"--junitxml={path}",
+        ],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
     return time.monotonic() - start, report.selenium(path) or report.Results()
 
 
@@ -100,8 +118,9 @@ def fingerprint(folder: Path) -> str:
 def made_up_fingerprint() -> str:
     """The fingerprint of the made-up data, written afresh by tests/sitedata.py."""
     with tempfile.TemporaryDirectory() as tmp:
-        subprocess.run([sys.executable, str(ROOT / "tests" / "sitedata.py"), tmp], cwd=ROOT,
-                       stdout=subprocess.DEVNULL, check=True)
+        subprocess.run(
+            [sys.executable, str(ROOT / "tests" / "sitedata.py"), tmp], cwd=ROOT, stdout=subprocess.DEVNULL, check=True
+        )
         return fingerprint(Path(tmp))
 
 
@@ -126,11 +145,22 @@ def summarise(name, url, runs, code):
             files[f].append(c["seconds"])
     slowest = sorted(((statistics.mean(v), f) for f, v in files.items()), reverse=True)[:5]
     return {
-        "name": name, "url": url, "runs": len(runs), "wall_mean": statistics.mean(walls), "wall_min": min(walls), "wall_max": max(walls),
+        "name": name,
+        "url": url,
+        "runs": len(runs),
+        "wall_mean": statistics.mean(walls),
+        "wall_min": min(walls),
+        "wall_max": max(walls),
         "wall_sd": statistics.stdev(walls) if len(walls) > 1 else 0.0,
-        "tests": max(sum(c.values()) for c in counts), "passed": [c["passed"] for c in counts],
-        "failed": [c["failed"] for c in counts], "skipped": [c["skipped"] for c in counts],
-        "flaky": flaky, "always_failed": always, "slowest": slowest, "files": code[0], "loc": code[1],
+        "tests": max(sum(c.values()) for c in counts),
+        "passed": [c["passed"] for c in counts],
+        "failed": [c["failed"] for c in counts],
+        "skipped": [c["skipped"] for c in counts],
+        "flaky": flaky,
+        "always_failed": always,
+        "slowest": slowest,
+        "files": code[0],
+        "loc": code[1],
     }
 
 
@@ -140,11 +170,18 @@ def _header(row) -> str:
 
 
 def markdown(rows, workers, data: str):
-    out = ["## Playwright and Selenium, compared", "", data, "",
-           f"| | {' | '.join(map(_header, rows))} |", f"|---|{'---|' * len(rows)}"]
+    out = [
+        "## Playwright and Selenium, compared",
+        "",
+        data,
+        "",
+        f"| | {' | '.join(map(_header, rows))} |",
+        f"|---|{'---|' * len(rows)}",
+    ]
 
     def line(label, fn):
         out.append(f"| {label} | {' | '.join(fn(r) for r in rows)} |")
+
     line("Runs", lambda r: str(r["runs"]))
     line("Wall time, mean (s)", lambda r: f"{r['wall_mean']:.1f}")
     line("Wall time, min-max (s)", lambda r: f"{r['wall_min']:.1f}-{r['wall_max']:.1f}")
@@ -161,7 +198,9 @@ def markdown(rows, workers, data: str):
         out += [f"- {f}: {secs:.1f} s" for secs, f in r["slowest"]]
         for label in ("flaky", "always_failed"):
             if r[label]:
-                out += ["", f"{r['name']}, {label.replace('_', ' ')}:", ""] + [f"- {t.split(' #')[0]}" for t in r[label]]
+                out += ["", f"{r['name']}, {label.replace('_', ' ')}:", ""] + [
+                    f"- {t.split(' #')[0]}" for t in r[label]
+                ]
     out += ["", *explanations(workers)]
     return "\n".join(out) + "\n"
 
@@ -183,7 +222,7 @@ def explanations(workers: int) -> list[str]:
         f"the workers by pytest-xdist (`--dist load`, its default). Docs: [distribution modes]({DOCS['xdist']}).",
         f"- **Selenium parallel by file ({workers} workers)** (only with `--per-file`): the same suite with "
         "pytest-xdist's `--dist loadfile`: all the tests of one file go to the same worker, as in Playwright's "
-        "default. The two \"by file\" columns are the other like-for-like pair. "
+        'default. The two "by file" columns are the other like-for-like pair. '
         f"Docs: [distribution modes]({DOCS['xdist']}).",
         "- **Playwright sequential (1 worker)** (only with `--sequential`): one test at a time, with "
         f"`--workers=1`. Docs: [disable parallelism]({DOCS['playwright_sequential']}).",
@@ -232,13 +271,16 @@ def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     p.add_argument("--runs", type=int, default=5)
     p.add_argument("--workers", type=int, default=os.cpu_count())
-    p.add_argument("--per-file", action="store_true",
-                   help="also run both suites by file (a file's tests one after another in one worker)")
-    p.add_argument("--sequential", action="store_true",
-                   help="also run both suites one test at a time (1 worker)")
+    p.add_argument(
+        "--per-file",
+        action="store_true",
+        help="also run both suites by file (a file's tests one after another in one worker)",
+    )
+    p.add_argument("--sequential", action="store_true", help="also run both suites one test at a time (1 worker)")
     p.add_argument("--only", choices=["playwright", "selenium"])
-    p.add_argument("--any-data", action="store_true",
-                   help="run on whatever data the build holds, not only the made-up data")
+    p.add_argument(
+        "--any-data", action="store_true", help="run on whatever data the build holds, not only the made-up data"
+    )
     p.add_argument("--out", type=Path)
     a = p.parse_args()
     if not (SITE / "dist" / "index.html").is_file():
@@ -249,23 +291,56 @@ def main():
     else:
         print("checking the build's data against the made-up data...", file=sys.stderr, flush=True)
         if built != made_up_fingerprint():
-            sys.exit("site/dist/data are not the made-up data. Run `python tests/sitedata.py site/public/data` "
-                     "(it replaces that folder's data), then `npm run build` in site/; or pass --any-data")
+            sys.exit(
+                "site/dist/data are not the made-up data. Run `python tests/sitedata.py site/public/data` "
+                "(it replaces that folder's data), then `npm run build` in site/; or pass --any-data"
+            )
         data = f"Data: the made-up data (`tests/sitedata.py`); fingerprint `{built[:16]}`."
     playwright_code = sorted((SITE / "tests" / "ui").glob("*.ts"))
     selenium_code = sorted(SELENIUM.glob("*.py"))
     # The worker count goes into each column's name, so a saved report says how it was run.
     n = a.workers
     # The like-for-like pairs side by side: single tests spread over the workers, then by file.
-    suites = [(f"Playwright parallel ({n} workers)", DOCS["playwright"], lambda w, o: run_playwright(w, o, True), playwright_code),
-              (f"Selenium parallel ({n} workers)", DOCS["xdist"], lambda w, o: run_selenium(w, o), selenium_code)]
+    suites = [
+        (
+            f"Playwright parallel ({n} workers)",
+            DOCS["playwright"],
+            lambda w, o: run_playwright(w, o, True),
+            playwright_code,
+        ),
+        (f"Selenium parallel ({n} workers)", DOCS["xdist"], lambda w, o: run_selenium(w, o), selenium_code),
+    ]
     if a.per_file:
-        suites += [(f"Playwright parallel by file ({n} workers)", DOCS["playwright_by_file"], lambda w, o: run_playwright(w, o), playwright_code),
-                   (f"Selenium parallel by file ({n} workers)", DOCS["xdist"], lambda w, o: run_selenium(w, o, True), selenium_code)]
+        suites += [
+            (
+                f"Playwright parallel by file ({n} workers)",
+                DOCS["playwright_by_file"],
+                lambda w, o: run_playwright(w, o),
+                playwright_code,
+            ),
+            (
+                f"Selenium parallel by file ({n} workers)",
+                DOCS["xdist"],
+                lambda w, o: run_selenium(w, o, True),
+                selenium_code,
+            ),
+        ]
     if a.sequential:
         # One test at a time: Playwright with a single worker, Selenium with xdist off.
-        suites += [("Playwright sequential (1 worker)", DOCS["playwright_sequential"], lambda w, o: run_playwright(1, o), playwright_code),
-                   ("Selenium sequential (1 worker)", DOCS["xdist_sequential"], lambda w, o: run_selenium(0, o), selenium_code)]
+        suites += [
+            (
+                "Playwright sequential (1 worker)",
+                DOCS["playwright_sequential"],
+                lambda w, o: run_playwright(1, o),
+                playwright_code,
+            ),
+            (
+                "Selenium sequential (1 worker)",
+                DOCS["xdist_sequential"],
+                lambda w, o: run_selenium(0, o),
+                selenium_code,
+            ),
+        ]
     if a.only:
         suites = [s for s in suites if s[0].lower().startswith(a.only)]
     rows = []

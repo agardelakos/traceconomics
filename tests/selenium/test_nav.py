@@ -25,7 +25,9 @@ def _arrow(site, lang, which):
 
 
 @pytest.mark.parametrize("lang", ["en", "el"])
-@pytest.mark.parametrize("which,menu,current", [("topics", "#topic-menu", "inflation-by-group"), ("countries", "#country-menu", "gr")])
+@pytest.mark.parametrize(
+    "which,menu,current", [("topics", "#topic-menu", "inflation-by-group"), ("countries", "#country-menu", "gr")]
+)
 def test_quick_list_opens_ticks_current_and_closes_with_escape(site, lang, which, menu, current):
     """SEL-NAV-001: a quick list opens, ticks the current entry and closes with Escape
 
@@ -178,7 +180,9 @@ def test_language_switch_on_english_pages(site, path):
             assert other.tag_name == "a", f"{lang} is offered but not linked"
             assert urlsplit(other.get_attribute("href")).path == path.replace("/en/", f"/{lang}/", 1)
         else:
-            assert other.tag_name == "span" and other.get_attribute("aria-disabled") == "true", f"{lang} is linked though not offered"
+            assert other.tag_name == "span" and other.get_attribute("aria-disabled") == "true", (
+                f"{lang} is linked though not offered"
+            )
 
 
 def test_language_switch_from_greek_page(site):
@@ -214,10 +218,13 @@ def test_skip_link_moves_to_the_content(site):
     site.wait(lambda _: site.driver.current_url.endswith("#content"))
 
 
-@pytest.mark.parametrize("path,trail", [
-    ("/en/glossary/", ["nav.home", "nav.glossary"]),
-    ("/en/data/gr/", ["nav.home", "nav.data", "country.gr"]),
-])
+@pytest.mark.parametrize(
+    "path,trail",
+    [
+        ("/en/glossary/", ["nav.home", "nav.glossary"]),
+        ("/en/data/gr/", ["nav.home", "nav.data", "country.gr"]),
+    ],
+)
 def test_breadcrumbs(site, path, trail):
     """SEL-NAV-011: the breadcrumbs show the trail and lead home
 
@@ -282,7 +289,9 @@ def test_root_sends_the_browser_to_its_language(site, locale):
         expected = wanted if wanted in OFFERED else "en"
         site.wait(lambda _: site.path == f"/{expected}/", f"the root did not send a {locale} browser to /{expected}/")
     finally:
-        site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"})
+        site.driver.execute_cdp_cmd(
+            "Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"}
+        )
 
 
 @pytest.mark.phone
@@ -298,12 +307,16 @@ def test_topic_bar_rows_open_scrolled_to_their_current_item(phone):
     wide = 0
     for row in phone.all(".topic-bar nav ul"):
         box = phone.driver.execute_script(
-            "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};", row)
+            "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};",
+            row,
+        )
         if box["scroll"] <= box["client"]:
             continue
         wide += 1
-        item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
-                                           row.find_element("css selector", "[aria-current]"))
+        item = phone.driver.execute_script(
+            "const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
+            row.find_element("css selector", "[aria-current]"),
+        )
         assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
     assert wide > 0
 

@@ -23,7 +23,7 @@ class _Links(HTMLParser):
     def __init__(self):
         super().__init__()
         self.links: list[str] = []
-        self.heads: list[tuple[str, str]] = []   # (rel, href) of <link rel=canonical|alternate>
+        self.heads: list[tuple[str, str]] = []  # (rel, href) of <link rel=canonical|alternate>
         self.ids: set[str] = set()
 
     def handle_starttag(self, tag, attrs):
@@ -95,13 +95,13 @@ def test_internal_links_answer(base_url, crawl):
     And every link to a `#somewhere` on a page finds that id there
     And data-file links were among those checked
     """
-    targets: dict[str, set[str]] = {}       # address without its #part -> the pages linking to it
+    targets: dict[str, set[str]] = {}  # address without its #part -> the pages linking to it
     anchors: dict[tuple[str, str], str] = {}
     for page, p in crawl.items():
         for href in p.links:
             url = urlsplit(urljoin(base_url + page, href))
             if f"{url.scheme}://{url.netloc}" != base_url:
-                continue                     # another site: not checked here (no network in tests)
+                continue  # another site: not checked here (no network in tests)
             targets.setdefault(url.path, set()).add(page)
             if url.fragment:
                 anchors[(url.path, url.fragment)] = page

@@ -21,8 +21,10 @@ def test_clean_takes_off_the_notation_and_keeps_the_kind():
     And a label without a marker has no kind
     """
     assert labels.clean("01.1.1.1 Cereals (ND)") == ("Cereals", "non-durable")
-    assert labels.clean("12.2.1 Υπηρεσίες χρηματοπιστωτικής διαμεσολάβησης (Υ)") == \
-        ("Υπηρεσίες χρηματοπιστωτικής διαμεσολάβησης", "service")
+    assert labels.clean("12.2.1 Υπηρεσίες χρηματοπιστωτικής διαμεσολάβησης (Υ)") == (
+        "Υπηρεσίες χρηματοπιστωτικής διαμεσολάβησης",
+        "service",
+    )
     assert labels.clean("04.2 Imputed rental payments for housing") == ("Imputed rental payments for housing", None)
 
 

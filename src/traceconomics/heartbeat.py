@@ -32,8 +32,7 @@ def send(record: dict, *, url: str | None = None, timeout: float = 30.0) -> str:
     url = url or os.environ.get(URL_ENV)
     if not url:
         return "off"
-    req = urllib.request.Request(url, data=payload(record), method="PUT",
-                                 headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(url, data=payload(record), method="PUT", headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             resp.read()

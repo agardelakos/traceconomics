@@ -64,8 +64,9 @@ def _username(config_text: str) -> str | None:
     return m.group(1) if m else None
 
 
-def run(dry_run: bool = True, home: Path | None = None, config_base: Path | None = None,
-        keyring_module=None, schtasks=True) -> Plan:
+def run(
+    dry_run: bool = True, home: Path | None = None, config_base: Path | None = None, keyring_module=None, schtasks=True
+) -> Plan:
     home = home or Path.home()
     base = config_base or _config_base()
     plan = Plan()
@@ -91,7 +92,7 @@ def run(dry_run: bool = True, home: Path | None = None, config_base: Path | None
         else:
             plan.steps.append(f"folder: rename {old} -> {new}")
             if not dry_run:
-                os.rename(old, new)          # same drive: a rename, never a copy and delete
+                os.rename(old, new)  # same drive: a rename, never a copy and delete
 
     user = _username(old_text) if old_text else None
     if user:
@@ -100,8 +101,10 @@ def run(dry_run: bool = True, home: Path | None = None, config_base: Path | None
             import keyring as kr
         secret = kr.get_password(OLD_KEYRING, user)
         if secret is None:
-            plan.steps.append(f"keyring: no password under {OLD_KEYRING}; set one with "
-                              f"`python -m keyring set {NEW_KEYRING} <username>`")
+            plan.steps.append(
+                f"keyring: no password under {OLD_KEYRING}; set one with "
+                f"`python -m keyring set {NEW_KEYRING} <username>`"
+            )
         elif kr.get_password(NEW_KEYRING, user) is not None:
             plan.steps.append(f"keyring: {NEW_KEYRING} already has a password; left as it is")
         else:
@@ -112,8 +115,10 @@ def run(dry_run: bool = True, home: Path | None = None, config_base: Path | None
     if schtasks and sys.platform == "win32":
         exists = subprocess.run(["schtasks", "/Query", "/TN", OLD_TASK], capture_output=True).returncode == 0
         if exists:
-            plan.steps.append(f"task: remove the old scheduled task {OLD_TASK} (install the new one with "
-                              "`traceconomics schedule install` after the repository folder is renamed)")
+            plan.steps.append(
+                f"task: remove the old scheduled task {OLD_TASK} (install the new one with "
+                "`traceconomics schedule install` after the repository folder is renamed)"
+            )
             if not dry_run:
                 subprocess.run(["schtasks", "/Delete", "/TN", OLD_TASK, "/F"], check=True, capture_output=True)
         else:

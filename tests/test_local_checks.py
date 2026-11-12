@@ -21,15 +21,18 @@ from traceconomics.sources.elstat.hbs_tables import ALL, Table103  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
-INCOME = [6000, 9000, 12000, 15000, 18000, 24000, 30000, 36000, 48000, 60000]     # euros a year
-BANDS = ["up to 750", "751-1100", "1101-1800", "1801-2800", "2801 and over"]       # euros a month
+INCOME = [6000, 9000, 12000, 15000, 18000, 24000, 30000, 36000, 48000, 60000]  # euros a year
+BANDS = ["up to 750", "751-1100", "1101-1800", "1801-2800", "2801 and over"]  # euros a month
 SIZES = ["1 member", "2 members", "3 members and over"]
-HOSPITAL = dict(zip(BANDS, (10.0, 20.0, 30.0, 40.0, 50.0)))                        # euros a month
+HOSPITAL = dict(zip(BANDS, (10.0, 20.0, 30.0, 40.0, 50.0)))  # euros a month
 
 
 # Rent paid, imputed rent and housed free, in each era's code list (tenure is read from them).
-RENT_CODES = {"hbs-gr-2008": ("04111", "04211", "04221"), "ecoicop1": ("04110", "04210", "04220"),
-              "coicop2018": ("04110", "04210", "04220")}
+RENT_CODES = {
+    "hbs-gr-2008": ("04111", "04211", "04221"),
+    "ecoicop1": ("04110", "04210", "04220"),
+    "coicop2018": ("04110", "04210", "04220"),
+}
 
 
 def survey(year=2010, n=10, food=1.0, repairs=0.0):
@@ -39,23 +42,44 @@ def survey(year=2010, n=10, food=1.0, repairs=0.0):
     one code (09150) and COICOP 2018 splits between recreation (09410) and communication (08350)."""
     era = classification(year)
     incomes = INCOME if n == len(INCOME) else [6000 + 1200 * i for i in range(n)]
-    h = pd.DataFrame({"hh": [str(i) for i in range(n)], "weight": 1.0, "region": "EL3",
-                      "stratum": ["1" if i < n // 2 else "2" for i in range(n)],
-                      "cluster": [f"{'1' if i < n // 2 else '2'}-{(i % (n // 2)) // max(2, n // 10)}" for i in range(n)],
-                      "money_income": [float(x) for x in incomes],
-                      "total_income": [float(x) for x in incomes], "main_income_source": "1"})
+    h = pd.DataFrame(
+        {
+            "hh": [str(i) for i in range(n)],
+            "weight": 1.0,
+            "region": "EL3",
+            "stratum": ["1" if i < n // 2 else "2" for i in range(n)],
+            "cluster": [f"{'1' if i < n // 2 else '2'}-{(i % (n // 2)) // max(2, n // 10)}" for i in range(n)],
+            "money_income": [float(x) for x in incomes],
+            "total_income": [float(x) for x in incomes],
+            "main_income_source": "1",
+        }
+    )
     rent, imputed, free = RENT_CODES[era]
-    leaf = pd.DataFrame({"01111": [(100.0 + 10 * i) * food for i in range(n)], rent: [300.0 * (i % 2) for i in range(n)],
-                         imputed: [400.0 * (1 - i % 2) for i in range(n)], free: 0.0,
-                         "07221": [50.0 + i for i in range(n)]})
+    leaf = pd.DataFrame(
+        {
+            "01111": [(100.0 + 10 * i) * food for i in range(n)],
+            rent: [300.0 * (i % 2) for i in range(n)],
+            imputed: [400.0 * (1 - i % 2) for i in range(n)],
+            free: 0.0,
+            "07221": [50.0 + i for i in range(n)],
+        }
+    )
     if repairs and era == "ecoicop1":
         leaf["09150"] = repairs
     elif repairs and era == "coicop2018":
         leaf["08350"], leaf["09410"] = repairs / 2, repairs / 2
     s = mapping.with_parents(leaf)
     persons = pd.DataFrame({"hh": h.hh, "age": 40, "relation": "1", "activity": "1"})
-    return Survey(year=year, classification=classification(year), households=h, persons=persons,
-                  spending=s, purchases=s.copy(), design="full", source_sha256="0" * 64)
+    return Survey(
+        year=year,
+        classification=classification(year),
+        households=h,
+        persons=persons,
+        spending=s,
+        purchases=s.copy(),
+        design="full",
+        source_sha256="0" * 64,
+    )
 
 
 def table(year=2010, by="income"):
@@ -75,15 +99,36 @@ def store_silc(archive, year, renter, owner, rent_free):
     """An EU-SILC tenure table in the archive, as `traceconomics silc run` writes it: households weighted by tenure."""
     from traceconomics.local import silc, weights
 
-    rows = [{"geo": "GR", "ref_year": year, "tenure": t, "n_households": "100", "households_weighted": v,
-             "people_weighted": v, "rent_paid_eur": 0.0, "source_version": "made up"}
-            for t, v in (("all", renter + owner + rent_free), ("owner", owner), ("renter", renter),
-                         ("rent_free", rent_free))]
-    archive.store_bytes("oet-local", silc.OUT.format(year=year), weights.to_csv(pd.DataFrame(rows)[silc.COLUMNS], ["made up"]),
-                        url=None, retrieved_at=datetime(2026, 1, 1, tzinfo=UTC), ext=".csv", kind="local")
+    rows = [
+        {
+            "geo": "GR",
+            "ref_year": year,
+            "tenure": t,
+            "n_households": "100",
+            "households_weighted": v,
+            "people_weighted": v,
+            "rent_paid_eur": 0.0,
+            "source_version": "made up",
+        }
+        for t, v in (
+            ("all", renter + owner + rent_free),
+            ("owner", owner),
+            ("renter", renter),
+            ("rent_free", rent_free),
+        )
+    ]
+    archive.store_bytes(
+        "oet-local",
+        silc.OUT.format(year=year),
+        weights.to_csv(pd.DataFrame(rows)[silc.COLUMNS], ["made up"]),
+        url=None,
+        retrieved_at=datetime(2026, 1, 1, tzinfo=UTC),
+        ext=".csv",
+        kind="local",
+    )
 
 
-AS_SURVEYED = {"renter": 0.5, "owner": 0.5, "rent_free": 0.0}       # the made-up surveys' own split
+AS_SURVEYED = {"renter": 0.5, "owner": 0.5, "rent_free": 0.0}  # the made-up surveys' own split
 
 
 @pytest.fixture
@@ -92,13 +137,16 @@ def files(monkeypatch):
     the made-up surveys' own split, so calibration leaves their weights as they are."""
     from traceconomics.local import calibration
 
-    monkeypatch.setattr(calibration, "target", lambda archive, year: calibration.Target(AS_SURVEYED, "test", AS_SURVEYED, ()))
+    monkeypatch.setattr(
+        calibration, "target", lambda archive, year: calibration.Target(AS_SURVEYED, "test", AS_SURVEYED, ())
+    )
     monkeypatch.setattr(puf, "read", lambda archive, year: survey(year))
     monkeypatch.setattr(hbs_tables, "parse", lambda path, year: table(year, v2.BANDED.get(year, "income")))
     monkeypatch.setattr(v2, "archived_tables", lambda archive: {y: f"t{y}" for y in range(2008, 2025)})
 
 
 # -- hospital services -----------------------------------------------------------------------------
+
 
 def test_each_household_gets_its_bands_hospital_spending():
     """PY-HOSP-001: each household gets its income band's published hospital spending
@@ -129,7 +177,9 @@ def test_hospital_spending_is_put_back_into_the_baskets(files):
     out, how, share = hc.baskets_with_hospital(None, 2010, {("B", "Q1"), ("all", "all")})
     assert set(out) == {(2010, "all", "all")} and how == "income bands"
     assert set(hc.baskets_with_hospital(None, 2011, {("B", "Q1"), ("all", "all")})[0]) == {
-        (2011, "B", "Q1"), (2011, "all", "all")}
+        (2011, "B", "Q1"),
+        (2011, "all", "all"),
+    }
     for b in out.values():
         assert b.shares["06310"] == pytest.approx(b.shares["06"]) and b.shares["06"] > 0
     assert share == pytest.approx(3960 / 9455)
@@ -147,12 +197,20 @@ def test_the_hospital_check_reports_each_groups_change(files, monkeypatch):
     And the gap's change is quintile 1's change minus quintile 5's
     """
     monkeypatch.setattr(index, "price_blocks", lambda con, archive: {})
-    monkeypatch.setattr(hc, "load_baskets", lambda con, spending: {
-        (y, g, q): Basket({"01": 1.0, "06": 0.0}, {}) for y in range(2008, 2019) for g, q in (("B", "Q1"), ("B", "Q5"))})
+    monkeypatch.setattr(
+        hc,
+        "load_baskets",
+        lambda con, spending: {
+            (y, g, q): Basket({"01": 1.0, "06": 0.0}, {})
+            for y in range(2008, 2019)
+            for g, q in (("B", "Q1"), ("B", "Q5"))
+        },
+    )
 
     def build(con, grouping, label, *, blocks, baskets):
         rates = {y + 1: 10 * baskets[(y, grouping, label)].shares.get("06", 0.0) for y in range(2008, 2019)}
         return type("S", (), {"annual_average_rates": lambda self: rates})()
+
     monkeypatch.setattr(index, "build", build)
     r = hc.run(None, "con", groups_wanted=[("B", "Q1"), ("B", "Q5")])
     assert list(r["surveys"]) == list(range(2008, 2015))
@@ -165,6 +223,7 @@ def test_the_hospital_check_reports_each_groups_change(files, monkeypatch):
 
 # -- V2 --------------------------------------------------------------------------------------------
 
+
 def test_v2_finds_the_newest_english_table_of_each_year(tmp_path):
     """PY-HBS-006: V2 finds the newest archived English table 1.03 of each survey year
 
@@ -176,16 +235,26 @@ def test_v2_finds_the_newest_english_table_of_each_year(tmp_path):
     archive = Archive(tmp_path)
 
     def put(doc, name, month):
-        archive.store_bytes("elstat", doc, f"{doc}{name}".encode(), url=None, ext=".xls",
-                            retrieved_at=datetime(2026, month, 1, tzinfo=UTC), extra={"original_name": name})
+        archive.store_bytes(
+            "elstat",
+            doc,
+            f"{doc}{name}".encode(),
+            url=None,
+            ext=".xls",
+            retrieved_at=datetime(2026, month, 1, tzinfo=UTC),
+            extra={"original_name": name},
+        )
+
     put("doc-1", "SFA05_TB_AN_00_2018_103_F_EN.xls", 1)
     put("doc-2", "SFA05_TB_AN_00_2018_103_F_EN.xls", 3)
     put("doc-3", "SFA05_TB_AN_00_2024_103_F_EN.xlsx", 2)
     put("doc-4", "SFA05_TB_AN_00_2024_103_F_GR.xlsx", 4)
     put("doc-5", "other.xls", 4)
     found = v2.archived_tables(archive)
-    assert found == {2018: archive.root / archive.latest("elstat", "doc-2")["path"],
-                     2024: archive.root / archive.latest("elstat", "doc-3")["path"]}
+    assert found == {
+        2018: archive.root / archive.latest("elstat", "doc-2")["path"],
+        2024: archive.root / archive.latest("elstat", "doc-3")["path"],
+    }
 
 
 def test_v2_compares_every_year_and_the_bands_where_they_can_be_rebuilt(files, monkeypatch):
@@ -210,7 +279,6 @@ def test_v2_compares_every_year_and_the_bands_where_they_can_be_rebuilt(files, m
         v2.run(None, [2010])
 
 
-
 def test_v2_keeps_every_figure_compared_with_its_result(files, monkeypatch):
     """PY-HBS-010: V2 keeps every figure it compares, with ELSTAT's value, ours and the result
 
@@ -228,6 +296,7 @@ def test_v2_keeps_every_figure_compared_with_its_result(files, monkeypatch):
     excused = next(r for r in first.rows if r[4] == "excused")
     assert excused[0] == "07242" and excused[:4] == first.excused[0]
     assert all(len(r.rows) == r.compared for r in results[1:])
+
 
 def test_bands_by_household_size_and_their_refusals():
     """PY-HBS-008: households are banded by size in 2013, and bands that don't fit are refused
@@ -266,6 +335,7 @@ def test_the_published_coefficients_of_variation_and_missing_items_are_on_file()
 
 
 # -- the mapping check -----------------------------------------------------------------------------
+
 
 def test_the_effective_mapping_of_each_code_list():
     """PY-MAP-011: each survey's own codes map to COICOP 2018 in one step
@@ -371,8 +441,16 @@ def test_the_cpi_weights_are_compared_with_our_mapped_shares_a_year_or_two_befor
     rows = []
     for year, bump in ((2018, 0.0), (2019, 6.0)):
         for code, w in ours.items():
-            rows.append(dict(dataset="elstat:cpi07", key=f"A,PM,{code}", unit="PM", coicop18=code, ref_period=str(year),
-                             value=w + (bump if code == "01" else 0.0)))
+            rows.append(
+                dict(
+                    dataset="elstat:cpi07",
+                    key=f"A,PM,{code}",
+                    unit="PM",
+                    coicop18=code,
+                    ref_period=str(year),
+                    value=w + (bump if code == "01" else 0.0),
+                )
+            )
     rows.append(dict(dataset="elstat:cpi07", key="A,PM,011", unit="PM", coicop18="011", ref_period="2018", value=1.0))
     report = mc.cpi_report(None, store(rows))
     assert report.cpi_year.tolist() == [2018, 2019]
@@ -380,6 +458,7 @@ def test_the_cpi_weights_are_compared_with_our_mapped_shares_a_year_or_two_befor
 
 
 # -- the weights run -------------------------------------------------------------------------------
+
 
 @pytest.fixture
 def survey_2023(tmp_path, monkeypatch):
@@ -389,9 +468,16 @@ def survey_2023(tmp_path, monkeypatch):
     archive = Archive(tmp_path)
     when = datetime(2026, 1, 1, tzinfo=UTC)
     archive.store_bytes("elstat", puf.dataset(2023), b"survey", url=None, retrieved_at=when, ext=".zip", kind="manual")
-    archive.store_bytes("elstat", "doc-1", b"table", url=None, retrieved_at=when, ext=".xls",
-                        extra={"original_name": "SFA05_TB_AN_00_2023_103_F_EN.xls"})
-    store_silc(archive, 2023, 25.0, 25.0, 0.0)            # the survey's own split: calibration changes nothing
+    archive.store_bytes(
+        "elstat",
+        "doc-1",
+        b"table",
+        url=None,
+        retrieved_at=when,
+        ext=".xls",
+        extra={"original_name": "SFA05_TB_AN_00_2023_103_F_EN.xls"},
+    )
+    store_silc(archive, 2023, 25.0, 25.0, 0.0)  # the survey's own split: calibration changes nothing
     monkeypatch.setattr(puf, "read", lambda archive, year: survey(year, n=50))
     monkeypatch.setattr(hbs_tables, "parse", lambda path, year: table(year))
     monkeypatch.setattr(v2, "missing_items", lambda: {})
@@ -414,18 +500,39 @@ def test_the_weights_run_archives_six_tables_once(survey_2023):
     from traceconomics.local import weights
 
     first = weights.run(survey_2023, [2023], replicates=20)[0]
-    assert (first["weights"], first["groups"], first["limits"], first["types"], first["rent"],
-            first["spending_check"]) == ("stored",) * 6
+    assert (
+        first["weights"],
+        first["groups"],
+        first["limits"],
+        first["types"],
+        first["rent"],
+        first["spending_check"],
+    ) == ("stored",) * 6
     assert first["limits_eur"] == [17400, 29400, 41400, 53400] and first["se_design"] == "full"
     second = weights.run(survey_2023, [2023], replicates=20)[0]
-    assert (second["weights"], second["groups"], second["limits"], second["types"], second["rent"],
-            second["spending_check"]) == ("unchanged",) * 6
+    assert (
+        second["weights"],
+        second["groups"],
+        second["limits"],
+        second["types"],
+        second["rent"],
+        second["spending_check"],
+    ) == ("unchanged",) * 6
     assert sorted(d for s, d in survey_2023.datasets() if s == "oet-local" and d.startswith("hbs-")) == [
-        "hbs-groups-gr-2023", "hbs-hhtypes-gr-2023", "hbs-limits-gr-2023", "hbs-rent-gr-2023", "hbs-spending-gr-2023",
-        "hbs-weights-gr-2023"]
-    text = (survey_2023.root / survey_2023.latest("oet-local", "hbs-groups-gr-2023")["path"]).read_text(encoding="utf-8")
+        "hbs-groups-gr-2023",
+        "hbs-hhtypes-gr-2023",
+        "hbs-limits-gr-2023",
+        "hbs-rent-gr-2023",
+        "hbs-spending-gr-2023",
+        "hbs-weights-gr-2023",
+    ]
+    text = (survey_2023.root / survey_2023.latest("oet-local", "hbs-groups-gr-2023")["path"]).read_text(
+        encoding="utf-8"
+    )
     assert '# provenance: {"code_fingerprint": ' in text and ",<20," in text
-    spent = (survey_2023.root / survey_2023.latest("oet-local", "hbs-spending-gr-2023")["path"]).read_text(encoding="utf-8")
+    spent = (survey_2023.root / survey_2023.latest("oet-local", "hbs-spending-gr-2023")["path"]).read_text(
+        encoding="utf-8"
+    )
     assert first["spending_differs"] == sum(",differs," in line for line in spent.splitlines())
 
 
@@ -451,15 +558,23 @@ def test_the_weights_run_calibrates_to_eu_silcs_tenure_split(survey_2023):
     report = weights.run(survey_2023, [2023], replicates=20)[0]
     groups, text = _table(survey_2023, "hbs-groups-gr-2023")
     weighted = groups.set_index(["grouping", "group"]).households_weighted
-    assert (weighted["tenure", "renter"], weighted["tenure", "owner"], weighted["all", "all"]) == pytest.approx((30, 20, 50))
+    assert (weighted["tenure", "renter"], weighted["tenure", "owner"], weighted["all", "all"]) == pytest.approx(
+        (30, 20, 50)
+    )
     assert report["tenure_factors"] == pytest.approx({"renter": 1.2, "owner": 0.8, "rent_free": 1.0})
     assert '"tenure_target": {"basis": "EU-SILC\'s split for the year"' in text and '"renter": 0.6' in text
     shares, _ = _table(survey_2023, "hbs-weights-gr-2023")
 
     def share(t, grouping, group, code):
-        rows = t[(t.grouping == grouping) & (t.group == group) & (t.coicop18 == code) & (t.spending == "purchases")
-                 & (t.imputed_rent == "excluded")]
+        rows = t[
+            (t.grouping == grouping)
+            & (t.group == group)
+            & (t.coicop18 == code)
+            & (t.spending == "purchases")
+            & (t.imputed_rent == "excluded")
+        ]
         return float(rows.share.iloc[0])
+
     assert share(shares, "all", "all", "041") > share(plain, "all", "all", "041")
     assert share(shares, "tenure", "renter", "041") == pytest.approx(share(plain, "tenure", "renter", "041"))
     rent, _ = _table(survey_2023, "hbs-rent-gr-2023")
@@ -482,8 +597,15 @@ def test_the_2010_survey_gets_no_income_groups_and_no_income_limits(tmp_path, mo
     archive = Archive(tmp_path)
     when = datetime(2026, 1, 1, tzinfo=UTC)
     archive.store_bytes("elstat", puf.dataset(2010), b"survey", url=None, retrieved_at=when, ext=".zip", kind="manual")
-    archive.store_bytes("elstat", "doc-1", b"table", url=None, retrieved_at=when, ext=".xls",
-                        extra={"original_name": "SFA05_TB_AN_00_2010_103_F_EN.xls"})
+    archive.store_bytes(
+        "elstat",
+        "doc-1",
+        b"table",
+        url=None,
+        retrieved_at=when,
+        ext=".xls",
+        extra={"original_name": "SFA05_TB_AN_00_2010_103_F_EN.xls"},
+    )
     store_silc(archive, 2010, 25.0, 25.0, 0.0)
     monkeypatch.setattr(puf, "read", lambda archive, year: survey(year, n=50))
     monkeypatch.setattr(hbs_tables, "parse", lambda path, year: table(year))
@@ -536,6 +658,7 @@ def test_the_income_limits_get_standard_errors_from_the_bootstrap():
 
 # -- the error bands run ---------------------------------------------------------------------------
 
+
 def _bands_inputs(monkeypatch, surveys):
     """Series for quintiles 1 and 5 of grouping B, built by the real series code from the surveys'
     own baskets and made-up prices (food rising faster than the rest), 2017-2019. The tenure target
@@ -546,7 +669,9 @@ def _bands_inputs(monkeypatch, surveys):
     from traceconomics.module1 import combinations
 
     monkeypatch.setattr(puf, "read", lambda archive, year: surveys[year])
-    monkeypatch.setattr(calibration, "target", lambda archive, year: calibration.Target(AS_SURVEYED, "test", AS_SURVEYED, ()))
+    monkeypatch.setattr(
+        calibration, "target", lambda archive, year: calibration.Target(AS_SURVEYED, "test", AS_SURVEYED, ())
+    )
     baskets, codes = {}, set()
     for year, s in surveys.items():
         t = shares(mapping.to_2018(s), assign(s), "purchases")
@@ -554,14 +679,33 @@ def _bands_inputs(monkeypatch, surveys):
         codes |= set(t.code)
         for (g, label), part in t.groupby(["grouping", "group"]):
             baskets[(year, g, label)] = Basket(dict(zip(part.code, part.share)), dict(zip(part.code, part.reliability)))
-    blocks = {y: {c: {f"{y - 1}-12": 100.0, **{f"{y}-{m:02d}": 100.0 + m * (0.5 if c.startswith("01") else 0.2)
-                                               for m in range(1, 13)}} for c in codes} for y in range(2016, 2020)}
+    blocks = {
+        y: {
+            c: {
+                f"{y - 1}-12": 100.0,
+                **{f"{y}-{m:02d}": 100.0 + m * (0.5 if c.startswith("01") else 0.2) for m in range(1, 13)},
+            }
+            for c in codes
+        }
+        for y in range(2016, 2020)
+    }
 
     def iterate(con, archive, only):
         for s in only:
-            series = [index.build(None, g, q, blocks=blocks, baskets=baskets, first_year=2017,
-                                  options={k: s[k] for k in index.DEFAULT_OPTIONS}) for g, q in (("B", "Q1"), ("B", "Q5"))]
+            series = [
+                index.build(
+                    None,
+                    g,
+                    q,
+                    blocks=blocks,
+                    baskets=baskets,
+                    first_year=2017,
+                    options={k: s[k] for k in index.DEFAULT_OPTIONS},
+                )
+                for g, q in (("B", "Q1"), ("B", "Q5"))
+            ]
             yield s, series, {"cpi": blocks, "hicp": blocks}
+
     monkeypatch.setattr(combinations, "iterate", iterate)
     return combinations.DEFAULT
 
@@ -587,8 +731,13 @@ def test_the_bands_run_archives_a_standard_error_for_every_rate(tmp_path, monkey
     t = r["table"]
     assert r["status"] == "stored" and r["rows"] == 81
     assert t.groupby(["group", "unit"]).size().to_dict() == {
-        ("Q1", "RCH_A"): 25, ("Q1", "RCH_A_AVG"): 2, ("Q5", "RCH_A"): 25, ("Q5", "RCH_A_AVG"): 2,
-        ("Q1-Q5", "RCH_A_GAP"): 25, ("Q1-Q5", "RCH_A_AVG_GAP"): 2}
+        ("Q1", "RCH_A"): 25,
+        ("Q1", "RCH_A_AVG"): 2,
+        ("Q5", "RCH_A"): 25,
+        ("Q5", "RCH_A_AVG"): 2,
+        ("Q1-Q5", "RCH_A_GAP"): 25,
+        ("Q1-Q5", "RCH_A_AVG_GAP"): 2,
+    }
     assert (t.se.astype(float) > 0).all()
     assert r["designs"] == {2016: "full", 2017: "full", 2018: "full"}
     assert r["unavailable_index_years"] == {"purchases/excluded/cpi/N/priced": []}
@@ -609,7 +758,7 @@ def test_years_fed_by_a_survey_without_its_design_get_no_band(tmp_path, monkeypa
     from traceconomics.local import bands
 
     surveys = {y: survey(y, n=50) for y in (2016, 2017, 2018)}
-    surveys[2017] = replace(surveys[2017], design="no-clusters")      # as the reader marks such a file
+    surveys[2017] = replace(surveys[2017], design="no-clusters")  # as the reader marks such a file
     default = _bands_inputs(monkeypatch, surveys)
     r = bands.run(Archive(tmp_path), None, replicates=10, only=[default], log=lambda line: None)
     assert r["designs"][2017] == "unavailable"
@@ -620,8 +769,9 @@ def test_years_fed_by_a_survey_without_its_design_get_no_band(tmp_path, monkeypa
 
 # -- building the mapping tables -------------------------------------------------------------------
 
+
 def _dotted(code):
-    """"01111" -> "01.1.1.1", as the correspondence writes codes."""
+    """ "01111" -> "01.1.1.1", as the correspondence writes codes."""
     return ".".join([code[:2], *code[2:]])
 
 
@@ -651,20 +801,38 @@ def test_the_mapping_tables_are_rebuilt_from_their_sources(tmp_path, monkeypatch
     package = mapping.load(mapping.V1_TO_2018)
     archive = Archive(tmp_path / "archive")
     links = list(package[["from_code", "to_code"]].itertuples(index=False, name=None)) + [("011", "011")]
-    archive.store_bytes("eu-vocabularies", "ecoicop2-ecoicop1-correspondence", _correspondence(links), url=None,
-                        retrieved_at=datetime(2026, 10, 13, tzinfo=UTC), ext=".csv")
+    archive.store_bytes(
+        "eu-vocabularies",
+        "ecoicop2-ecoicop1-correspondence",
+        _correspondence(links),
+        url=None,
+        retrieved_at=datetime(2026, 10, 13, tzinfo=UTC),
+        ext=".csv",
+    )
     store_root = tmp_path / "store"
     (store_root / "observations" / "w").mkdir(parents=True)
     rows = [("eurostat:prc_hicp_inw", c, None) for c in sorted(set(package.from_code))]
     rows += [("eurostat:prc_hicp_iw", None, c) for c in sorted(set(package.to_code))]
     con = output.parquet_connection()
-    con.execute("CREATE TABLE o (dataset VARCHAR, key VARCHAR, geo VARCHAR, coicop VARCHAR, coicop18 VARCHAR, "
-                "ref_period VARCHAR, value DOUBLE, status VARCHAR, published_at TIMESTAMP, retrieved_at TIMESTAMP)")
-    con.executemany("INSERT INTO o VALUES (?, ?, 'GR', ?, ?, '2025', 1.0, 'final', TIMESTAMP '2026-01-01', TIMESTAMP '2026-01-01')",
-                    [(d, f"{d}:{a or b}", a, b) for d, a, b in rows])
+    con.execute(
+        "CREATE TABLE o (dataset VARCHAR, key VARCHAR, geo VARCHAR, coicop VARCHAR, coicop18 VARCHAR, "
+        "ref_period VARCHAR, value DOUBLE, status VARCHAR, published_at TIMESTAMP, retrieved_at TIMESTAMP)"
+    )
+    con.executemany(
+        "INSERT INTO o VALUES (?, ?, 'GR', ?, ?, '2025', 1.0, 'final', TIMESTAMP '2026-01-01', TIMESTAMP '2026-01-01')",
+        [(d, f"{d}:{a or b}", a, b) for d, a, b in rows],
+    )
     con.execute(f"COPY o TO '{(store_root / 'observations' / 'w' / 'w.parquet').as_posix()}' (FORMAT parquet)")
-    labels = {"01111": "Rice", "07221": "Diesel", "04111": "Rent", "04211": "Own home", "04221": "Housed free",
-              "04110": "Actual rentals", "04210": "Imputed rentals", "04220": "Other imputed rentals"}
+    labels = {
+        "01111": "Rice",
+        "07221": "Diesel",
+        "04111": "Rent",
+        "04211": "Own home",
+        "04221": "Housed free",
+        "04110": "Actual rentals",
+        "04210": "Imputed rentals",
+        "04220": "Other imputed rentals",
+    }
     monkeypatch.setattr(puf, "read", lambda archive, year: survey(year))
     monkeypatch.setattr(v2, "archived_tables", lambda archive: {y: tmp_path / f"t{y}" for y in range(2008, 2024)})
     for y in range(2008, 2024):
@@ -676,12 +844,14 @@ def test_the_mapping_tables_are_rebuilt_from_their_sources(tmp_path, monkeypatch
 
     def read(name):
         return pd.read_csv(out / name, comment="#", dtype={"from_code": str, "to_code": str})
+
     v1, old = read(mapping.V1_TO_2018), read(mapping.OLD_TO_V1)
     assert (out / mapping.V1_TO_2018).read_text(encoding="utf-8").startswith("# ECOICOP v1 subclass -> COICOP 2018")
     single = package.groupby("from_code").filter(lambda g: len(g) == 1)
     rebuilt = v1[v1.from_code.isin(single.from_code)]
-    assert sorted(rebuilt[["from_code", "to_code"]].itertuples(index=False, name=None)) == \
-        sorted(single[["from_code", "to_code"]].itertuples(index=False, name=None))
+    assert sorted(rebuilt[["from_code", "to_code"]].itertuples(index=False, name=None)) == sorted(
+        single[["from_code", "to_code"]].itertuples(index=False, name=None)
+    )
     for t in (v1, old):
         assert np.allclose(t.groupby("from_code").share.sum(), 1.0)
     pairs = {(r.from_code, r.to_code): r.method for r in old.itertuples()}

@@ -61,8 +61,9 @@ def sync(root: Path, *, url: str | None = None, timeout: float = 120.0) -> dict:
     done = 0
     for name, digest in todo:
         target = url.rstrip("/") + "/" + urllib.parse.quote(name)
-        req = urllib.request.Request(target, data=(root / name).read_bytes(), method="PUT",
-                                     headers={"Content-Type": "application/octet-stream"})
+        req = urllib.request.Request(
+            target, data=(root / name).read_bytes(), method="PUT", headers={"Content-Type": "application/octet-stream"}
+        )
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 resp.read()

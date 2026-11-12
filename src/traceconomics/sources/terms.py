@@ -15,10 +15,18 @@ PAGES = (
     ("ec-empl", "terms-legal-notice", "https://commission.europa.eu/legal-notice_en", ".html"),
     # AADE's terms aren't watched here: its CDN refuses cloud servers. They are read by hand
     # with each yearly import of its workbooks.
-    ("elstat", "terms-reuse", "https://www.statistics.gr/en/pneumatika-diakaiomata-kai-epanachresimopoiese-stoicheion", ".html"),
-    ("elstat", "terms-reuse-pdf",
-     "https://www.statistics.gr/documents/20181/1412250/Copyright_Reuse_Policy_EN.pdf/dfacb7d1-3d9b-471f-851a-8b8b09994a74",
-     ".pdf"),
+    (
+        "elstat",
+        "terms-reuse",
+        "https://www.statistics.gr/en/pneumatika-diakaiomata-kai-epanachresimopoiese-stoicheion",
+        ".html",
+    ),
+    (
+        "elstat",
+        "terms-reuse-pdf",
+        "https://www.statistics.gr/documents/20181/1412250/Copyright_Reuse_Policy_EN.pdf/dfacb7d1-3d9b-471f-851a-8b8b09994a74",
+        ".pdf",
+    ),
 )
 
 

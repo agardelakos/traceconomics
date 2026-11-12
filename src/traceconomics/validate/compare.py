@@ -18,7 +18,7 @@ from traceconomics.engine import ChainResult
 from traceconomics.engine.chain import link_month
 from traceconomics.engine.rates import annual_rate
 
-MAX_RATE_GAP = 0.1   # percentage points, on rates rounded to one decimal
+MAX_RATE_GAP = 0.1  # percentage points, on rates rounded to one decimal
 MAX_LINK_GAP = 1e-3  # on the ratio to December of the previous year
 _EPS = 1e-9
 
@@ -26,12 +26,12 @@ _EPS = 1e-9
 @dataclass
 class Comparison:
     name: str
-    months: int = 0                 # months with both rates
-    exact: int = 0                  # of those, rounded rates equal
-    worst_rate: tuple[str, float, float] | None = None   # period, ours, official
+    months: int = 0  # months with both rates
+    exact: int = 0  # of those, rounded rates equal
+    worst_rate: tuple[str, float, float] | None = None  # period, ours, official
     worst_rate_gap: float = 0.0
     links: int = 0
-    worst_link: tuple[str, float] | None = None          # period, gap
+    worst_link: tuple[str, float] | None = None  # period, gap
     failures: list[str] = field(default_factory=list)
     fallbacks: dict = field(default_factory=dict)
     min_covered: float = 1.0
@@ -52,25 +52,31 @@ class Comparison:
             f"{self.name}: {self.first} to {self.last}, {'PASS' if self.passed else 'FAIL'}",
             f"  annual rates: {self.months} months, {self.exact} exact "
             f"({self.exact / self.months:.0%}), largest gap {self.worst_rate_gap:.1f} pp"
-            + (f" ({self.worst_rate[0]}: ours {self.worst_rate[1]:.1f}, official {self.worst_rate[2]:.1f})"
-               if self.worst_rate and self.worst_rate_gap else ""),
+            + (
+                f" ({self.worst_rate[0]}: ours {self.worst_rate[1]:.1f}, official {self.worst_rate[2]:.1f})"
+                if self.worst_rate and self.worst_rate_gap
+                else ""
+            ),
             f"  links to December: {self.links} months, largest gap "
             + (f"{self.worst_link[1]:.1e} ({self.worst_link[0]})" if self.worst_link else "0"),
             f"  weight priced: at least {self.min_covered:.1%} in every month",
         ]
         if self.fallbacks:
             top = sorted(self.fallbacks.items(), key=lambda kv: -kv[1])[:8]
-            lines.append("  priced with a parent's index (item -> parent: months): "
-                         + "; ".join(f"{c} -> {u or 'none'}: {n}" for (c, u), n in top)
-                         + (f"; and {len(self.fallbacks) - 8} more" if len(self.fallbacks) > 8 else ""))
+            lines.append(
+                "  priced with a parent's index (item -> parent: months): "
+                + "; ".join(f"{c} -> {u or 'none'}: {n}" for (c, u), n in top)
+                + (f"; and {len(self.fallbacks) - 8} more" if len(self.fallbacks) > 8 else "")
+            )
         lines += [f"  FAIL {f}" for f in self.failures[:10]]
         if len(self.failures) > 10:
             lines.append(f"  ... and {len(self.failures) - 10} more failures")
         return "\n".join(lines)
 
 
-def compare(name: str, result: ChainResult, official: dict[str, float],
-            official_rates: dict[str, float] | None = None) -> Comparison:
+def compare(
+    name: str, result: ChainResult, official: dict[str, float], official_rates: dict[str, float] | None = None
+) -> Comparison:
     """`official`: the official all-items index by month. `official_rates`: published annual
     rates (one decimal); if missing, they're computed from `official`, as the publishers do."""
     c = Comparison(name=name, fallbacks=result.fallback_summary())

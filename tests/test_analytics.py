@@ -423,8 +423,9 @@ def test_export_day_stores_the_chosen_day():
 from traceconomics.analytics import DOWNLOADS  # noqa: E402
 
 
-def _download_group(path="/data/v1/gr/m1/latest/downloads/x/m1_index.csv", requests=3, bytes_=4096,
-                    bot="AI Crawler", interval=1):
+def _download_group(
+    path="/data/v1/gr/m1/latest/downloads/x/m1_index.csv", requests=3, bytes_=4096, bot="AI Crawler", interval=1
+):
     return {
         "count": requests,
         "sum": {"edgeResponseBytes": bytes_},
@@ -486,7 +487,11 @@ def test_downloads_stored_in_their_own_dataset_with_their_own_bookmark():
     assert state == {"analytics_through": "2026-10-20", "downloads_through": "2026-10-27"}
     assert a.datasets() == [("cloudflare", "downloads")]
     body = json.loads(calls[0]["body"])
-    assert body["variables"] == {"zone": "zone1", "day": "2026-10-27", "hosts": ["traceconomics.com", "www.traceconomics.com"]}
+    assert body["variables"] == {
+        "zone": "zone1",
+        "day": "2026-10-27",
+        "hosts": ["traceconomics.com", "www.traceconomics.com"],
+    }
     assert "httpRequestsAdaptiveGroups" in body["query"] and '"%/downloads/%"' in body["query"]
     # No IP address or full user-agent string is asked for.
     assert "clientIP" not in body["query"] and "userAgent " not in body["query"]

@@ -13,8 +13,15 @@ pytestmark = pytest.mark.integration
 
 
 def _put(archive, doc, fixture, name, when, fixture_bytes):
-    return archive.store_bytes("elstat", doc, fixture_bytes(fixture), url=None, ext=Path(fixture).suffix,
-                               retrieved_at=datetime(*when, tzinfo=UTC), extra={"original_name": name})
+    return archive.store_bytes(
+        "elstat",
+        doc,
+        fixture_bytes(fixture),
+        url=None,
+        ext=Path(fixture).suffix,
+        retrieved_at=datetime(*when, tzinfo=UTC),
+        extra={"original_name": name},
+    )
 
 
 def test_v1_cpi_reads_the_newest_english_table_of_each_year(tmp_path, fixture_bytes):
@@ -33,12 +40,20 @@ def test_v1_cpi_reads_the_newest_english_table_of_each_year(tmp_path, fixture_by
     _put(archive, "doc-1", "elstat_cpi07_2025.xls", en.format(y=2025, ext=".xls"), (2026, 1, 15), fixture_bytes)
     _put(archive, "doc-9", "elstat_cpi07_2025.xls", en.format(y=2025, ext=".xls"), (2026, 3, 15), fixture_bytes)
     _put(archive, "doc-2", "elstat_cpi07_2026.xlsx", en.format(y=2026, ext=".xlsx"), (2026, 10, 1), fixture_bytes)
-    _put(archive, "doc-3-el", "elstat_cpi07_2011_el.xls", "A0515_DKT87_TS_MM_01_2011_12_2011_07_F_GR.xls",
-         (2026, 10, 1), fixture_bytes)
+    _put(
+        archive,
+        "doc-3-el",
+        "elstat_cpi07_2011_el.xls",
+        "A0515_DKT87_TS_MM_01_2011_12_2011_07_F_GR.xls",
+        (2026, 10, 1),
+        fixture_bytes,
+    )
     _put(archive, "doc-4", "elstat_cpi07_2011_el.xls", "something_else.xls", (2026, 10, 1), fixture_bytes)
     checked, earlier, disagreements, files = v1_cpi.run_archive(archive)
-    assert files == {2025: archive.root / archive.latest("elstat", "doc-9")["path"],
-                     2026: archive.root / archive.latest("elstat", "doc-2")["path"]}
+    assert files == {
+        2025: archive.root / archive.latest("elstat", "doc-9")["path"],
+        2026: archive.root / archive.latest("elstat", "doc-2")["path"],
+    }
     assert earlier is None and not checked.failures and checked.links == 9
 
 
@@ -64,7 +79,7 @@ def test_years_before_2014_are_reported_apart_from_the_strict_check():
     for year in (2011, 2012, 2013, 2014):
         dec_before = start / 1.01
         tables.append(_table(year, start, link=dec_before * 1.001 if year == 2014 else None))
-        start = start * 1.01 ** 12
+        start = start * 1.01**12
     checked, earlier, disagreements = v1_cpi.run(tables)
     assert checked.name == "CPI, finest detail, 2014 on" and not checked.failures, checked.summary()
     assert earlier is not None and earlier.name.startswith("CPI, 2012-2013 (report only")

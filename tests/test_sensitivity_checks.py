@@ -27,31 +27,72 @@ def survey(year=2024):
     """Twelve one-person households in 2024, so in COICOP 2018 codes, incomes rising: every third renting
     (300 a year rent), every third owning (400 imputed rent), every third housed free (200 of
     "other imputed rent"); food and transport rising with income; one weight each."""
-    h = pd.DataFrame({"hh": [str(i) for i in range(N)], "weight": 1.0, "region": "EL3",
-                      "stratum": ["1" if i < N // 2 else "2" for i in range(N)],
-                      "cluster": [f"{i % 3}" for i in range(N)],
-                      "money_income": [6000.0 + 2000 * i for i in range(N)],
-                      "total_income": [6000.0 + 2000 * i for i in range(N)], "main_income_source": "1"})
-    kind = [i % 3 for i in range(N)]       # 0 renter, 1 owner, 2 housed free
-    leaf = pd.DataFrame({"01110": [100.0 + 10 * i for i in range(N)],
-                         "04110": [300.0 if k == 0 else 0.0 for k in kind],
-                         "04210": [400.0 if k == 1 else 0.0 for k in kind],
-                         "04220": [200.0 if k == 2 else 0.0 for k in kind],
-                         "07220": [50.0 + i for i in range(N)]})
+    h = pd.DataFrame(
+        {
+            "hh": [str(i) for i in range(N)],
+            "weight": 1.0,
+            "region": "EL3",
+            "stratum": ["1" if i < N // 2 else "2" for i in range(N)],
+            "cluster": [f"{i % 3}" for i in range(N)],
+            "money_income": [6000.0 + 2000 * i for i in range(N)],
+            "total_income": [6000.0 + 2000 * i for i in range(N)],
+            "main_income_source": "1",
+        }
+    )
+    kind = [i % 3 for i in range(N)]  # 0 renter, 1 owner, 2 housed free
+    leaf = pd.DataFrame(
+        {
+            "01110": [100.0 + 10 * i for i in range(N)],
+            "04110": [300.0 if k == 0 else 0.0 for k in kind],
+            "04210": [400.0 if k == 1 else 0.0 for k in kind],
+            "04220": [200.0 if k == 2 else 0.0 for k in kind],
+            "07220": [50.0 + i for i in range(N)],
+        }
+    )
     s = mapping.with_parents(leaf)
     persons = pd.DataFrame({"hh": h.hh, "age": 40, "relation": "1", "activity": "1"})
-    return Survey(year=year, classification=classification(year), households=h, persons=persons,
-                  spending=s, purchases=s.copy(), design="full", source_sha256="0" * 64)
+    return Survey(
+        year=year,
+        classification=classification(year),
+        households=h,
+        persons=persons,
+        spending=s,
+        purchases=s.copy(),
+        design="full",
+        source_sha256="0" * 64,
+    )
 
 
 def store_silc(archive, year, renter, owner, rent_free, all_=None):
     """An EU-SILC tenure table in the archive, as `traceconomics silc run` writes it."""
-    rows = [{"geo": "GR", "ref_year": year, "tenure": t, "n_households": "100", "households_weighted": v,
-             "people_weighted": v, "rent_paid_eur": 0.0, "source_version": "made up"}
-            for t, v in (("all", all_ if all_ is not None else renter + owner + rent_free), ("owner", owner),
-                         ("renter", renter), ("rent_free", rent_free)) if v is not None]
-    archive.store_bytes("oet-local", silc.OUT.format(year=year), weights.to_csv(pd.DataFrame(rows)[silc.COLUMNS], ["made up"]),
-                        url=None, retrieved_at=datetime(2026, 1, 1, tzinfo=UTC), ext=".csv", kind="local")
+    rows = [
+        {
+            "geo": "GR",
+            "ref_year": year,
+            "tenure": t,
+            "n_households": "100",
+            "households_weighted": v,
+            "people_weighted": v,
+            "rent_paid_eur": 0.0,
+            "source_version": "made up",
+        }
+        for t, v in (
+            ("all", all_ if all_ is not None else renter + owner + rent_free),
+            ("owner", owner),
+            ("renter", renter),
+            ("rent_free", rent_free),
+        )
+        if v is not None
+    ]
+    archive.store_bytes(
+        "oet-local",
+        silc.OUT.format(year=year),
+        weights.to_csv(pd.DataFrame(rows)[silc.COLUMNS], ["made up"]),
+        url=None,
+        retrieved_at=datetime(2026, 1, 1, tzinfo=UTC),
+        ext=".csv",
+        kind="local",
+    )
 
 
 @pytest.fixture
@@ -65,6 +106,7 @@ def silc_archive(tmp_path):
 
 
 # -- the target ------------------------------------------------------------------------------------
+
 
 def test_the_target_spreads_eu_silcs_census_step_over_the_years_between_the_censuses(silc_archive):
     """PY-CALIB-001: the target is EU-SILC's split, plus the step to the 2021 census spread over 2012-2021
@@ -82,14 +124,20 @@ def test_the_target_spreads_eu_silcs_census_step_over_the_years_between_the_cens
     assert t.shares == pytest.approx({"renter": 0.235, "owner": 0.695, "rent_free": 0.07})
     assert "0.5 of its step from 2022 to 2023" in t.basis and len(t.sources) == 3
     for year in (2021, 2022):
-        assert cal.target(silc_archive, year).shares == pytest.approx({"renter": 0.25, "owner": 0.69, "rent_free": 0.06})
+        assert cal.target(silc_archive, year).shares == pytest.approx(
+            {"renter": 0.25, "owner": 0.69, "rent_free": 0.06}
+        )
 
 
-@pytest.mark.parametrize("year, problem", [
-    (2024, "no EU-SILC tenure table for 2024"),
-    (2019, r"no households for \['rent_free'\]"),
-    (2018, "add up to 0.9"),
-], ids=["no table", "a tenure missing", "shares not adding up"])
+@pytest.mark.parametrize(
+    "year, problem",
+    [
+        (2024, "no EU-SILC tenure table for 2024"),
+        (2019, r"no households for \['rent_free'\]"),
+        (2018, "add up to 0.9"),
+    ],
+    ids=["no table", "a tenure missing", "shares not adding up"],
+)
 def test_a_missing_or_broken_eu_silc_table_is_refused(silc_archive, year, problem):
     """PY-CALIB-002: a missing EU-SILC table, or one with a tenure missing or not adding up, is refused
 
@@ -105,6 +153,7 @@ def test_a_missing_or_broken_eu_silc_table_is_refused(silc_archive, year, proble
 
 # -- the calibration -------------------------------------------------------------------------------
 
+
 def test_calibration_hits_the_target_keeps_the_total_and_works_per_replicate():
     """PY-CALIB-003: calibration gives each tenure its share, keeps the total, and works column by column
 
@@ -118,7 +167,9 @@ def test_calibration_hits_the_target_keeps_the_total_and_works_per_replicate():
     s = survey()
     tenure = pd.Series([*assign(s)["tenure"], pd.NA], dtype="string")
     h = pd.concat([s.households, s.households.iloc[[0]].assign(hh="x")], ignore_index=True)
-    out, factors = cal.calibrated(Survey(**{**s.__dict__, "households": h}), tenure, cal.Target(TARGET, "t", TARGET, ()))
+    out, factors = cal.calibrated(
+        Survey(**{**s.__dict__, "households": h}), tenure, cal.Target(TARGET, "t", TARGET, ())
+    )
     w = out.households.weight.to_numpy(float)
     assert tc.renter_share(w, tenure) == pytest.approx(0.5)
     assert w[:-1].sum() == pytest.approx(12.0) and w[-1] == 1.0
@@ -150,6 +201,7 @@ def test_bootstrap_replicates_are_calibrated_again():
 
 # -- the tenure check ------------------------------------------------------------------------------
 
+
 @pytest.fixture
 def made_up(monkeypatch):
     """Reading a survey gives the made-up one; the target is TARGET."""
@@ -179,10 +231,12 @@ def test_calibration_moves_rent_in_mixed_groups_only(made_up):
 def fake_build(rates_from):
     """A series builder whose annual-average rate in year y+1 is `rates_from(basket of survey y)`,
     December's rate the same plus one."""
+
     def build(con, grouping, label, *, blocks, baskets, options=None, first_year=None):
         rates = {y + 1: rates_from(b) for (y, g, q), b in baskets.items() if (g, q) == (grouping, label)}
         dec = {f"{y}-12": {"annual": r + 1} for y, r in rates.items()}
         return type("S", (), {"annual_average_rates": lambda self: rates, "rates": lambda self: dec})()
+
     return build
 
 

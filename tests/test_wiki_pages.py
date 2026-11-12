@@ -33,7 +33,7 @@ def names(page: Path) -> list[str]:
 
 def exists(token: str) -> bool:
     path = token.rstrip("/")
-    if "/" not in path:            # a bare file name: somewhere in the repository
+    if "/" not in path:  # a bare file name: somewhere in the repository
         return any(not SKIP_DIRS & set(p.parts) for p in ROOT.rglob(path))
     return any((base / path).exists() for base in BASES)
 

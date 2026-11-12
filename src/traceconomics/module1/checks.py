@@ -29,8 +29,10 @@ FIRST_L1 = 2012
 # survey at 1-3; air fares swing by 20-50% a year. Tolls (07.2.4.2) are 10-14 per mille in the
 # CPI and about 1 in the public use file, which cuts them.
 EXPLAINED = {
-    2014: ("the 2013 months come from ELSTAT's fixed-basket years; transport: tolls (12.1 per mille in the CPI, "
-           "cut from the survey) and combined transport (6.5, +10.6%) weigh more in the CPI, fuels (-10.8%) in ours"),
+    2014: (
+        "the 2013 months come from ELSTAT's fixed-basket years; transport: tolls (12.1 per mille in the CPI, "
+        "cut from the survey) and combined transport (6.5, +10.6%) weigh more in the CPI, fuels (-10.8%) in ours"
+    ),
     2017: "transport: air fares +22% (Dec/Dec) at 19.8 per mille in the CPI against 3.2 in the survey; tolls cut",
     2020: "transport: air fares -26% at 16.6 per mille in the CPI against 3.4 in the survey; tolls cut",
     2021: "housing: the survey weights natural gas (+136%) and heating oil (+34%) above ELSTAT's 2021 weights",
@@ -67,8 +69,9 @@ def v3(con, archive, spending: str = "purchases") -> list[V3Row]:
     blocks = index.price_blocks(con, archive)
     baskets = load_baskets(con, spending=spending)
     # ELSTAT's rule needs survey y-2's average prices: from 2012 (survey 2010), the first CPI year.
-    l1 = index.build(con, "all", "all", spending=spending, blocks=blocks, baskets=baskets, rule=elstat_rule,
-                     first_year=FIRST_L1)
+    l1 = index.build(
+        con, "all", "all", spending=spending, blocks=blocks, baskets=baskets, rule=elstat_rule, first_year=FIRST_L1
+    )
     l2 = index.build(con, "all", "all", spending=spending, blocks=blocks, baskets=baskets, rule=rule_n)
     official: dict[str, float] = {}
     for year, block in blocks.items():
@@ -86,11 +89,12 @@ def v3(con, archive, spending: str = "purchases") -> list[V3Row]:
 
 # -- V6: our contributions code against Eurostat's own euro-area contributions -------------------
 
+
 @dataclass
 class V6Result:
     compared: int
-    exact: int                    # equal at two decimals
-    worst: tuple[str, str, float, float] | None    # period, division, ours, Eurostat
+    exact: int  # equal at two decimals
+    worst: tuple[str, str, float, float] | None  # period, division, ours, Eurostat
 
 
 def v6(con, archive, first_year: int = 2016, last_year: int = 2025) -> V6Result:
@@ -107,19 +111,29 @@ def v6(con, archive, first_year: int = 2016, last_year: int = 2025) -> V6Result:
     from traceconomics.store.query import as_of
 
     prices: dict[str, dict[str, float]] = {}
-    for code, period, value in as_of(con, "eurostat:prc_hicp_midx", where="geo = 'EA' AND unit = 'I15'") \
-            .project("coicop, ref_period, value").fetchall():
+    for code, period, value in (
+        as_of(con, "eurostat:prc_hicp_midx", where="geo = 'EA' AND unit = 'I15'")
+        .project("coicop, ref_period, value")
+        .fetchall()
+    ):
         if value is not None and code.isdigit() and len(code) == 2:
             prices.setdefault(code, {})[period] = value
     weights: dict[int, dict[str, float]] = {}
-    for code, year, value in as_of(con, "eurostat:prc_hicp_inw", where="geo = 'EA'") \
-            .project("coicop, ref_period, value").fetchall():
+    for code, year, value in (
+        as_of(con, "eurostat:prc_hicp_inw", where="geo = 'EA'").project("coicop, ref_period, value").fetchall()
+    ):
         if value and code.isdigit() and len(code) == 2:
             weights.setdefault(int(year), {})[code] = value
     years = range(first_year - 1, last_year + 1)
     chained = chain(weights, prices, first_year=first_year - 1, last_year=last_year)
-    used = {y: Used(Entry(y, y, FINAL, f"{y}-01", "Eurostat weights"),
-                    {c: w / sum(weights[y].values()) for c, w in weights[y].items()}, {}) for y in years}
+    used = {
+        y: Used(
+            Entry(y, y, FINAL, f"{y}-01", "Eurostat weights"),
+            {c: w / sum(weights[y].values()) for c, w in weights[y].items()},
+            {},
+        )
+        for y in years
+    }
     series = index.Series("EA", "all", "hicp", [], used, chained)
     ours = ribe(series, {y: prices for y in years})
 
@@ -156,6 +170,7 @@ def v6(con, archive, first_year: int = 2016, last_year: int = 2025) -> V6Result:
 
 # -- V-prices: the CPI's item indices against the HICP's, which ELSTAT says use the same prices ---
 
+
 def v_prices(con, digits=(4, 5)) -> dict[int, dict]:
     """Per year: how far apart the CPI's and the HICP's annual rates are for the same item code
     (both are re-coded series in COICOP 2018: ELSTAT's re-issued table 07, Eurostat's back-cast).
@@ -173,8 +188,11 @@ def v_prices(con, digits=(4, 5)) -> dict[int, dict]:
                 if p[:4] == str(year):
                     cpi.setdefault(code, {})[p] = v
     hicp: dict[str, dict[str, float]] = {}
-    for code, p, v in as_of(con, "eurostat:prc_hicp_minr", where="geo = 'GR' AND unit = 'I25'") \
-            .project("coicop18, ref_period, value").fetchall():
+    for code, p, v in (
+        as_of(con, "eurostat:prc_hicp_minr", where="geo = 'GR' AND unit = 'I25'")
+        .project("coicop18, ref_period, value")
+        .fetchall()
+    ):
         if v is not None and code.isdigit() and len(code) in digits:
             hicp.setdefault(code, {})[p] = v
     out: dict[int, dict] = {}
@@ -186,12 +204,19 @@ def v_prices(con, digits=(4, 5)) -> dict[int, dict]:
             out.setdefault(int(p[:4]), {}).setdefault("gaps", []).append((abs(a - b), code))
     for year, d in out.items():
         gaps = [g for g, _ in d.pop("gaps")] if "gaps" in d else []
-        d.update({"pairs": len(gaps), "median": statistics.median(gaps), "within_0.1": sum(g <= 0.1 for g in gaps) / len(gaps),
-                  "max": max(gaps)})
+        d.update(
+            {
+                "pairs": len(gaps),
+                "median": statistics.median(gaps),
+                "within_0.1": sum(g <= 0.1 for g in gaps) / len(gaps),
+                "max": max(gaps),
+            }
+        )
     return dict(sorted(out.items()))
 
 
 # -- The seam between ELSTAT's original and re-issued prices (2010) ------------------------------
+
 
 def seam(con, archive) -> dict[str, tuple[float, float]]:
     """{group: (Jan-to-Dec 2010 movement with the original prices, with the re-issued ones)}, in %.

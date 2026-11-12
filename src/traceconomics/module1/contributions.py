@@ -66,7 +66,7 @@ def ribe(series: Series, blocks: dict[int, Prices], digits: int = 2) -> dict[str
             lyt = 0.0
             if h in subs[year - 1]:
                 sub = subs[year - 1][h]
-                w_m = sub["w"] * sub["links"][prev] / total[prev]                 # equation 8.4c
+                w_m = sub["w"] * sub["links"][prev] / total[prev]  # equation 8.4c
                 lyt = (sub["links"][dec_prev] / sub["links"][prev] - 1) * w_m
             contrib[h] = (tyt + lyt) * 100
         out[period] = contrib

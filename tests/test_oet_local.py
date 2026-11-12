@@ -43,15 +43,19 @@ def test_rows_are_one_value_each_and_keep_text(tmp_path):
     And every row has reference period 2016 and spending "purchases"
     """
     p = tmp_path / "w.csv"
-    p.write_text(WEIGHTS.replace("group,imputed_rent", "group,spending,imputed_rent")
-                 .replace(",all,all,", ",all,all,purchases,").replace(",B,Q1,", ",B,Q1,purchases,"), encoding="utf-8")
+    p.write_text(
+        WEIGHTS.replace("group,imputed_rent", "group,spending,imputed_rent")
+        .replace(",all,all,", ",all,all,purchases,")
+        .replace(",B,Q1,", ",B,Q1,purchases,"),
+        encoding="utf-8",
+    )
     rows = named(oet_local.rows(p, "oet-weights"), "oet-weights")
     by = {(r["group"], r["imputed_rent"], r["measure"]): r for r in rows}
     assert (by[("all", "excluded", "share")]["value_text"], by[("all", "excluded", "share")]["value"]) == ("0.25", 0.25)
     assert by[("Q1", "excluded", "n_households_unweighted")]["value_text"] == "<20"
     assert by[("Q1", "excluded", "n_households_unweighted")]["value"] is None
     assert by[("Q1", "excluded", "reliability")]["value_text"] == "suppressed"
-    assert ("Q1", "included", "se") not in by                                 # empty: no row
+    assert ("Q1", "included", "se") not in by  # empty: no row
     assert all(r["ref_period"] == "2016" and r["spending"] == "purchases" for r in rows)
 
 
@@ -99,11 +103,19 @@ def test_archived_tables_reach_the_store(tmp_path):
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     when = datetime(2026, 10, 19, 12, tzinfo=UTC)
     for dataset, text in (("hbs-weights-gr-2016", WEIGHTS), ("hbs-groups-gr-2016", GROUPS)):
-        archive.store_bytes("oet-local", dataset, text.encode("utf-8"), url=None, retrieved_at=when, ext=".csv",
-                            kind="local", extra={"original_name": f"{dataset}.csv"})
+        archive.store_bytes(
+            "oet-local",
+            dataset,
+            text.encode("utf-8"),
+            url=None,
+            retrieved_at=when,
+            ext=".csv",
+            kind="local",
+            extra={"original_name": f"{dataset}.csv"},
+        )
     con = duckdb.connect()
     reports = update(archive, store, con, only=["oet-local:hbs_weights", "oet-local:hbs_groups"])
-    assert [r.added for r in reports] == [11, 5]          # 4 + 4 + 3 (one se is empty); 5
+    assert [r.added for r in reports] == [11, 5]  # 4 + 4 + 3 (one se is empty); 5
     open_views(con, store.root)
     share = as_of(con, "oet-local:hbs_weights", where="measure = 'share' AND \"group\" = 'all'")
     assert share.project("value, coicop18, ref_period").fetchall() == [(0.25, "01", "2016")]
@@ -123,6 +135,7 @@ def test_csv_writes_small_counts_as_text_and_is_repeatable():
     """
     pd = pytest.importorskip("pandas")
     from traceconomics.local import weights
+
     assert weights._count(19) == "<20" and weights._count(20) == "20"
     t = pd.DataFrame({"a": [0.1, float("nan")], "b": ["x", pd.NA]})
     assert weights.to_csv(t, ["h"]) == weights.to_csv(t, ["h"]) == b"# h\na,b\n0.1,x\n,\n"
@@ -157,13 +170,16 @@ def test_limits_file_reads_one_row_per_fifth(tmp_path):
     And Q2 has no standard error row
     """
     p = tmp_path / "l.csv"
-    p.write_text("# x\ngeo,ref_year,grouping,group,unit,limit,se,se_design,source_version\n"
-                 "GR,2024,B,Q1,EUR_PER_ADULT_EQ_Y,7400,52.5,full,v\n"
-                 "GR,2024,B,Q2,EUR_PER_ADULT_EQ_Y,10600,,unavailable,v\n", encoding="utf-8")
+    p.write_text(
+        "# x\ngeo,ref_year,grouping,group,unit,limit,se,se_design,source_version\n"
+        "GR,2024,B,Q1,EUR_PER_ADULT_EQ_Y,7400,52.5,full,v\n"
+        "GR,2024,B,Q2,EUR_PER_ADULT_EQ_Y,10600,,unavailable,v\n",
+        encoding="utf-8",
+    )
     got = list(oet_local.rows(p, "oet-limits"))
     assert ("GR", "B", "Q1", "EUR_PER_ADULT_EQ_Y", "limit", "2024", "7400", 7400.0) in got
     assert ("GR", "B", "Q2", "EUR_PER_ADULT_EQ_Y", "se_design", "2024", "unavailable", None) in got
-    assert not [r for r in got if r[1:5] == ("B", "Q2", "EUR_PER_ADULT_EQ_Y", "se")]     # an empty se is no row
+    assert not [r for r in got if r[1:5] == ("B", "Q2", "EUR_PER_ADULT_EQ_Y", "se")]  # an empty se is no row
 
 
 def test_household_types_file_reads_ours_and_elstats(tmp_path):
@@ -176,10 +192,13 @@ def test_household_types_file_reads_ours_and_elstats(tmp_path):
     And the small count stays as text with no number
     """
     p = tmp_path / "t.csv"
-    p.write_text("# x\ngeo,ref_year,group,n_households,share_households,elstat_n_households,elstat_share_households,"
-                 "agreement,elstat_status,source_version\n"
-                 "GR,2023,A1,812,0.25,1004,0.31,0.269,unusable: broken,v\n"
-                 "GR,2023,A1_DCH,<20,0.004,55,0.02,0.269,unusable: broken,v\n", encoding="utf-8")
+    p.write_text(
+        "# x\ngeo,ref_year,group,n_households,share_households,elstat_n_households,elstat_share_households,"
+        "agreement,elstat_status,source_version\n"
+        "GR,2023,A1,812,0.25,1004,0.31,0.269,unusable: broken,v\n"
+        "GR,2023,A1_DCH,<20,0.004,55,0.02,0.269,unusable: broken,v\n",
+        encoding="utf-8",
+    )
     got = list(oet_local.rows(p, "oet-hhtypes"))
     assert ("GR", "A1", "share_households", "2023", "0.25", 0.25) in got
     assert ("GR", "A1", "elstat_share_households", "2023", "0.31", 0.31) in got
@@ -197,9 +216,12 @@ def test_rent_file_reads_one_row_per_tenure_and_measure(tmp_path):
     And the small count stays as text with no number
     """
     p = tmp_path / "r.csv"
-    p.write_text("# x\ngeo,ref_year,tenure,n_households,households_weighted,people_weighted,rent_paid_eur,source_version\n"
-                 "GR,2024,all,6000,4299000.5,10400000.25,3501000000.75,v\n"
-                 "GR,2024,renter,<20,812000.5,1900000,3501000000.75,v\n", encoding="utf-8")
+    p.write_text(
+        "# x\ngeo,ref_year,tenure,n_households,households_weighted,people_weighted,rent_paid_eur,source_version\n"
+        "GR,2024,all,6000,4299000.5,10400000.25,3501000000.75,v\n"
+        "GR,2024,renter,<20,812000.5,1900000,3501000000.75,v\n",
+        encoding="utf-8",
+    )
     got = list(oet_local.rows(p, "oet-rent"))
     assert ("GR", "all", "rent_paid_eur", "2024", "3501000000.75", 3501000000.75) in got
     assert ("GR", "renter", "households_weighted", "2024", "812000.5", 812000.5) in got
@@ -216,11 +238,14 @@ def test_spending_file_reads_each_columns_figures_and_results(tmp_path):
     And the band is a column of its own
     """
     p = tmp_path / "s.csv"
-    p.write_text("# x\ngeo,ref_year,group,coicop,item,published,ours,result,source_version\n"
-                 "GR,2014,All households,households,,4152372,4136073,differs,v\n"
-                 "GR,2014,All households,01112,Bread,9.5,9.43,differs,v\n"
-                 "GR,2014,All households,03111,Clothing materials,0.09,,differs,v\n"
-                 "GR,2014,up 750 €,01112,Bread,6.1,6.1,matched,v\n", encoding="utf-8")
+    p.write_text(
+        "# x\ngeo,ref_year,group,coicop,item,published,ours,result,source_version\n"
+        "GR,2014,All households,households,,4152372,4136073,differs,v\n"
+        "GR,2014,All households,01112,Bread,9.5,9.43,differs,v\n"
+        "GR,2014,All households,03111,Clothing materials,0.09,,differs,v\n"
+        "GR,2014,up 750 €,01112,Bread,6.1,6.1,matched,v\n",
+        encoding="utf-8",
+    )
     got = list(oet_local.rows(p, "oet-spending"))
     assert ("GR", "All households", "households", "ours", "2014", "4136073", 4136073.0) in got
     assert ("GR", "All households", "01112", "item", "2014", "Bread", None) in got
@@ -242,13 +267,19 @@ def test_an_empty_limits_file_withdraws_the_earlier_limits(tmp_path):
     """
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     head = "# x\ngeo,ref_year,grouping,group,unit,limit,se,se_design,source_version\n"
-    full = head + ("GR,2010,B,Q1,EUR_PER_ADULT_EQ_Y,4797,50,full,v\n"
-                   "GR,2010,B,Q2,EUR_PER_ADULT_EQ_Y,8167,60,full,v\n")
+    full = head + ("GR,2010,B,Q1,EUR_PER_ADULT_EQ_Y,4797,50,full,v\nGR,2010,B,Q2,EUR_PER_ADULT_EQ_Y,8167,60,full,v\n")
     con = duckdb.connect()
     for day, text in ((19, full), (20, head)):
-        archive.store_bytes("oet-local", "hbs-limits-gr-2010", text.encode("utf-8"), url=None,
-                            retrieved_at=datetime(2026, 10, day, 12, tzinfo=UTC), ext=".csv", kind="local",
-                            extra={"original_name": "hbs-limits-gr-2010.csv"})
+        archive.store_bytes(
+            "oet-local",
+            "hbs-limits-gr-2010",
+            text.encode("utf-8"),
+            url=None,
+            retrieved_at=datetime(2026, 10, day, 12, tzinfo=UTC),
+            ext=".csv",
+            kind="local",
+            extra={"original_name": "hbs-limits-gr-2010.csv"},
+        )
     reports = update(archive, store, con, only=["oet-local:hbs_limits"])
     assert (reports[0].added, reports[0].withdrawn) == (6, 6)
     open_views(con, store.root)

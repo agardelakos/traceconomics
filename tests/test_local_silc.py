@@ -19,10 +19,15 @@ def _archive_with(tmp_path, year, h_rows, d_weights, persons, tenure_col="HH021"
     '... Public Use Files.xlsx' (sheets D_FILE, H_FILE, R_FILE) and a description workbook."""
     buf = io.BytesIO()
     with pd.ExcelWriter(buf) as xw:
-        pd.DataFrame({"DB030": list(d_weights), "DB090": list(d_weights.values())}).to_excel(xw, sheet_name="D_FILE", index=False)
-        pd.DataFrame([{"HB030": h, tenure_col: t, "HH060": r} for h, t, r in h_rows]).to_excel(xw, sheet_name="H_FILE", index=False)
+        pd.DataFrame({"DB030": list(d_weights), "DB090": list(d_weights.values())}).to_excel(
+            xw, sheet_name="D_FILE", index=False
+        )
+        pd.DataFrame([{"HB030": h, tenure_col: t, "HH060": r} for h, t, r in h_rows]).to_excel(
+            xw, sheet_name="H_FILE", index=False
+        )
         pd.DataFrame([{"RB030": f"{h}0{i}", "RB040": h, "RB050": w} for i, (h, w) in enumerate(persons)]).to_excel(
-            xw, sheet_name="R_FILE", index=False)
+            xw, sheet_name="R_FILE", index=False
+        )
     src = tmp_path / "src"
     src.mkdir(parents=True)
     (src / f"SILC_{year}_Public Use Files.xlsx").write_bytes(buf.getvalue())
@@ -32,9 +37,16 @@ def _archive_with(tmp_path, year, h_rows, d_weights, persons, tenure_col="HH021"
         for p in sorted(src.iterdir()):
             z.write(p, p.name)
     archive = Archive(tmp_path / "archive")
-    archive.store_file("elstat", f"puf-statistics-on-income-and-living-conditions-silc-{year}", seven, url=None,
-                       retrieved_at=pd.Timestamp("2026-10-14", tz="UTC").to_pydatetime(), ext=".7z", kind="manual",
-                       move=False)
+    archive.store_file(
+        "elstat",
+        f"puf-statistics-on-income-and-living-conditions-silc-{year}",
+        seven,
+        url=None,
+        retrieved_at=pd.Timestamp("2026-10-14", tz="UTC").to_pydatetime(),
+        ext=".7z",
+        kind="manual",
+        move=False,
+    )
     return archive
 
 
@@ -57,7 +69,10 @@ def test_tenure_and_rent_by_household_and_person(tmp_path):
     assert silc.years(a) == {2024: "puf-statistics-on-income-and-living-conditions-silc-2024"}
     t = silc.table(silc.read(a, 2024), 2024, "v").set_index("tenure")
     assert t.loc["all", "households_weighted"] == 200.0 and t.loc["renter", "households_weighted"] == 60.0
-    assert (t.loc["renter_market", "households_weighted"], t.loc["renter_reduced", "households_weighted"]) == (50.0, 10.0)
+    assert (t.loc["renter_market", "households_weighted"], t.loc["renter_reduced", "households_weighted"]) == (
+        50.0,
+        10.0,
+    )
     assert t.loc["owner", "people_weighted"] == 200.0
     assert t.loc["all", "rent_paid_eur"] == pytest.approx(12 * (50 * 400 + 10 * 200.5))
     assert t.loc["renter", "rent_paid_eur"] == t.loc["all", "rent_paid_eur"]
@@ -90,8 +105,14 @@ def test_older_files_use_hh020_and_unknown_codes_are_refused(tmp_path):
     Then the 2009 file's renters are its market and reduced-rent households, 60 of 200
     And the 2024 file is refused with a FormatError naming the unknown code
     """
-    old = _archive_with(tmp_path / "a", 2009, [("1", "1", ""), ("2", "2", "400"), ("3", "3", "200.5"), ("4", "4", "")],
-                        D, P, tenure_col="HH020")
+    old = _archive_with(
+        tmp_path / "a",
+        2009,
+        [("1", "1", ""), ("2", "2", "400"), ("3", "3", "200.5"), ("4", "4", "")],
+        D,
+        P,
+        tenure_col="HH020",
+    )
     t = silc.table(silc.read(old, 2009), 2009, "v").set_index("tenure")
     assert t.loc["renter", "households_weighted"] == 60.0 and t.loc["rent_free", "households_weighted"] == 40.0
     bad = _archive_with(tmp_path / "b", 2024, [*H[:3], ("4", "7", "")], D, P)

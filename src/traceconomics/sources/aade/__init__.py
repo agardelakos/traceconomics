@@ -41,4 +41,3 @@ def dataset_for(url: str) -> str:
     Takes an address or a bare file name (a workbook downloaded by hand).
     """
     return "pit-" + slug(unquote(url.rsplit("/", 1)[-1]).rsplit(".", 1)[0])
-

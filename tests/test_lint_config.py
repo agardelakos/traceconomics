@@ -56,8 +56,15 @@ def test_prettier_ignores_every_protected_path():
     Then it lists the fixtures, the Code of Conduct, the served files, the build output, the
       coverage reports and the files npm writes
     """
-    required = {"../tests/fixtures/", "../CODE_OF_CONDUCT.md", "public/", "dist/", "coverage/",
-                "package.json", "package-lock.json"}
+    required = {
+        "../tests/fixtures/",
+        "../CODE_OF_CONDUCT.md",
+        "public/",
+        "dist/",
+        "coverage/",
+        "package.json",
+        "package-lock.json",
+    }
     assert required <= prettier_ignored(), sorted(required - prettier_ignored())
 
 
@@ -77,7 +84,9 @@ def test_prettier_scripts_check_what_they_write():
     patterns = re.findall(r'"([^"]+)"', check)
     assert patterns, check
     # Under ../src/ only the package README is formatted; nothing reaches the data tables.
-    outside = [p for p in patterns if "traceconomics/data" in p or (p.startswith("../src/") and not p.endswith("README.md"))]
+    outside = [
+        p for p in patterns if "traceconomics/data" in p or (p.startswith("../src/") and not p.endswith("README.md"))
+    ]
     assert not outside, outside
 
 

@@ -17,15 +17,19 @@ def blocks():
     b = {}
     for y in range(2008, 2027):
         last = 9 if y == 2026 else 12
-        b[y] = {c: {f"{y - 1}-12": 100.0, **{f"{y}-{m:02d}": 100 + m * k for m in range(1, last + 1)}}
-                for c, k in (("01", 0.6), ("04", 0.3), ("10", 0.4))}
+        b[y] = {
+            c: {f"{y - 1}-12": 100.0, **{f"{y}-{m:02d}": 100 + m * k for m in range(1, last + 1)}}
+            for c, k in (("01", 0.6), ("04", 0.3), ("10", 0.4))
+        }
     return b
 
 
 def baskets():
     shares = {"01": 0.5, "04": 0.45, "10501": 0.05}
     tiers = dict.fromkeys(shares, "normal")
-    return {(h, g, q): Basket(dict(shares), dict(tiers)) for h in range(2008, 2025) for g, q in (("B", "Q1"), ("B", "Q5"))}
+    return {
+        (h, g, q): Basket(dict(shares), dict(tiers)) for h in range(2008, 2025) for g, q in (("B", "Q1"), ("B", "Q5"))
+    }
 
 
 def test_48_settings_with_the_default_first():
@@ -40,7 +44,7 @@ def test_48_settings_with_the_default_first():
     s = combinations.settings()
     assert len(s) == 48 and s[0] == combinations.DEFAULT
     assert len({combinations.label(x) for x in s}) == 48
-    assert len(combinations.GROUPS) == 27          # 3 x 5 fifths, all, 3 tenures, 2 pensioner groups, 6 household types
+    assert len(combinations.GROUPS) == 27  # 3 x 5 fifths, all, 3 tenures, 2 pensioner groups, 6 household types
 
 
 def test_quality_flags_follow_the_price_source():
@@ -69,9 +73,12 @@ def test_small_cells_are_published_only_inside_a_rest_row():
     And the other subclass covers 1 cell
     And the published weights sum to 1
     """
-    u = Used(Entry(2020, 2019, FINAL, "2020-01", "t"),
-             {"01111": 0.1, "01112": 0.2, "01113": 0.3, "0112": 0.4},
-             {"01111": "0111", "01112": "0111"}, small={"01111": "0111", "01112": "0111"})
+    u = Used(
+        Entry(2020, 2019, FINAL, "2020-01", "t"),
+        {"01111": 0.1, "01112": 0.2, "01113": 0.3, "0112": 0.4},
+        {"01111": "0111", "01112": "0111"},
+        small={"01111": "0111", "01112": "0111"},
+    )
     w = output.published_weights(u)
     assert set(w) == {"0111_REST", "01113", "0112"}
     assert w["0111_REST"] == (pytest.approx(0.3), "0111", 2)
@@ -96,7 +103,7 @@ def test_series_carry_their_options_and_rule_u_ends_with_its_surveys():
     f = index.build(None, "B", "Q1", blocks=b, baskets=k, first_year=None, options={"weights_timing": "F"})
     assert n.options == index.DEFAULT_OPTIONS and n.index_unit == "I25"
     assert u.options["weights_timing"] == "U" and max(u.published) == "2024-12" and u.index_unit == "I24"
-    assert min(f.published) == "2010-12"                       # Rule F's first year is 2011
+    assert min(f.published) == "2010-12"  # Rule F's first year is 2011
     rows = output.rows([n, u])
     assert {r["weights_timing"] for r in rows["m1_index"]} == {"N", "U"}
     assert {r["unit"] for r in rows["m1_index"]} == {"I25", "I24"}
@@ -125,7 +132,7 @@ def test_availability_greys_out_what_a_rule_cannot_cover(tmp_path):
     assert u["greyed"][0]["reason"] == "rule_u_end" and u["greyed"][0]["index"] == ["2025-01", "2026-09"]
     assert "2024" in u["greyed"][0]["text"]
     n = next(s for s in table["series"] if s["weights_timing"] == "N")
-    assert n["footnotes"]["hospital"]["annual_rates"] == ["2009-12", "2016-11"]    # weights from surveys 2008-2014
+    assert n["footnotes"]["hospital"]["annual_rates"] == ["2009-12", "2016-11"]  # weights from surveys 2008-2014
     assert n["footnotes"]["hospital"]["annual_averages"] == ["2010", "2016"]
     uf = next(s for s in table["series"] if s["weights_timing"] == "U")
     assert uf["footnotes"]["hospital"]["annual_rates"][1] == "2015-11"
@@ -147,13 +154,19 @@ def test_an_option_whose_source_publishes_later_is_greyed_for_the_months_it_lack
     cpi = blocks()
     hicp = {y: {c: {p: v for p, v in s.items() if p != "2026-09"} for c, s in b.items()} for y, b in blocks().items()}
     k = baskets()
-    summaries = [availability.Summary.of(index.build(None, "B", "Q1", blocks=b, baskets=k, first_year=None,
-                                                     options={"price_source": src}))
-                 for src, b in (("cpi", cpi), ("hicp", hicp))]
+    summaries = [
+        availability.Summary.of(
+            index.build(None, "B", "Q1", blocks=b, baskets=k, first_year=None, options={"price_source": src})
+        )
+        for src, b in (("cpi", cpi), ("hicp", hicp))
+    ]
     table = availability.build(summaries)
     h, c = table["options"]["price_source"]["hicp"], table["options"]["price_source"]["cpi"]
     assert [g["reason"] for g in h["greyed"]] == ["ends_earlier"]
-    assert h["greyed"][0]["index"] == ["2026-09", "2026-09"] and h["greyed"][0]["annual_rates"] == ["2026-09", "2026-09"]
+    assert h["greyed"][0]["index"] == ["2026-09", "2026-09"] and h["greyed"][0]["annual_rates"] == [
+        "2026-09",
+        "2026-09",
+    ]
     assert "2026-09" in h["greyed"][0]["text"]
     assert c["greyed"] == []
 

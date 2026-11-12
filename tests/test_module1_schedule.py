@@ -24,7 +24,12 @@ def test_final_where_the_year_before_is_held_else_the_newest_available_in_januar
     surveys = {2021, 2022, 2023, 2024}
     s = rule_n(range(2022, 2027), surveys, cal(y2023="2025-05-07", y2024="2026-04-01"))
     assert [(e.year, e.survey, e.status) for e in s] == [
-        (2022, 2021, FINAL), (2023, 2022, FINAL), (2024, 2023, FINAL), (2025, 2024, FINAL), (2026, 2023, FIRST)]
+        (2022, 2021, FINAL),
+        (2023, 2022, FINAL),
+        (2024, 2023, FINAL),
+        (2025, 2024, FINAL),
+        (2026, 2023, FIRST),
+    ]
     assert s[-1].valid_from == "2026-01" and "2025-05-07" in s[-1].basis
 
 
@@ -36,7 +41,7 @@ def test_no_candidate_ends_the_schedule():
     Then the schedule is empty, since nothing was out on 2026-01-01
     """
     s = rule_n(range(2026, 2029), {2024}, cal(y2024="2026-04-01"))
-    assert s == []                                    # nothing was out on 2026-01-01
+    assert s == []  # nothing was out on 2026-01-01
 
 
 def test_package_release_dates_load():
@@ -60,8 +65,9 @@ def test_rule_f_fixed_lag_starts_at_the_first_held_survey_and_never_revises():
     And every entry is final
     """
     from traceconomics.module1.schedule import rule_f
+
     s = rule_f(range(2009, 2027), set(range(2008, 2025)))
-    assert s[0].year == 2011 and s[0].survey == 2008            # 2009-2010 would need 2006-2007
+    assert s[0].year == 2011 and s[0].survey == 2008  # 2009-2010 would need 2006-2007
     assert [(e.year, e.survey) for e in s[-3:]] == [(2024, 2021), (2025, 2022), (2026, 2023)]
     assert {e.status for e in s} == {FINAL}
 
@@ -75,6 +81,7 @@ def test_rule_f_2026_equals_rule_n_first_estimate_with_the_package_dates():
     And both use survey 2023 for 2026
     """
     from traceconomics.module1.schedule import rule_f
+
     surveys = set(range(2008, 2025))
     n = {e.year: e for e in rule_n(range(2009, 2027), surveys)}
     f = {e.year: e for e in rule_f(range(2009, 2027), surveys)}
@@ -90,6 +97,7 @@ def test_rule_u_same_year_and_stops_at_the_newest_survey():
     And every year uses its own year's survey
     """
     from traceconomics.module1.schedule import rule_u
+
     s = rule_u(range(2009, 2027), set(range(2008, 2025)))
     assert (s[0].year, s[0].survey, s[-1].year) == (2009, 2009, 2024)
     assert all(e.year == e.survey for e in s)
@@ -103,8 +111,9 @@ def test_a_missing_survey_ends_rule_f_rather_than_skipping_a_year():
     Then only 2011 and 2012 are scheduled, since 2013 needs the missing 2010
     """
     from traceconomics.module1.schedule import rule_f
+
     s = rule_f(range(2011, 2020), {2008, 2009, 2011, 2012})
-    assert [e.year for e in s] == [2011, 2012]                  # 2013 needs 2010
+    assert [e.year for e in s] == [2011, 2012]  # 2013 needs 2010
 
 
 @pytest.mark.parametrize("rule, year", [("N", 2011), ("F", 2013), ("U", 2010)])
@@ -124,4 +133,6 @@ def test_the_2009_survey_stands_in_for_2010s_income_groups(rule, year):
     by_income, by_tenure = {e.year: e for e in income}, {e.year: e for e in tenure}
     assert by_income[year].survey == 2009 and "standing in for survey 2010" in by_income[year].basis
     assert by_tenure[year].survey == 2010
-    assert {y: e.survey for y, e in by_income.items() if y != year} == {y: e.survey for y, e in by_tenure.items() if y != year}
+    assert {y: e.survey for y, e in by_income.items() if y != year} == {
+        y: e.survey for y, e in by_tenure.items() if y != year
+    }

@@ -62,7 +62,7 @@ def test_needing_december_2009_a_subclass_takes_a_row_that_has_it():
     t = table(2010, "2009", {"0722": (40, [100.0] * 12), "022": (20, [100.0] * 12), "10": (30, [100.0] * 12)})
     previous = {"022": {"2009-12": 90.0}}
     assert originals._row_for("02201", t, previous, "2009-12") == "022"
-    assert originals._row_for("07222", t, previous, "2009-12") is None    # no December 2009 for 0722 or 072 or 07
+    assert originals._row_for("07222", t, previous, "2009-12") is None  # no December 2009 for 0722 or 072 or 07
 
 
 def test_old_item_numbers_are_never_matched_to_subclasses():
@@ -80,11 +80,13 @@ def test_old_item_numbers_are_never_matched_to_subclasses():
     subclass of 07.2.2, petrol included, must take the class's movement, not the item's.
     """
     t = table(2010, "2009", {"0722": (40, [130.0] * 12), "07222": (1, [100.0] * 12), "07221": (39, [131.0] * 12)})
-    levels = {c: {f"2010-{m:02d}": v[0] for m in range(1, 13)} for c, v in
-              (("0722", [130.0]), ("07222", [100.0]), ("07221", [131.0]))}
+    levels = {
+        c: {f"2010-{m:02d}": v[0] for m in range(1, 13)}
+        for c, v in (("0722", [130.0]), ("07222", [100.0]), ("07221", [131.0]))
+    }
     prev = {"0722": {"2009-12": 100.0}}
     block, lost = originals.to_2018(t, levels, prev, 2010)
-    assert block["07222"]["2010-06"] == pytest.approx(130.0)       # COICOP 2018 07222 (petrol): the class
+    assert block["07222"]["2010-06"] == pytest.approx(130.0)  # COICOP 2018 07222 (petrol): the class
     assert block["0722"]["2009-12"] == 100.0
     assert "07222" in [c for c in block if len(c) == 5]
 
@@ -92,8 +94,14 @@ def test_old_item_numbers_are_never_matched_to_subclasses():
 def _archive_originals(tmp_path, years):
     archive = Archive(tmp_path)
     for y in years:
-        archive.store_bytes("elstat", f"cpi07-original-{y}", f"table {y}".encode(), url=None,
-                            retrieved_at=datetime(2026, 10, 1, tzinfo=UTC), ext=".xls")
+        archive.store_bytes(
+            "elstat",
+            f"cpi07-original-{y}",
+            f"table {y}".encode(),
+            url=None,
+            retrieved_at=datetime(2026, 10, 1, tzinfo=UTC),
+            ext=".xls",
+        )
     return archive
 
 
@@ -108,9 +116,11 @@ def test_the_three_original_years_become_linked_blocks(tmp_path, monkeypatch):
     And 2010's petrol (07222) is 120 on December 2009, which is 100
     And no subclass under car fuels is left unpriced
     """
-    tables = {2008: table(2008, "2009", {"0722": (40, [100.0] * 12)}),
-              2009: table(2009, "2005", {"0722": (40, [110.0] * 12)}),
-              2010: table(2010, "2009", {"0722": (40, [120.0] * 12)})}
+    tables = {
+        2008: table(2008, "2009", {"0722": (40, [100.0] * 12)}),
+        2009: table(2009, "2005", {"0722": (40, [110.0] * 12)}),
+        2010: table(2010, "2009", {"0722": (40, [120.0] * 12)}),
+    }
     read = []
     monkeypatch.setattr(originals, "parse", lambda path, year: read.append((path.read_bytes(), year)) or tables[year])
     out, lost = originals.blocks(_archive_originals(tmp_path, originals.YEARS))

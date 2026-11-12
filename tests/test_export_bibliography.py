@@ -39,7 +39,7 @@ def test_fields_are_read_with_nested_braces_and_latex_taken_off():
     assert r["entrytype"] == "report" and r["type"] == "Quality report"
     assert r["author"] == "Hellenic Statistical Authority (ELSTAT)"
     assert r["title"] == "User oriented quality report (January 2026 – )"
-    assert r["url"] == "https://example.org/a_b?x=1&y=2"                  # addresses are kept as they are
+    assert r["url"] == "https://example.org/a_b?x=1&y=2"  # addresses are kept as they are
     d = e["some-data"]
     assert d["title"] == "Prices & weights: HICP ECOICOP_2" and d["number"] == "PRC_HICP_MINR"
 

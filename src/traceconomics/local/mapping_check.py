@@ -40,17 +40,17 @@ TIMES_USUAL = 3
 NOISE_SE = 2
 EXPOSURE = 0.10
 BASELINE_YEARS = range(2016, 2024)
-REPLICATES = 500        # enough for a noise threshold
+REPLICATES = 500  # enough for a noise threshold
 
 
 @dataclass
 class Flag:
     code: str
-    older: float            # share %, the older year mapped
+    older: float  # share %, the older year mapped
     newer: float
-    usual: float            # median year-to-year change, pp
-    noise: float            # NOISE_SE x combined standard error, pp
-    exposure: float         # part of the older year's spending in this code that a split decided
+    usual: float  # median year-to-year change, pp
+    noise: float  # NOISE_SE x combined standard error, pp
+    exposure: float  # part of the older year's spending in this code that a split decided
     explanation: str = ""
 
     @property
@@ -62,7 +62,7 @@ class Flag:
 class Comparison:
     older_year: int
     newer_year: int
-    table: pd.DataFrame                         # code, older, newer, diff (all in %)
+    table: pd.DataFrame  # code, older, newer, diff (all in %)
     flags: list[Flag] = field(default_factory=list)
 
     @property
@@ -72,7 +72,9 @@ class Comparison:
 
 def explained() -> dict[str, dict[str, str]]:
     """{"2023-2024": {code: reason}} from the package data file."""
-    data = tomllib.loads(resources.files("traceconomics.data").joinpath("mapping_explained.toml").read_text(encoding="utf-8"))
+    data = tomllib.loads(
+        resources.files("traceconomics.data").joinpath("mapping_explained.toml").read_text(encoding="utf-8")
+    )
     return {k: {c: e["reason"] for c, e in v.items()} for k, v in data.items()}
 
 
@@ -98,8 +100,9 @@ def effective_table(year: int) -> pd.DataFrame:
     old = mapping.load(mapping.OLD_TO_V1)[["from_code", "to_code", "share"]]
     both = old.merge(v1, left_on="to_code", right_on="from_code", suffixes=("", "_v1"))
     both["share"] = both.share * both.share_v1
-    return (both.groupby(["from_code", "to_code_v1"], as_index=False).share.sum()
-            .rename(columns={"to_code_v1": "to_code"}))
+    return (
+        both.groupby(["from_code", "to_code_v1"], as_index=False).share.sum().rename(columns={"to_code_v1": "to_code"})
+    )
 
 
 def exposure(survey, table: pd.DataFrame | None = None) -> pd.Series:
@@ -123,8 +126,14 @@ def exposure(survey, table: pd.DataFrame | None = None) -> pd.Series:
     return pd.Series(out)
 
 
-def compare(archive, older_year: int, newer_year: int, usual: pd.Series,
-            reasons: dict[str, str] | None = None, replicates: int = REPLICATES) -> Comparison:
+def compare(
+    archive,
+    older_year: int,
+    newer_year: int,
+    usual: pd.Series,
+    reasons: dict[str, str] | None = None,
+    replicates: int = REPLICATES,
+) -> Comparison:
     older_survey = puf.read(archive, older_year)
     older = all_households(mapping.to_2018(older_survey), replicates)
     newer = all_households(mapping.to_2018(puf.read(archive, newer_year)), replicates)
@@ -137,8 +146,9 @@ def compare(archive, older_year: int, newer_year: int, usual: pd.Series,
         noise = NOISE_SE * float(np.hypot(older.se.get(code, 0.0), newer.se.get(code, 0.0)))
         typical = float(usual.get(code, 0.0))
         if abs(row["diff"]) > MIN_PP and abs(row["diff"]) > TIMES_USUAL * typical and abs(row["diff"]) > noise:
-            result.flags.append(Flag(code, row.older, row.newer, typical, noise, float(exp.get(code, 0.0)),
-                                     reasons.get(code, "")))
+            result.flags.append(
+                Flag(code, row.older, row.newer, typical, noise, float(exp.get(code, 0.0)), reasons.get(code, ""))
+            )
     return result
 
 

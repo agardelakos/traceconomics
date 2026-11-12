@@ -7,7 +7,9 @@ from traceconomics.archive.local_only import LocalOnlyError, check, is_local_onl
 pytestmark = pytest.mark.unit
 
 
-@pytest.mark.parametrize("dataset", ["puf-hbs-2024", "puf-lfs-puf-2025a-gr", "puf-statistics-on-income-and-living-conditions-silc-2025"])
+@pytest.mark.parametrize(
+    "dataset", ["puf-hbs-2024", "puf-lfs-puf-2025a-gr", "puf-statistics-on-income-and-living-conditions-silc-2025"]
+)
 def test_puf_files_are_local_only(dataset):
     """PY-LOCAL-001: ELSTAT microdata files are local-only
 
@@ -18,8 +20,9 @@ def test_puf_files_are_local_only(dataset):
     assert is_local_only("elstat", dataset)
 
 
-@pytest.mark.parametrize("source,dataset", [("elstat", "puf-catalogue"), ("elstat", "doc-585819"),
-                                            ("eurostat", "prc_hicp_minr")])
+@pytest.mark.parametrize(
+    "source,dataset", [("elstat", "puf-catalogue"), ("elstat", "doc-585819"), ("eurostat", "prc_hicp_minr")]
+)
 def test_public_files_are_not(source, dataset):
     # The microdata catalogue page is public: an explicit exception to the broad pattern.
     """PY-LOCAL-002: public files are not local-only

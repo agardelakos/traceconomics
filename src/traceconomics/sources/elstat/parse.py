@@ -31,10 +31,32 @@ PARSER_VERSION = "1"
 
 SHEET_NAMES = ("INDICES", "ΔΕΙΚΤΕΣ")
 MONTHS = {
-    "JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MAY": 5, "MAI": 5, "JUN": 6, "JUL": 7, "AUG": 8, "SEP": 9,
-    "OCT": 10, "NOV": 11, "DEC": 12,
-    "ΙΑΝ": 1, "ΦΕΒ": 2, "ΜΑΡ": 3, "ΑΠΡ": 4, "ΜΑΪ": 5, "ΜΑΙ": 5, "ΙΟΥΝ": 6, "ΙΟΥΛ": 7, "ΑΥΓ": 8,
-    "ΣΕΠ": 9, "ΟΚΤ": 10, "ΝΟΕ": 11, "ΔΕΚ": 12,
+    "JAN": 1,
+    "FEB": 2,
+    "MAR": 3,
+    "APR": 4,
+    "MAY": 5,
+    "MAI": 5,
+    "JUN": 6,
+    "JUL": 7,
+    "AUG": 8,
+    "SEP": 9,
+    "OCT": 10,
+    "NOV": 11,
+    "DEC": 12,
+    "ΙΑΝ": 1,
+    "ΦΕΒ": 2,
+    "ΜΑΡ": 3,
+    "ΑΠΡ": 4,
+    "ΜΑΪ": 5,
+    "ΜΑΙ": 5,
+    "ΙΟΥΝ": 6,
+    "ΙΟΥΛ": 7,
+    "ΑΥΓ": 8,
+    "ΣΕΠ": 9,
+    "ΟΚΤ": 10,
+    "ΝΟΕ": 11,
+    "ΔΕΚ": 12,
 }
 LINK_MONTH = re.compile(r"^(DEC|ΔΕΚ)-(\d{4})$")
 YEAR_IN_TITLE = re.compile(r"(?:for|έτους)\s+(\d{4})")
@@ -46,10 +68,10 @@ TOTAL = "TOTAL"
 @dataclass
 class Table07:
     year: int
-    language: str                                   # "en" or "el"
-    weights: dict[str, float] = field(default_factory=dict)       # code -> per mille
+    language: str  # "en" or "el"
+    weights: dict[str, float] = field(default_factory=dict)  # code -> per mille
     weight_text: dict[str, str] = field(default_factory=dict)
-    indices: dict[str, dict[str, float]] = field(default_factory=dict)   # code -> {"YYYY-MM": index}
+    indices: dict[str, dict[str, float]] = field(default_factory=dict)  # code -> {"YYYY-MM": index}
     annual_average: dict[str, float] = field(default_factory=dict)
     labels: dict[str, str] = field(default_factory=dict)
 
@@ -109,7 +131,7 @@ def parse(path: Path) -> Table07:
     header = [_text(v).upper() for v in rows[head_at]]
     require("‰" in header[2], f"{path.name}: third column isn't the weights (‰): {header[2]!r}")
 
-    cols: dict[int, str] = {}   # column -> period
+    cols: dict[int, str] = {}  # column -> period
     average_col = None
     for j, h in enumerate(header[3:], start=3):
         if not h:
@@ -124,11 +146,13 @@ def parse(path: Path) -> Table07:
         else:
             raise FormatError(f"{path.name}: unexpected column header {h!r}")
     months = [p for p in cols.values() if p.startswith(str(year))]
-    require(months == [f"{year}-{k:02d}" for k in range(1, 13)],
-            f"{path.name}: month columns aren't JAN..DEC: {examples(months)}")
+    require(
+        months == [f"{year}-{k:02d}" for k in range(1, 13)],
+        f"{path.name}: month columns aren't JAN..DEC: {examples(months)}",
+    )
 
     t = Table07(year=year, language=language)
-    for r in rows[head_at + 1:]:
+    for r in rows[head_at + 1 :]:
         r = list(r) + [None] * (len(header) - len(r))
         code, label = _text(r[0]), _text(r[1])
         if not code and label.upper().startswith(OVERALL_LABELS):
@@ -139,8 +163,10 @@ def parse(path: Path) -> Table07:
         series = {p: v for j, p in cols.items() if (v := _number(r[j])) is not None}
         if code in t.labels:
             # The division summary block repeats rows; they must agree with the first copy.
-            require(t.indices.get(code) == series and t.weights.get(code) == weight,
-                    f"{path.name}: code {code} appears twice with different values")
+            require(
+                t.indices.get(code) == series and t.weights.get(code) == weight,
+                f"{path.name}: code {code} appears twice with different values",
+            )
             continue
         t.labels[code] = label
         if weight is not None:

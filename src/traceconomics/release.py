@@ -76,12 +76,13 @@ Runner = Callable[[Step, dict, Path], int]
 
 
 def run_step(step: Step, env: dict, log: Path) -> int:
-    exe = shutil.which(step.argv[0]) or step.argv[0]    # npm and npx are .cmd files on Windows
+    exe = shutil.which(step.argv[0]) or step.argv[0]  # npm and npx are .cmd files on Windows
     with log.open("w", encoding="utf-8") as f:
         f.write(f"$ {' '.join(step.argv)}\n")
         f.flush()
-        return subprocess.run([exe, *step.argv[1:]], cwd=step.cwd, env=env, stdout=f,
-                              stderr=subprocess.STDOUT).returncode
+        return subprocess.run(
+            [exe, *step.argv[1:]], cwd=step.cwd, env=env, stdout=f, stderr=subprocess.STDOUT
+        ).returncode
 
 
 def _py(*args: str) -> tuple[str, ...]:
@@ -111,25 +112,32 @@ def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> l
         Step("upload", _upload(site / "dist", r.worker_name, f"build-{build_id.lower()}", build_id), site),
         # The short set (tests tagged @smoke) on the uploaded preview: what the host really serves,
         # headers included. The full suite already ran on the same files in ui-test.
-        Step("smoke", ("npm", "run", "test:ui", "--", "--grep", "@smoke"), site,
-             (("BASE_URL", PREVIEW), *_ui_env(ui / "smoke"))),
+        Step(
+            "smoke",
+            ("npm", "run", "test:ui", "--", "--grep", "@smoke"),
+            site,
+            (("BASE_URL", PREVIEW), *_ui_env(ui / "smoke")),
+        ),
     ]
 
 
 def _ui_env(folder: Path) -> tuple[tuple[str, str], ...]:
-    return (("UI_OUTPUT", str(folder / "results")), ("UI_REPORT", str(folder / "report")),
-            ("UI_JSON", str(folder / "results.json")))
+    return (
+        ("UI_OUTPUT", str(folder / "results")),
+        ("UI_REPORT", str(folder / "report")),
+        ("UI_JSON", str(folder / "results.json")),
+    )
 
 
 BROWSER_STEPS = ("ui-test", "smoke")
 
 
 def ui_failures(results: Path) -> list[str]:
-    """"<test>: <first line of its error>" for each failed test in a Playwright results file, and
+    """ "<test>: <first line of its error>" for each failed test in a Playwright results file, and
     errors outside any test (a server that didn't start); [] if the file is missing or unreadable."""
     try:
         data = json.loads(results.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return []
     out = []
 
@@ -147,7 +155,7 @@ def ui_failures(results: Path) -> list[str]:
             walk(s, [*path, s.get("title", "")])
 
     for s in data.get("suites", []):
-        walk(s, [s.get("title", "")])                     # the top level is the test file
+        walk(s, [s.get("title", "")])  # the top level is the test file
     out += [f"(outside the tests): {first(e.get('message'))}" for e in data.get("errors", [])]
     return out
 
@@ -162,8 +170,7 @@ def _note_ui(record: dict, ui: Path, step: str) -> None:
 def ui_fingerprint(site: Path) -> str:
     """The browser tests as they are: their files, their config, and the lock file that pins
     Playwright. A retest must run the tests its build ran."""
-    files = [site / "playwright.config.ts", site / "package-lock.json",
-             *sorted((site / "tests" / "ui").rglob("*"))]
+    files = [site / "playwright.config.ts", site / "package-lock.json", *sorted((site / "tests" / "ui").rglob("*"))]
     h = hashlib.sha256()
     for f in files:
         if f.is_file():
@@ -174,8 +181,21 @@ def ui_fingerprint(site: Path) -> str:
 
 def _upload(folder: Path, name: str, alias: str, message: str) -> tuple[str, ...]:
     """A new version with a preview address (`<alias>-<name>.<subdomain>.workers.dev`); the live site is untouched."""
-    return ("npx", "--no-install", "wrangler", "versions", "upload", "--assets", str(folder), "--name", name,
-            "--preview-alias", alias, "--message", message)
+    return (
+        "npx",
+        "--no-install",
+        "wrangler",
+        "versions",
+        "upload",
+        "--assets",
+        str(folder),
+        "--name",
+        name,
+        "--preview-alias",
+        alias,
+        "--message",
+        message,
+    )
 
 
 def _publish(folder: Path, name: str, message: str) -> tuple[str, ...]:
@@ -211,8 +231,15 @@ def feeds_store(archive: Archive, results) -> list[str]:
 
 # -- building ---------------------------------------------------------------
 
-def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual",
-          runner: Runner = run_step, now: datetime | None = None) -> dict:
+
+def build(
+    cfg: Config,
+    config_path: Path | None = None,
+    *,
+    reason: str = "manual",
+    runner: Runner = run_step,
+    now: datetime | None = None,
+) -> dict:
     r = cfg.release
     if r.site_dir is None:
         raise SystemExit("release.site_dir is not set in the config")
@@ -222,30 +249,54 @@ def build(cfg: Config, config_path: Path | None = None, *, reason: str = "manual
     logs = folder / "logs"
     logs.mkdir(parents=True, exist_ok=False)
     previous = baseline(r.releases_dir)
-    record = {"id": build_id, "started": iso(now), "reason": reason, "steps": [],
-              "baseline": previous["id"] if previous else None, "ui_fingerprint": ui_fingerprint(r.site_dir),
-              # Kept with the build: a retest or a promote after a later deploy still reports this one.
-              "commit": testresults.source_commit(r.site_dir.parent)}
+    record = {
+        "id": build_id,
+        "started": iso(now),
+        "reason": reason,
+        "steps": [],
+        "baseline": previous["id"] if previous else None,
+        "ui_fingerprint": ui_fingerprint(r.site_dir),
+        # Kept with the build: a retest or a promote after a later deploy still reports this one.
+        "commit": testresults.source_commit(r.site_dir.parent),
+    }
     env = _env(config_path)
     with RunLock(r.releases_dir):
-        failed = _run_steps(steps(cfg, folder, build_id), env, logs, logs, runner, record["steps"],
-                            after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")},
-                            on_browser=_send_results(record))
+        failed = _run_steps(
+            steps(cfg, folder, build_id),
+            env,
+            logs,
+            logs,
+            runner,
+            record["steps"],
+            after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")},
+            on_browser=_send_results(record),
+        )
         if failed:
             record.update(result="failed", failed_step=failed[0], log_tail=failed[1])
             _note_ui(record, folder / "ui", failed[0])
         else:
             _passed(cfg, folder, record)
     record["finished"] = iso(utc_now())
-    subject = (f"release {build_id} ready for review" if record["result"] == "ok"
-               else f"ALERT: release {build_id} failed at {record['failed_step']}")
+    subject = (
+        f"release {build_id} ready for review"
+        if record["result"] == "ok"
+        else f"ALERT: release {build_id} failed at {record['failed_step']}"
+    )
     _report(cfg, folder, record, subject)
     prune(r.releases_dir, r.keep)
     return record
 
 
-def _run_steps(todo: list[Step], env: dict, logs: Path, step_logs: Path, runner: Runner, ran: list,
-               after: dict | None = None, on_browser: Callable | None = None) -> tuple[str, list[str]] | None:
+def _run_steps(
+    todo: list[Step],
+    env: dict,
+    logs: Path,
+    step_logs: Path,
+    runner: Runner,
+    ran: list,
+    after: dict | None = None,
+    on_browser: Callable | None = None,
+) -> tuple[str, list[str]] | None:
     """Run the steps in order, each logged in `step_logs`; None, or (failed step, its log's last lines).
     `logs`: the build's log folder, where the preview address is looked up. `after`: step name ->
     what to do once that step has passed. `on_browser(step, started, code, results)`: after each
@@ -272,13 +323,21 @@ def _run_steps(todo: list[Step], env: dict, logs: Path, step_logs: Path, runner:
 def _send_results(record: dict) -> Callable:
     """After a browser step: send its results to the test-results bucket, noting the outcome in the
     build record. A step that never wrote a results file (it couldn't start) sends nothing."""
+
     def send(step: str, started: datetime, code: int, results: Path) -> None:
         if not results.is_file():
             return
-        out = testresults.send(build=record["id"], commit=record.get("commit"), step=step, started=started,
-                               result="passed" if code == 0 else "failed", results=results)
+        out = testresults.send(
+            build=record["id"],
+            commit=record.get("commit"),
+            step=step,
+            started=started,
+            result="passed" if code == 0 else "failed",
+            results=results,
+        )
         if out["result"] != "off":
             record.setdefault("test_results", []).append({"step": step, **out})
+
     return send
 
 
@@ -312,8 +371,14 @@ def _report(cfg: Config, folder: Path, record: dict, subject: str) -> None:
     _write_json(folder / "release.json", record)
 
 
-def retest(cfg: Config, build_id: str, config_path: Path | None = None, *, runner: Runner = run_step,
-           now: datetime | None = None) -> dict:
+def retest(
+    cfg: Config,
+    build_id: str,
+    config_path: Path | None = None,
+    *,
+    runner: Runner = run_step,
+    now: datetime | None = None,
+) -> dict:
     """Run a held-back build's browser tests again, and its upload if it never got that far, on
     the files it built. A pass makes it a good build, ready to promote."""
     r = cfg.release
@@ -326,8 +391,10 @@ def retest(cfg: Config, build_id: str, config_path: Path | None = None, *, runne
     if record.get("result") == "ok":
         raise SystemExit(f"release {build_id} already passed its checks")
     if record.get("failed_step") not in RETESTABLE:
-        raise SystemExit(f"release {build_id} failed at {record.get('failed_step')}: only a build held back at "
-                         f"{', '.join(RETESTABLE)} can be retested; build again")
+        raise SystemExit(
+            f"release {build_id} failed at {record.get('failed_step')}: only a build held back at "
+            f"{', '.join(RETESTABLE)} can be retested; build again"
+        )
     if record.get("ui_fingerprint") != ui_fingerprint(r.site_dir):
         raise SystemExit(f"the browser tests here are not the ones release {build_id} was built with: build again")
     now = now or utc_now()
@@ -343,9 +410,10 @@ def retest(cfg: Config, build_id: str, config_path: Path | None = None, *, runne
         shutil.copytree(folder / "dist", dist)
         todo = [s for s in steps(cfg, folder, build_id, ui=folder / "ui" / tag) if s.name in RETESTABLE]
         if _preview_url(logs):
-            todo = [s for s in todo if s.name != "upload"]       # uploaded already: test that version
-        failed = _run_steps(todo, _env(config_path), logs, logs / tag, runner, attempt["steps"],
-                            on_browser=_send_results(record))
+            todo = [s for s in todo if s.name != "upload"]  # uploaded already: test that version
+        failed = _run_steps(
+            todo, _env(config_path), logs, logs / tag, runner, attempt["steps"], on_browser=_send_results(record)
+        )
     attempt["result"] = "failed" if failed else "ok"
     attempt["finished"] = iso(utc_now())
     record.setdefault("retests", []).append(attempt)
@@ -394,22 +462,31 @@ def changes(old: Path | None, new: Path) -> dict:
     if not new_rates.is_file():
         return {}
     con = duckdb.connect()
-    default = ("spending = 'purchases' AND imputed_rent = 'excluded' AND price_source = 'cpi' "
-               "AND weights_timing = 'N' AND tutoring = 'priced' AND unit = 'RCH_A'")
+    default = (
+        "spending = 'purchases' AND imputed_rent = 'excluded' AND price_source = 'cpi' "
+        "AND weights_timing = 'N' AND tutoring = 'priced' AND unit = 'RCH_A'"
+    )
     keys = 'grouping, "group", coicop18, ref_period'
     n = f"SELECT {keys}, value_text FROM '{new_rates.as_posix()}' WHERE {default}"
     last = con.execute(f"SELECT max(ref_period) FROM ({n})").fetchone()[0]
     if old is None or not (old / "gr" / "m1" / "m1_rates.parquet").is_file():
         return {"first_release": True, "latest_period": last}
     o = f"SELECT {keys}, value_text FROM '{(old / 'gr' / 'm1' / 'm1_rates.parquet').as_posix()}' WHERE {default}"
-    added = con.execute(f"SELECT count(*), list(DISTINCT a.ref_period ORDER BY a.ref_period) "
-                        f"FROM ({n}) a ANTI JOIN ({o}) b USING (grouping, \"group\", coicop18, ref_period)").fetchone()
+    added = con.execute(
+        f"SELECT count(*), list(DISTINCT a.ref_period ORDER BY a.ref_period) "
+        f'FROM ({n}) a ANTI JOIN ({o}) b USING (grouping, "group", coicop18, ref_period)'
+    ).fetchone()
     revised = con.execute(f"""
         SELECT count(*), max(abs(TRY_CAST(a.value_text AS DOUBLE) - TRY_CAST(b.value_text AS DOUBLE)))
         FROM ({n}) a JOIN ({o}) b USING (grouping, "group", coicop18, ref_period)
         WHERE a.value_text IS DISTINCT FROM b.value_text""").fetchone()
-    return {"latest_period": last, "new_values": added[0], "new_periods": added[1] or [],
-            "revised_values": revised[0], "largest_revision_pp": revised[1]}
+    return {
+        "latest_period": last,
+        "new_values": added[0],
+        "new_periods": added[1] or [],
+        "revised_values": revised[0],
+        "largest_revision_pp": revised[1],
+    }
 
 
 def render(record: dict) -> str:
@@ -429,11 +506,13 @@ def render(record: dict) -> str:
         if c.get("first_release"):
             lines.append(f"First release; latest month {c['latest_period']}.")
         elif c:
-            lines += [f"Since release {record['baseline']} (default setting, annual rates):",
-                      f"  latest month {c['latest_period']}; new months {', '.join(c['new_periods']) or 'none'}"
-                      f" ({c['new_values']} values)",
-                      f"  revised values: {c['revised_values']}"
-                      + (f", largest {c['largest_revision_pp']:.1f} pp" if c["revised_values"] else "")]
+            lines += [
+                f"Since release {record['baseline']} (default setting, annual rates):",
+                f"  latest month {c['latest_period']}; new months {', '.join(c['new_periods']) or 'none'}"
+                f" ({c['new_values']} values)",
+                f"  revised values: {c['revised_values']}"
+                + (f", largest {c['largest_revision_pp']:.1f} pp" if c["revised_values"] else ""),
+            ]
         lines += ["", f"To publish it: traceconomics release promote {record['id']} --to staging (or --to production)"]
     else:
         lines += ["", "Nothing was published: staging and the public site are unchanged."]
@@ -444,12 +523,16 @@ def render(record: dict) -> str:
         lines += ["", f"Failed at {record['failed_step']}. Last lines of its log:", ""]
         lines += [f"  {line}" for line in record["log_tail"]]
         if record["failed_step"] in RETESTABLE:
-            lines += ["", "If the cause was passing (the network, the host), test it again: "
-                      f"traceconomics release retest {record['id']}. If a test or a page was wrong, fix it and build again."]
+            lines += [
+                "",
+                "If the cause was passing (the network, the host), test it again: "
+                f"traceconomics release retest {record['id']}. If a test or a page was wrong, fix it and build again.",
+            ]
     return "\n".join(lines) + "\n"
 
 
 # -- promoting and listing ------------------------------------------------------
+
 
 def promoted(releases_dir: Path) -> dict[str, dict]:
     """What each target serves now: {target: {id, to, promoted, url}}."""
@@ -471,8 +554,7 @@ def baseline(releases_dir: Path) -> dict | None:
     return good[0] if good else None
 
 
-def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, fetch=None,
-            sleep=time.sleep) -> dict:
+def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, fetch=None, sleep=time.sleep) -> dict:
     """Make a good build live on `to`, then check that the target serves it (`confirm`)."""
     if to not in TARGETS:
         raise SystemExit(f"promote to {' or '.join(TARGETS)}, not {to!r}")
@@ -483,8 +565,11 @@ def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, f
     record = json.loads((folder / "release.json").read_text(encoding="utf-8"))
     if record.get("result") != "ok":
         raise SystemExit(f"release {build_id} did not pass its checks; it can't be promoted")
-    argv = (_publish(folder / "dist", r.worker_name, build_id) if to == PRODUCTION
-            else _upload(folder / "dist", r.worker_name, to, build_id))
+    argv = (
+        _publish(folder / "dist", r.worker_name, build_id)
+        if to == PRODUCTION
+        else _upload(folder / "dist", r.worker_name, to, build_id)
+    )
     step = Step("promote", argv, r.site_dir)
     log = folder / "logs" / f"promote-{to}-{stamp(utc_now())}.log"
     code = runner(step, _env(None), log)
@@ -493,22 +578,42 @@ def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, f
     url = r.production_url if to == PRODUCTION else _url_in(log)
     done = {"id": build_id, "to": to, "promoted": iso(utc_now()), "url": url}
     checked = utc_now()
-    problem = confirm(url, (folder / "dist" / METADATA).read_bytes(), build_id,
-                      fetch=fetch or (lambda u: _fetch(u, cfg.user_agent)), sleep=sleep)
+    problem = confirm(
+        url,
+        (folder / "dist" / METADATA).read_bytes(),
+        build_id,
+        fetch=fetch or (lambda u: _fetch(u, cfg.user_agent)),
+        sleep=sleep,
+    )
     done["confirmed" if problem is None else "unconfirmed"] = iso(utc_now()) if problem is None else problem
-    sent = testresults.send(build=build_id, commit=record.get("commit"), step="promote", started=checked,
-                            result="passed" if problem is None else "failed")
+    sent = testresults.send(
+        build=build_id,
+        commit=record.get("commit"),
+        step="promote",
+        started=checked,
+        result="passed" if problem is None else "failed",
+    )
     if sent["result"] != "off":
         done["test_results"] = sent
     _write_json(r.releases_dir / PROMOTED, {**promoted(r.releases_dir), to: done})
     if problem is not None:
-        raise SystemExit(f"promoted {build_id} to {to}, but {url or 'its address'} doesn't serve it ({problem}). "
-                         "Look at the address, then promote again or revert to the previous build.")
+        raise SystemExit(
+            f"promoted {build_id} to {to}, but {url or 'its address'} doesn't serve it ({problem}). "
+            "Look at the address, then promote again or revert to the previous build."
+        )
     return done
 
 
-def confirm(url: str | None, expected: bytes, build_id: str, *, fetch, sleep,
-            every: int = CONFIRM_EVERY, limit: int = CONFIRM_FOR) -> str | None:
+def confirm(
+    url: str | None,
+    expected: bytes,
+    build_id: str,
+    *,
+    fetch,
+    sleep,
+    every: int = CONFIRM_EVERY,
+    limit: int = CONFIRM_FOR,
+) -> str | None:
     """None once `url` serves the build's own `metadata.json` (byte for byte), else what was last seen."""
     if not url:
         return "no address to check"
@@ -521,7 +626,7 @@ def confirm(url: str | None, expected: bytes, build_id: str, *, fetch, sleep,
             if fetch(f"{url.rstrip('/')}/{METADATA}?promote={build_id}") == expected:
                 return None
             last = f"after {attempt * every} s it still serves another build"
-        except OSError as e:             # includes HTTP errors and timeouts
+        except OSError as e:  # includes HTTP errors and timeouts
             last = f"{type(e).__name__}: {e}"
     return last
 

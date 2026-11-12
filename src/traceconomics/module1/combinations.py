@@ -66,8 +66,17 @@ def iterate(con, archive, *, when=None, only=None, groups=None, blocks=None, bas
         if key not in baskets:
             baskets[key] = load_baskets(con, spending=key[0], imputed_rent=key[1])
         options = {k: setting[k] for k in DEFAULT_OPTIONS}
-        series = [index.build(con, grouping, group, spending=setting["spending"],
-                              blocks=blocks[setting["price_source"]], baskets=baskets[key], first_year=None,
-                              options=options)
-                  for grouping, group in groups or GROUPS]
+        series = [
+            index.build(
+                con,
+                grouping,
+                group,
+                spending=setting["spending"],
+                blocks=blocks[setting["price_source"]],
+                baskets=baskets[key],
+                first_year=None,
+                options=options,
+            )
+            for grouping, group in groups or GROUPS
+        ]
         yield setting, series, blocks

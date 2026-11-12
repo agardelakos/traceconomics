@@ -40,12 +40,12 @@ from traceconomics.local.puf import Survey
 from traceconomics.sources.elstat import hbs_tables
 from traceconomics.sources.elstat.hbs_tables import ALL, Table103
 
-TOLERANCE = 0.015      # euros a month: the published figures are rounded to the cent
+TOLERANCE = 0.015  # euros a month: the published figures are rounded to the cent
 # Years whose PUF weights differ from the published tables: compared and
 # reported, but not held to the cent.
 REPORT_ONLY = (2014, 2015, 2018)
 TABLE_103 = re.compile(r"SFA05_TB_AN_00_(\d{4})_103_F_EN\.xlsx?$")
-MAX_DIGITS = 5         # the microdata and the table share codes up to 5 digits
+MAX_DIGITS = 5  # the microdata and the table share codes up to 5 digits
 # Years whose bands the microdata rebuild exactly (every band's household count, then its
 # spending to the cent): by monthly money income (HH095 / 12, rounded to the euro), or, in 2013,
 # by household size. In the other years no income column, nor any sum of the income columns,
@@ -65,14 +65,14 @@ class V2Result:
     excused: list[tuple[str, str, float, float | None]] = field(default_factory=list)
     mismatches: list[tuple[str, str, float, float | None]] = field(default_factory=list)  # code, label, published, ours
     group: str = ALL
-    uncovered: float | None = None     # all households only, see `uncovered`
+    uncovered: float | None = None  # all households only, see `uncovered`
     # Every figure compared, in code order: (code, label, published, ours, result), result one of
     # "matched", "excused", "differs". The consistency topic publishes them (`weights` archives them).
     rows: list[tuple[str, str, float, float | None, str]] = field(default_factory=list)
 
     @property
     def same_households(self) -> bool:
-        return abs(self.households_puf - self.households_published) < 1.5   # 2020 differs by rounding
+        return abs(self.households_puf - self.households_published) < 1.5  # 2020 differs by rounding
 
     @property
     def passed(self) -> bool:
@@ -83,7 +83,7 @@ class V2Result:
 class CVResult:
     year: int
     design: str
-    rows: list[tuple[str, float, float]]      # code, published CV %, ours
+    rows: list[tuple[str, float, float]]  # code, published CV %, ours
     tolerance: dict[str, float]
 
     @property
@@ -92,7 +92,9 @@ class CVResult:
 
 
 def published_cvs() -> dict[int, dict]:
-    data = tomllib.loads(resources.files("traceconomics.data").joinpath("hbs_published_cvs.toml").read_text(encoding="utf-8"))
+    data = tomllib.loads(
+        resources.files("traceconomics.data").joinpath("hbs_published_cvs.toml").read_text(encoding="utf-8")
+    )
     return {int(y): e for y, e in data.items()}
 
 
@@ -119,11 +121,15 @@ def cv_check(survey: Survey, published: dict[str, float], replicates: int = boot
 
 def missing_items() -> dict[str, list[str]]:
     """{code: [years]} of items the PUF lacks or cuts, from the package data file."""
-    data = tomllib.loads(resources.files("traceconomics.data").joinpath("hbs_puf_missing_items.toml").read_text(encoding="utf-8"))
+    data = tomllib.loads(
+        resources.files("traceconomics.data").joinpath("hbs_puf_missing_items.toml").read_text(encoding="utf-8")
+    )
     return {code: e["years"] for code, e in data.get("items", {}).items()}
 
 
-def uncovered(survey: Survey, table: Table103, missing: dict[str, list] | None = None) -> tuple[float, dict[str, float]]:
+def uncovered(
+    survey: Survey, table: Table103, missing: dict[str, list] | None = None
+) -> tuple[float, dict[str, float]]:
     """The share of all households' purchases that the PUF lacks, and the euros a month per item.
 
     Per listed item: the published figure minus the PUF's (all of it where the PUF has no
@@ -158,14 +164,18 @@ def bands(survey: Survey, table: Table103, by: str) -> pd.Series:
     labels = table.groups[1:]
     numbers = [[int(n) for n in BAND_NUMBER.findall(b)] for b in labels]
     if by == "income":
-        require(len(numbers[0]) == 1 and all(len(n) == 2 for n in numbers[1:-1]) and len(numbers[-1]) == 1,
-                f"{survey.year}: unexpected income bands {labels}")
-        edges = [n[-1] for n in numbers[:-1]]          # each band's top, which it includes
+        require(
+            len(numbers[0]) == 1 and all(len(n) == 2 for n in numbers[1:-1]) and len(numbers[-1]) == 1,
+            f"{survey.year}: unexpected income bands {labels}",
+        )
+        edges = [n[-1] for n in numbers[:-1]]  # each band's top, which it includes
         value = (survey.households.money_income / 12).round().to_numpy()
         index = np.searchsorted(edges, value, side="left")
     elif by == "size":
-        require([n for n in numbers] == [[k] for k in range(1, len(labels) + 1)],
-                f"{survey.year}: unexpected size bands {labels}")
+        require(
+            [n for n in numbers] == [[k] for k in range(1, len(labels) + 1)],
+            f"{survey.year}: unexpected size bands {labels}",
+        )
         size = household_size(survey).reindex(survey.households.hh)["size"].to_numpy()
         require(not np.isnan(size).any(), f"{survey.year}: households without person records can't be banded by size")
         index = np.minimum(size.astype(int), len(labels)) - 1
@@ -174,16 +184,22 @@ def bands(survey: Survey, table: Table103, by: str) -> pd.Series:
     return pd.Series(np.array(labels, dtype=object)[index])
 
 
-def compare(survey: Survey, table: Table103, missing: dict[str, list] | None = None,
-            group: str = ALL, members: pd.Series | None = None) -> V2Result:
+def compare(
+    survey: Survey,
+    table: Table103,
+    missing: dict[str, list] | None = None,
+    group: str = ALL,
+    members: pd.Series | None = None,
+) -> V2Result:
     """Compare one column of the table: all households, or one band given its member households."""
     missing = missing_items() if missing is None else missing
     keep = np.ones(len(survey.households), bool) if members is None else members.to_numpy(bool)
     w = survey.households.weight[keep]
     bought = survey.purchases[keep]
     total_w = w.sum()
-    r = V2Result(year=survey.year, households_puf=float(total_w), households_published=table.households[group],
-                 group=group)
+    r = V2Result(
+        year=survey.year, households_puf=float(total_w), households_published=table.households[group], group=group
+    )
     for code, by_group in sorted(table.purchases.items()):
         if len(code) > MAX_DIGITS:
             continue

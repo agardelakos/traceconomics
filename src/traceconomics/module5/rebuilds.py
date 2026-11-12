@@ -26,8 +26,9 @@ CPI = "gr-cpi-rebuilt-items"
 HICP = "gr-hicp-rebuilt-items"
 
 
-def from_validation(check_id: str, validation: Validation, published: dict, rebuilt: dict,
-                    explanations: list[Explanation]) -> Check:
+def from_validation(
+    check_id: str, validation: Validation, published: dict, rebuilt: dict, explanations: list[Explanation]
+) -> Check:
     check = Check(check_id, "gr", "percent, one decimal", 0.0, published=published, rebuilt=rebuilt)
     for period, ours, theirs in sorted(validation.rows):
         gap = abs(round(ours, 1) - round(theirs, 1))
@@ -37,8 +38,9 @@ def from_validation(check_id: str, validation: Validation, published: dict, rebu
             check.comparisons.append(Comparison(period, theirs, ours, False, "rounding"))
         else:
             e = explain(check_id, period, explanations)
-            check.comparisons.append(Comparison(period, theirs, ours, False, e.category if e else "not-known",
-                                                e.finding if e else ""))
+            check.comparisons.append(
+                Comparison(period, theirs, ours, False, e.category if e else "not-known", e.finding if e else "")
+            )
     return check
 
 
@@ -46,10 +48,13 @@ def cpi(archive, explanations: list[Explanation]) -> Check:
     from traceconomics.validate import v1_cpi
 
     checked, _earlier, _disagreements, _files = v1_cpi.run_archive(archive)
-    return from_validation(CPI, checked,
-                           published={"source": "elstat:cpi07", "reference": "elstat-cpi-items", "label": "published"},
-                           rebuilt={"source": "elstat:cpi07", "reference": "elstat-cpi-items", "label": "rebuilt"},
-                           explanations=explanations)
+    return from_validation(
+        CPI,
+        checked,
+        published={"source": "elstat:cpi07", "reference": "elstat-cpi-items", "label": "published"},
+        rebuilt={"source": "elstat:cpi07", "reference": "elstat-cpi-items", "label": "rebuilt"},
+        explanations=explanations,
+    )
 
 
 def hicp(archive, archive_dir, duck, explanations: list[Explanation]) -> Check | None:
@@ -62,11 +67,17 @@ def hicp(archive, archive_dir, duck, explanations: list[Explanation]) -> Check |
             return None
         paths[name] = archive_dir / rec["path"]
     weights, prices, official, rates = v1.load(duck, paths["prc_hicp_minr"], paths["prc_hicp_iw"], "GR")
-    found = [r for r in v1.run(weights, prices, official, rates, last_year=int(max(official)[:4]))
-             if r.name == "finest detail"]
+    found = [
+        r
+        for r in v1.run(weights, prices, official, rates, last_year=int(max(official)[:4]))
+        if r.name == "finest detail"
+    ]
     if not found:
         return None
-    return from_validation(HICP, found[0],
-                           published={"source": "eurostat:prc_hicp_minr", "reference": "eurostat-prc-hicp-minr", "label": "published"},
-                           rebuilt={"source": "eurostat:prc_hicp_minr", "reference": "eurostat-prc-hicp-minr", "label": "rebuilt"},
-                           explanations=explanations)
+    return from_validation(
+        HICP,
+        found[0],
+        published={"source": "eurostat:prc_hicp_minr", "reference": "eurostat-prc-hicp-minr", "label": "published"},
+        rebuilt={"source": "eurostat:prc_hicp_minr", "reference": "eurostat-prc-hicp-minr", "label": "rebuilt"},
+        explanations=explanations,
+    )

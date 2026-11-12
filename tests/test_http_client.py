@@ -69,8 +69,17 @@ def test_a_download_is_streamed_to_a_file_with_the_headers_worth_keeping(server,
     And the second request waits the full pause after the first
     """
     url, script, log = server
-    script["/t07"] = [(200, {"Content-Type": "application/vnd.ms-excel", "Set-Cookie": "id=1",
-                             "Content-Disposition": 'attachment; filename="../Table 07.XLSX"'}, b"payload")]
+    script["/t07"] = [
+        (
+            200,
+            {
+                "Content-Type": "application/vnd.ms-excel",
+                "Set-Cookie": "id=1",
+                "Content-Disposition": 'attachment; filename="../Table 07.XLSX"',
+            },
+            b"payload",
+        )
+    ]
     client = HttpClient("traceconomics-test", pause_seconds=2.0)
     resp = client.download(url + "/t07", tmp_path / "f")
     assert (tmp_path / "f").read_bytes() == b"payload" and resp.status == 200
@@ -204,14 +213,17 @@ def _resp(**headers):
     return Response("u", 200, headers, datetime(2026, 1, 1, tzinfo=UTC))
 
 
-@pytest.mark.parametrize("headers, ext", [
-    ({"content-disposition": 'attachment; filename="A.XLSX"'}, ".xlsx"),
-    ({"content-disposition": "attachment; filename=noext", "content-type": "text/html"}, ".html"),
-    ({"content-type": "application/json; charset=utf-8"}, ".json"),
-    ({"content-type": "application/x-gzip"}, ".gz"),
-    ({"content-type": "application/octet-stream"}, ""),
-    ({}, ""),
-])
+@pytest.mark.parametrize(
+    "headers, ext",
+    [
+        ({"content-disposition": 'attachment; filename="A.XLSX"'}, ".xlsx"),
+        ({"content-disposition": "attachment; filename=noext", "content-type": "text/html"}, ".html"),
+        ({"content-type": "application/json; charset=utf-8"}, ".json"),
+        ({"content-type": "application/x-gzip"}, ".gz"),
+        ({"content-type": "application/octet-stream"}, ""),
+        ({}, ""),
+    ],
+)
 def test_the_extension_comes_from_the_file_name_else_the_content_type(headers, ext):
     """PY-HTTP-009: a download's extension comes from its file name, else from its content type
 
@@ -233,7 +245,10 @@ def test_a_response_without_a_disposition_has_no_file_name():
     And the manifest of the response holds its status and headers
     """
     assert _resp().filename is None and _resp(**{"content-disposition": "inline"}).filename is None
-    assert _resp(**{"content-type": "text/html"}).manifest() == {"status": 200, "headers": {"content-type": "text/html"}}
+    assert _resp(**{"content-type": "text/html"}).manifest() == {
+        "status": 200,
+        "headers": {"content-type": "text/html"},
+    }
 
 
 def test_the_run_context_stores_what_it_fetches_and_logs_what_fails(server, waits, tmp_path):
@@ -254,7 +269,7 @@ def test_the_run_context_stores_what_it_fetches_and_logs_what_fails(server, wait
     script["/page"] = [(200, disposition, b"<p>text</p><!--1-->"), (200, disposition, b"<p>text</p><!--2-->")]
     archive = Archive(tmp_path / "archive")
     ctx = RunContext(archive=archive, http=HttpClient("t", pause_seconds=0), today=date(2026, 11, 7))
-    visible = lambda data: data.split(b"<!--")[0].decode()      # noqa: E731
+    visible = lambda data: data.split(b"<!--")[0].decode()  # noqa: E731
     first, data = ctx.fetch_and_store("src", "page", url + "/page", content_of=visible)
     assert first.status == "stored" and data == b"<p>text</p><!--1-->"
     assert archive.manifest(archive.latest("src", "page"))["original_name"] == "page.HTML"

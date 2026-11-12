@@ -39,5 +39,7 @@ def check(items: Iterable[tuple[str, str]]) -> None:
     """Raise if any (source, dataset) is local-only. Call before publishing or syncing."""
     bad = sorted(f"{s}/{d}" for s, d in items if is_local_only(s, d))
     if bad:
-        raise LocalOnlyError(f"microdata must not leave this machine: {', '.join(bad[:5])}"
-                             + (f" and {len(bad) - 5} more" if len(bad) > 5 else ""))
+        raise LocalOnlyError(
+            f"microdata must not leave this machine: {', '.join(bad[:5])}"
+            + (f" and {len(bad) - 5} more" if len(bad) > 5 else "")
+        )

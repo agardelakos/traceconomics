@@ -36,13 +36,15 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import history  # noqa: E402
 
-FOLDER = re.compile(r"^results/([0-9]{8}T[0-9]{6}Z)/(ui-test|smoke|promote)-([0-9]{8}T[0-9]{6}Z)/(meta|playwright)\.json$")
-MAX_BYTES = 20_000_000          # a Playwright report of the full suite is a few MB
+FOLDER = re.compile(
+    r"^results/([0-9]{8}T[0-9]{6}Z)/(ui-test|smoke|promote)-([0-9]{8}T[0-9]{6}Z)/(meta|playwright)\.json$"
+)
+MAX_BYTES = 20_000_000  # a Playwright report of the full suite is a few MB
 ENV_KEYS = {"platform", "browser", "data", "runner"}
 
 
 def fetch(url: str, limit: int = MAX_BYTES) -> bytes:
-    with urllib.request.urlopen(url, timeout=60) as r:          # noqa: S310 (an https link we were given)
+    with urllib.request.urlopen(url, timeout=60) as r:  # noqa: S310 (an https link we were given)
         body = r.read(limit + 1)
     if len(body) > limit:
         raise ValueError("too large")
@@ -80,7 +82,11 @@ def check_meta(meta, build: str, step: str) -> list[str]:
     if meta.get("result") not in ("passed", "failed"):
         problems.append("no result")
     env = meta.get("environment")
-    if not isinstance(env, dict) or not set(env) <= ENV_KEYS or not all(isinstance(v, str) and len(v) < 80 for v in env.values()):
+    if (
+        not isinstance(env, dict)
+        or not set(env) <= ENV_KEYS
+        or not all(isinstance(v, str) and len(v) < 80 for v in env.values())
+    ):
         problems.append("bad environment")
     return problems
 
@@ -92,7 +98,7 @@ def pull(base: str, store: Path, out: Path, get=fetch, keep: int = 200) -> tuple
     folders: dict[tuple[str, str, str], dict[str, int]] = {}
     try:
         objects = listing(base, get)
-    except Exception as e:                                       # noqa: BLE001 (the bucket, down or odd)
+    except Exception as e:  # noqa: BLE001 (the bucket, down or odd)
         return [], [f"the listing: {type(e).__name__}"]
     for o in objects:
         m = FOLDER.match(o.get("name", ""))
@@ -100,7 +106,7 @@ def pull(base: str, store: Path, out: Path, get=fetch, keep: int = 200) -> tuple
             folders.setdefault(m.groups()[:3], {})[m.group(4)] = int(o.get("size") or 0)
     written, problems = [], []
     out.mkdir(parents=True, exist_ok=True)
-    if not catalog_path.is_file():                              # the very first run: no catalog yet
+    if not catalog_path.is_file():  # the very first run: no catalog yet
         catalog_path = out / "empty-catalog.json"
         history.write(catalog_path, {"cases": []})
     for (build, step, started), files in sorted(folders.items()):
@@ -108,11 +114,11 @@ def pull(base: str, store: Path, out: Path, get=fetch, keep: int = 200) -> tuple
         where = f"results/{build}/{step}-{started}/"
         stored = sorted((store / "runs" / step).glob("*.json"))
         if any(p.name.endswith(f"_{run_id}.json") for p in stored):
-            continue                                            # stored already
+            continue  # stored already
         if len(stored) >= keep and _iso(started).replace(":", "-") < stored[0].name[:20]:
-            continue                                            # older than what's kept: pruned before
+            continue  # older than what's kept: pruned before
         if "meta" not in files:
-            continue                                            # still uploading, or abandoned
+            continue  # still uploading, or abandoned
         pw_file = None
         try:
             meta = json.loads(get(base + where + "meta.json", 100_000))
@@ -126,27 +132,44 @@ def pull(base: str, store: Path, out: Path, get=fetch, keep: int = 200) -> tuple
                     raise ValueError("no playwright.json")
                 pw_file = out / f"{run_id}.playwright.json"
                 pw_file.write_bytes(get(base + where + "playwright.json"))
-                json.loads(pw_file.read_text(encoding="utf-8"))      # valid JSON, or ValueError
-            a = SimpleNamespace(catalog=catalog_path, junit=None, playwright=pw_file, vitest=None, env=env,
-                                run_id=run_id, trigger=step, commit=meta["commit"], build=build, started=iso,
-                                run_url=None)
+                json.loads(pw_file.read_text(encoding="utf-8"))  # valid JSON, or ValueError
+            a = SimpleNamespace(
+                catalog=catalog_path,
+                junit=None,
+                playwright=pw_file,
+                vitest=None,
+                env=env,
+                run_id=run_id,
+                trigger=step,
+                commit=meta["commit"],
+                build=build,
+                started=iso,
+                run_url=None,
+            )
             rec = history.record(a)
             if step == "promote":
                 result = meta["result"]
-                rec["suites"] = {"promote-check": {"passed": int(result == "passed"), "failed": int(result == "failed"),
-                                                   "flaky": 0, "skipped": 0, "duration": 0.0}}
+                rec["suites"] = {
+                    "promote-check": {
+                        "passed": int(result == "passed"),
+                        "failed": int(result == "failed"),
+                        "flaky": 0,
+                        "skipped": 0,
+                        "duration": 0.0,
+                    }
+                }
             bad = history.check_record(rec)
             if bad:
                 raise ValueError(", ".join(bad))
             path = out / f"{run_id}.json"
             history.write(path, rec)
             written.append(path)
-        except Exception as e:                                   # noqa: BLE001 (anything a bad object causes)
+        except Exception as e:  # noqa: BLE001 (anything a bad object causes)
             # Never the link itself (it works like a password), should a message ever quote it.
             problems.append(f"{where}: {type(e).__name__}: {str(e).replace(base, '<link>')[:200]}")
         finally:
             if pw_file is not None and pw_file.exists():
-                pw_file.unlink()                                # the record holds what's needed
+                pw_file.unlink()  # the record holds what's needed
     return written, problems
 
 

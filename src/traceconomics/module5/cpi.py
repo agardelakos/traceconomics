@@ -19,7 +19,7 @@ from traceconomics.module1 import prices
 from traceconomics.module5.record import Check, Comparison, Explanation, explain
 from traceconomics.sources.elstat.parse import TOTAL
 
-AGREE = 1e-9            # percentage points; the same rule as the site's official.json
+AGREE = 1e-9  # percentage points; the same rule as the site's official.json
 PUBLISHED = "elstat:cpi05"
 
 OWN_INDEX = "gr-cpi-rates-own-index"
@@ -28,20 +28,22 @@ REBUILT = "gr-cpi-rates-rebuilt"
 
 def table05(store_con) -> tuple[dict[str, float], dict[str, float]]:
     """Table 05 as the store holds it now: ({"YYYY-MM": index}, {"YYYY-MM": rate in percent})."""
-    rows = store_con.execute("""
+    rows = store_con.execute(
+        """
         SELECT unit, ref_period, value FROM observations
         WHERE dataset = $d AND freq = 'M' AND unit IN ('I20', 'RCH_A_FR')
         QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
         ORDER BY unit, ref_period
-    """, {"d": PUBLISHED}).fetchall()
+    """,
+        {"d": PUBLISHED},
+    ).fetchall()
     index = {p: v for u, p, v in rows if u == "I20" and v is not None}
     rate = {p: v * 100 for u, p, v in rows if u == "RCH_A_FR" and v is not None}
     return index, rate
 
 
-def _label(check: str, period: str, published: float, rebuilt: float,
-           explanations: list[Explanation]) -> Comparison:
+def _label(check: str, period: str, published: float, rebuilt: float, explanations: list[Explanation]) -> Comparison:
     if abs(rebuilt - published) <= AGREE:
         return Comparison(period, published, rebuilt, True)
     # Published rounded to one decimal: the rate shown equals ours rounded the same way.
@@ -54,9 +56,14 @@ def _label(check: str, period: str, published: float, rebuilt: float,
 
 
 def own_index(index: dict[str, float], rate: dict[str, float], explanations: list[Explanation]) -> Check:
-    check = Check(OWN_INDEX, "gr", "percent", AGREE,
-                  published={"source": PUBLISHED, "reference": "elstat-cpi-rates", "label": "rate"},
-                  rebuilt={"source": PUBLISHED, "reference": "elstat-cpi-rates", "label": "index"})
+    check = Check(
+        OWN_INDEX,
+        "gr",
+        "percent",
+        AGREE,
+        published={"source": PUBLISHED, "reference": "elstat-cpi-rates", "label": "rate"},
+        rebuilt={"source": PUBLISHED, "reference": "elstat-cpi-rates", "label": "index"},
+    )
     for period in sorted(rate):
         ours = rates.annual_rate(index, period)
         if ours is not None:
@@ -67,12 +74,18 @@ def own_index(index: dict[str, float], rate: dict[str, float], explanations: lis
 def rebuilt(blocks: dict, rate: dict[str, float], explanations: list[Explanation]) -> Check:
     """Ours from table 07's overall index. Each year's levels come from that year's own file;
     the year before's file supplies the year-ago month, as `export.site.official_rate` does."""
-    check = Check(REBUILT, "gr", "percent", AGREE,
-                  published={"source": PUBLISHED, "reference": "elstat-cpi-rates", "label": "published"},
-                  rebuilt={"source": prices.DATASET, "reference": "elstat-cpi-items", "label": "ours"})
+    check = Check(
+        REBUILT,
+        "gr",
+        "percent",
+        AGREE,
+        published={"source": PUBLISHED, "reference": "elstat-cpi-rates", "label": "published"},
+        rebuilt={"source": prices.DATASET, "reference": "elstat-cpi-items", "label": "ours"},
+    )
     for year in sorted(blocks):
-        total = {p: v for y in (year - 1, year) for p, v in blocks.get(y, {}).get(TOTAL, {}).items()
-                 if p.startswith(f"{y}-")}
+        total = {
+            p: v for y in (year - 1, year) for p, v in blocks.get(y, {}).get(TOTAL, {}).items() if p.startswith(f"{y}-")
+        }
         for period in sorted(p for p in total if p.startswith(f"{year}-")):
             ours = rates.annual_rate(total, period)
             if ours is not None and period in rate:

@@ -63,19 +63,24 @@ NOW = datetime(2026, 11, 1, tzinfo=UTC)
 
 def _hbs(archive):
     """An archived hbs_str_t223: Greek per-mille shares by quintile, for waves 2015 and 2020."""
-    rows = {"QU1": {"CP011": "600", "CP071": "400", "CP042": "300", "CP129": "50", "CP096": "0"},
-            "QU5": {"CP011": "200", "CP071": "800"},
-            "QU3": {"CP011": "500"}}
+    rows = {
+        "QU1": {"CP011": "600", "CP071": "400", "CP042": "300", "CP129": "50", "CP096": "0"},
+        "QU5": {"CP011": "200", "CP071": "800"},
+        "QU3": {"CP011": "500"},
+    }
     lines = ["freq,quantile,coicop,unit,geo\\TIME_PERIOD\t2015 \t2020 "]
     for q, cells in rows.items():
         lines += [f"A,{q},{code},PM,EL\t1 \t{v} " for code, v in cells.items()]
-    lines += ["A,QU1,CP01,PM,EL\t1 \t999 ",          # two digits: not a category
-              "A,QU1,CP0111,PM,EL\t1 \t999 ",        # four digits: not a category
-              "A,QU1,CP011,PM,CY\t1 \t999 ",         # another country
-              "A,QU1,CP011,PC,EL\t1 \t999 ",         # another unit
-              "A,QU5,CP012,PM,EL\t1 \t: "]           # no figure
-    archive.store_bytes("eurostat", "hbs_str_t223", gzip.compress("\n".join(lines).encode()), url=None,
-                        retrieved_at=NOW, ext=".tsv.gz")
+    lines += [
+        "A,QU1,CP01,PM,EL\t1 \t999 ",  # two digits: not a category
+        "A,QU1,CP0111,PM,EL\t1 \t999 ",  # four digits: not a category
+        "A,QU1,CP011,PM,CY\t1 \t999 ",  # another country
+        "A,QU1,CP011,PC,EL\t1 \t999 ",  # another unit
+        "A,QU5,CP012,PM,EL\t1 \t: ",
+    ]  # no figure
+    archive.store_bytes(
+        "eurostat", "hbs_str_t223", gzip.compress("\n".join(lines).encode()), url=None, retrieved_at=NOW, ext=".tsv.gz"
+    )
 
 
 def _bruegel(archive, rows):
@@ -86,7 +91,7 @@ def _bruegel(archive, rows):
     ws.append(["country", "date", "bottom", "top", "total", "hicp"])
     for row in rows:
         ws.append(row)
-    ws.append(["EL", None, None, None, None, None])           # a blank row at the end
+    ws.append(["EL", None, None, None, None, None])  # a blank row at the end
     sheet = io.BytesIO()
     wb.save(sheet)
     zipped = io.BytesIO()
@@ -101,8 +106,17 @@ def _prices(years=(2022, 2023, 2024)):
     for k, y in enumerate(years):
         for p in months(y):
             for code, rise in (("01", 1.08), ("011", 1.10), ("07", 1.05), ("TOTAL", 1.03)):
-                rows.append(dict(dataset="eurostat:prc_hicp_midx", key=f"M,I15,CP{code},GR", unit="I15", coicop=code,
-                                 geo="GR", ref_period=p, value=100.0 * rise ** k))
+                rows.append(
+                    dict(
+                        dataset="eurostat:prc_hicp_midx",
+                        key=f"M,I15,CP{code},GR",
+                        unit="I15",
+                        coicop=code,
+                        geo="GR",
+                        ref_period=p,
+                        value=100.0 * rise**k,
+                    )
+                )
     return rows
 
 
@@ -120,8 +134,11 @@ def test_bruegels_weights_are_the_greek_three_digit_shares_of_one_wave(tmp_path)
     archive = Archive(tmp_path)
     _hbs(archive)
     s = benchmarks.hbs_structure(archive)
-    assert s == {"QU1": {"011": 600.0, "071": 400.0, "042": 300.0, "129": 50.0, "096": 0.0},
-                 "QU5": {"011": 200.0, "071": 800.0}, "QU3": {"011": 500.0}}
+    assert s == {
+        "QU1": {"011": 600.0, "071": 400.0, "042": 300.0, "129": 50.0, "096": 0.0},
+        "QU5": {"011": 200.0, "071": 800.0},
+        "QU3": {"011": 500.0},
+    }
 
 
 def test_bruegels_published_figure_is_read_by_month(tmp_path):
@@ -138,8 +155,12 @@ def test_bruegels_published_figure_is_read_by_month(tmp_path):
     archive = Archive(tmp_path)
     _bruegel(archive, [["EL", "Jan-23", 8.0, 6.0, 7.0, 3.0], ["EL", "Dec-23", 8.5, 6.5, 7.5, 3.5]])
     pub = benchmarks.bruegel_published(archive)
-    assert pub == {"QU1": {"2023-01": 8.0, "2023-12": 8.5}, "QU5": {"2023-01": 6.0, "2023-12": 6.5},
-                   "TOTAL": {"2023-01": 7.0, "2023-12": 7.5}, "HICP": {"2023-01": 3.0, "2023-12": 3.5}}
+    assert pub == {
+        "QU1": {"2023-01": 8.0, "2023-12": 8.5},
+        "QU5": {"2023-01": 6.0, "2023-12": 6.5},
+        "TOTAL": {"2023-01": 7.0, "2023-12": 7.5},
+        "HICP": {"2023-01": 3.0, "2023-12": 3.5},
+    }
 
 
 def test_bruegels_method_rebuilt_from_its_inputs(tmp_path):
@@ -221,12 +242,20 @@ def test_v4_rebuilds_kepe_with_its_settings_and_both_unstated_choices(monkeypatc
     calls = []
 
     def build(con, grouping, label, *, spending, blocks, baskets, rule, first_year):
-        calls.append((grouping, label, spending, rule, first_year, sorted({c for b in baskets.values() for c in b.shares})))
+        calls.append(
+            (grouping, label, spending, rule, first_year, sorted({c for b in baskets.values() for c in b.shares}))
+        )
         values = {int(y): v + (0.1 if label == "D10" else 0.0) for y, v in pub[names[label]].items()} | {2020: 1.23456}
         return SimpleNamespace(annual_average_rates=lambda: values)
+
     monkeypatch.setattr(index, "cpi_blocks", lambda con: {})
-    monkeypatch.setattr(weights_used, "load_baskets", lambda con, spending: {
-        ("B", "Q1", 2016): Basket({"01": 0.5, "011": 0.5, "07": 0.5}, {"01": "A", "011": "A", "07": "A"})})
+    monkeypatch.setattr(
+        weights_used,
+        "load_baskets",
+        lambda con, spending: {
+            ("B", "Q1", 2016): Basket({"01": 0.5, "011": 0.5, "07": 0.5}, {"01": "A", "011": "A", "07": "A"})
+        },
+    )
     monkeypatch.setattr(index, "build", build)
     out = benchmarks.v4_kepe("con")
     assert set(out) == {("purchases", "people"), ("purchases", "households"), ("all", "people"), ("all", "households")}
@@ -239,10 +268,13 @@ def test_v4_rebuilds_kepe_with_its_settings_and_both_unstated_choices(monkeypatc
 
 # -- V5 ------------------------------------------------------------------------------------------
 
+
 def _series(q1, q5):
     """Stand-ins for the series builder's results: Q1 and Q5 with constant annual averages."""
-    return {"Q1": SimpleNamespace(annual_average_rates=lambda: {y: q1 for y in range(2019, 2027)}),
-            "Q5": SimpleNamespace(annual_average_rates=lambda: {y: q5 for y in range(2019, 2027)})}
+    return {
+        "Q1": SimpleNamespace(annual_average_rates=lambda: {y: q1 for y in range(2019, 2027)}),
+        "Q5": SimpleNamespace(annual_average_rates=lambda: {y: q5 for y in range(2019, 2027)}),
+    }
 
 
 def test_v5_walks_from_bruegel_to_our_default_one_setting_at_a_time(tmp_path, monkeypatch):
@@ -271,8 +303,11 @@ def test_v5_walks_from_bruegel_to_our_default_one_setting_at_a_time(tmp_path, mo
     _bruegel(archive, rows)
     hicp, cpi = {"hicp": True}, {"cpi": True}
     basket = Basket({"01": 1.0, "011": 1.0, "0111": 1.0}, {})
-    monkeypatch.setattr(attribution, "load_baskets", lambda con, spending: {
-        (y, "B", q): basket for y in range(2019, 2027) for q in ("Q1", "Q5")})
+    monkeypatch.setattr(
+        attribution,
+        "load_baskets",
+        lambda con, spending: {(y, "B", q): basket for y in range(2019, 2027) for q in ("Q1", "Q5")},
+    )
     monkeypatch.setattr(attribution, "hicp_blocks", lambda con: hicp)
     monkeypatch.setattr(index, "price_blocks", lambda con, archive: cpi)
 
@@ -285,12 +320,17 @@ def test_v5_walks_from_bruegel_to_our_default_one_setting_at_a_time(tmp_path, mo
         if blocks is cpi:
             return _series(1.0, 0.0)[label]
         return _series(3.0, 0.0)[label] if digits == {3} else _series(2.0, 0.0)[label]
+
     monkeypatch.setattr(index, "build", build)
     out = attribution.v5_bruegel(store(_prices(range(2018, 2025))), archive)
-    expected = {"B0 Bruegel as published": 1.5, "B1 Bruegel weights, chained": 2.0,
-                "O3 our survey-2020 weights, 3 digits, fixed, HICP": 4.0,
-                "O2 our weights each year (Rule N), 3 digits, HICP": 3.0,
-                "O1 the same, finest detail, HICP": 2.0, "O0 our default (CPI prices)": 1.0}
+    expected = {
+        "B0 Bruegel as published": 1.5,
+        "B1 Bruegel weights, chained": 2.0,
+        "O3 our survey-2020 weights, 3 digits, fixed, HICP": 4.0,
+        "O2 our weights each year (Rule N), 3 digits, HICP": 3.0,
+        "O1 the same, finest detail, HICP": 2.0,
+        "O0 our default (CPI prices)": 1.0,
+    }
     assert list(out) == list(expected)
     for name, value in expected.items():
         assert sorted(out[name]) == [2020, 2021, 2022, 2023]
@@ -321,10 +361,13 @@ def test_v5_walks_from_kepe_to_our_default(monkeypatch):
             return _series(3.0, 0.0)[label]
         assert rule is rule_n
         return _series(2.0, 0.0)[label] if divisions else _series(1.0, 0.0)[label]
+
     monkeypatch.setattr(index, "build", build)
     out = attribution.v5_kepe("con", "archive")
     assert out["K0 KEPE as published"][2022] == pytest.approx(10.4 - 8.9)
     assert {k: set(v.values()) for k, v in out.items() if not k.startswith("K0")} == {
-        "K1 KEPE's settings (same-year weights, divisions)": {3.0}, "K2 our timing (Rule N), divisions": {2.0},
-        "K3 our default (finest detail)": {1.0}}
+        "K1 KEPE's settings (same-year weights, divisions)": {3.0},
+        "K2 our timing (Rule N), divisions": {2.0},
+        "K3 our default (finest detail)": {1.0},
+    }
     assert all(sorted(v) == [2021, 2022, 2023, 2024] for v in out.values())

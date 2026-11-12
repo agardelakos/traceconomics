@@ -32,8 +32,17 @@ The reason for the rule, kept as notes.
 
 
 def case(**kw):
-    base = dict(id="PY-ENG-001", suite="pytest", title="t", file="tests/test_x.py", line=1,
-                node="tests/test_x.py::test_a", given=["g"], when=["w"], then=["t"])
+    base = dict(
+        id="PY-ENG-001",
+        suite="pytest",
+        title="t",
+        file="tests/test_x.py",
+        line=1,
+        node="tests/test_x.py::test_a",
+        given=["g"],
+        when=["w"],
+        then=["t"],
+    )
     base.update(kw)
     return cases_mod.Case(**base)
 
@@ -43,6 +52,7 @@ def cat(*cs, missing=()):
 
 
 # Reading the cases ------------------------------------------------------------------------------
+
 
 def test_docstring_steps_and_notes():
     """PY-CAT-001: a docstring's case is read into its ID, title, steps and notes
@@ -64,14 +74,21 @@ def test_docstring_steps_and_notes():
     assert d["problems"] == []
 
 
-@pytest.mark.parametrize("doc, problem", [
-    (None, "no docstring"),
-    ("A plain sentence.", "first line is not 'ID: title'"),
-    ("PY-ENG-001: t\n\nWhen w\nGiven g\nThen t", "Given after When: steps go Given, When, Then"),
-    ("PY-ENG-001: t\n\nAnd g\nWhen w\nThen t", "And before any Given/When/Then"),
-    ("PY-ENG-001: t\n\nGiven g\nsomething else\nThen t", "not a Given/When/Then line: 'something else'"),
-    ("PY-ENG-001: t\n\nGiven g\nWhen w\nThen t\nAnd when x\nThen y", "'And when …' hides a step: list every action under When"),
-], ids=["none", "no-header", "order", "and-first", "stray-line", "and-when"])
+@pytest.mark.parametrize(
+    "doc, problem",
+    [
+        (None, "no docstring"),
+        ("A plain sentence.", "first line is not 'ID: title'"),
+        ("PY-ENG-001: t\n\nWhen w\nGiven g\nThen t", "Given after When: steps go Given, When, Then"),
+        ("PY-ENG-001: t\n\nAnd g\nWhen w\nThen t", "And before any Given/When/Then"),
+        ("PY-ENG-001: t\n\nGiven g\nsomething else\nThen t", "not a Given/When/Then line: 'something else'"),
+        (
+            "PY-ENG-001: t\n\nGiven g\nWhen w\nThen t\nAnd when x\nThen y",
+            "'And when …' hides a step: list every action under When",
+        ),
+    ],
+    ids=["none", "no-header", "order", "and-first", "stray-line", "and-when"],
+)
 def test_docstring_problems(doc, problem):
     """PY-CAT-002: a docstring that breaks the convention is reported
 
@@ -91,11 +108,16 @@ def test_annotations_and_meta():
     Then from the annotations the ID is read, the And line joins the Given steps and the issue number is a defect
     And from the meta the ID is read and each step becomes a list
     """
-    a = cases_mod.from_annotations([
-        {"type": "id", "description": "PW-CALC-001"}, {"type": "given", "description": "a preset"},
-        {"type": "and", "description": "English"}, {"type": "when", "description": "untouched"},
-        {"type": "then", "description": "the published rate"},
-        {"type": "fixme", "description": "broken in Safari, #42"}])
+    a = cases_mod.from_annotations(
+        [
+            {"type": "id", "description": "PW-CALC-001"},
+            {"type": "given", "description": "a preset"},
+            {"type": "and", "description": "English"},
+            {"type": "when", "description": "untouched"},
+            {"type": "then", "description": "the published rate"},
+            {"type": "fixme", "description": "broken in Safari, #42"},
+        ]
+    )
     assert a["id"] == "PW-CALC-001" and a["given"] == ["a preset", "English"] and a["defects"] == [42]
     m = cases_mod.from_meta({"id": "VT-FMT-001", "given": "an amount", "when": ["formatted"], "then": "€ first"})
     assert (m["id"], m["given"], m["when"], m["then"]) == ("VT-FMT-001", ["an amount"], ["formatted"], ["€ first"])
@@ -113,6 +135,7 @@ def test_issue_links():
 
 # Collecting -------------------------------------------------------------------------------------
 
+
 def test_pytest_plugin_collects_outlines(tmp_path):
     """PY-CAT-005: a real pytest collection reads an outline and a test with no case
 
@@ -124,7 +147,8 @@ def test_pytest_plugin_collects_outlines(tmp_path):
     The plugin through a real pytest collection, on a throwaway test file.
     """
     f = tmp_path / "test_demo.py"
-    f.write_text(textwrap.dedent('''
+    f.write_text(
+        textwrap.dedent('''
         import pytest
 
         @pytest.mark.parametrize("n", [1, 2], ids=["one", "two"])
@@ -139,7 +163,9 @@ def test_pytest_plugin_collects_outlines(tmp_path):
         @pytest.mark.xfail(reason="known, #5")
         def test_plain():
             "No case yet."
-    '''), encoding="utf-8")
+    '''),
+        encoding="utf-8",
+    )
     items = collect.pytest_items([str(f), "--rootdir", str(tmp_path), "-c", "/dev/null"])
     got = {c.node.split("::")[-1]: c for c in collect.from_pytest(items, "pytest")}
     assert got["test_outline"].id == "PY-DEMO-001" and got["test_outline"].examples == ["one", "two"]
@@ -157,20 +183,43 @@ def test_playwright_listing_and_loops():
     And titles that share a long enough tail are named by that tail
     And its tag is smoke, with no problem
     """
-    listing = {"config": {"rootDir": str(collect.ROOT / "site/tests/ui")}, "suites": [{
-        "title": "calc.ui.ts", "file": "calc.ui.ts", "specs": [
-            {"title": f"{lang}: untouched", "file": "calc.ui.ts", "line": 3, "tags": ["@smoke"],
-             "tests": [{"annotations": [{"type": "id", "description": "PW-CALC-001"},
-                                        {"type": "given", "description": "g"}, {"type": "when", "description": "w"},
-                                        {"type": "then", "description": "t"}]}]}
-            for lang in ("en", "el")]}]}
+    listing = {
+        "config": {"rootDir": str(collect.ROOT / "site/tests/ui")},
+        "suites": [
+            {
+                "title": "calc.ui.ts",
+                "file": "calc.ui.ts",
+                "specs": [
+                    {
+                        "title": f"{lang}: untouched",
+                        "file": "calc.ui.ts",
+                        "line": 3,
+                        "tags": ["@smoke"],
+                        "tests": [
+                            {
+                                "annotations": [
+                                    {"type": "id", "description": "PW-CALC-001"},
+                                    {"type": "given", "description": "g"},
+                                    {"type": "when", "description": "w"},
+                                    {"type": "then", "description": "t"},
+                                ]
+                            }
+                        ],
+                    }
+                    for lang in ("en", "el")
+                ],
+            }
+        ],
+    }
     merged = collect.merge_outlines(collect.from_playwright(listing))
     assert len(merged) == 1
     c = merged[0]
     assert c.file == "site/tests/ui/calc.ui.ts" and c.examples == ["en: untouched", "el: untouched"]
-    assert c.title == "en: untouched"                                  # too little in common to name it
-    assert collect.shared_title(["en: untouched, it shows the rate", "el: untouched, it shows the rate"]) \
+    assert c.title == "en: untouched"  # too little in common to name it
+    assert (
+        collect.shared_title(["en: untouched, it shows the rate", "el: untouched, it shows the rate"])
         == "untouched, it shows the rate"
+    )
     assert c.tags == ["smoke"] and c.problems == []
 
 
@@ -183,11 +232,26 @@ def test_an_outline_over_pages_takes_the_title_given_with_its_case():
     Then the one case carries the given title
     And its examples are the addresses
     """
-    ann = [{"type": "id", "description": "PW-A11Y-001"}, {"type": "title", "description": "every page passes"},
-           {"type": "given", "description": "g"}, {"type": "when", "description": "w"}, {"type": "then", "description": "t"}]
-    listing = {"config": {"rootDir": str(collect.ROOT / "site/tests/ui")}, "suites": [{
-        "title": "a11y.ui.ts", "file": "a11y.ui.ts",
-        "specs": [{"title": page, "file": "a11y.ui.ts", "line": 3, "tests": [{"annotations": ann}]} for page in ("/el/", "/en/")]}]}
+    ann = [
+        {"type": "id", "description": "PW-A11Y-001"},
+        {"type": "title", "description": "every page passes"},
+        {"type": "given", "description": "g"},
+        {"type": "when", "description": "w"},
+        {"type": "then", "description": "t"},
+    ]
+    listing = {
+        "config": {"rootDir": str(collect.ROOT / "site/tests/ui")},
+        "suites": [
+            {
+                "title": "a11y.ui.ts",
+                "file": "a11y.ui.ts",
+                "specs": [
+                    {"title": page, "file": "a11y.ui.ts", "line": 3, "tests": [{"annotations": ann}]}
+                    for page in ("/el/", "/en/")
+                ],
+            }
+        ],
+    }
     (c,) = collect.merge_outlines(collect.from_playwright(listing))
     assert c.title == "every page passes" and c.named and c.examples == ["/el/", "/en/"]
 
@@ -214,6 +278,7 @@ def test_a_copied_id_is_a_duplicate_not_an_outline():
 
 
 # The validator ----------------------------------------------------------------------------------
+
 
 def rules(catalog, strict=None, mapping=None, obsolete=(), require_all=False):
     obsolete = obsolete if isinstance(obsolete, dict) else set(obsolete)
@@ -247,14 +312,14 @@ def test_always_errors():
     And an ID back on the same test it was removed from (a revert) gives no finding
     And a suite that was not collected, when every suite is required, is an incomplete error
     """
-    assert ("bad-id", True) in rules(cat(case(id="PW-ENG-001")))          # another suite's prefix
+    assert ("bad-id", True) in rules(cat(case(id="PW-ENG-001")))  # another suite's prefix
     assert ("bad-id", True) in rules(cat(case(id="PY-eng-1")))
     dup = rules(cat(case(), case(file="tests/test_y.py", node="tests/test_y.py::test_a")))
     assert ("duplicate-id", True) in dup
     gone = {"PY-ENG-001": {"suite": "pytest", "file": "tests/test_old.py", "title": "another test"}}
     assert ("reused-id", True) in rules(cat(case()), obsolete=gone)
     back = {"PY-ENG-001": {"suite": "pytest", "file": "tests/test_x.py", "title": "t"}}
-    assert rules(cat(case()), obsolete=back) == set()                 # a revert keeps its ID
+    assert rules(cat(case()), obsolete=back) == set()  # a revert keeps its ID
     assert ("incomplete", True) in rules(cat(case(), missing=["selenium"]), require_all=True)
 
 
@@ -319,10 +384,14 @@ def test_a_shared_case_in_one_suite_only_needs_a_reason():
     Then only the one without a reason is reported, asking why it is in one suite only
     """
     pw, sel = _browser_pair()
-    single = {"TC-CALC-001": {"title": "t", "playwright": ["PW-CALC-001"]},
-              "TC-CALC-002": {"title": "t", "selenium": ["SEL-CALC-001"], "why": "Selenium only"}}
+    single = {
+        "TC-CALC-001": {"title": "t", "playwright": ["PW-CALC-001"]},
+        "TC-CALC-002": {"title": "t", "selenium": ["SEL-CALC-001"], "why": "Selenium only"},
+    }
     found = validate.check(cat(pw, sel), {}, single, set(), False)
-    assert [f.message for f in found if f.rule == "mapping"] == ["TC-CALC-001 is in one suite only: say why (`why = \"…\"`)"]
+    assert [f.message for f in found if f.rule == "mapping"] == [
+        'TC-CALC-001 is in one suite only: say why (`why = "…"`)'
+    ]
 
 
 # The run history --------------------------------------------------------------------------------
@@ -335,13 +404,37 @@ JUNIT = """<?xml version="1.0"?><testsuites><testsuite>
 <testcase classname="tests.test_local_x" name="" time="0"><skipped message="could not import 'pandas'"/></testcase>
 </testsuite></testsuites>"""
 
-PLAYWRIGHT = {"suites": [{"specs": [{"title": "en: untouched", "tests": [
-    {"projectName": "chromium", "status": "flaky", "annotations": [{"type": "id", "description": "PW-CALC-001"}],
-     "results": [{"duration": 100}, {"duration": 200}]}]}]}]}
+PLAYWRIGHT = {
+    "suites": [
+        {
+            "specs": [
+                {
+                    "title": "en: untouched",
+                    "tests": [
+                        {
+                            "projectName": "chromium",
+                            "status": "flaky",
+                            "annotations": [{"type": "id", "description": "PW-CALC-001"}],
+                            "results": [{"duration": 100}, {"duration": 200}],
+                        }
+                    ],
+                }
+            ]
+        }
+    ]
+}
 
-VITEST = {"testResults": [{"name": "/x/format.test.ts", "assertionResults": [
-    {"title": "euros", "status": "passed", "duration": 2, "meta": {"id": "VT-FMT-001"}},
-    {"title": "other", "status": "passed", "duration": 1}]}]}
+VITEST = {
+    "testResults": [
+        {
+            "name": "/x/format.test.ts",
+            "assertionResults": [
+                {"title": "euros", "status": "passed", "duration": 2, "meta": {"id": "VT-FMT-001"}},
+                {"title": "other", "status": "passed", "duration": 1},
+            ],
+        }
+    ]
+}
 
 
 def make_record(tmp_path, commit="abc1234", started="2026-11-07T12:00:00Z", trigger="push"):
@@ -350,9 +443,19 @@ def make_record(tmp_path, commit="abc1234", started="2026-11-07T12:00:00Z", trig
     (tmp_path / "vt.json").write_text(json.dumps(VITEST), encoding="utf-8")
     catalog = cat(case(), case(id="PY-ENG-002", node="tests/test_x.py::test_b"))
     (tmp_path / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
-    a = SimpleNamespace(catalog=tmp_path / "catalog.json", junit=[f"pytest={tmp_path / 'junit.xml'}"],
-                        playwright=tmp_path / "pw.json", vitest=tmp_path / "vt.json", env=["platform=linux-x86_64"],
-                        run_id="7", trigger=trigger, commit=commit, build=None, started=started, run_url=None)
+    a = SimpleNamespace(
+        catalog=tmp_path / "catalog.json",
+        junit=[f"pytest={tmp_path / 'junit.xml'}"],
+        playwright=tmp_path / "pw.json",
+        vitest=tmp_path / "vt.json",
+        env=["platform=linux-x86_64"],
+        run_id="7",
+        trigger=trigger,
+        commit=commit,
+        build=None,
+        started=started,
+        run_url=None,
+    )
     return history.record(a), catalog
 
 
@@ -370,7 +473,7 @@ def test_record_gives_each_result_to_its_case(tmp_path):
     And the record passes the record check
     """
     rec, _ = make_record(tmp_path)
-    assert rec["cases"]["PY-ENG-001"]["result"] == "failed"            # one example failed
+    assert rec["cases"]["PY-ENG-001"]["result"] == "failed"  # one example failed
     assert rec["cases"]["PY-ENG-001"]["examples"] == {"one": "passed", "two": "failed"}
     assert rec["cases"]["PY-ENG-002"]["result"] == "skipped"
     assert rec["cases"]["PW-CALC-001"] == {"suite": "playwright", "result": "flaky", "duration": 0.3, "retries": 1}
@@ -409,7 +512,7 @@ def test_append_keeps_the_newest_and_never_forgets_an_obsolete_id(tmp_path):
         rec, catalog = make_record(tmp_path, started=f"2026-11-0{i + 1}T12:00:00Z")
         history.append(store, rec, catalog, keep=3)
     assert len(list((store / "runs/push").glob("*.json"))) == 3
-    smaller = cat(case())                                              # PY-ENG-002's test removed
+    smaller = cat(case())  # PY-ENG-002's test removed
     smaller["commit"] = "def5678"
     history.update_catalog(store, smaller)
     history.update_catalog(store, cat(case()))
@@ -426,7 +529,7 @@ def test_the_worse_result_of_an_example_stands():
     """
     run = history.Run()
     run.add("pytest", "PY-ENG-001", "test_a", "failed", 0.1)
-    run.add("pytest-local", "PY-ENG-001", "test_a", "passed", 0.1)      # the same file in the other job
+    run.add("pytest-local", "PY-ENG-001", "test_a", "passed", 0.1)  # the same file in the other job
     run.finish()
     assert run.cases["PY-ENG-001"]["result"] == "failed"
 
@@ -438,14 +541,40 @@ def test_describe_titles_keep_examples_apart():
     When the Playwright results are read
     Then each example is named by its block and title and keeps its own result
     """
-    data = {"suites": [{"title": "c.ui.ts", "file": "c.ui.ts", "suites": [
-        {"title": block, "file": "c.ui.ts", "specs": [{"title": "same title", "tests": [
-            {"status": status, "annotations": [{"type": "id", "description": "PW-CALC-001"}], "results": [{}]}]}]}
-        for block, status in (("on a phone", "unexpected"), ("on a desktop", "expected"))]}]}
+    data = {
+        "suites": [
+            {
+                "title": "c.ui.ts",
+                "file": "c.ui.ts",
+                "suites": [
+                    {
+                        "title": block,
+                        "file": "c.ui.ts",
+                        "specs": [
+                            {
+                                "title": "same title",
+                                "tests": [
+                                    {
+                                        "status": status,
+                                        "annotations": [{"type": "id", "description": "PW-CALC-001"}],
+                                        "results": [{}],
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                    for block, status in (("on a phone", "unexpected"), ("on a desktop", "expected"))
+                ],
+            }
+        ]
+    }
     run = history.Run()
     history.read_playwright(run, data)
     run.finish()
-    assert run.cases["PW-CALC-001"]["examples"] == {"on a phone › same title": "failed", "on a desktop › same title": "passed"}
+    assert run.cases["PW-CALC-001"]["examples"] == {
+        "on a phone › same title": "failed",
+        "on a desktop › same title": "passed",
+    }
 
 
 def _stored(store, name):
@@ -482,9 +611,9 @@ def test_a_removed_tests_id_becomes_obsolete_and_a_revert_takes_it_off(tmp_path)
     store.mkdir()
     pw = case(id="PW-CALC-001", suite="playwright", file="site/tests/ui/c.ui.ts")
     history.update_catalog(store, cat(case(), pw))
-    history.update_catalog(store, cat(case()))                         # its test really removed
+    history.update_catalog(store, cat(case()))  # its test really removed
     assert "PW-CALC-001" in _stored(store, "obsolete.json")
-    history.update_catalog(store, cat(case(), pw))                     # reverted
+    history.update_catalog(store, cat(case(), pw))  # reverted
     assert _stored(store, "obsolete.json") == {}
 
 
@@ -505,6 +634,7 @@ def test_a_bad_record_is_refused(tmp_path):
 
 # The wiki pages ---------------------------------------------------------------------------------
 
+
 def test_flakiness():
     """PY-CAT-019: a case's flakiness is its share of result changes
 
@@ -516,11 +646,11 @@ def test_flakiness():
     And skipped runs are left out
     And a flaky run counts one change, not two, since flaky back to passed is not a change
     """
-    assert wiki.flakiness(["passed"] * 4) is None                      # too few
+    assert wiki.flakiness(["passed"] * 4) is None  # too few
     assert wiki.flakiness(["passed"] * 6) == 0
     assert wiki.flakiness(["passed", "failed", "passed", "passed", "passed"]) == 0.5
     assert wiki.flakiness(["passed", "skipped", "passed", "passed", "passed", "passed"]) == 0
-    assert wiki.flakiness(["passed", "passed", "flaky", "passed", "passed", "passed"]) == 0.2   # one change
+    assert wiki.flakiness(["passed", "passed", "flaky", "passed", "passed", "passed"]) == 0.2  # one change
 
 
 def test_pages(tmp_path):
@@ -540,7 +670,9 @@ def test_pages(tmp_path):
     history.append(store, rec, catalog, 200)
     out.mkdir()
     (out / "Tests-Old.md").write_text("stale", encoding="utf-8")
-    (out / "_Sidebar.md").write_text("[Home](Home)\n\n<!-- generated:start -->\nold\n<!-- generated:end -->\n", encoding="utf-8")
+    (out / "_Sidebar.md").write_text(
+        "[Home](Home)\n\n<!-- generated:start -->\nold\n<!-- generated:end -->\n", encoding="utf-8"
+    )
     (out / "Home.md").write_text("hand-written", encoding="utf-8")
     pages = wiki.generate(store, out, "owner/repo", 10, 20)
     assert "Tests" in pages and not (out / "Tests-Old.md").exists()
@@ -565,12 +697,16 @@ def test_scripts_run_from_the_command_line(tmp_path):
     """
     p = tmp_path / "catalog.json"
     p.write_text(json.dumps(cat(case(id="PY-x"))), encoding="utf-8")
-    done = subprocess.run([sys.executable, "-I", str(Path(__file__).parent / "catalog/validate.py"), str(p)],
-                          capture_output=True, text=True)
+    done = subprocess.run(
+        [sys.executable, "-I", str(Path(__file__).parent / "catalog/validate.py"), str(p)],
+        capture_output=True,
+        text=True,
+    )
     assert done.returncode == 1 and "[bad-id]" in done.stdout
 
 
 # Release runs from the bucket ------------------------------------------------------------------
+
 
 def bucket(files: dict[str, bytes]):
     """A fake read link: a listing (in pages of two) and downloads, as the bucket answers them."""
@@ -587,12 +723,20 @@ def bucket(files: dict[str, bytes]):
                 page["nextStartWith"] = rest[2]
             return json.dumps(page).encode()
         return files[base.removeprefix("https://bucket/o/")]
+
     return get
 
 
 def meta(**kw):
-    m = {"schema": 1, "build": "20261107T120000Z", "commit": "abc1234", "step": "ui-test",
-         "started": "2026-11-07T12:05:00Z", "environment": {"platform": "linux-aarch64", "data": "real"}, "result": "passed"}
+    m = {
+        "schema": 1,
+        "build": "20261107T120000Z",
+        "commit": "abc1234",
+        "step": "ui-test",
+        "started": "2026-11-07T12:05:00Z",
+        "environment": {"platform": "linux-aarch64", "data": "real"},
+        "result": "passed",
+    }
     m.update(kw)
     return json.dumps(m).encode()
 
@@ -616,13 +760,15 @@ def test_release_runs_are_pulled_checked_and_stored_once(tmp_path):
         folder + "playwright.json": json.dumps(PLAYWRIGHT).encode(),
         "results/20261107T120000Z/promote-20261107T130000Z/meta.json": meta(step="promote", result="failed"),
         "results/20261107T120000Z/smoke-20261107T121000Z/meta.json": meta(step="smoke", commit="not a commit"),
-        "results/20261107T120000Z/smoke-20261107T122000Z/playwright.json": b"{}",     # no meta yet: still uploading
-        "results/check/20261107T111853Z.json": b"{}",                                  # the link check's object
+        "results/20261107T120000Z/smoke-20261107T122000Z/playwright.json": b"{}",  # no meta yet: still uploading
+        "results/check/20261107T111853Z.json": b"{}",  # the link check's object
     }
     store, out = tmp_path / "store", tmp_path / "out"
     written, problems = vm_pull.pull("https://bucket/o/", store, out, bucket(files))
-    assert sorted(p.name for p in written) == ["20261107T120000Z-promote-20261107T130000Z.json",
-                                               "20261107T120000Z-ui-test-20261107T120500Z.json"]
+    assert sorted(p.name for p in written) == [
+        "20261107T120000Z-promote-20261107T130000Z.json",
+        "20261107T120000Z-ui-test-20261107T120500Z.json",
+    ]
     assert problems == ["results/20261107T120000Z/smoke-20261107T121000Z/: ValueError: no commit"]
     ui = json.loads((out / "20261107T120000Z-ui-test-20261107T120500Z.json").read_text(encoding="utf-8"))
     assert ui["trigger"] == "ui-test" and ui["build"] == "20261107T120000Z" and ui["started"] == "2026-11-07T12:05:00Z"
@@ -630,18 +776,22 @@ def test_release_runs_are_pulled_checked_and_stored_once(tmp_path):
     assert ui["cases"]["PW-CALC-001"]["result"] == "flaky"
     promote = json.loads((out / "20261107T120000Z-promote-20261107T130000Z.json").read_text(encoding="utf-8"))
     assert promote["suites"]["promote-check"]["failed"] == 1
-    assert not list(out.glob("*.playwright.json"))                 # downloads are not left behind
+    assert not list(out.glob("*.playwright.json"))  # downloads are not left behind
     for p in written:
         history.append(store, json.loads(p.read_text(encoding="utf-8")), None, 200)
     again, _ = vm_pull.pull("https://bucket/o/", store, tmp_path / "out2", bucket(files))
-    assert again == []                                              # stored already
+    assert again == []  # stored already
 
 
-@pytest.mark.parametrize("change, problem", [
-    ({"build": "20261107T130000Z"}, "build or step differs from its folder"),
-    ({"result": "maybe"}, "no result"),
-    ({"environment": {"token": "x"}}, "bad environment"),
-], ids=["folder", "result", "environment"])
+@pytest.mark.parametrize(
+    "change, problem",
+    [
+        ({"build": "20261107T130000Z"}, "build or step differs from its folder"),
+        ({"result": "maybe"}, "no result"),
+        ({"environment": {"token": "x"}}, "bad environment"),
+    ],
+    ids=["folder", "result", "environment"],
+)
 def test_meta_is_checked(change, problem):
     """PY-CAT-023: a release run's meta file is checked
 
@@ -662,11 +812,14 @@ def test_bad_objects_never_stop_the_pull(tmp_path):
     And each bad object is reported as a problem, three in all
     """
     folder = "results/20261107T120000Z/ui-test-20261107T120500Z/"
-    files = {folder + "meta.json": meta(), folder + "playwright.json": b'{"suites": [1]}',
-             "results/20261107T120000Z/smoke-20261107T121000Z/meta.json": b"[1]",
-             "results/20261107T120000Z/smoke-20261107T122000Z/meta.json": b"[" * 100_000}
+    files = {
+        folder + "meta.json": meta(),
+        folder + "playwright.json": b'{"suites": [1]}',
+        "results/20261107T120000Z/smoke-20261107T121000Z/meta.json": b"[1]",
+        "results/20261107T120000Z/smoke-20261107T122000Z/meta.json": b"[" * 100_000,
+    }
     written, problems = vm_pull.pull("https://bucket/o/", tmp_path / "store", tmp_path / "out", bucket(files))
-    assert written == [] and len(problems) == 3                      # each reported, none fatal
+    assert written == [] and len(problems) == 3  # each reported, none fatal
 
 
 def test_an_unreachable_bucket_is_one_problem(tmp_path):
@@ -677,9 +830,14 @@ def test_an_unreachable_bucket_is_one_problem(tmp_path):
     Then nothing is written
     And the listing's OSError is the one problem
     """
+
     def down(url, limit=0):
         raise OSError("connection refused")
-    assert vm_pull.pull("https://bucket/o/", tmp_path / "store", tmp_path / "out", down) == ([], ["the listing: OSError"])
+
+    assert vm_pull.pull("https://bucket/o/", tmp_path / "store", tmp_path / "out", down) == (
+        [],
+        ["the listing: OSError"],
+    )
 
 
 def test_a_repeated_page_token_ends_the_listing():
@@ -690,7 +848,7 @@ def test_a_repeated_page_token_ends_the_listing():
     Then the listing ends, with no objects
     """
     pages = iter([b'{"objects": [], "nextStartWith": "a"}'] * 3)
-    assert vm_pull.listing("https://bucket/o/", lambda url, limit=0: next(pages)) == []   # a repeated token ends it
+    assert vm_pull.listing("https://bucket/o/", lambda url, limit=0: next(pages)) == []  # a repeated token ends it
 
 
 def test_runs_pruned_from_the_history_are_not_fetched_again(tmp_path):
