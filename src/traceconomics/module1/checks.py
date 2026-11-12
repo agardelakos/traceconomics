@@ -203,7 +203,7 @@ def v_prices(con, digits=(4, 5)) -> dict[int, dict]:
             if a is None or b is None:
                 continue
             out.setdefault(int(p[:4]), {}).setdefault("gaps", []).append((abs(a - b), code))
-    for year, d in out.items():
+    for d in out.values():
         gaps = [g for g, _ in d.pop("gaps")] if "gaps" in d else []
         d.update(
             {

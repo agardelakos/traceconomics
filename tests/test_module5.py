@@ -537,7 +537,9 @@ def test_all_checks_in_order_without_missing_parts_and_never_two_with_one_id(mon
     """
     from traceconomics.module5 import cpi as m5cpi, hbs, rebuilds, run
 
-    made = lambda cid: Check(cid, "gr", "percent", 0.0, {}, {})
+    def made(cid):
+        return Check(cid, "gr", "percent", 0.0, {}, {})
+
     monkeypatch.setattr(m5cpi, "checks", lambda con, ex: [made("gr-a"), made("gr-b")])
     monkeypatch.setattr(rebuilds, "cpi", lambda archive, ex: made("gr-c"))
     monkeypatch.setattr(rebuilds, "hicp", lambda archive, d, duck, ex: None)

@@ -174,7 +174,7 @@ def ras(
         c = cols[c_codes].to_numpy(float)
         c = c * r.sum() / c.sum()
         x = np.ones(len(part))
-        for it in range(max_iter):
+        for it in range(max_iter):  # noqa: B007 - read after the loop: how many iterations ran
             before = x.copy()
             x *= (r / np.bincount(i, x, len(r)))[i]
             x *= (c / np.bincount(j, x, len(c)))[j]
@@ -247,7 +247,7 @@ def build_old_to_v1(old_codes: dict[str, OldList], v1_labels: dict[str, str], v1
     out = []
     same = {}
     for code, entry in old_codes.items():
-        labels = {_norm(l) for l in entry.labels.values() if l}
+        labels = {_norm(text) for text in entry.labels.values() if text}
         if code in v1_spending.index and labels and _norm(v1_labels.get(code)) in labels and len(labels) == 1:
             same[code] = code
             out.append(
@@ -270,7 +270,7 @@ def build_old_to_v1(old_codes: dict[str, OldList], v1_labels: dict[str, str], v1
         require(under, f"no ECOICOP v1 subclass under {code[:4]} or {code[:3]} for {code}")
         free = [c for c in under if c not in taken] or under
         weight = v1_spending[free]
-        label = next((l for l in old_codes[code].labels.values() if l), "")
+        label = next((text for text in old_codes[code].labels.values() if text), "")
         if weight.sum() > 0:
             shares, method = (
                 weight / weight.sum(),

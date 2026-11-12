@@ -131,7 +131,10 @@ def width(text: str) -> int:
 
 def badge(name: str, result: dict, level: str) -> str:
     """The badge's SVG; `level` (a standing) colours the total."""
-    pct = lambda v: f"{v:.1f}%"
+
+    def pct(v):
+        return f"{v:.1f}%"
+
     segments = [(f"{name} coverage", LABEL), (pct(result["pct"]), TOTAL[level])]
     segments += [(f"{NAMES[k]} {pct(v['pct'])}", LAYER[k]) for k, v in result["layers"].items()]
     parts = ", ".join(f"{LONG[k]} {pct(v['pct'])}" for k, v in result["layers"].items())

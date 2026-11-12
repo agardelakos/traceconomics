@@ -179,7 +179,7 @@ def series_file(con, setting: dict, se: dict, footnotes: dict) -> dict:
 def contributions_file(con, setting: dict) -> dict:
     w = _where(setting)
     out: dict = {}
-    for g, q, unit, code, p, text in con.execute(f"""
+    for g, q, _unit, code, p, text in con.execute(f"""
             SELECT grouping, "group", unit, coicop18, ref_period, value_text FROM m1_contributions
             WHERE {w} ORDER BY 1, 2, 5, 4""").fetchall():
         e = out.setdefault(f"{g}/{q}", {})

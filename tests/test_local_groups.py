@@ -206,7 +206,7 @@ def test_shares_are_plutocratic_and_add_up():
     assert everyone[(1, "0111")] == pytest.approx(1300 / 3100)
     assert (1, "0421") not in everyone.index and (1, "042") not in everyone.index
     # Every level adds up to 1, and parents are the sums of their leaves.
-    for (grouping, group, option), part in t.groupby(["grouping", "group", "imputed_rent"]):
+    for _, part in t.groupby(["grouping", "group", "imputed_rent"]):
         assert part[part.leaf].share.sum() == pytest.approx(1)
         assert part[part.digits == 2].share.sum() == pytest.approx(1)
     assert everyone[(2, "04")] == pytest.approx(everyone[(2, "041")] + everyone[(2, "042")] + everyone[(2, "045")])
@@ -425,7 +425,10 @@ def test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_mode
     s.purchases["04"] = s.purchases["041"] + s.purchases["045"]
     p = shares(s, spending="purchases")
     a = shares(s, spending="all")
-    pick = lambda t, opt, code: t[(t.grouping == "all") & (t.imputed_rent == opt) & (t.code == code)].share.item()
+
+    def pick(t, opt, code):
+        return t[(t.grouping == "all") & (t.imputed_rent == opt) & (t.code == code)].share.item()
+
     # Purchases: food 2*200 + 200 + 500 = 1100; rent 1200; energy 600.
     assert pick(p, 1, "0111") == pytest.approx(1100 / 2900)
     assert pick(a, 1, "0111") == pytest.approx(1300 / 3100)

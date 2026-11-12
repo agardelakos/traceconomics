@@ -135,7 +135,7 @@ def test_consistency_filter_and_definition_open(site, lang, theme):
     _check(site, f"/{lang}/gr/official-figures-consistency/checks/", theme)
     for button in site.all('[data-m5="filter"] button[data-filter]:not([data-filter="all"])'):
         button.click()
-        site.wait(lambda _: button.get_attribute("aria-pressed") == "true", "the button was not pressed")
+        site.wait(lambda _, button=button: button.get_attribute("aria-pressed") == "true", "the button was not pressed")
         problems = site.axe()
         assert not problems, _report(problems)
     site.open(f"/{lang}/gr/official-figures-consistency/same-question/rent-paid/")

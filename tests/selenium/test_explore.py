@@ -561,6 +561,6 @@ def test_a_price_source_that_publishes_later_says_which_month_it_doesnt_have_yet
         _pick(site, "price_source", "hicp")
         expected = t(lang, "reason.ends_earlier", month=month(lang, greyed[0]["index"][0], "acc"))
         note = 'fieldset[data-option="price_source"] [data-role=note]'
-        site.wait(lambda _: expected in site.find(note).text)
+        site.wait(lambda _, expected=expected, note=note: expected in site.find(note).text)
         last = month(lang, hicp["index"][1], "acc" if lang == "el" else "nom")
-        site.wait(lambda _: last in site.find("#explore [data-role=summary]").text)
+        site.wait(lambda _, last=last: last in site.find("#explore [data-role=summary]").text)

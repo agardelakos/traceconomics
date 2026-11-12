@@ -224,7 +224,7 @@ def test_the_shell_command_runs_the_same_container_as_the_timer():
     run = script.splitlines()[-1]
     assert run.startswith("exec /usr/bin/docker run ") and run.endswith(' -m traceconomics "$@"')
     # The same container, user, mounts and secrets as the timer's command, minus its "archive" argument.
-    timer_run = next(l for l in service.splitlines() if l.startswith("ExecStart="))
+    timer_run = next(line for line in service.splitlines() if line.startswith("ExecStart="))
     assert run[len("exec ") : -len(' "$@"')] == timer_run[len("ExecStart=") : -len(" archive")]
 
 

@@ -46,7 +46,7 @@ def ribe(series: Series, blocks: dict[int, Prices], digits: int = 2) -> dict[str
     subs = division_links(series, blocks, digits)
     total = series.chained.links
     out: dict[str, dict[str, float]] = {}
-    for period, link_t in sorted(total.items()):
+    for period in sorted(total):
         year, month = int(period[:4]), period[5:]
         prev = f"{year - 1}-{month}"
         dec_prev = f"{year - 1}-12"

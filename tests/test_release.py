@@ -418,9 +418,10 @@ def test_a_retest_runs_the_rest_on_the_files_the_build_made(tmp_path, no_email):
     (cfg.release.site_dir / "dist" / "en" / "index.html").write_text("<p>a later build</p>", encoding="utf-8")
     fake = FakeSteps(cfg.release.site_dir)
     seen = []
-    fake_ui = lambda step, env, log: (
-        seen.append((cfg.release.site_dir / "dist" / "en" / "index.html").read_text()) or fake(step, env, log)
-    )
+
+    def fake_ui(step, env, log):
+        return seen.append((cfg.release.site_dir / "dist" / "en" / "index.html").read_text()) or fake(step, env, log)
+
     again = release.retest(cfg, rec["id"], runner=fake_ui, now=datetime(2026, 11, 10, 12, tzinfo=UTC))
     assert fake.ran == ["ui-test", "upload", "smoke"] and seen[0] == "<p>ok</p>"
     assert again["result"] == "ok" and "failed_step" not in again and again["retests"][0]["result"] == "ok"

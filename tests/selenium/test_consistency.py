@@ -414,7 +414,10 @@ def test_status_buttons_show_one_status_at_a_time(site):
         t("en", "m5.filter.count", label=t("en", "m5.filter.all"), n=len(r["checks"]))
     ] + [t("en", "m5.filter.count", label=t("en", f"m5.status.{st}"), n=n[st]) for st in ORDER if n[st]]
     assert site.find('[data-m5="filter"] button[data-filter="all"]').get_attribute("aria-pressed") == "true"
-    shown = lambda: [c for c in site.all('[data-m5="checks"] [data-m5-card]') if c.is_displayed()]
+
+    def shown():
+        return [c for c in site.all('[data-m5="checks"] [data-m5-card]') if c.is_displayed()]
+
     assert len(shown()) == len(r["checks"])
     explained = site.find('[data-m5="filter"] button[data-filter="explained"]')
     explained.click()
