@@ -11,6 +11,7 @@ import duckdb
 import pytest
 import sitedata
 
+from traceconomics.checks import FormatError
 from traceconomics.module1 import availability, combinations, combos_check as cc, output
 
 pytestmark = pytest.mark.integration
@@ -241,6 +242,57 @@ def test_the_imputed_rent_report(built):
     keep = _avg(built, cc.where(imputed_rent="included") + " AND \"group\" = 'renter'")
     drop = _avg(built, cc.where() + " AND \"group\" = 'renter'")
     assert r["renter"]["change"] == {y: keep[y] - drop[y] for y in keep if y in drop}
+
+
+def copy_rows(folder, table, condition, changes):
+    """Add a copy of some rows of one output file, with `changes` ({column: SQL expression}) applied.
+    The copies are written first: a reader that takes the first matching row then meets them before
+    the originals."""
+    path = (folder / f"{table}.parquet").as_posix()
+    con = output.parquet_connection()
+    replace = ", ".join(f"{expr} AS {col}" for col, expr in changes.items())
+    con.execute(f"CREATE TABLE t AS SELECT * REPLACE ({replace}) FROM '{path}' WHERE {condition}")
+    con.execute(f"INSERT INTO t SELECT * FROM '{path}'")
+    con.execute(f"COPY (SELECT * FROM t) TO '{path}' (FORMAT parquet)")
+
+
+def test_the_imputed_rent_report_takes_each_groups_weight_from_its_own_grouping(outputs):
+    """PY-COMBO-020: the imputed-rent report gives the income fifths grouping B's weight, not another grouping's
+
+    Given module 1 outputs where grouping A also has a fifth named Q1, with three times B's imputed-rent weight
+    When the imputed-rent report is made
+    And B's Q1 loses its imputed-rent rows
+    And the report is made again
+    Then Q1's 2025 weight is grouping B's the first time
+    And it is 0 the second time, not A's
+    """
+    before = cc.rent(outputs)["Q1"]["weight_2025"]
+    copy_rows(
+        outputs,
+        "m1_weights_used",
+        "grouping = 'B' AND \"group\" = 'Q1'",
+        {"grouping": "'A'", "value": "CAST(CAST(value AS DOUBLE) * 3 AS VARCHAR)"},
+    )
+    assert cc.rent(outputs)["Q1"]["weight_2025"] == before
+    # With A's rows first, a reader that takes the first Q1 it meets usually takes A's; with no
+    # imputed rent left in B's Q1, A's would be the only one.
+    moved = rewrite(
+        outputs, "m1_weights_used", "coicop18 = '0999'", "grouping = 'B' AND \"group\" = 'Q1' AND coicop18 LIKE '042%'"
+    )
+    assert moved > 0
+    assert cc.rent(outputs)["Q1"]["weight_2025"] == 0
+
+
+def test_the_imputed_rent_report_refuses_a_group_name_in_two_of_its_groupings(outputs):
+    """PY-COMBO-021: the imputed-rent report refuses when one group name is in two of the groupings it shows
+
+    Given module 1 outputs where the tenure grouping also has a group named Q1
+    When the imputed-rent report is made
+    Then it stops with an error naming Q1
+    """
+    copy_rows(outputs, "m1_rates", "grouping = 'B' AND \"group\" = 'Q1'", {"grouping": "'tenure'"})
+    with pytest.raises(FormatError, match="Q1"):
+        cc.rent(outputs)
 
 
 def test_the_tutoring_report(built):

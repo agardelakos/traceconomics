@@ -21,6 +21,8 @@ from pathlib import Path
 
 import duckdb
 
+from traceconomics.checks import require
+
 DIMS = [
     "geo",
     "grouping",
@@ -182,31 +184,34 @@ def timing(folder: Path, grouping: str = "B") -> dict:
     return {y: {rule: gaps[rule].get(y) for rule in gaps} for y in years}
 
 
+# The groupings the imputed-rent report shows, each group under its own name: the income fifths of
+# grouping B (A and C hold fifths with the same names, ranked differently), all households, tenure,
+# pensioners and household types.
+RENT_GROUPINGS = ("B", "all", "tenure", "pensioners", "hhtype")
+
+
 def rent(folder: Path) -> dict:
     """Per group: the imputed-rent weight (2025, option kept) and the change in annual-average rates."""
     con = _con(folder)
+    shown = "grouping IN (" + ", ".join(f"'{g}'" for g in RENT_GROUPINGS) + ")"
+    # A group name in two of these groupings would make the report pick one of them unseen.
+    shared = con.execute(f"""
+        SELECT "group" FROM (SELECT DISTINCT grouping, "group" FROM m1_rates WHERE {shown})
+        GROUP BY 1 HAVING count(*) > 1 ORDER BY 1""").fetchall()
+    require(not shared, f"imputed-rent report: group names in more than one grouping: {[g for (g,) in shared]}")
     w = dict(
         con.execute(f"""
-        SELECT grouping || '/' || "group", sum(CAST(value AS DOUBLE)) FROM m1_weights_used
-        WHERE {where(imputed_rent="included")} AND ref_period = '2025' AND coicop18 LIKE '042%'
-        GROUP BY 1""").fetchall()
+        SELECT "group", sum(CAST(value AS DOUBLE)) FROM m1_weights_used
+        WHERE {where(imputed_rent="included")} AND {shown} AND ref_period = '2025' AND coicop18 LIKE '042%'
+        GROUP BY 1 ORDER BY 1""").fetchall()
     )
-    keep = {
-        (f"{g}", y): v
-        for (g, y), v in _avg(
-            con, where(imputed_rent="included") + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')"
-        ).items()
-    }
-    drop = {
-        (f"{g}", y): v
-        for (g, y), v in _avg(con, where() + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')").items()
-    }
+    keep = _avg(con, where(imputed_rent="included") + f" AND {shown}")
+    drop = _avg(con, where() + f" AND {shown}")
     groups = sorted({g for g, _ in keep})
     years = sorted({y for _, y in keep})
-    names = {g: next(k for k in w if k.endswith("/" + g)) for g in groups if any(k.endswith("/" + g) for k in w)}
     return {
         g: {
-            "weight_2025": w.get(names.get(g, ""), 0.0),
+            "weight_2025": w.get(g, 0.0),
             "change": {y: keep[(g, y)] - drop[(g, y)] for y in years if (g, y) in keep and (g, y) in drop},
         }
         for g in groups
