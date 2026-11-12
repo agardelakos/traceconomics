@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "c8f0fcd5bd042c1882b749960365be8651f6dfe5",
- "generated": "2026-11-11T08:59:32Z",
+ "commit": "bc74d8f77fdfc219f53583fb2e764e4abc954f3f",
+ "generated": "2026-11-12T07:57:34Z",
  "missing": [],
  "cases": [
   {
@@ -23129,7 +23129,7 @@
    "suite": "vitest",
    "title": "finds an inflected Greek form, whatever its case, and only the first mention",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 32,
+   "line": 35,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › finds an inflected Greek form, whatever its case, and only the first mention",
    "given": [
     "a Greek paragraph that mentions inflation twice, first capitalised, then inflected"
@@ -23153,7 +23153,7 @@
    "suite": "vitest",
    "title": "prefers the longest form and respects word edges in Greek",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 46,
+   "line": 49,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › prefers the longest form and respects word edges in Greek",
    "given": [
     "a paragraph mentioning ΕνΔΤΚ, ΔΤΚ, \"annual average rate\" and \"annual rate\""
@@ -23177,7 +23177,7 @@
    "suite": "vitest",
    "title": "leaves headings and links alone, then marks the next mention",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 60,
+   "line": 63,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › leaves headings and links alone, then marks the next mention",
    "given": [
     "a term in a heading, then in a link, then in plain text"
@@ -23203,7 +23203,7 @@
    "suite": "vitest",
    "title": "doesn't mark a term on its own page",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 78,
+   "line": 81,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › doesn't mark a term on its own page",
    "given": [
     "a paragraph mentioning inflation, on inflation's own glossary page"
@@ -23226,7 +23226,7 @@
    "suite": "vitest",
    "title": "keeps the text around a term",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 87,
+   "line": 90,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › keeps the text around a term",
    "given": [
     "a paragraph with text before and after a term"
@@ -23249,7 +23249,7 @@
    "suite": "vitest",
    "title": "refuses a form claimed by two terms",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 100,
+   "line": 103,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › refuses a form claimed by two terms",
    "given": [
     "two terms with the same form, written in different case"
@@ -23272,7 +23272,7 @@
    "suite": "vitest",
    "title": "loads the real glossary in both languages without clashes",
    "file": "site/src/lib/glossary-terms.test.ts",
-   "line": 112,
+   "line": 115,
    "node": "site/src/lib/glossary-terms.test.ts › marking glossary terms › loads the real glossary in both languages without clashes",
    "given": [
     "the site's glossary pages"
@@ -23284,6 +23284,58 @@
     "each language has more than 30 terms",
     "every term has at least one form",
     "a matcher builds from each language's terms without an error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-GLOSS-008",
+   "suite": "vitest",
+   "title": "runs only on content pages in a site language and marks each term's first mention",
+   "file": "site/src/lib/glossary-terms.test.ts",
+   "line": 166,
+   "node": "site/src/lib/glossary-terms.test.ts › the glossary plugin › runs only on content pages in a site language and marks each term's first mention",
+   "given": [
+    "a site folder with the term inflation in its English glossary",
+    "no file address, a file outside the content folder, a file one level too deep, a file in an unknown language, a file that isn't Markdown, and an English method page"
+   ],
+   "when": [
+    "the plugin is asked for each file, and the method page's text nodes are passed through it"
+   ],
+   "then": [
+    "every file but the method page gets no plugin",
+    "a mention inside a link is left as it is",
+    "the method page's first mention of inflation becomes a popover with the term, its short text and a link to its page, named by the language's link text",
+    "a second mention on the same page is left as it is"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-GLOSS-009",
+   "suite": "vitest",
+   "title": "leaves a term's own page unmarked, names steps' popovers by their file and reads each language once",
+   "file": "site/src/lib/glossary-terms.test.ts",
+   "line": 199,
+   "node": "site/src/lib/glossary-terms.test.ts › the glossary plugin › leaves a term's own page unmarked, names steps' popovers by their file and reads each language once",
+   "given": [
+    "the same site folder, the term's own glossary page and two step files of one topic"
+   ],
+   "when": [
+    "each page's text naming the term is passed through the plugin, the link text file removed after the first page"
+   ],
+   "then": [
+    "the term's own page leaves its name unmarked",
+    "each step file marks the term, and their popover ids differ only by the step's file name",
+    "the pages after the first still mark the term, from the language's files as read the first time"
    ],
    "notes": "",
    "examples": [],
@@ -23977,11 +24029,63 @@
    "named": false
   },
   {
+   "id": "VT-M5-007",
+   "suite": "vitest",
+   "title": "names a check's glossary term by its published source, and counts rounding-only figures",
+   "file": "site/src/lib/m5.test.ts",
+   "line": 131,
+   "node": "site/src/lib/m5.test.ts › consistency topic › names a check's glossary term by its published source, and counts rounding-only figures",
+   "given": [
+    "checks whose published side comes from ELSTAT's CPI, Eurostat's HICP, ELSTAT's household budget survey and another source",
+    "a consistent check with 2 of 10 figures differing by rounding, one where all agree, and an explained check with a rounding and a revision difference"
+   ],
+   "when": [
+    "each check's glossary term and its rounding-only count are worked out"
+   ],
+   "then": [
+    "the terms are the consumer price index, the HICP and the household budget survey; the other source has none",
+    "the rounding-only counts are 2 and 0, and 0 for the explained check, whose rounding sits beside another cause"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-M5-008",
+   "suite": "vitest",
+   "title": "states the years checked and lists the causes in their fixed order",
+   "file": "site/src/lib/m5.test.ts",
+   "line": 153,
+   "node": "site/src/lib/m5.test.ts › consistency topic › states the years checked and lists the causes in their fixed order",
+   "given": [
+    "checks that compared no years (an empty list, and no list at all), one year, and three years given out of order",
+    "a check with differences from an unknown cause, a revision and rounding, given in that order",
+    "a survey period naming a group the site has no name for"
+   ],
+   "when": [
+    "their checked span, their causes and the period's label are written in English and Greek"
+   ],
+   "then": [
+    "no years give no text, one year reads «checked 2020», three read «checked 2018–2020», and Greek uses its own words",
+    "the causes read rounding, then the revision, then the unknown cause, each with its count",
+    "the period reads as its year and the group's code"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "VT-STRUCT-001",
    "suite": "vitest",
    "title": "gives full addresses, the licence's address and each file's media type",
    "file": "site/src/lib/structured.test.ts",
-   "line": 16,
+   "line": 20,
    "node": "site/src/lib/structured.test.ts › dataset › gives full addresses, the licence's address and each file's media type",
    "given": [
     "a dataset under CC BY 4.0 from 2008-12 to 2026-09",
@@ -24009,7 +24113,7 @@
    "suite": "vitest",
    "title": "refuses a licence or a file type it doesn't know, rather than guess",
    "file": "site/src/lib/structured.test.ts",
-   "line": 39,
+   "line": 43,
    "node": "site/src/lib/structured.test.ts › dataset › refuses a licence or a file type it doesn't know, rather than guess",
    "given": [
     "the same dataset with an unknown licence (CC0), or with an .xlsx file"
@@ -24033,7 +24137,7 @@
    "suite": "vitest",
    "title": "can't close its script element, and reads back the same",
    "file": "site/src/lib/structured.test.ts",
-   "line": 54,
+   "line": 58,
    "node": "site/src/lib/structured.test.ts › ldJson › can't close its script element, and reads back the same",
    "given": [
     "a value whose text holds a closing script tag, a script and an HTML comment"
@@ -24057,7 +24161,7 @@
    "suite": "vitest",
    "title": "lists each page in an offered language once, sorted, with full addresses",
    "file": "site/src/lib/structured.test.ts",
-   "line": 71,
+   "line": 75,
    "node": "site/src/lib/structured.test.ts › sitemapXml › lists each page in an offered language once, sorted, with full addresses",
    "given": [
     "page paths in English and Greek, with and without slashes, one listed twice",
@@ -24068,6 +24172,55 @@
    ],
    "then": [
     "its addresses are the English pages only, each once, in full with a closing slash, sorted"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-STRUCT-005",
+   "suite": "vitest",
+   "title": "writes sitemap.xml into the build's folder for the languages the site offers",
+   "file": "site/src/lib/structured.test.ts",
+   "line": 95,
+   "node": "site/src/lib/structured.test.ts › the sitemap step of the build › writes sitemap.xml into the build's folder for the languages the site offers",
+   "given": [
+    "the site's address from the Astro config",
+    "built pages: the root, the English home, a Greek data page and a page in a language the site has no file for",
+    "the site's own list of offered languages"
+   ],
+   "when": [
+    "the build finishes"
+   ],
+   "then": [
+    "the build's folder holds sitemap.xml with the same text the sitemap gives for those pages and the offered languages"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-STRUCT-006",
+   "suite": "vitest",
+   "title": "stops the build when the Astro config has no site address",
+   "file": "site/src/lib/structured.test.ts",
+   "line": 116,
+   "node": "site/src/lib/structured.test.ts › the sitemap step of the build › stops the build when the Astro config has no site address",
+   "given": [
+    "an Astro config without a site address"
+   ],
+   "when": [
+    "the build finishes"
+   ],
+   "then": [
+    "the step throws an error naming the missing setting",
+    "no sitemap.xml is written"
    ],
    "notes": "",
    "examples": [],
@@ -24401,7 +24554,7 @@
    "suite": "vitest",
    "title": "accepts a Greek twin that uses the term in any form, case or final sigma",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 23,
+   "line": 26,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › accepts a Greek twin that uses the term in any form, case or final sigma",
    "given": [
     "an English text about inflation and its Greek twin with the term inflected, capitalised and ending in a final sigma"
@@ -24424,7 +24577,7 @@
    "suite": "vitest",
    "title": "reports a Greek twin that says the concept another way",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 37,
+   "line": 40,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › reports a Greek twin that says the concept another way",
    "given": [
     "an English text naming the income fifth, whose Greek twin says «εισοδηματική ομάδα»"
@@ -24447,7 +24600,7 @@
    "suite": "vitest",
    "title": "finds terms as the popovers do: longest form first, whole words only",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 47,
+   "line": 50,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › finds terms as the popovers do: longest form first, whole words only",
    "given": [
     "an English text with \"annual average rate\" only, and a Greek twin using «μέσος ετήσιος ρυθμός», plus an English word that merely contains a form"
@@ -24471,7 +24624,7 @@
    "suite": "vitest",
    "title": "ignores what readers never see: link targets, tags, code and placeholders",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 61,
+   "line": 64,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › ignores what readers never see: link targets, tags, code and placeholders",
    "given": [
     "texts where \"inflation\" appears only in a link's address, an HTML attribute, inline code and a placeholder"
@@ -24495,7 +24648,7 @@
    "suite": "vitest",
    "title": "pairs a content page by its shown fields and by section",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 76,
+   "line": 79,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › pairs a content page by its shown fields and by section",
    "given": [
     "an English and a Greek page with the same headings, a title, a glossary-style forms field and two headings that share a slug"
@@ -24520,7 +24673,7 @@
    "suite": "vitest",
    "title": "pairs a page whole when its headings differ in number",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 95,
+   "line": 98,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › pairs a page whole when its headings differ in number",
    "given": [
     "an English page with two headings whose Greek twin has one, the term only in the English second section and the Greek first"
@@ -24544,7 +24697,7 @@
    "suite": "vitest",
    "title": "lists Greek terms the English lacks when asked for that direction",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 111,
+   "line": 114,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › lists Greek terms the English lacks when asked for that direction",
    "given": [
     "a Greek twin that names the annual rate where the English says only \"the rate\""
@@ -24568,7 +24721,7 @@
    "suite": "vitest",
    "title": "lets the allow-list only shrink: new misses and stale entries both fail",
    "file": "site/src/lib/twin-terms.test.ts",
-   "line": 125,
+   "line": 128,
    "node": "site/src/lib/twin-terms.test.ts › glossary terms between the English and the Greek › lets the allow-list only shrink: new misses and stale entries both fail",
    "given": [
     "today's misses a and b, and an allow-list holding a and c"
@@ -24580,6 +24733,58 @@
     "b is fresh: a miss not on the list",
     "c is stale: an entry that no longer misses",
     "a, still missing and listed, is neither"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-009",
+   "suite": "vitest",
+   "title": "pairs every interface string and content page that has a Greek twin, in a fixed order",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 156,
+   "node": "site/src/lib/twin-terms.test.ts › the check's files › pairs every interface string and content page that has a Greek twin, in a fixed order",
+   "given": [
+    "interface strings b and a in both languages, c in English only, and d whose Greek is not a string",
+    "a method page with a Greek twin, a method page without one, a non-Markdown file, and a folder of Greek pages with no English folder",
+    "a glossary page with its twin, in a folder sorted before method"
+   ],
+   "when": [
+    "the folder's pairs are loaded"
+   ],
+   "then": [
+    "the interface strings come first, sorted by key, only those with a Greek string",
+    "then the content pages, folder by folder and file by file in sorted order, each split into its title and sections",
+    "a page without a twin, a non-Markdown file and the folder without English give no pairs"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-TWINS-010",
+   "suite": "vitest",
+   "title": "loads both languages' glossary terms and the allow-list's entries",
+   "file": "site/src/lib/twin-terms.test.ts",
+   "line": 193,
+   "node": "site/src/lib/twin-terms.test.ts › the check's files › loads both languages' glossary terms and the allow-list's entries",
+   "given": [
+    "a glossary with one term in English and one in Greek",
+    "an allow-list file with one entry, and one with no entries field"
+   ],
+   "when": [
+    "the glossary and each allow-list are loaded"
+   ],
+   "then": [
+    "the glossary holds each language's term under its language",
+    "the first allow-list gives its entry, the second an empty list"
    ],
    "notes": "",
    "examples": [],
