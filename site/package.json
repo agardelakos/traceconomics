@@ -14,7 +14,10 @@
     "check": "astro check && vitest run && astro build && node scripts/checks.mjs",
     "check:code": "astro check && vitest run --exclude src/lib/engine/parity.test.ts --exclude src/lib/data-files.test.ts",
     "shots": "node scripts/shots.mjs",
-    "terms:report": "node scripts/twin-terms-report.mjs"
+    "terms:report": "node scripts/twin-terms-report.mjs",
+    "format": "prettier --config .prettierrc.json --ignore-path .prettierignore --write \"*.{mjs,ts,json,jsonc,md}\" \"{scripts,src,tests}/**/*.{ts,astro,mjs,js,css,json,md}\" \"../*.md\" \"../wiki/*.md\" \"../src/traceconomics/README.md\" \"../.github/pull_request_template.md\"",
+    "format:check": "prettier --config .prettierrc.json --ignore-path .prettierignore --check \"*.{mjs,ts,json,jsonc,md}\" \"{scripts,src,tests}/**/*.{ts,astro,mjs,js,css,json,md}\" \"../*.md\" \"../wiki/*.md\" \"../src/traceconomics/README.md\" \"../.github/pull_request_template.md\"",
+    "lint": "eslint"
   },
   "dependencies": {
     "@fontsource/source-code-pro": "5.3.1",
@@ -27,13 +30,19 @@
     "@astrojs/check": "0.9.10",
     "@astrojs/markdown-satteri": "0.4.4",
     "@axe-core/playwright": "4.14.0",
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
     "@vitest/coverage-v8": "5.0.5",
+    "eslint": "10.13.0",
+    "eslint-plugin-astro": "3.2.1",
     "js-yaml": "4.3.2",
     "monocart-coverage-reports": "3.0.0",
     "playwright": "1.64.1",
+    "prettier": "3.9.10",
+    "prettier-plugin-astro": "1.1.2",
     "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
     "vitest": "5.0.5",
     "vitest-monocart-coverage": "5.0.0",
     "wrangler": "4.154.0"

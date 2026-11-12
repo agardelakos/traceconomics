@@ -1,0 +1,18 @@
+# Never formatted. Paths are relative to this folder; the npm scripts pass the files to format.
+# npm writes these itself.
+package.json
+package-lock.json
+# Served byte for byte as written (headers, security.txt, scripts that site checks read).
+public/
+# Generated.
+dist/
+coverage/
+test-results/
+playwright-report/
+# Saved publisher files and their README are never rewritten.
+../tests/fixtures/
+# The Contributor Covenant, kept as published.
+../CODE_OF_CONDUCT.md
+# Local notes that are never part of the repository.
+CLAUDE.md
+../CLAUDE.md

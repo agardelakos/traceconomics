@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==9.1.1", "coverage==7.17.0"]
+dev = ["pytest==9.1.1", "coverage==7.17.0", "ruff==0.17.3"]
 # Only for the microdata code that runs on the owner's machine (src/traceconomics/local); never needed to
 # use the published data.
 local = ["pandas==3.0.6", "py7zr==1.1.4", "pyxlsb==1.0.10"]
@@ -60,6 +60,24 @@ relative_files = true
 # The layer each line ran under is recorded as a dynamic context (tests/conftest.py switches it):
 # the C tracer records contexts, the sys.monitoring core does not.
 core = "ctrace"
+
+# One code style for the Python code, set by Ruff and checked in CI (`ruff format --check`, `ruff check`).
+[tool.ruff]
+# The code was written to about this width; Ruff's default (88) would rewrap far more of it.
+line-length = 120
+target-version = "py314"
+# Only the project's own code. Listed, not left to .gitignore, so that local scripts kept elsewhere in
+# a checkout are never in scope.
+include = ["src/**/*.py", "tests/**/*.py", ".github/scripts/**/*.py"]
+# Saved publisher files are never rewritten (tests/fixtures/README.md); force-exclude keeps them out
+# even when a path inside is passed on the command line.
+extend-exclude = ["tests/fixtures"]
+force-exclude = true
+
+[tool.ruff.lint]
+# Ruff's defaults (pyflakes, pycodestyle errors) plus import order, likely bugs and upgrades to the
+# Python this project runs. Add rules one at a time, each in its own change.
+select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
 
 [tool.coverage.html]
 # Each line's layers, shown in the HTML report.
