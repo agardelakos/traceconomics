@@ -17,11 +17,16 @@ const OURS = /(^|\/)src\/(scripts|lib|components|layouts|pages)\//;
 
 /** A source file we count. */
 export const sourceFilter = (path) =>
-  !path.includes("node_modules") && OURS.test(path) && !/\.test\.ts$/.test(path) && !/\.(json|css)$/.test(path);
+  !path.includes("node_modules") &&
+  OURS.test(path) &&
+  !/\.test\.ts$/.test(path) &&
+  !/\.(json|css)$/.test(path);
 
 /** "…/site/src/lib/format.ts" → "src/lib/format.ts"; an .astro file's script block gets a readable name. */
 export const sourcePath = (path) =>
-  path.replace(/^.*?(src\/)/, "src/").replace(/\.astro\??(?:astro)?[?&]type=script&index=(\d+)&lang\.ts$/, ".astro (script $1)");
+  path
+    .replace(/^.*?(src\/)/, "src/")
+    .replace(/\.astro\??(?:astro)?[?&]type=script&index=(\d+)&lang\.ts$/, ".astro (script $1)");
 
 /**
  * The browser tests' raw coverage: only the site's own scripts, never a third-party one.

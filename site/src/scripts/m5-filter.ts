@@ -18,7 +18,9 @@ export function start(root: HTMLElement): void {
       if (!c.hidden) shown += 1;
     }
     for (const k of keys) k.hidden = filter !== "all" && k.dataset.key !== filter;
-    live.textContent = template.replace("{n}", String(shown)).replace("{total}", String(cards.length));
+    live.textContent = template
+      .replace("{n}", String(shown))
+      .replace("{total}", String(cards.length));
   };
   for (const b of buttons) {
     b.addEventListener("click", () => {

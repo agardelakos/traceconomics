@@ -17,7 +17,8 @@ export { month, num, type Lang } from "../../src/lib/format";
 
 // The language files, read as the site's src/lib/i18n.ts reads them (Node won't import JSON from
 // that module without an import attribute, so the lookup is repeated here, just as strict).
-const strings = (name: string) => JSON.parse(readFileSync(new URL(`../../src/i18n/${name}.json`, import.meta.url), "utf-8"));
+const strings = (name: string) =>
+  JSON.parse(readFileSync(new URL(`../../src/i18n/${name}.json`, import.meta.url), "utf-8"));
 const STRINGS: Record<Lang, Record<string, string>> = { el: strings("el"), en: strings("en") };
 /**
  * A test's case: its stable ID and its Given/When/Then, as Playwright annotations, so the case is
@@ -27,10 +28,25 @@ const STRINGS: Record<Lang, Record<string, string>> = { el: strings("el"), en: s
  * test per language passes the same case: one ID, the languages are its examples. Give the case a
  * `title` when the test's own title is the loop's value (a page's address): the case needs a name.
  */
-export function gwt(c: { id: string; title?: string; given: string | string[]; when: string | string[]; then: string | string[] }) {
-  const steps = (type: string, v: string | string[]) => [v].flat().map((description) => ({ type, description }));
+export function gwt(c: {
+  id: string;
+  title?: string;
+  given: string | string[];
+  when: string | string[];
+  then: string | string[];
+}) {
+  const steps = (type: string, v: string | string[]) =>
+    [v].flat().map((description) => ({ type, description }));
   const title = c.title ? [{ type: "title", description: c.title }] : [];
-  return { annotation: [{ type: "id", description: c.id }, ...title, ...steps("given", c.given), ...steps("when", c.when), ...steps("then", c.then)] };
+  return {
+    annotation: [
+      { type: "id", description: c.id },
+      ...title,
+      ...steps("given", c.given),
+      ...steps("when", c.when),
+      ...steps("then", c.then),
+    ],
+  };
 }
 
 export const LANGS: Lang[] = ["el", "en"];
@@ -79,44 +95,60 @@ export const test = base.extend<Fixtures>({
     await use(context);
   },
 
-  errors: [async ({ page, allowErrors }, use, info) => {
-    const errors: string[] = [];
-    page.on("console", (m) => {
-      // A blocked beacon logs a failed request; that one is ours.
-      if (m.type() === "error" && !BEACON.test(m.location().url)) errors.push(m.text());
-    });
-    page.on("pageerror", (e) => errors.push(String(e)));
-    await use(errors);
-    const unexpected = errors.filter((e) => !allowErrors.some((re) => re.test(e)));
-    // In full in the report, next to the screenshot (the assertion shows only a diff).
-    if (unexpected.length) await info.attach("console errors", { body: unexpected.join("\n\n"), contentType: "text/plain" });
-    expect(unexpected, "console errors").toEqual([]);
-  }, { auto: true }],
+  errors: [
+    async ({ page, allowErrors }, use, info) => {
+      const errors: string[] = [];
+      page.on("console", (m) => {
+        // A blocked beacon logs a failed request; that one is ours.
+        if (m.type() === "error" && !BEACON.test(m.location().url)) errors.push(m.text());
+      });
+      page.on("pageerror", (e) => errors.push(String(e)));
+      await use(errors);
+      const unexpected = errors.filter((e) => !allowErrors.some((re) => re.test(e)));
+      // In full in the report, next to the screenshot (the assertion shows only a diff).
+      if (unexpected.length)
+        await info.attach("console errors", {
+          body: unexpected.join("\n\n"),
+          contentType: "text/plain",
+        });
+      expect(unexpected, "console errors").toEqual([]);
+    },
+    { auto: true },
+  ],
 
-  coverage: [async ({ page, javaScriptEnabled }, use) => {
-    // With scripts off there is nothing to measure, and Chromium refuses to start the coverage.
-    if (!COVERAGE || !javaScriptEnabled) {
-      await use({ flush: async () => {} });
-      return;
-    }
-    const entries: any[] = [];
-    let running = false;
-    const stop = async () => {
-      if (!running) return;
-      running = false;
-      entries.push(...(await page.coverage.stopJSCoverage()));
-    };
-    const flush = async () => {
-      await stop();
-      await page.coverage.startJSCoverage({ resetOnNavigation: false });
-      running = true;
-    };
-    const goto = page.goto.bind(page);
-    const reload = page.reload.bind(page);
-    page.goto = (async (...args: Parameters<Page["goto"]>) => { await flush(); return goto(...args); }) as Page["goto"];
-    page.reload = (async (...args: Parameters<Page["reload"]>) => { await flush(); return reload(...args); }) as Page["reload"];
-    await use({ flush });
-    await stop().catch(() => {});        // the test may have closed the page
-    if (entries.length) await new CoverageReport(coverageOptions).add(entries);
-  }, { auto: true }],
+  coverage: [
+    async ({ page, javaScriptEnabled }, use) => {
+      // With scripts off there is nothing to measure, and Chromium refuses to start the coverage.
+      if (!COVERAGE || !javaScriptEnabled) {
+        await use({ flush: async () => {} });
+        return;
+      }
+      const entries: any[] = [];
+      let running = false;
+      const stop = async () => {
+        if (!running) return;
+        running = false;
+        entries.push(...(await page.coverage.stopJSCoverage()));
+      };
+      const flush = async () => {
+        await stop();
+        await page.coverage.startJSCoverage({ resetOnNavigation: false });
+        running = true;
+      };
+      const goto = page.goto.bind(page);
+      const reload = page.reload.bind(page);
+      page.goto = (async (...args: Parameters<Page["goto"]>) => {
+        await flush();
+        return goto(...args);
+      }) as Page["goto"];
+      page.reload = (async (...args: Parameters<Page["reload"]>) => {
+        await flush();
+        return reload(...args);
+      }) as Page["reload"];
+      await use({ flush });
+      await stop().catch(() => {}); // the test may have closed the page
+      if (entries.length) await new CoverageReport(coverageOptions).add(entries);
+    },
+    { auto: true },
+  ],
 });

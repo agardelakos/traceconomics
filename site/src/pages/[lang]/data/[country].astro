@@ -16,7 +16,15 @@ import { href, LANGS, t, type Lang } from "../../../lib/i18n";
 import { dataset, ldJson } from "../../../lib/structured";
 import { m5Dir, results } from "../../../lib/m5";
 import { reference } from "../../../lib/references";
-import { dataCountries, EUROSTAT, m1Text, m5Text, OFFICES, topicHref, TOPICS } from "../../../lib/topics";
+import {
+  dataCountries,
+  EUROSTAT,
+  m1Text,
+  m5Text,
+  OFFICES,
+  topicHref,
+  TOPICS,
+} from "../../../lib/topics";
 
 export function getStaticPaths() {
   return LANGS.flatMap((lang) => dataCountries().map((country) => ({ params: { lang, country } })));
@@ -29,13 +37,19 @@ const countryName = t(lang, `country.${country}`);
 // Each live topic's section, with its files and its text; planned topics aren't named (no promises
 // on the site). Every live topic needs its own files component here, so a new one can't be listed
 // without its files.
-const sections = await Promise.all(TOPICS.map(async (tp) => {
-  if (tp.status !== "live" || !tp.countries.includes(country)) return null;
-  if (!["m1", "m5"].includes(tp.module)) throw new Error(`no files component for topic "${tp.slug}" on the data page`);
-  const entry = await getEntry("pages", tp.module === "m1" ? m1Text(country, lang, "data") : m5Text(country, lang, "m5-data"));
-  if (!entry) throw new Error(`no data text for ${tp.slug} in ${country}, ${lang}`);
-  return { tp, entry };
-}));
+const sections = await Promise.all(
+  TOPICS.map(async (tp) => {
+    if (tp.status !== "live" || !tp.countries.includes(country)) return null;
+    if (!["m1", "m5"].includes(tp.module))
+      throw new Error(`no files component for topic "${tp.slug}" on the data page`);
+    const entry = await getEntry(
+      "pages",
+      tp.module === "m1" ? m1Text(country, lang, "data") : m5Text(country, lang, "m5-data"),
+    );
+    if (!entry) throw new Error(`no data text for ${tp.slug} in ${country}, ${lang}`);
+    return { tp, entry };
+  }),
+);
 const shown = sections.filter((s) => s !== null);
 const sourceKeys = [...new Set(shown.flatMap((s) => s.entry.data.sources))];
 const title = t(lang, "opendata.country.title", { country: countryName });
@@ -46,45 +60,87 @@ const ld = shown.map(({ tp }) => {
   if (tp.module === "m5") {
     const r = results(country);
     const base = `/data/v1/${m5Dir(country)}`;
-    const periods = r.checks.flatMap((c) => [c.first, c.last]).filter((p): p is string => !!p && /^\d{4}-\d{2}$/.test(p)).sort();
-    return ldJson(dataset({
-      site: Astro.site!, lang,
-      name: `${countryName}: ${t(lang, `topic.${tp.slug}`)}`,
-      description: `${t(lang, `topic.${tp.slug}.text`)} ${t(lang, "opendata.country.lead", { country: countryName })}`,
-      page: `${href(lang, `data/${country}`)}#${tp.slug}`,
-      metadata: { licence: r.licence, attribution: r.attribution, first_period: periods[0], last_period: periods[periods.length - 1] },
-      place: countryName,
-      // Beyond the statistics office and Eurostat, the other publishers' data (AADE, the European
-      // Commission's LMP database), each by its cited dataset's address.
-      basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang], ...[...new Set(r.questions.flatMap((q) => q.sources)
-        .filter((s) => /^(aade|ec-empl):/.test(s.source)).map((s) => reference(s.reference).url!))].sort()],
-      files: [`${base}/checks.json`, ...[...r.checks, ...r.questions].map((c) => `${base}/downloads/${c.id}.csv`)],
-    }));
+    const periods = r.checks
+      .flatMap((c) => [c.first, c.last])
+      .filter((p): p is string => !!p && /^\d{4}-\d{2}$/.test(p))
+      .sort();
+    return ldJson(
+      dataset({
+        site: Astro.site!,
+        lang,
+        name: `${countryName}: ${t(lang, `topic.${tp.slug}`)}`,
+        description: `${t(lang, `topic.${tp.slug}.text`)} ${t(lang, "opendata.country.lead", { country: countryName })}`,
+        page: `${href(lang, `data/${country}`)}#${tp.slug}`,
+        metadata: {
+          licence: r.licence,
+          attribution: r.attribution,
+          first_period: periods[0],
+          last_period: periods[periods.length - 1],
+        },
+        place: countryName,
+        // Beyond the statistics office and Eurostat, the other publishers' data (AADE, the European
+        // Commission's LMP database), each by its cited dataset's address.
+        basedOn: [
+          OFFICES[country].href[lang],
+          EUROSTAT.href[lang],
+          ...[
+            ...new Set(
+              r.questions
+                .flatMap((q) => q.sources)
+                .filter((s) => /^(aade|ec-empl):/.test(s.source))
+                .map((s) => reference(s.reference).url!),
+            ),
+          ].sort(),
+        ],
+        files: [
+          `${base}/checks.json`,
+          ...[...r.checks, ...r.questions].map((c) => `${base}/downloads/${c.id}.csv`),
+        ],
+      }),
+    );
   }
   const base = `/data/v1/${m1Dir(country)}`;
   const slug = settings(country).settings.find((s) => s.default)!.slug;
   const files = fs.readdirSync(path.join(DATA_ROOT, m1Dir(country), "downloads", slug)).sort();
-  return ldJson(dataset({
-    site: Astro.site!, lang,
-    name: `${countryName}: ${t(lang, `topic.${tp.slug}`)}`,
-    description: `${t(lang, `topic.${tp.slug}.text`)} ${t(lang, "opendata.country.lead", { country: countryName })}`,
-    page: `${href(lang, `data/${country}`)}#${tp.slug}`,
-    metadata: readJson(`${m1Dir(country)}/metadata.json`),
-    place: countryName,
-    basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang]],
-    files: [...files.map((f) => `${base}/downloads/${slug}/${f}`), `${base}/metadata.json`],
-  }));
+  return ldJson(
+    dataset({
+      site: Astro.site!,
+      lang,
+      name: `${countryName}: ${t(lang, `topic.${tp.slug}`)}`,
+      description: `${t(lang, `topic.${tp.slug}.text`)} ${t(lang, "opendata.country.lead", { country: countryName })}`,
+      page: `${href(lang, `data/${country}`)}#${tp.slug}`,
+      metadata: readJson(`${m1Dir(country)}/metadata.json`),
+      place: countryName,
+      basedOn: [OFFICES[country].href[lang], EUROSTAT.href[lang]],
+      files: [...files.map((f) => `${base}/downloads/${slug}/${f}`), `${base}/metadata.json`],
+    }),
+  );
 });
 ---
-<Base lang={lang} title={title} description={t(lang, "opendata.country.lead", { country: countryName })} path={`data/${country}`} current="data">
+
+<Base
+  lang={lang}
+  title={title}
+  description={t(lang, "opendata.country.lead", { country: countryName })}
+  path={`data/${country}`}
+  current="data"
+>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <Breadcrumb lang={lang} trail={[[t(lang, "nav.data"), href(lang, "data")], [countryName]]} />
       <h1>{title}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, "opendata.country.lead", { country: countryName })}</p>
+      <p style="font-size: var(--text-lg)">
+        {t(lang, "opendata.country.lead", { country: countryName })}
+      </p>
       <nav aria-label={t(lang, "opendata.country.topics")} class="chips">
-        {shown.map((s) => <a class="chip" href={`#${s.tp.slug}`} style="text-decoration: none">{t(lang, `topic.${s.tp.slug}`)}</a>)}
-        <a class="chip" href="#source-data" style="text-decoration: none">{t(lang, "opendata.source")}</a>
+        {shown.map((s) => (
+          <a class="chip" href={`#${s.tp.slug}`} style="text-decoration: none">
+            {t(lang, `topic.${s.tp.slug}`)}
+          </a>
+        ))}
+        <a class="chip" href="#source-data" style="text-decoration: none">
+          {t(lang, "opendata.source")}
+        </a>
       </nav>
     </header>
 
@@ -92,19 +148,29 @@ const ld = shown.map(({ tp }) => {
       <section class="stack data-topic" aria-labelledby={s.tp.slug} style="gap: var(--space-3)">
         <div class="section-head">
           <h2 id={s.tp.slug}>{t(lang, `topic.${s.tp.slug}`)}</h2>
-          <a href={topicHref(lang, s.tp.slug, country)}>{t(lang, "opendata.country.see_topic", { topic: t(lang, `topic.${s.tp.slug}`) })} →</a>
+          <a href={topicHref(lang, s.tp.slug, country)}>
+            {t(lang, "opendata.country.see_topic", { topic: t(lang, `topic.${s.tp.slug}`) })} →
+          </a>
         </div>
-        {s.tp.module === "m1" ? <M1Files lang={lang} country={country} entry={s.entry} /> : <M5Files lang={lang} country={country} entry={s.entry} />}
+        {s.tp.module === "m1" ? (
+          <M1Files lang={lang} country={country} entry={s.entry} />
+        ) : (
+          <M5Files lang={lang} country={country} entry={s.entry} />
+        )}
       </section>
     ))}
 
     <section class="stack" aria-labelledby="source-data" style="gap: var(--space-2)">
       <h2 id="source-data">{t(lang, "opendata.source")}</h2>
-      <p class="muted" style="max-width: var(--text-max)">{t(lang, "opendata.source.lead")}</p>
+      <p class="muted" style="max-width: var(--text-max)">
+        {t(lang, "opendata.source.lead")}
+      </p>
       <SourceList keys={sourceKeys} lang={lang} />
     </section>
   </article>
-  {ld.map((json) => <script is:inline type="application/ld+json" set:html={json} />)}
+  {ld.map((json) => (
+    <script is:inline type="application/ld+json" set:html={json} />
+  ))}
 </Base>
 
 <script>
@@ -114,7 +180,12 @@ const ld = shown.map(({ tp }) => {
     const id = decodeURIComponent(location.hash.slice(1));
     const target = id ? document.getElementById(id) : null;
     if (!(target instanceof HTMLDetailsElement)) return;
-    for (let d: HTMLDetailsElement | null = target; d; d = d.parentElement?.closest("details") ?? null) d.open = true;
+    for (
+      let d: HTMLDetailsElement | null = target;
+      d;
+      d = d.parentElement?.closest("details") ?? null
+    )
+      d.open = true;
     target.scrollIntoView();
   }
   openTarget();

@@ -14,13 +14,24 @@ const entry = await getEntry("pages", `${lang}/${page}`);
 if (!entry) throw new Error(`no ${page} page for ${lang}`);
 const { Content } = await render(entry);
 ---
-<Base lang={lang} title={entry.data.title} description={entry.data.summary} path={page} current={page}>
+
+<Base
+  lang={lang}
+  title={entry.data.title}
+  description={entry.data.summary}
+  path={page}
+  current={page}
+>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
-      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}><a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, `nav.${page}`)}</nav>
+      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}>
+        <a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, `nav.${page}`)}
+      </nav>
       <h1>{entry.data.title}</h1>
       <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
     </header>
-    <section class="prose"><Content /></section>
+    <section class="prose">
+      <Content />
+    </section>
   </article>
 </Base>

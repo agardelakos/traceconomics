@@ -12,6 +12,7 @@ import { OFFERED as LANGS } from "../lib/i18n";
 
 const NAMES = { el: ["Ελληνικά", "Επιλέξτε γλώσσα"], en: ["English", "Choose a language"] };
 ---
+
 <!doctype html>
 <html lang={LANGS[0]}>
   <head>
@@ -21,7 +22,9 @@ const NAMES = { el: ["Ελληνικά", "Επιλέξτε γλώσσα"], en: [
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>TracEconomics</title>
     <meta name="description" content="Official data. Fair questions. Verifiable answers." />
-    {LANGS.map((l) => <link rel="alternate" hreflang={l} href={new URL(`/${l}/`, Astro.site).href} />)}
+    {LANGS.map((l) => (
+      <link rel="alternate" hreflang={l} href={new URL(`/${l}/`, Astro.site).href} />
+    ))}
     <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site).href} />
     <script is:inline src="/lang.js"></script>
   </head>
@@ -30,7 +33,11 @@ const NAMES = { el: ["Ελληνικά", "Επιλέξτε γλώσσα"], en: [
       <h1>TracEconomics</h1>
       {LANGS.length > 1 && LANGS.map((l) => <p lang={l}>{NAMES[l][1]}</p>)}
       <div class="button-row">
-        {LANGS.map((l, i) => <a class={i === 0 ? "button primary" : "button"} href={`/${l}/`} lang={l}>{NAMES[l][0]}</a>)}
+        {LANGS.map((l, i) => (
+          <a class={i === 0 ? "button primary" : "button"} href={`/${l}/`} lang={l}>
+            {NAMES[l][0]}
+          </a>
+        ))}
       </div>
     </main>
   </body>

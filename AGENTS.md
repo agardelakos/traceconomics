@@ -30,30 +30,30 @@ checks; where the two seem to differ, CONTRIBUTING.md wins and you say so in you
 
 ## Repository map
 
-| Path | What it does |
-|---|---|
-| `src/traceconomics/cli.py` | Command line: `python -m traceconomics <command>` (`--help` on each) |
-| `src/traceconomics/sources/` | One adapter per publisher (`elstat/`, `eurostat/`), their parsers, reuse-terms watch (`terms.py`); `base.py` is the polite HTTP client |
-| `src/traceconomics/archive/` | Append-only raw archive (`store.py`); local-only microdata list (`local_only.py`) |
-| `src/traceconomics/store/` | Observation store (DuckDB over Parquet), built from the archive, queried as of any date |
-| `src/traceconomics/catalog.py`, `data/` | Reference data: parsed datasets (`datasets.toml`), country codes (`geo.toml`), mapping tables |
-| `src/traceconomics/checks.py` | `FormatError` and `require()` for parsers |
-| `src/traceconomics/engine/` | Arithmetic without method choices: COICOP tree, chain-linking, rates |
-| `src/traceconomics/validate/` | The engine checked against official figures (V1, V1-CPI) |
-| `src/traceconomics/module1/` | Inflation by household group: every option combination, outputs, checks |
-| `src/traceconomics/local/` | Survey microdata code; needs the `local` extra (pandas) |
-| `src/traceconomics/export/` | Files the site reads; bibliography export |
-| `src/traceconomics/references/references.bib` | The bibliography every published number cites |
-| `tests/` | pytest suite; `tests/fixtures/` saved publisher files; `tests/sitedata.py` made-up site data |
-| `tests/selenium/` | Selenium browser suite (collected only with `--selenium`) |
-| `tests/compare/` | Scripts comparing the two browser suites' results |
-| `site/src/` | Pages, content (`content/<kind>/en`, `.../el`), interface text (`i18n/`), build code (`lib/`), browser code (`scripts/`) |
-| `site/src/**/*.test.ts` | Vitest unit tests |
-| `site/tests/ui/` | Playwright browser suite (`*.ui.ts`); `helpers.ts` is shared |
-| `site/scripts/checks.mjs` | Site checks run after the build |
-| `tests/catalog/` | Test catalog tooling: collect, validate, run history, wiki pages; `strict.toml` (the ratchet), `cases.toml` (the cross-suite mapping) |
-| `wiki/` | The wiki's hand-written pages, copied to the GitHub wiki automatically; `tests/test_wiki_pages.py` checks the paths they name |
-| `.github/workflows/` | CI (`tests.yml`), suite comparison (`compare.yml`) |
+| Path                                          | What it does                                                                                                                           |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/traceconomics/cli.py`                    | Command line: `python -m traceconomics <command>` (`--help` on each)                                                                   |
+| `src/traceconomics/sources/`                  | One adapter per publisher (`elstat/`, `eurostat/`), their parsers, reuse-terms watch (`terms.py`); `base.py` is the polite HTTP client |
+| `src/traceconomics/archive/`                  | Append-only raw archive (`store.py`); local-only microdata list (`local_only.py`)                                                      |
+| `src/traceconomics/store/`                    | Observation store (DuckDB over Parquet), built from the archive, queried as of any date                                                |
+| `src/traceconomics/catalog.py`, `data/`       | Reference data: parsed datasets (`datasets.toml`), country codes (`geo.toml`), mapping tables                                          |
+| `src/traceconomics/checks.py`                 | `FormatError` and `require()` for parsers                                                                                              |
+| `src/traceconomics/engine/`                   | Arithmetic without method choices: COICOP tree, chain-linking, rates                                                                   |
+| `src/traceconomics/validate/`                 | The engine checked against official figures (V1, V1-CPI)                                                                               |
+| `src/traceconomics/module1/`                  | Inflation by household group: every option combination, outputs, checks                                                                |
+| `src/traceconomics/local/`                    | Survey microdata code; needs the `local` extra (pandas)                                                                                |
+| `src/traceconomics/export/`                   | Files the site reads; bibliography export                                                                                              |
+| `src/traceconomics/references/references.bib` | The bibliography every published number cites                                                                                          |
+| `tests/`                                      | pytest suite; `tests/fixtures/` saved publisher files; `tests/sitedata.py` made-up site data                                           |
+| `tests/selenium/`                             | Selenium browser suite (collected only with `--selenium`)                                                                              |
+| `tests/compare/`                              | Scripts comparing the two browser suites' results                                                                                      |
+| `site/src/`                                   | Pages, content (`content/<kind>/en`, `.../el`), interface text (`i18n/`), build code (`lib/`), browser code (`scripts/`)               |
+| `site/src/**/*.test.ts`                       | Vitest unit tests                                                                                                                      |
+| `site/tests/ui/`                              | Playwright browser suite (`*.ui.ts`); `helpers.ts` is shared                                                                           |
+| `site/scripts/checks.mjs`                     | Site checks run after the build                                                                                                        |
+| `tests/catalog/`                              | Test catalog tooling: collect, validate, run history, wiki pages; `strict.toml` (the ratchet), `cases.toml` (the cross-suite mapping)  |
+| `wiki/`                                       | The wiki's hand-written pages, copied to the GitHub wiki automatically; `tests/test_wiki_pages.py` checks the paths they name          |
+| `.github/workflows/`                          | CI (`tests.yml`), suite comparison (`compare.yml`)                                                                                     |
 
 ## Setup
 
@@ -113,6 +113,7 @@ Lock files: after a pin change in `pyproject.toml`, regenerate `requirements-dev
 ## Conventions
 
 Code:
+
 - Format and lint with the commands above before you finish; never format by hand or against the
   tools' settings. A rule switched off for one line names its reason on that line.
 - Standard library first (`urllib`, `html.parser`, `tomllib`, `smtplib`).
@@ -124,6 +125,7 @@ Code:
 - Fetching code: one request at a time, a pause between requests, `robots.txt` respected.
 
 Tests:
+
 - Use `tests/fixtures/` through the `fixture_bytes` fixture; add a new fixture only with its row in
   `tests/fixtures/README.md` (source URL, date, what was trimmed).
 - Tests needing pandas or numpy start with `pytest.importorskip(...)`.
@@ -133,11 +135,13 @@ Tests:
 - A change to the site's behaviour updates both browser suites.
 
 Data handling:
+
 - Never write to or rewrite archived files; the archive is append-only.
 - Any step that publishes or copies archive files calls `archive.local_only.check()` first.
 - Never read files from outside the repository unless your human points you to them.
 
 Site:
+
 - Every English change in `site/src/i18n/en.json` or `site/src/content/<kind>/en/` has its Greek
   twin in `el.json` or `site/src/content/<kind>/el/`.
 - Every source key cited in content exists in `references.bib`.
@@ -158,15 +162,15 @@ Site:
 
 Run the suites that cover your change and report each result exactly as it came out.
 
-| Change | Run |
-|---|---|
-| Python code or `src/traceconomics/data/` | `pytest` |
-| Lock files or `pyproject.toml` | `pytest` (includes `tests/test_lock_files.py`) |
-| `src/traceconomics/export/` or `tests/sitedata.py` | `pytest`, then site data, `npm run check`, `npm run test:ui` |
-| Site code, content or i18n | `npm run check`, `npm run test:ui`, the Selenium suite |
-| `site/public/_headers` or CSP | the host tests above, both suites |
-| Browser tests only | the suite you changed, in full |
-| Any change | `ruff format --check`, `ruff check`; in `site/`, `npm run format:check`, `npm run lint` |
+| Change                                             | Run                                                                                     |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Python code or `src/traceconomics/data/`           | `pytest`                                                                                |
+| Lock files or `pyproject.toml`                     | `pytest` (includes `tests/test_lock_files.py`)                                          |
+| `src/traceconomics/export/` or `tests/sitedata.py` | `pytest`, then site data, `npm run check`, `npm run test:ui`                            |
+| Site code, content or i18n                         | `npm run check`, `npm run test:ui`, the Selenium suite                                  |
+| `site/public/_headers` or CSP                      | the host tests above, both suites                                                       |
+| Browser tests only                                 | the suite you changed, in full                                                          |
+| Any change                                         | `ruff format --check`, `ruff check`; in `site/`, `npm run format:check`, `npm run lint` |
 
 - Done means every relevant suite passed locally, or you report which failed and why.
 - Report failures, skips and flaky results as they are; never retry until green and call it a pass.

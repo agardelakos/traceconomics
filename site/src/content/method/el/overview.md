@@ -2,8 +2,31 @@
 title: "Πώς μετριέται"
 summary: "Κάθε ομάδα νοικοκυριών έχει το δικό της καλάθι, τιμολογημένο με τους επίσημους δείκτες ειδών, με τον ίδιο τρόπο όπως ο επίσημος Δείκτης Τιμών Καταναλωτή."
 order: 0
-sources: [cpi-manual-2020, hicp-manual-2024, reg-2016-792, reg-2020-1148, elstat-cpi-qr-2026, elstat-cpi-items, elstat-hbs-puf, elstat-silc-puf, eurostat-cens-11htts-r2, eurostat-cens-21hhct-r3, eurostat-equivalence-scale, reg-1982-2003, rao-wu-1988, preston-2009, eurostat-contrib-2018, jaravel-2021, bruegel-inflation-inequality, kepe-2024, eurostat-energy-2022, ecb-op330-2023]
+sources:
+  [
+    cpi-manual-2020,
+    hicp-manual-2024,
+    reg-2016-792,
+    reg-2020-1148,
+    elstat-cpi-qr-2026,
+    elstat-cpi-items,
+    elstat-hbs-puf,
+    elstat-silc-puf,
+    eurostat-cens-11htts-r2,
+    eurostat-cens-21hhct-r3,
+    eurostat-equivalence-scale,
+    reg-1982-2003,
+    rao-wu-1988,
+    preston-2009,
+    eurostat-contrib-2018,
+    jaravel-2021,
+    bruegel-inflation-inequality,
+    kepe-2024,
+    eurostat-energy-2022,
+    ecb-op330-2023,
+  ]
 ---
+
 ## Με μία παράγραφο
 
 Ο επίσημος Δείκτης Τιμών Καταναλωτή μετρά τον πληθωρισμό για το καλάθι του μέσου νοικοκυριού. Ο ιστότοπος υπολογίζει τον ίδιο τύπο δείκτη για ομάδες νοικοκυριών, η καθεμία με το δικό της καλάθι: το φτωχότερο και το πλουσιότερο 20% του πληθυσμού, ενοικιαστές και ιδιοκτήτες, τύποι νοικοκυριών, νοικοκυριά συνταξιούχων. Οι τιμές είναι οι επίσημοι δείκτες ειδών· από ομάδα σε ομάδα αλλάζουν μόνο οι σταθμίσεις. Όλα υπολογίζονται από δημόσια αρχεία, και κάθε αριθμός μπορεί να υπολογιστεί εκ νέου από αυτά.

@@ -33,9 +33,18 @@ export function equivalentSize(older: number, children: number): number {
  *  with a parent and neither working nor looking for work. Null when nobody is an adult (the survey
  *  has no such type). The size scale's age limit (14) and the types' (16) differ: both are
  *  Eurostat's. */
-export function householdType(older: number, children: number, olderDependents: number): string | null {
-  for (const [n, lo] of [[older, 1], [children, 0], [olderDependents, 0]] as const) {
-    if (!Number.isInteger(n) || n < lo) throw new Error(`no household of ${older}, ${children} and ${olderDependents}`);
+export function householdType(
+  older: number,
+  children: number,
+  olderDependents: number,
+): string | null {
+  for (const [n, lo] of [
+    [older, 1],
+    [children, 0],
+    [olderDependents, 0],
+  ] as const) {
+    if (!Number.isInteger(n) || n < lo)
+      throw new Error(`no household of ${older}, ${children} and ${olderDependents}`);
   }
   const adults = older - Math.min(olderDependents, older);
   if (adults < 1) return null;
@@ -43,7 +52,10 @@ export function householdType(older: number, children: number, olderDependents: 
   return children + Math.min(olderDependents, older) > 0 ? `${base}_DCH` : base;
 }
 
-export interface Range { from: number | null; to: number | null }
+export interface Range {
+  from: number | null;
+  to: number | null;
+}
 
 /** Each fifth's yearly net income range for a household of the given size. The richest fifth has
  *  no upper limit and the poorest no lower one. Euros, rounded to whole euros. */
@@ -98,8 +110,13 @@ export interface Placement {
 
 /** Which fifth a household's yearly net income puts it in, for a household of the given size.
  *  An income exactly at a top cut-off belongs to that fifth ("up to"). */
-export function placeIncome(topCutoffs: Record<string, number>, size: number, yearly: number): Placement {
-  if (!(yearly >= 0) || !(size > 0)) throw new Error(`no placement for an income of ${yearly} and a size of ${size}`);
+export function placeIncome(
+  topCutoffs: Record<string, number>,
+  size: number,
+  yearly: number,
+): Placement {
+  if (!(yearly >= 0) || !(size > 0))
+    throw new Error(`no placement for an income of ${yearly} and a size of ${size}`);
   const cuts = FIFTHS.slice(0, 4).map((q) => {
     const c = topCutoffs[q];
     if (typeof c !== "number") throw new Error(`no cut-off for ${q}`);
@@ -123,7 +140,7 @@ export function placeIncome(topCutoffs: Record<string, number>, size: number, ye
  *  one followed by one or two digits at the end starts the cents, and must differ from the
  *  thousands mark if there is one. Anything else is null. */
 export function parseAmount(text: string): number | null {
-  const s = text.replace(/[\s€]/g, "");   // \s includes the no-break and narrow no-break spaces
+  const s = text.replace(/[\s€]/g, ""); // \s includes the no-break and narrow no-break spaces
   const m = /^(\d{1,3}(?:([.,])\d{3})(?:\2\d{3})*|\d+)(?:([.,])(\d{1,2}))?$/.exec(s);
   if (!m || (m[2] && m[3] === m[2])) return null;
   return Number(m[1].replace(/[.,]/g, "")) + (m[4] ? Number(`0.${m[4]}`) : 0);

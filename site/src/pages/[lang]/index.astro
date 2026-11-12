@@ -33,14 +33,34 @@ const promises = phrases.map((phrase, i) => ({
   text: t(lang, `hub.promise.${["data", "questions", "answers"][i]}`),
 }));
 ---
+
 <Base lang={lang} title={t(lang, "site.name")} description={t(lang, "site.tagline")} current="home">
   <section slot="band" class="home-band">
-    <svg class="band-line" viewBox="0 0 330 112" preserveAspectRatio="none" aria-hidden="true"><polyline points={bandLine(country)} /></svg>
+    <svg class="band-line" viewBox="0 0 330 112" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points={bandLine(country)} />
+    </svg>
     <div class="container">
       {/* One line where it fits, the phrases (one per line in the text) joined by teal dots; it breaks
           only between phrases, a dot ending the line, never starting one. Screen readers hear a full
           stop instead of the dot. On phones, one phrase per line and no dots. */}
-      <h1 class="home-title">{phrases.map((s, i) => <>{i > 0 && " "}<span>{s}{i < phrases.length - 1 && <><span class="visually-hidden">.</span><span class="sep" aria-hidden="true">·</span></>}</span></>)}</h1>
+      <h1 class="home-title">
+        {phrases.map((s, i) => (
+          <>
+            {i > 0 && " "}
+            <span>
+              {s}
+              {i < phrases.length - 1 && (
+                <>
+                  <span class="visually-hidden">.</span>
+                  <span class="sep" aria-hidden="true">
+                    ·
+                  </span>
+                </>
+              )}
+            </span>
+          </>
+        ))}
+      </h1>
     </div>
   </section>
   <div class="stack-lg">
@@ -54,26 +74,48 @@ const promises = phrases.map((phrase, i) => ({
         ))}
       </dl>
       <aside class="panel euros" aria-labelledby="euros-h">
-        <p class="eyebrow">{t(lang, "hub.fact.eyebrow", { topic: t(lang, `topic.${M1}`), country: countryName })}</p>
-        <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
+        <p class="eyebrow">
+          {t(lang, "hub.fact.eyebrow", { topic: t(lang, `topic.${M1}`), country: countryName })}
+        </p>
+        <p class="euros-lead" id="euros-h">
+          {t(lang, "home.euros.lead", {
+            amount: eur(BASE_AMOUNT),
+            month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH),
+          })}
+        </p>
         <dl class="euros-list">
           {h.baskets.map((b) => (
             <div>
               <dt>
-                <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><line x1="1" y1="4" x2="15" y2="4" stroke={SWATCH[b.group]} stroke-width="3" stroke-linecap="round"></line></svg>
+                <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
+                  <line
+                    x1="1"
+                    y1="4"
+                    x2="15"
+                    y2="4"
+                    stroke={SWATCH[b.group]}
+                    stroke-width="3"
+                    stroke-linecap="round"
+                  ></line>
+                </svg>
                 {t(lang, `hub.fact.group.${b.group}`)}
               </dt>
               <dd>{eur(b.cost, 1)}</dd>
             </div>
           ))}
         </dl>
-        <a href={countryHref(lang, country)} style="font-weight: 600">{t(lang, "hub.fact.link")} →</a>
+        <a href={countryHref(lang, country)} style="font-weight: 600">
+          {t(lang, "hub.fact.link")} →
+        </a>
       </aside>
     </div>
 
     <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
       <h2 id="topics-h">{t(lang, "hub.topics.start")}</h2>
-      <TopicCards lang={lang} link={(tp) => (tp.status === "live" ? topicHref(lang, tp.slug) : null)} />
+      <TopicCards
+        lang={lang}
+        link={(tp) => (tp.status === "live" ? topicHref(lang, tp.slug) : null)}
+      />
     </section>
 
     <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
@@ -81,10 +123,19 @@ const promises = phrases.map((phrase, i) => ({
       <CountryCards lang={lang} />
     </nav>
 
-    <section class="stack" style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)">
-      <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">{t(lang, "home.open.title")}</h2>
-      <p class="muted" style="max-width: var(--text-max)">{t(lang, "opendata.lead")}</p>
-      <a href={href(lang, "data")} style="font-weight: 600">{t(lang, "opendata.title")} →</a>
+    <section
+      class="stack"
+      style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)"
+    >
+      <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">
+        {t(lang, "home.open.title")}
+      </h2>
+      <p class="muted" style="max-width: var(--text-max)">
+        {t(lang, "opendata.lead")}
+      </p>
+      <a href={href(lang, "data")} style="font-weight: 600">
+        {t(lang, "opendata.title")} →
+      </a>
     </section>
   </div>
 </Base>

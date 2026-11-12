@@ -32,13 +32,25 @@ const countries = tp.countries.map((c) => {
     code: c,
     latest: t(lang, "m1.latest", { month: month(lang, h.latestMonth) }),
     text: t(lang, "m1.landing.country_text", {
-      amount: eur(BASE_AMOUNT), base: lang === "el" ? month(lang, BASE_MONTH, "acc") : month(lang, BASE_MONTH), q1: cost.Q1, q5: cost.Q5,
+      amount: eur(BASE_AMOUNT),
+      base: lang === "el" ? month(lang, BASE_MONTH, "acc") : month(lang, BASE_MONTH),
+      q1: cost.Q1,
+      q5: cost.Q5,
     }),
   };
 });
-const offers = tp.sections.map((s) => ({ name: t(lang, s ? `nav.${s}` : "nav.overview"), text: t(lang, `m1.offer.${s || "overview"}`) }));
+const offers = tp.sections.map((s) => ({
+  name: t(lang, s ? `nav.${s}` : "nav.overview"),
+  text: t(lang, `m1.offer.${s || "overview"}`),
+}));
 ---
-<Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG }}>
+
+<Base
+  lang={lang}
+  title={t(lang, `topic.${SLUG}`)}
+  description={t(lang, `topic.${SLUG}.text`)}
+  topic={{ slug: SLUG }}
+>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <Breadcrumb lang={lang} trail={[[t(lang, `topic.${SLUG}`)]]} />
@@ -51,9 +63,13 @@ const offers = tp.sections.map((s) => ({ name: t(lang, s ? `nav.${s}` : "nav.ove
       <ol class="steps">
         {steps.map((s, i) => (
           <li class="panel stack" style="gap: var(--space-2)">
-            <span class="step-number" aria-hidden="true">{i + 1}</span>
+            <span class="step-number" aria-hidden="true">
+              {i + 1}
+            </span>
             <h3>{s.title}</h3>
-            <div class="prose"><s.Content /></div>
+            <div class="prose">
+              <s.Content />
+            </div>
           </li>
         ))}
       </ol>
@@ -62,7 +78,12 @@ const offers = tp.sections.map((s) => ({ name: t(lang, s ? `nav.${s}` : "nav.ove
     <section class="stack" aria-labelledby="offer-h" style="gap: var(--space-3)">
       <h2 id="offer-h">{t(lang, "m1.offer.title")}</h2>
       <dl class="offer-grid">
-        {offers.map((o) => <div><dt>{o.name}</dt><dd>{o.text}</dd></div>)}
+        {offers.map((o) => (
+          <div>
+            <dt>{o.name}</dt>
+            <dd>{o.text}</dd>
+          </div>
+        ))}
       </dl>
     </section>
 

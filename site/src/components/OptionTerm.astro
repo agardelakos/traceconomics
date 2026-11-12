@@ -6,11 +6,23 @@ import TermPopover from "./TermPopover.astro";
 import { t, type Lang } from "../lib/i18n";
 import { m1Text, topicHref } from "../lib/topics";
 
-interface Props { lang: Lang; country: string; option: string; label: string }
+interface Props {
+  lang: Lang;
+  country: string;
+  option: string;
+  label: string;
+}
 const { lang, country, option, label } = Astro.props;
 const page = option.replace("_", "-");
 const entry = await getEntry("method", m1Text(country, lang, page));
 if (!entry) throw new Error(`no method page "${page}" in ${lang}`);
 ---
-<TermPopover key={`option-${page}`} label={label} heading={entry.data.title} text={entry.data.summary}
-  href={topicHref(lang, "inflation-by-group", country, `method/${page}`)} more={t(lang, "option.more")} />
+
+<TermPopover
+  key={`option-${page}`}
+  label={label}
+  heading={entry.data.title}
+  text={entry.data.summary}
+  href={topicHref(lang, "inflation-by-group", country, `method/${page}`)}
+  more={t(lang, "option.more")}
+/>

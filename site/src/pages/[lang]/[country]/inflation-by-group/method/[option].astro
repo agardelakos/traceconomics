@@ -10,8 +10,16 @@ import { m1Text, topic, topicHref } from "../../../../../lib/topics";
 
 export async function getStaticPaths() {
   const all = await getCollection("method", (e) => Boolean(e.data.option));
-  return LANGS.flatMap((lang) => topic("inflation-by-group").countries.flatMap((country) =>
-    all.filter((e) => e.id.startsWith(m1Text(country, lang, ""))).map((entry) => ({ params: { lang, country, option: entry.id.split("/")[1] }, props: { entry } }))));
+  return LANGS.flatMap((lang) =>
+    topic("inflation-by-group").countries.flatMap((country) =>
+      all
+        .filter((e) => e.id.startsWith(m1Text(country, lang, "")))
+        .map((entry) => ({
+          params: { lang, country, option: entry.id.split("/")[1] },
+          props: { entry },
+        })),
+    ),
+  );
 }
 
 const lang = Astro.params.lang as Lang;
@@ -20,22 +28,47 @@ const { entry } = Astro.props;
 const slug = Astro.params.option as string;
 const { Content } = await render(entry);
 const explore = topicHref(lang, "inflation-by-group", country, "explore");
-const options = (await getCollection("method", (e) => Boolean(e.data.option) && e.id.startsWith(m1Text(country, lang, ""))))
-  .sort((a, b) => a.data.order - b.data.order);
-const strip = { label: t(lang, "method.options"), items: options.map((e) => ({
-  href: topicHref(lang, "inflation-by-group", country, `method/${e.id.split("/")[1]}`), label: e.data.title, current: e.id === entry.id })) };
+const options = (
+  await getCollection(
+    "method",
+    (e) => Boolean(e.data.option) && e.id.startsWith(m1Text(country, lang, "")),
+  )
+).sort((a, b) => a.data.order - b.data.order);
+const strip = {
+  label: t(lang, "method.options"),
+  items: options.map((e) => ({
+    href: topicHref(lang, "inflation-by-group", country, `method/${e.id.split("/")[1]}`),
+    label: e.data.title,
+    current: e.id === entry.id,
+  })),
+};
 ---
-<Base lang={lang} title={entry.data.title} description={entry.data.summary} topic={{ slug: "inflation-by-group", country, section: `method/${slug}` }} strip={strip}>
+
+<Base
+  lang={lang}
+  title={entry.data.title}
+  description={entry.data.summary}
+  topic={{ slug: "inflation-by-group", country, section: `method/${slug}` }}
+  strip={strip}
+>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <h1>{entry.data.title}</h1>
       <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
     </header>
-    <section class="prose"><Content /></section>
-    <p><a class="button primary" href={explore}>{t(lang, "home.card.explore")} →</a></p>
+    <section class="prose">
+      <Content />
+    </section>
+    <p>
+      <a class="button primary" href={explore}>
+        {t(lang, "home.card.explore")} →
+      </a>
+    </p>
     <details class="panel">
       <summary>{t(lang, "method.sources")}</summary>
-      <div style="margin-top: var(--space-3)"><SourceList keys={entry.data.sources} lang={lang} /></div>
+      <div style="margin-top: var(--space-3)">
+        <SourceList keys={entry.data.sources} lang={lang} />
+      </div>
     </details>
   </article>
 </Base>

@@ -26,27 +26,27 @@ publishers' files ─► archive ─► store ─► module 1 ─► outputs ─
 
 ## Where things are
 
-| Path | What it holds |
-|---|---|
-| `cli.py`, `__main__.py` | The command line: `python -m traceconomics <command>` |
-| `config.py` | User settings, from a TOML file outside the repository (see `config.example.toml`) |
-| `job.py` | The daily job: is a release due, fetch, report; then the follow-up steps below |
-| `sources/` | One adapter per publisher: how its files are found and fetched (`elstat/`, `eurostat/`), their parsers, and the reuse-terms watch (`terms.py`). `base.py` is the polite HTTP client they share |
-| `archive/` | The append-only raw archive (`store.py`; layout in its docstring) and the list of microdata datasets that must never leave the owner's machines (`local_only.py`) |
-| `store/` | The observation store (DuckDB): built from the archive (`build.py`), queried as of any date (`query.py`) |
-| `catalog.py`, `data/` | Reference data: which datasets are parsed and how, country codes, mapping tables, published figures used in checks. Each file says what it is in its header |
-| `checks.py` | `FormatError`: parsers refuse a file that doesn't look as expected |
-| `engine/` | The arithmetic, with no method choices: the COICOP tree, chain-linking at December, rates |
-| `validate/` | The engine checked against official figures (V1: the HICP from Eurostat's parts; V1-CPI: the Greek CPI from ELSTAT's) |
-| `module1/` | Inflation by household group: weights timing, prices, indices, rates, contributions, every option combination, and their checks |
-| `local/` | Reads the survey microdata: household groups, spending shares, standard errors, error bands, the mapping of old codes to COICOP 2018. Needs the `local` extra (pandas) |
-| `export/` | The published files: the site's data, the calculator's inputs, category names, the bibliography |
-| `references/` | The bibliography (`references.bib`) every published number cites |
-| `release.py` | A release: recompute, check, build the site, upload a private preview; a person promotes it |
-| `notify.py`, `heartbeat.py` | Reports by email (or a file), and a heartbeat after every run |
-| `backup.py`, `analytics.py` | Copies of the archive to cloud storage (never microdata); the site's daily visit counts into the archive |
-| `schedule.py` | The daily trigger: systemd units on Linux, Task Scheduler on Windows |
-| `backfill.py`, `migrate.py` | One-offs: adding hand-downloaded files; moving a setup from the project's earlier name |
+| Path                        | What it holds                                                                                                                                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cli.py`, `__main__.py`     | The command line: `python -m traceconomics <command>`                                                                                                                                          |
+| `config.py`                 | User settings, from a TOML file outside the repository (see `config.example.toml`)                                                                                                             |
+| `job.py`                    | The daily job: is a release due, fetch, report; then the follow-up steps below                                                                                                                 |
+| `sources/`                  | One adapter per publisher: how its files are found and fetched (`elstat/`, `eurostat/`), their parsers, and the reuse-terms watch (`terms.py`). `base.py` is the polite HTTP client they share |
+| `archive/`                  | The append-only raw archive (`store.py`; layout in its docstring) and the list of microdata datasets that must never leave the owner's machines (`local_only.py`)                              |
+| `store/`                    | The observation store (DuckDB): built from the archive (`build.py`), queried as of any date (`query.py`)                                                                                       |
+| `catalog.py`, `data/`       | Reference data: which datasets are parsed and how, country codes, mapping tables, published figures used in checks. Each file says what it is in its header                                    |
+| `checks.py`                 | `FormatError`: parsers refuse a file that doesn't look as expected                                                                                                                             |
+| `engine/`                   | The arithmetic, with no method choices: the COICOP tree, chain-linking at December, rates                                                                                                      |
+| `validate/`                 | The engine checked against official figures (V1: the HICP from Eurostat's parts; V1-CPI: the Greek CPI from ELSTAT's)                                                                          |
+| `module1/`                  | Inflation by household group: weights timing, prices, indices, rates, contributions, every option combination, and their checks                                                                |
+| `local/`                    | Reads the survey microdata: household groups, spending shares, standard errors, error bands, the mapping of old codes to COICOP 2018. Needs the `local` extra (pandas)                         |
+| `export/`                   | The published files: the site's data, the calculator's inputs, category names, the bibliography                                                                                                |
+| `references/`               | The bibliography (`references.bib`) every published number cites                                                                                                                               |
+| `release.py`                | A release: recompute, check, build the site, upload a private preview; a person promotes it                                                                                                    |
+| `notify.py`, `heartbeat.py` | Reports by email (or a file), and a heartbeat after every run                                                                                                                                  |
+| `backup.py`, `analytics.py` | Copies of the archive to cloud storage (never microdata); the site's daily visit counts into the archive                                                                                       |
+| `schedule.py`               | The daily trigger: systemd units on Linux, Task Scheduler on Windows                                                                                                                           |
+| `backfill.py`, `migrate.py` | One-offs: adding hand-downloaded files; moving a setup from the project's earlier name                                                                                                         |
 
 ## Rules the code keeps
 

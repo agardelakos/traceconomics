@@ -8,12 +8,12 @@ the approach honestly with a dedicated tool.
 
 Every automated test carries its case: a stable ID, a title, and Given/When/Then lines.
 
-| Suite | ID prefix | Where the case is written |
-|---|---|---|
-| pytest | `PY-<AREA>-NNN` | the test's docstring: `PY-<AREA>-NNN: title`, then Given/When/Then |
-| Selenium | `SEL-<AREA>-NNN` | the test's docstring, same form |
-| Playwright | `PW-<AREA>-NNN` | the test's annotations |
-| Vitest | `VT-<AREA>-NNN` | the test's annotations |
+| Suite      | ID prefix        | Where the case is written                                          |
+| ---------- | ---------------- | ------------------------------------------------------------------ |
+| pytest     | `PY-<AREA>-NNN`  | the test's docstring: `PY-<AREA>-NNN: title`, then Given/When/Then |
+| Selenium   | `SEL-<AREA>-NNN` | the test's docstring, same form                                    |
+| Playwright | `PW-<AREA>-NNN`  | the test's annotations                                             |
+| Vitest     | `VT-<AREA>-NNN`  | the test's annotations                                             |
 
 Rules:
 
@@ -106,4 +106,4 @@ would weigh them differently.
 
 ---
 
-*This page is kept in the repository, in [`wiki/Test-management-as-code.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Test-management-as-code.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update.*
+_This page is kept in the repository, in [`wiki/Test-management-as-code.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Test-management-as-code.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update._

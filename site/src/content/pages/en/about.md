@@ -3,6 +3,7 @@ title: "About"
 summary: "An open tracker of the economy, built only on public data."
 sources: []
 ---
+
 ## What this is
 
 An independent project that follows the economy, run by one person, with no institution or funder behind it. **Every number is computed from public data, and the method, the code and the source files are open, so anyone can check or rebuild them.**

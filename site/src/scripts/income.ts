@@ -41,17 +41,20 @@ export function startIncome(root: HTMLElement): void {
   };
 
   const draw = () => {
-    const picked = root.querySelector<HTMLInputElement>('input[name="household"]:checked')?.value ?? "one";
+    const picked =
+      root.querySelector<HTMLInputElement>('input[name="household"]:checked')?.value ?? "one";
     other.hidden = picked !== "other";
     const [o, c] = picked === "other" ? [count(older, 1), count(children, 0)] : cfg.types[picked];
     const size = equivalentSize(o, c);
     sizeNote.textContent = fill(cfg.text.size, { size: num(cfg.lang, size) });
-    const source = (root.querySelector<HTMLInputElement>('input[name="income-source"]:checked')?.value ?? "ours") as Source;
+    const source = (root.querySelector<HTMLInputElement>('input[name="income-source"]:checked')
+      ?.value ?? "ours") as Source;
     const noPps = cfg.cutoffs[source].pps === null;
     ppsRadio.disabled = noPps;
     if (ppsNone) ppsNone.hidden = !noPps;
     if (noPps && ppsRadio.checked) eurRadio.checked = true;
-    const unit = (root.querySelector<HTMLInputElement>('input[name="income-unit"]:checked')?.value ?? "eur") as Unit;
+    const unit = (root.querySelector<HTMLInputElement>('input[name="income-unit"]:checked')
+      ?.value ?? "eur") as Unit;
     const rows = ranges(cfg.cutoffs[source][unit]!, size);
     FIFTHS.forEach((q, i) => {
       root.querySelector(`[data-income-year="${q}"]`)!.textContent = text(rows[i], "year", unit);
@@ -60,6 +63,8 @@ export function startIncome(root: HTMLElement): void {
   };
 
   root.addEventListener("change", draw);
-  root.addEventListener("input", (e) => { if ((e.target as HTMLElement).matches('input[type="number"]')) draw(); });
+  root.addEventListener("input", (e) => {
+    if ((e.target as HTMLElement).matches('input[type="number"]')) draw();
+  });
   draw();
 }

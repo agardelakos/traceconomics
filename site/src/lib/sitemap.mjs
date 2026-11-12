@@ -27,13 +27,22 @@ export function sitemap() {
   return {
     name: "traceconomics-sitemap",
     hooks: {
-      "astro:config:done": ({ config }) => { site = config.site; },
+      "astro:config:done": ({ config }) => {
+        site = config.site;
+      },
       "astro:build:done": ({ pages, dir }) => {
         if (!site) throw new Error("sitemap: no `site` in the Astro config");
         const languages = new URL("../i18n/languages.json", import.meta.url);
         const { offered } = JSON.parse(readFileSync(languages, "utf-8"));
         const out = fileURLToPath(new URL("sitemap.xml", dir));
-        writeFileSync(out, sitemapXml(site, pages.map((p) => p.pathname), offered));
+        writeFileSync(
+          out,
+          sitemapXml(
+            site,
+            pages.map((p) => p.pathname),
+            offered,
+          ),
+        );
       },
     },
   };

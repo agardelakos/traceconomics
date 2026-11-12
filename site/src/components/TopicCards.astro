@@ -8,25 +8,31 @@ import { t, type Lang } from "../lib/i18n";
 import { TOPICS, type Topic } from "../lib/topics";
 import MoreCard from "./MoreCard.astro";
 
-interface Props { lang: Lang; link: (tp: Topic) => string | null }
+interface Props {
+  lang: Lang;
+  link: (tp: Topic) => string | null;
+}
 const { lang, link } = Astro.props;
 const cards = TOPICS.map((tp) => ({ tp, link: link(tp) }));
 const listed = cards.filter((c) => c.link !== null || (c.tp.status === "planned" && c.tp.shown));
 ---
+
 <div class="card-row topic-row">
-  {listed.map(({ tp, link }) => link ? (
-    <a class="card" href={link}>
-      <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
-      <span class="title">{t(lang, `topic.${tp.slug}.question`)} →</span>
-      <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
-    </a>
-  ) : (
-    <div class="card planned">
-      <span class="chip-status">{t(lang, "soon")}</span>
-      <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
-      <span class="title">{t(lang, `topic.${tp.slug}.question`)}</span>
-      <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
-    </div>
-  ))}
+  {listed.map(({ tp, link }) =>
+    link ? (
+      <a class="card" href={link}>
+        <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
+        <span class="title">{t(lang, `topic.${tp.slug}.question`)} →</span>
+        <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
+      </a>
+    ) : (
+      <div class="card planned">
+        <span class="chip-status">{t(lang, "soon")}</span>
+        <span class="label">{t(lang, `topic.${tp.slug}`)}</span>
+        <span class="title">{t(lang, `topic.${tp.slug}.question`)}</span>
+        <span class="text">{t(lang, `topic.${tp.slug}.text`)}</span>
+      </div>
+    ),
+  )}
   {listed.length < cards.length && <MoreCard lang={lang} what="topics" />}
 </div>

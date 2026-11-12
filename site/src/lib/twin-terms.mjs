@@ -33,13 +33,16 @@ export function visible(text) {
 
 /** A heading as an id: lower case, letters and digits joined by hyphens. */
 export function slug(heading) {
-  return heading.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
+  return heading
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /** One Markdown page as [part, text] pairs: its shown frontmatter fields, then its sections. */
 export function parts(markdown) {
   const front = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  const data = front ? yaml.load(front[1]) ?? {} : {};
+  const data = front ? (yaml.load(front[1]) ?? {}) : {};
   const out = SHOWN.filter((k) => typeof data[k] === "string").map((k) => [k, data[k]]);
   const body = front ? markdown.slice(front[0].length) : markdown;
   const sections = [{ heading: null, lines: [] }];
@@ -67,7 +70,11 @@ export function pagePairs(id, en, el) {
     if (twin) out.push({ id: `${id}#${k}`, en: text, el: twin[1] });
   }
   if (bodyA.length !== bodyB.length) {
-    out.push({ id: `${id}#all`, en: bodyA.map(([, t]) => t).join("\n"), el: bodyB.map(([, t]) => t).join("\n") });
+    out.push({
+      id: `${id}#all`,
+      en: bodyA.map(([, t]) => t).join("\n"),
+      el: bodyB.map(([, t]) => t).join("\n"),
+    });
     return out;
   }
   const seen = new Map();
@@ -86,7 +93,8 @@ export function loadPairs(srcDir) {
   const out = [];
   const en = JSON.parse(fs.readFileSync(path.join(srcDir, "i18n", "en.json"), "utf-8"));
   const el = JSON.parse(fs.readFileSync(path.join(srcDir, "i18n", "el.json"), "utf-8"));
-  for (const k of Object.keys(en).sort()) if (typeof el[k] === "string") out.push({ id: `i18n:${k}`, en: en[k], el: el[k] });
+  for (const k of Object.keys(en).sort())
+    if (typeof el[k] === "string") out.push({ id: `i18n:${k}`, en: en[k], el: el[k] });
   const content = path.join(srcDir, "content");
   for (const kind of fs.readdirSync(content).sort()) {
     const dir = path.join(content, kind, "en");
@@ -94,7 +102,13 @@ export function loadPairs(srcDir) {
     for (const name of fs.readdirSync(dir).sort()) {
       const twin = path.join(content, kind, "el", name);
       if (!name.endsWith(".md") || !fs.existsSync(twin)) continue;
-      out.push(...pagePairs(`${kind}/${name}`, fs.readFileSync(path.join(dir, name), "utf-8"), fs.readFileSync(twin, "utf-8")));
+      out.push(
+        ...pagePairs(
+          `${kind}/${name}`,
+          fs.readFileSync(path.join(dir, name), "utf-8"),
+          fs.readFileSync(twin, "utf-8"),
+        ),
+      );
     }
   }
   return out;

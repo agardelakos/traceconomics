@@ -2,8 +2,31 @@
 title: "How it is measured"
 summary: "Each household group gets its own basket, priced with the official item indices, in the same way as the official consumer price index."
 order: 0
-sources: [cpi-manual-2020, hicp-manual-2024, reg-2016-792, reg-2020-1148, elstat-cpi-qr-2026, elstat-cpi-items, elstat-hbs-puf, elstat-silc-puf, eurostat-cens-11htts-r2, eurostat-cens-21hhct-r3, eurostat-equivalence-scale, reg-1982-2003, rao-wu-1988, preston-2009, eurostat-contrib-2018, jaravel-2021, bruegel-inflation-inequality, kepe-2024, eurostat-energy-2022, ecb-op330-2023]
+sources:
+  [
+    cpi-manual-2020,
+    hicp-manual-2024,
+    reg-2016-792,
+    reg-2020-1148,
+    elstat-cpi-qr-2026,
+    elstat-cpi-items,
+    elstat-hbs-puf,
+    elstat-silc-puf,
+    eurostat-cens-11htts-r2,
+    eurostat-cens-21hhct-r3,
+    eurostat-equivalence-scale,
+    reg-1982-2003,
+    rao-wu-1988,
+    preston-2009,
+    eurostat-contrib-2018,
+    jaravel-2021,
+    bruegel-inflation-inequality,
+    kepe-2024,
+    eurostat-energy-2022,
+    ecb-op330-2023,
+  ]
 ---
+
 ## In one paragraph
 
 The official consumer price index measures inflation for the average household's basket. This site builds the same kind of index for groups of households, each with its own basket: the poorest and richest fifth of people, renters and owners, household types, pensioner households. Prices are the official item indices; only the weights change from group to group. Everything is computed from public files, and every number can be rebuilt from them.

@@ -36,15 +36,36 @@ const basket = (preset: string) => {
   const year = years[years.length - 1];
   const rows: [number, number][] = calc.presets[preset][year];
   const total = rows.reduce((a, [, w]) => a + w, 0);
-  const share = (code: string) => (100 * rows.filter(([i]) => calc.codes[i].startsWith(code)).reduce((a, [, w]) => a + w, 0)) / total;
-  const parts = PARTS.map((p) => ({ label: t(lang, `division.short.${p.code}`), color: p.color, value: share(p.code) }));
+  const share = (code: string) =>
+    (100 * rows.filter(([i]) => calc.codes[i].startsWith(code)).reduce((a, [, w]) => a + w, 0)) /
+    total;
+  const parts = PARTS.map((p) => ({
+    label: t(lang, `division.short.${p.code}`),
+    color: p.color,
+    value: share(p.code),
+  }));
   const rest = 100 - parts.reduce((a, p) => a + p.value, 0);
-  return { year, parts: [...parts, { label: t(lang, "m1.baskets.rest"), color: "var(--color-disabled)", value: rest }] };
+  return {
+    year,
+    parts: [
+      ...parts,
+      { label: t(lang, "m1.baskets.rest"), color: "var(--color-disabled)", value: rest },
+    ],
+  };
 };
-const groups = ["B/Q1", "B/Q5"].map((g) => ({ name: t(lang, `group.${g.slice(2)}`), ...basket(g) }));
+const groups = ["B/Q1", "B/Q5"].map((g) => ({
+  name: t(lang, `group.${g.slice(2)}`),
+  ...basket(g),
+}));
 if (groups[0].year !== groups[1].year) throw new Error("the two baskets come from different years");
 ---
-<Base lang={lang} title={t(lang, "m1.title", { country: countryName })} description={t(lang, `m1.sources.${country}`)} topic={{ slug: SLUG, country, section: "" }}>
+
+<Base
+  lang={lang}
+  title={t(lang, "m1.title", { country: countryName })}
+  description={t(lang, `m1.sources.${country}`)}
+  topic={{ slug: SLUG, country, section: "" }}
+>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <p class="eyebrow accent">{t(lang, "m1.latest", { month: month(lang, h.latestMonth) })}</p>
@@ -55,25 +76,50 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
     <div class="overview-grid">
       <aside class="panel euros" aria-labelledby="euros-h">
         <p class="eyebrow">{t(lang, "home.euros.eyebrow")}</p>
-        <p class="euros-lead" id="euros-h">{t(lang, "home.euros.lead", { amount: eur(BASE_AMOUNT), month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH) })}</p>
+        <p class="euros-lead" id="euros-h">
+          {t(lang, "home.euros.lead", {
+            amount: eur(BASE_AMOUNT),
+            month: lang === "el" ? acc(BASE_MONTH) : month(lang, BASE_MONTH),
+          })}
+        </p>
         <dl class="euros-list">
           {h.baskets.map((b) => (
             <div>
               <dt>
-                <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><line x1="1" y1="4" x2="15" y2="4" stroke={SWATCH[b.group]} stroke-width="3" stroke-linecap="round"></line></svg>
+                <svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true">
+                  <line
+                    x1="1"
+                    y1="4"
+                    x2="15"
+                    y2="4"
+                    stroke={SWATCH[b.group]}
+                    stroke-width="3"
+                    stroke-linecap="round"
+                  ></line>
+                </svg>
                 {t(lang, "home.euros.for", { group: t(lang, `group.in.${b.group}`) })}
               </dt>
               <dd>{eur(b.cost, 1)}</dd>
             </div>
           ))}
         </dl>
-        <p class="small muted">{t(lang, "home.euros.note", { month: month(lang, h.latestMonth) })}</p>
+        <p class="small muted">
+          {t(lang, "home.euros.note", { month: month(lang, h.latestMonth) })}
+        </p>
       </aside>
       <section class="callout stack standout" aria-labelledby="peak-h">
         <p class="eyebrow">{t(lang, "m1.standout")}</p>
         <h2 id="peak-h">{t(lang, "home.peak.title", { year: h.peakYear })}</h2>
-        <p>{t(lang, "home.peak.text", { year: h.peakYear, q1: pct(lang, h.avgQ1), q5: pct(lang, h.avgQ5) })}</p>
-        <a href={topicHref(lang, SLUG, country, "explore")} style="font-weight: 600">{t(lang, "home.peak.link")} →</a>
+        <p>
+          {t(lang, "home.peak.text", {
+            year: h.peakYear,
+            q1: pct(lang, h.avgQ1),
+            q5: pct(lang, h.avgQ5),
+          })}
+        </p>
+        <a href={topicHref(lang, SLUG, country, "explore")} style="font-weight: 600">
+          {t(lang, "home.peak.link")} →
+        </a>
       </section>
     </div>
 
@@ -86,11 +132,16 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
         <div class="stack" style="gap: var(--space-2)">
           <h3>{g.name}</h3>
           <div class="basket-bar" aria-hidden="true">
-            {g.parts.map((p) => <span style={`width: ${p.value.toFixed(2)}%; background: ${p.color}`}></span>)}
+            {g.parts.map((p) => (
+              <span style={`width: ${p.value.toFixed(2)}%; background: ${p.color}`}></span>
+            ))}
           </div>
           <ul class="basket-legend">
             {g.parts.map((p) => (
-              <li><span class="box" style={`background: ${p.color}`}></span>{p.label}: <strong>{num(lang, p.value, 1)}%</strong></li>
+              <li>
+                <span class="box" style={`background: ${p.color}`}></span>
+                {p.label}: <strong>{num(lang, p.value, 1)}%</strong>
+              </li>
             ))}
           </ul>
         </div>
@@ -102,8 +153,12 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
         <h2 id="method-h">{t(lang, "m1.method_cta.title")}</h2>
         <p>{t(lang, `m1.method_cta.text.${country}`)}</p>
         <div class="button-row">
-          <a class="button primary" href={topicHref(lang, SLUG, country, "method")}>{t(lang, "m1.method_cta.button")} →</a>
-          <a class="button" href={dataHref(lang, country)}>{t(lang, "opendata.all")}</a>
+          <a class="button primary" href={topicHref(lang, SLUG, country, "method")}>
+            {t(lang, "m1.method_cta.button")} →
+          </a>
+          <a class="button" href={dataHref(lang, country)}>
+            {t(lang, "opendata.all")}
+          </a>
         </div>
       </div>
     </section>

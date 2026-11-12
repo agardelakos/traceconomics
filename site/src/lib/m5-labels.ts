@@ -7,7 +7,11 @@ import type { Category, Check } from "./m5";
  * "3501 and over €", "1 member", "6 members and over"), in the page's language. */
 export function bandLabel(lang: Lang, band: string): string {
   if (lang === "en") return band;
-  return band.replace(/^up /, "έως ").replace(/ and over/, " και άνω").replace(/\b1 member\b/, "1 μέλος").replace(/ members\b/, " μέλη");
+  return band
+    .replace(/^up /, "έως ")
+    .replace(/ and over/, " και άνω")
+    .replace(/\b1 member\b/, "1 μέλος")
+    .replace(/ members\b/, " μέλη");
 }
 
 /** "YYYY-MM" as a month; "YYYY/<group>" as the year and the group's name where the site has one;
@@ -15,9 +19,11 @@ export function bandLabel(lang: Lang, band: string): string {
 export function periodLabel(lang: Lang, period: string): string {
   if (/^\d{4}-\d{2}$/.test(period)) return month(lang, period);
   const [year, group, code] = period.split("/");
-  if (code !== undefined) return `${year} · ${group === "all" ? t(lang, "m5.period.all") : bandLabel(lang, group)} · ${code}`;
+  if (code !== undefined)
+    return `${year} · ${group === "all" ? t(lang, "m5.period.all") : bandLabel(lang, group)} · ${code}`;
   if (!group) return year;
-  for (const key of [`group.hhtype/${group}`, `group.B/${group}`]) if (has(lang, key)) return `${year} · ${t(lang, key)}`;
+  for (const key of [`group.hhtype/${group}`, `group.B/${group}`])
+    if (has(lang, key)) return `${year} · ${t(lang, key)}`;
   return `${year} · ${group}`;
 }
 
@@ -34,14 +40,27 @@ export function checkedSpan(lang: Lang, c: Pick<Check, "by_year">): string {
   const years = Object.keys(c.by_year ?? {}).sort();
   if (years.length === 0) return "";
   const [from, to] = [years[0], years[years.length - 1]];
-  return from === to ? t(lang, "m5.checked.one", { year: from }) : t(lang, "m5.checked", { from, to });
+  return from === to
+    ? t(lang, "m5.checked.one", { year: from })
+    : t(lang, "m5.checked", { from, to });
 }
 
 /** "7 rounding, 1 a revision not carried through", in the categories' fixed order. */
 export function causes(lang: Lang, c: Check): string {
-  const order: Category[] = ["rounding", "revision", "rebasing", "splice", "definition", "not-known"];
-  return order.filter((k) => c.differ[k]).map((k) => `${c.differ[k]} ${t(lang, `m5.cat.${k}`)}`).join(", ");
+  const order: Category[] = [
+    "rounding",
+    "revision",
+    "rebasing",
+    "splice",
+    "definition",
+    "not-known",
+  ];
+  return order
+    .filter((k) => c.differ[k])
+    .map((k) => `${c.differ[k]} ${t(lang, `m5.cat.${k}`)}`)
+    .join(", ");
 }
 
 /** A difference in the check's unit: percentage points to four decimals, shares to two. */
-export const diff = (lang: Lang, value: number) => `${value > 0 ? "+" : ""}${num(lang, value, Math.abs(value) < 0.01 ? 4 : 2)}`;
+export const diff = (lang: Lang, value: number) =>
+  `${value > 0 ? "+" : ""}${num(lang, value, Math.abs(value) < 0.01 ? 4 : 2)}`;

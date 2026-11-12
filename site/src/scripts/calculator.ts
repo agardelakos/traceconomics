@@ -3,7 +3,15 @@
 // shares here. Nothing leaves the device: there is no form, no request with the visitor's numbers,
 // no storage, and the address carries at most the starting group (as the group finder links it).
 
-import { annualRate, chain, divisionShares, presetWeights, published, type CalculatorData, type Shares } from "../lib/engine/calculator";
+import {
+  annualRate,
+  chain,
+  divisionShares,
+  presetWeights,
+  published,
+  type CalculatorData,
+  type Shares,
+} from "../lib/engine/calculator";
 import { roundHalfEven } from "../lib/engine/round";
 import { fill, month, num, type Lang } from "../lib/format";
 import { eur, parseAmount } from "../lib/income";
@@ -18,7 +26,7 @@ interface Config {
   strings: Record<string, string>;
 }
 
-const SLIDER_MAX = 60;           // percent of spending one category can take on the slider
+const SLIDER_MAX = 60; // percent of spending one category can take on the slider
 
 export async function start(root: HTMLElement): Promise<void> {
   const cfg: Config = JSON.parse(root.dataset.config ?? "{}");
@@ -28,7 +36,8 @@ export async function start(root: HTMLElement): Promise<void> {
     if (text === undefined) throw new Error(`missing text "${key}"`);
     return fill(text, vars);
   };
-  const $ = <T extends HTMLElement>(role: string) => root.querySelector<T>(`[data-role="${role}"]`)!;
+  const $ = <T extends HTMLElement>(role: string) =>
+    root.querySelector<T>(`[data-role="${role}"]`)!;
 
   // The script runs: the line for readers without one goes, the loading message shows.
   $("noscript").hidden = true;
@@ -40,7 +49,9 @@ export async function start(root: HTMLElement): Promise<void> {
     if (!res.ok) throw new Error(String(res.status));
     data = await res.json();
   } catch {
-    $("loading").replaceChildren(Object.assign(document.createElement("strong"), { textContent: t("chart.failed") }));
+    $("loading").replaceChildren(
+      Object.assign(document.createElement("strong"), { textContent: t("chart.failed") }),
+    );
     return;
   }
   $("loading").hidden = true;
@@ -55,16 +66,18 @@ export async function start(root: HTMLElement): Promise<void> {
   // restored by the browser on Back): the address must still say which group is shown.
   if (!askedOk && !presetSel.selectedOptions[0]?.defaultSelected) writeFrom();
   let mode: "shares" | "euros" = "shares";
-  let shares: Shares | null = null;          // shares mode; null: untouched, the preset as published
+  let shares: Shares | null = null; // shares mode; null: untouched, the preset as published
   let touched = false;
-  const moved = new Set<string>();           // categories the reader set, not rescaled ones
-  const euros = new Map<string, number>();   // euros mode: the amounts entered, by category
+  const moved = new Set<string>(); // categories the reader set, not rescaled ones
+  const euros = new Map<string, number>(); // euros mode: the amounts entered, by category
 
   /** The euros as shares, or null while nothing is entered. An empty category counts as zero. */
   function euroShares(): Shares | null {
     const total = [...euros.values()].reduce((a, v) => a + v, 0);
     if (!(total > 0)) return null;
-    return Object.fromEntries(Object.keys(cfg.divisions).map((d) => [d, (euros.get(d) ?? 0) / total]));
+    return Object.fromEntries(
+      Object.keys(cfg.divisions).map((d) => [d, (euros.get(d) ?? 0) / total]),
+    );
   }
   const inUse = () => (mode === "euros" ? euroShares() : shares);
 
@@ -101,7 +114,10 @@ export async function start(root: HTMLElement): Promise<void> {
     diff.hidden = !edited;
     if (edited) {
       const d = roundHalfEven(yours - theirs, 1);
-      diff.textContent = t(d >= 0 ? "calc.diff_up" : "calc.diff_down", { points: num(L, Math.abs(d)), preset: name(preset) });
+      diff.textContent = t(d >= 0 ? "calc.diff_up" : "calc.diff_down", {
+        points: num(L, Math.abs(d)),
+        preset: name(preset),
+      });
     }
     $("result").classList.toggle("edited", edited);
     $("preset-name").textContent = name(preset);
@@ -109,14 +125,20 @@ export async function start(root: HTMLElement): Promise<void> {
     $("all-rate").textContent = `${num(L, rate(officialIndex("all/all"), p))}%`;
     const reset = $<HTMLButtonElement>("reset");
     reset.hidden = !edited;
-    reset.textContent = mode === "euros" ? t("calc.euros.clear") : t("calc.reset", { preset: name(preset) });
+    reset.textContent =
+      mode === "euros" ? t("calc.euros.clear") : t("calc.reset", { preset: name(preset) });
     $("rescaled").hidden = !(mode === "shares" && edited && touched);
-    $("sticky").textContent = t("calc.sticky", { rate: `${num(L, yours)}%`, preset: name(preset), theirs: `${num(L, theirs)}%` });
+    $("sticky").textContent = t("calc.sticky", {
+      rate: `${num(L, yours)}%`,
+      preset: name(preset),
+      theirs: `${num(L, theirs)}%`,
+    });
 
     // The two ways in: one pane shown, the switch saying which.
     $("pane-shares").hidden = mode !== "shares";
     $("pane-euros").hidden = mode !== "euros";
-    for (const b of root.querySelectorAll<HTMLButtonElement>("[data-mode]")) b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
+    for (const b of root.querySelectorAll<HTMLButtonElement>("[data-mode]"))
+      b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
 
     // Sliders: the shares in use (the preset's newest year when untouched). A category that moved
     // only because another one did says so.
@@ -131,7 +153,11 @@ export async function start(root: HTMLElement): Promise<void> {
       values.get(d)!.textContent = `${num(L, v)}%`;
       const changed = Math.abs((s[d] ?? 0) - (ref[d] ?? 0)) > 5e-4;
       const was = { value: `${num(L, (ref[d] ?? 0) * 100)}%` };
-      notes.get(d)!.textContent = !changed ? t("calc.as_preset") : moved.has(d) ? t("calc.changed", was) : t("calc.adjusted", was);
+      notes.get(d)!.textContent = !changed
+        ? t("calc.as_preset")
+        : moved.has(d)
+          ? t("calc.changed", was)
+          : t("calc.adjusted", was);
       notes.get(d)!.classList.toggle("muted", !changed);
     }
 
@@ -141,23 +167,44 @@ export async function start(root: HTMLElement): Promise<void> {
     const total = [...euros.values()].reduce((a, v) => a + v, 0);
     for (const [d, out] of euroShareOut) {
       const amount = euros.get(d);
-      out.textContent = invalid.has(d) ? t("calc.euros.invalid") : amount !== undefined && total > 0 ? t("calc.euros.share", { share: `${num(L, (100 * amount) / total)}%` }) : "";
+      out.textContent = invalid.has(d)
+        ? t("calc.euros.invalid")
+        : amount !== undefined && total > 0
+          ? t("calc.euros.share", { share: `${num(L, (100 * amount) / total)}%` })
+          : "";
     }
-    $("euros-total").textContent = t("calc.euros.total", { amount: eur(total, Number.isInteger(total) ? 0 : 2) });
+    $("euros-total").textContent = t("calc.euros.total", {
+      amount: eur(total, Number.isInteger(total) ? 0 : 2),
+    });
     $("euros-empty").hidden = total > 0;
 
     // Over time: the preset's annual rate and, once changed, yours.
     const axis = [...base.keys()].sort();
-    const series = (idx: Map<string, number>) => axis.map((m) => annualRate(idx, m)).map((v) => (v === null ? null : roundHalfEven(v, 1)));
+    const series = (idx: Map<string, number>) =>
+      axis.map((m) => annualRate(idx, m)).map((v) => (v === null ? null : roundHalfEven(v, 1)));
     spec = {
-      axis, locale: cfg.locale, unit: "%",
+      axis,
+      locale: cfg.locale,
+      unit: "%",
       lines: [
         { key: "preset", label: name(preset), color: "var(--series-all)", values: series(base) },
-        ...(edited ? [{ key: "yours", label: t("calc.title"), color: "var(--series-q1)", values: series(mine) }] : []),
+        ...(edited
+          ? [
+              {
+                key: "yours",
+                label: t("calc.title"),
+                color: "var(--series-q1)",
+                values: series(mine),
+              },
+            ]
+          : []),
       ],
       from: axis[12],
     };
-    $("chart").setAttribute("aria-label", `${t("calc.over_time")}: ${spec.lines.map((l) => l.label).join(", ")}`);
+    $("chart").setAttribute(
+      "aria-label",
+      `${t("calc.over_time")}: ${spec.lines.map((l) => l.label).join(", ")}`,
+    );
     if (!redraw) redraw = mount($("chart"), null, () => spec!);
     else redraw();
   }
@@ -172,10 +219,22 @@ export async function start(root: HTMLElement): Promise<void> {
       row.className = "slider-row";
       const top = document.createElement("div");
       top.className = "top";
-      const label = Object.assign(document.createElement("label"), { htmlFor: `div-${d}`, textContent: cfg.divisions[d] });
-      const value = Object.assign(document.createElement("span"), { className: "num", style: "font-weight: 700; white-space: nowrap" });
+      const label = Object.assign(document.createElement("label"), {
+        htmlFor: `div-${d}`,
+        textContent: cfg.divisions[d],
+      });
+      const value = Object.assign(document.createElement("span"), {
+        className: "num",
+        style: "font-weight: 700; white-space: nowrap",
+      });
       top.append(label, value);
-      const input = Object.assign(document.createElement("input"), { type: "range", id: `div-${d}`, min: "0", max: String(SLIDER_MAX), step: "0.1" });
+      const input = Object.assign(document.createElement("input"), {
+        type: "range",
+        id: `div-${d}`,
+        min: "0",
+        max: String(SLIDER_MAX),
+        step: "0.1",
+      });
       input.addEventListener("input", () => set(d, Number(input.value) / 100));
       const note = Object.assign(document.createElement("span"), { className: "small" });
       row.append(top, input, note);
@@ -194,10 +253,22 @@ export async function start(root: HTMLElement): Promise<void> {
     for (const d of Object.keys(cfg.divisions).sort()) {
       const row = document.createElement("div");
       row.className = "euro-row";
-      const label = Object.assign(document.createElement("label"), { htmlFor: `eur-${d}`, textContent: cfg.divisions[d] });
-      const input = Object.assign(document.createElement("input"), { type: "text", id: `eur-${d}`, inputMode: "decimal", autocomplete: "off", placeholder: "€" });
+      const label = Object.assign(document.createElement("label"), {
+        htmlFor: `eur-${d}`,
+        textContent: cfg.divisions[d],
+      });
+      const input = Object.assign(document.createElement("input"), {
+        type: "text",
+        id: `eur-${d}`,
+        inputMode: "decimal",
+        autocomplete: "off",
+        placeholder: "€",
+      });
       input.setAttribute("aria-label", t("calc.euros.input", { category: cfg.divisions[d] }));
-      const out = Object.assign(document.createElement("span"), { className: "small muted", id: `eur-${d}-share` });
+      const out = Object.assign(document.createElement("span"), {
+        className: "small muted",
+        id: `eur-${d}-share`,
+      });
       input.setAttribute("aria-describedby", out.id);
       input.addEventListener("input", () => {
         const text = input.value.trim();
@@ -219,7 +290,9 @@ export async function start(root: HTMLElement): Promise<void> {
   /** One division to `v`; the others scaled in proportion so the shares still sum to 1. */
   function set(d: string, v: number) {
     const cur = { ...(shares ?? presetShares()) };
-    const others = Object.entries(cur).filter(([k]) => k !== d).reduce((a, [, x]) => a + x, 0);
+    const others = Object.entries(cur)
+      .filter(([k]) => k !== d)
+      .reduce((a, [, x]) => a + x, 0);
     const scale = others > 0 ? (1 - v) / others : 0;
     const next: Shares = {};
     for (const k of Object.keys(cfg.divisions)) next[k] = k === d ? v : (cur[k] ?? 0) * scale;
@@ -234,11 +307,18 @@ export async function start(root: HTMLElement): Promise<void> {
     u.searchParams.set("from", preset);
     history.replaceState(null, "", u);
   }
-  function clearShares() { shares = null; touched = false; moved.clear(); }
+  function clearShares() {
+    shares = null;
+    touched = false;
+    moved.clear();
+  }
   function clearEuros() {
     euros.clear();
     invalid.clear();
-    for (const input of euroInputs.values()) { input.value = ""; input.removeAttribute("aria-invalid"); }
+    for (const input of euroInputs.values()) {
+      input.value = "";
+      input.removeAttribute("aria-invalid");
+    }
   }
 
   // A new starting group resets the sliders (they were that group's shares); amounts in euros are
@@ -249,7 +329,11 @@ export async function start(root: HTMLElement): Promise<void> {
     writeFrom();
     render();
   });
-  $("reset").addEventListener("click", () => { if (mode === "euros") clearEuros(); else clearShares(); render(); });
+  $("reset").addEventListener("click", () => {
+    if (mode === "euros") clearEuros();
+    else clearShares();
+    render();
+  });
   // From euros to shares, the sliders start from the shares the euros gave, every one the
   // reader's own (an empty category was set to nothing spent).
   for (const b of root.querySelectorAll<HTMLButtonElement>("[data-mode]")) {

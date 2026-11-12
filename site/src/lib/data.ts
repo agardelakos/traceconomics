@@ -14,7 +14,9 @@ export const m1Dir = (country: string) => `${country}/m1/latest`;
 export function readJson<T = any>(rel: string): T {
   const file = path.join(DATA_ROOT, rel);
   if (!fs.existsSync(file)) {
-    throw new Error(`Missing ${file}: run "python -m traceconomics export site --out site/public/data" first.`);
+    throw new Error(
+      `Missing ${file}: run "python -m traceconomics export site --out site/public/data" first.`,
+    );
   }
   return JSON.parse(fs.readFileSync(file, "utf-8"));
 }
@@ -35,7 +37,15 @@ export interface SeriesFile {
   end: string;
   flags: { code: string; index_to: string; rch_a_to: string; rch_m_to: string; avg_to: string }[];
   groups: Record<string, GroupSeries>;
-  gaps: Record<string, { rch_a: (number | null)[]; avg: Record<string, number>; se_a: (number | null)[]; se_avg: Record<string, number> }>;
+  gaps: Record<
+    string,
+    {
+      rch_a: (number | null)[];
+      avg: Record<string, number>;
+      se_a: (number | null)[];
+      se_avg: Record<string, number>;
+    }
+  >;
   footnotes: Record<string, Record<string, any>>;
 }
 
@@ -46,8 +56,10 @@ export interface Settings {
 }
 
 export const settings = (country: string) => readJson<Settings>(`${m1Dir(country)}/settings.json`);
-export const series = (country: string, slug: string) => readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
-export const availability = (country: string) => readJson<any>(`${m1Dir(country)}/availability.json`);
+export const series = (country: string, slug: string) =>
+  readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
+export const availability = (country: string) =>
+  readJson<any>(`${m1Dir(country)}/availability.json`);
 export const calculator = (country: string) => readJson<any>(`${m1Dir(country)}/calculator.json`);
 /** One source's upper limit of each income fifth (Q1-Q4), euros a year per adult equivalent. */
 export interface IncomeLimits {
@@ -57,14 +69,24 @@ export interface IncomeLimits {
   top_cutoffs_pps: Record<string, number> | null;
 }
 export interface IncomeLimitsFile {
-  ours: IncomeLimits & { se: Record<string, number | null>; households: Record<string, string | null>; pps_reason: string | null };
+  ours: IncomeLimits & {
+    se: Record<string, number | null>;
+    households: Record<string, string | null>;
+    pps_reason: string | null;
+  };
   eurostat: IncomeLimits & { top_cutoffs_pps: Record<string, number> };
 }
-export const incomeLimits = (country: string) => readJson<IncomeLimitsFile>(`${m1Dir(country)}/income-limits.json`);
+export const incomeLimits = (country: string) =>
+  readJson<IncomeLimitsFile>(`${m1Dir(country)}/income-limits.json`);
 /** Each household type's share of households and surveyed households, newest survey year. */
 export const householdTypes = (country: string) =>
-  readJson<{ survey_year: number; groups: Record<string, { share: number; households: string }> }>(`${m1Dir(country)}/household-types.json`);
-export const labels = () => readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>("labels/coicop18.json");
+  readJson<{ survey_year: number; groups: Record<string, { share: number; households: string }> }>(
+    `${m1Dir(country)}/household-types.json`,
+  );
+export const labels = () =>
+  readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>(
+    "labels/coicop18.json",
+  );
 
 /** The month axis of a series file. */
 export function months(file: { start: string; end: string }): string[] {
@@ -75,13 +97,19 @@ export function months(file: { start: string; end: string }): string[] {
     const p = `${y}-${String(m).padStart(2, "0")}`;
     if (p > file.end) break;
     out.push(p);
-    if (++m > 12) { m = 1; y++; }
+    if (++m > 12) {
+      m = 1;
+      y++;
+    }
   }
   return out;
 }
 
 /** The last month with a value, and the value. */
-export function latest(values: (number | null)[], axis: string[]): { period: string; value: number } | null {
+export function latest(
+  values: (number | null)[],
+  axis: string[],
+): { period: string; value: number } | null {
   for (let i = values.length - 1; i >= 0; i--) {
     if (values[i] !== null) return { period: axis[i], value: values[i] as number };
   }

@@ -35,14 +35,23 @@ const LAYERS = [
 const SCOPE = ["src/scripts", "src/lib"];
 
 const inputDir = INPUTS.filter((d) => existsSync(d));
-for (const d of INPUTS) if (!inputDir.includes(d)) console.log(`missing: ${d} (did that test run in a coverage build?)`);
+for (const d of INPUTS)
+  if (!inputDir.includes(d)) console.log(`missing: ${d} (did that test run in a coverage build?)`);
 if (!inputDir.length) {
   console.error("no coverage to merge");
   process.exit(1);
 }
 
 const report = (name, outputDir, inputDir, reports) =>
-  new CoverageReport({ name, outputDir, inputDir, reports, sourceFilter, sourcePath, logging: "error" }).generate();
+  new CoverageReport({
+    name,
+    outputDir,
+    inputDir,
+    reports,
+    sourceFilter,
+    sourcePath,
+    logging: "error",
+  }).generate();
 
 // Both from the same V8 → Istanbul conversion, so the HTML report and the lcov count lines alike.
 await report("Site code coverage", "coverage/report", inputDir, ["html", "lcovonly"]);
@@ -52,7 +61,8 @@ function lcov(path) {
   const out = {};
   let current = null;
   for (const line of readFileSync(path, "utf-8").split("\n")) {
-    if (line.startsWith("SF:")) out[(current = line.slice(3))] = { lines: new Set(), covered: new Set() };
+    if (line.startsWith("SF:"))
+      out[(current = line.slice(3))] = { lines: new Set(), covered: new Set() };
     else if (line.startsWith("DA:") && current) {
       const [n, hits] = line.slice(3).split(",").map(Number);
       out[current].lines.add(n);
@@ -63,7 +73,9 @@ function lcov(path) {
 }
 
 const merged = lcov("coverage/report/lcov.info");
-const files = Object.fromEntries(Object.entries(merged).map(([f, s]) => [f, { covered: s.covered.size, total: s.lines.size }]));
+const files = Object.fromEntries(
+  Object.entries(merged).map(([f, s]) => [f, { covered: s.covered.size, total: s.lines.size }]),
+);
 
 // Each layer's covered lines, converted from that layer's input alone.
 const byLayer = [];
@@ -91,14 +103,18 @@ function sources(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = join(dir, e.name);
     if (e.isDirectory()) return sources(p);
-    return /\.(ts|mjs)$/.test(e.name) && !/\.(test|d)\.ts$/.test(e.name) ? [relative(".", p).replaceAll("\\", "/")] : [];
+    return /\.(ts|mjs)$/.test(e.name) && !/\.(test|d)\.ts$/.test(e.name)
+      ? [relative(".", p).replaceAll("\\", "/")]
+      : [];
   });
 }
-const notLoaded = SCOPE.flatMap(sources).filter((f) => !(f in files)).sort();
+const notLoaded = SCOPE.flatMap(sources)
+  .filter((f) => !(f in files))
+  .sort();
 
 const covered = Object.values(files).reduce((s, f) => s + f.covered, 0);
 const total = Object.values(files).reduce((s, f) => s + f.total, 0);
-const pct = total ? Math.floor((1000 * covered) / total) / 10 : 0;     // rounded down: never claim more
+const pct = total ? Math.floor((1000 * covered) / total) / 10 : 0; // rounded down: never claim more
 const summary = {
   lines: { covered, total, pct },
   standing: standing(pct),
@@ -113,12 +129,20 @@ const summary = {
 };
 writeFileSync("coverage/summary.json", JSON.stringify(summary, null, 2) + "\n");
 
-console.log(`Site code coverage: ${pct}% of lines (${covered} of ${total}), from ${inputDir.join(" and ")}`);
-for (const [f, s] of Object.entries(summary.files)) console.log(`  ${(s.total ? (100 * s.covered / s.total).toFixed(1) : "-").padStart(5)}%  ${f}`);
+console.log(
+  `Site code coverage: ${pct}% of lines (${covered} of ${total}), from ${inputDir.join(" and ")}`,
+);
+for (const [f, s] of Object.entries(summary.files))
+  console.log(`  ${(s.total ? ((100 * s.covered) / s.total).toFixed(1) : "-").padStart(5)}%  ${f}`);
 if (notLoaded.length) console.log(`Not loaded by any test (not counted): ${notLoaded.join(", ")}`);
-const layerTotals = LAYERS.map(([layer]) => `${layer} ${Object.values(layerFiles).reduce((n, f) => n + f[layer], 0)}`);
+const layerTotals = LAYERS.map(
+  ([layer]) => `${layer} ${Object.values(layerFiles).reduce((n, f) => n + f[layer], 0)}`,
+);
 console.log(`Covered lines by layer (lowest first): ${layerTotals.join(", ")}`);
-if (problems.length) console.log(`${problems.length} covered lines in no layer, e.g. ${problems.slice(0, 5).join("; ")}`);
+if (problems.length)
+  console.log(
+    `${problems.length} covered lines in no layer, e.g. ${problems.slice(0, 5).join("; ")}`,
+  );
 if (strict && notLoaded.length) process.exitCode = 1;
 if (strict && pct < FLOOR) {
   console.log(`Below the floor: ${pct}% < ${FLOOR}%`);

@@ -38,35 +38,60 @@ export interface Question {
   id: string;
   country: string;
   unit: string;
-  sources: { label: string; source: string; reference: string; more?: string[]; definition: string }[];
+  sources: {
+    label: string;
+    source: string;
+    reference: string;
+    more?: string[];
+    definition: string;
+  }[];
   first: string | null;
   last: string | null;
   values: Record<string, Record<string, number | null>>;
 }
 
-export interface Results { format: string; country: string; licence: string; attribution: string; checks: Check[]; questions: Question[] }
+export interface Results {
+  format: string;
+  country: string;
+  licence: string;
+  attribution: string;
+  checks: Check[];
+  questions: Question[];
+}
 
 export function results(country: string): Results {
   const r = readJson<Results>(`${m5Dir(country)}/checks.json`);
-  if (r.format !== "m5-v1" || r.country !== country) throw new Error(`${m5Dir(country)}/checks.json is not module5's results for ${country}`);
+  if (r.format !== "m5-v1" || r.country !== country)
+    throw new Error(`${m5Dir(country)}/checks.json is not module5's results for ${country}`);
   return { ...r, questions: r.questions ?? [] };
 }
 
 // Where a question's line comes from, as its card's chip names it: the kind of source and who we
 // take the figures from (as the Sources list and the reuse notices name them).
 const CHIPS: [RegExp, string][] = [
-  [/^eurostat:cens_/, "census-eurostat"], [/^oet-local:silc_/, "silc-elstat"], [/^eurostat:ilc_/, "silc-eurostat"],
-  [/^oet-local:hbs_/, "hbs-elstat"], [/^eurostat:(nama|nasa)_/, "na-eurostat"], [/^aade:/, "tax-aade"],
-  [/^eurostat:une_/, "lfs-eurostat"], [/^ec-empl:/, "register-ec"], [/^elstat:cpi/, "cpi-elstat"], [/^eurostat:prc_hicp/, "hicp-eurostat"],
+  [/^eurostat:cens_/, "census-eurostat"],
+  [/^oet-local:silc_/, "silc-elstat"],
+  [/^eurostat:ilc_/, "silc-eurostat"],
+  [/^oet-local:hbs_/, "hbs-elstat"],
+  [/^eurostat:(nama|nasa)_/, "na-eurostat"],
+  [/^aade:/, "tax-aade"],
+  [/^eurostat:une_/, "lfs-eurostat"],
+  [/^ec-empl:/, "register-ec"],
+  [/^elstat:cpi/, "cpi-elstat"],
+  [/^eurostat:prc_hicp/, "hicp-eurostat"],
 ];
 
 /** A question's chips, one per kind of source, in the order of its lines (the key under `m5.chip.`). */
 export function chips(q: Question): string[] {
-  return [...new Set(q.sources.map((s) => {
-    const hit = CHIPS.find(([re]) => re.test(s.source));
-    if (!hit) throw new Error(`${q.id}: no chip for source "${s.source}"`);
-    return hit[1];
-  }))];
+  return [
+    ...new Set(
+      q.sources.map((s) => {
+        const hit = CHIPS.find(([re]) => re.test(s.source));
+        if (!hit) throw new Error(`${q.id}: no chip for source "${s.source}"`);
+        return hit[1];
+      }),
+    ),
+  ];
 }
 
 // The order checks are shown in: explained first (a difference found and its cause shown is the
@@ -79,7 +104,11 @@ export function ordered(checks: Check[]): Check[] {
 }
 
 // The glossary term for what a check is about, by the source of its published side.
-const TERMS: [RegExp, string][] = [[/^elstat:cpi/, "consumer-price-index"], [/^eurostat:prc_hicp/, "hicp"], [/^elstat:hbs/, "household-budget-survey"]];
+const TERMS: [RegExp, string][] = [
+  [/^elstat:cpi/, "consumer-price-index"],
+  [/^eurostat:prc_hicp/, "hicp"],
+  [/^elstat:hbs/, "household-budget-survey"],
+];
 
 /** The glossary term a check's card explains, if any. */
 export function termOf(c: Pick<Check, "published">): string | undefined {
@@ -91,14 +120,18 @@ export function termOf(c: Pick<Check, "published">): string | undefined {
  * row ("1960–2000: 492 of 492"), so a long clean history reads in a line and every year that
  * differs stands on its own.
  */
-export function yearRuns(byYear: Check["by_year"]): { from: string; to: string; compared: number; agree: number }[] {
+export function yearRuns(
+  byYear: Check["by_year"],
+): { from: string; to: string; compared: number; agree: number }[] {
   const out: { from: string; to: string; compared: number; agree: number }[] = [];
   for (const year of Object.keys(byYear).sort()) {
     const { compared, agree } = byYear[year];
     const last = out[out.length - 1];
     const clean = agree === compared;
     if (last && clean && last.agree === last.compared && Number(year) === Number(last.to) + 1) {
-      last.to = year; last.compared += compared; last.agree += agree;
+      last.to = year;
+      last.compared += compared;
+      last.agree += agree;
     } else out.push({ from: year, to: year, compared, agree });
   }
   return out;

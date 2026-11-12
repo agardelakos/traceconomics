@@ -7,4 +7,5 @@ short: "The poorest fifth's annual inflation minus the richest fifth's, in perce
 sources: [jaravel-2021]
 related: [quintile, percentage-point, standard-error]
 ---
+
 A positive gap means prices rose faster for the poorest fifth. In Greece it peaked at 2.5 points in April 2022, when food and energy prices rose most.

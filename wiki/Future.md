@@ -31,4 +31,4 @@ release stays available with its own identifier.
 
 ---
 
-*This page is kept in the repository, in [`wiki/Future.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Future.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update.*
+_This page is kept in the repository, in [`wiki/Future.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Future.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update._

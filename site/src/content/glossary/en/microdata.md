@@ -7,4 +7,5 @@ short: "The survey's anonymised household records, which ELSTAT publishes so tha
 sources: [elstat-hbs-puf]
 related: [household-budget-survey, standard-error]
 ---
+
 Published tables give averages for fixed groups; the microdata let us form our own groups, such as income fifths per person. We read them on our own computer and publish only group totals and shares, never a household's data.

@@ -18,7 +18,7 @@ export function roundHalfEven(x: number, digits: number): number {
   const tail = /[1-9]/.test(rest.slice(1));
   if (first > 5 || (first === 5 && tail) || (first === 5 && !tail && n % 2n === 1n)) n += 1n;
   const value = Number(n) / 10 ** digits;
-  return negative ? -value : value;       // -0.04 rounds to -0, as in Python
+  return negative ? -value : value; // -0.04 rounds to -0, as in Python
 }
 
 /** The value as the pipeline writes it: Python's f"{x:.Nf}", so -0.04 is "-0.0". */

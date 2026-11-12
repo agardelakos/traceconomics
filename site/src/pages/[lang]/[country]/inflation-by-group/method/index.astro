@@ -12,13 +12,21 @@ export function getStaticPaths() {
 
 const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
-const pages = (await getCollection("method", (e) => e.id.startsWith(m1Text(country, lang, "")))).sort((a, b) => a.data.order - b.data.order);
+const pages = (
+  await getCollection("method", (e) => e.id.startsWith(m1Text(country, lang, "")))
+).sort((a, b) => a.data.order - b.data.order);
 const main = pages.find((e) => e.id === `${lang}/overview`);
 if (!main) throw new Error(`no method page for ${lang}`);
 const options = pages.filter((e) => e.data.option);
 const { Content } = await render(main);
 ---
-<Base lang={lang} title={main.data.title} description={main.data.summary} topic={{ slug: "inflation-by-group", country, section: "method" }}>
+
+<Base
+  lang={lang}
+  title={main.data.title}
+  description={main.data.summary}
+  topic={{ slug: "inflation-by-group", country, section: "method" }}
+>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <h1>{main.data.title}</h1>
@@ -28,17 +36,24 @@ const { Content } = await render(main);
       <h2 id="options-h">{t(lang, "method.options")}</h2>
       <div class="cards">
         {options.map((e) => (
-          <a class="card" href={topicHref(lang, "inflation-by-group", country, `method/${e.id.split("/")[1]}`)}>
+          <a
+            class="card"
+            href={topicHref(lang, "inflation-by-group", country, `method/${e.id.split("/")[1]}`)}
+          >
             <span class="title">{e.data.title} →</span>
             <span class="text">{e.data.summary}</span>
           </a>
         ))}
       </div>
     </nav>
-    <section class="prose"><Content /></section>
+    <section class="prose">
+      <Content />
+    </section>
     <details class="panel">
       <summary>{t(lang, "method.sources")}</summary>
-      <div style="margin-top: var(--space-3)"><SourceList keys={main.data.sources} lang={lang} /></div>
+      <div style="margin-top: var(--space-3)">
+        <SourceList keys={main.data.sources} lang={lang} />
+      </div>
     </details>
   </article>
 </Base>

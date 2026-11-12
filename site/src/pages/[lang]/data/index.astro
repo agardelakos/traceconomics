@@ -19,10 +19,19 @@ if (!entry) throw new Error(`no open-data page for ${lang}`);
 const { Content } = await render(entry);
 const countries = dataCountries().map((c) => ({
   code: c,
-  live: TOPICS.filter((tp) => tp.status === "live" && tp.countries.includes(c)).map((tp) => t(lang, `topic.${tp.slug}`)),
+  live: TOPICS.filter((tp) => tp.status === "live" && tp.countries.includes(c)).map((tp) =>
+    t(lang, `topic.${tp.slug}`),
+  ),
 }));
 ---
-<Base lang={lang} title={entry.data.title} description={entry.data.summary} path="data" current="data">
+
+<Base
+  lang={lang}
+  title={entry.data.title}
+  description={entry.data.summary}
+  path="data"
+  current="data"
+>
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <Breadcrumb lang={lang} trail={[[t(lang, "nav.data")]]} />
@@ -42,6 +51,8 @@ const countries = dataCountries().map((c) => ({
         <MoreCard lang={lang} what="countries" />
       </div>
     </nav>
-    <section class="prose"><Content /></section>
+    <section class="prose">
+      <Content />
+    </section>
   </article>
 </Base>

@@ -5,9 +5,13 @@
 // it has. It sits last in a `.card-row`, beside the live cards (and below them on phones).
 import { t, type Lang } from "../lib/i18n";
 
-interface Props { lang: Lang; what: "countries" | "topics" }
+interface Props {
+  lang: Lang;
+  what: "countries" | "topics";
+}
 const { lang, what } = Astro.props;
 ---
+
 <div class="card planned more-card">
   <span class="chip-status">{t(lang, "soon")}</span>
   <span class="title">{t(lang, what === "countries" ? "country.more" : "topic.more")}</span>

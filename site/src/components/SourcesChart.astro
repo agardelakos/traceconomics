@@ -5,60 +5,106 @@
 // holds the same numbers for screen readers and copying.
 import { num, type Lang } from "../lib/format";
 
-interface Series { name: string; values: Record<string, number | null | undefined> }
-interface Props { lang: Lang; label: string; series: Series[]; divide?: number; digits?: number }
+interface Series {
+  name: string;
+  values: Record<string, number | null | undefined>;
+}
+interface Props {
+  lang: Lang;
+  label: string;
+  series: Series[];
+  divide?: number;
+  digits?: number;
+}
 const { lang, label, series, divide = 1, digits = 1 } = Astro.props;
 if (series.length > 5) throw new Error(`a sources chart has at most 5 lines, got ${series.length}`);
 
-const W = 640, H = 280, L = 56, R = 16, T = 12, B = 32;
-const years = [...new Set(series.flatMap((s) => Object.keys(s.values).filter((p) => s.values[p] != null)))].sort();
-const all = series.flatMap((s) => years.map((y) => s.values[y]).filter((v): v is number => v != null)).map((v) => v / divide);
+const W = 640,
+  H = 280,
+  L = 56,
+  R = 16,
+  T = 12,
+  B = 32;
+const years = [
+  ...new Set(series.flatMap((s) => Object.keys(s.values).filter((p) => s.values[p] != null))),
+].sort();
+const all = series
+  .flatMap((s) => years.map((y) => s.values[y]).filter((v): v is number => v != null))
+  .map((v) => v / divide);
 // Round the axis to a "nice" step so its labels are short: 1, 2 or 5 times a power of ten.
-const lo0 = Math.min(...all), hi0 = Math.max(...all);
+const lo0 = Math.min(...all),
+  hi0 = Math.max(...all);
 const raw = (hi0 - lo0 || Math.abs(hi0) || 1) / 4;
 const mag = 10 ** Math.floor(Math.log10(raw));
 const step = [1, 2, 5, 10].map((m) => m * mag).find((s) => s >= raw)!;
-const lo = Math.floor(lo0 / step) * step, hi = Math.ceil(hi0 / step) * step || step;
+const lo = Math.floor(lo0 / step) * step,
+  hi = Math.ceil(hi0 / step) * step || step;
 const ticks = Array.from({ length: Math.round((hi - lo) / step) + 1 }, (_, i) => lo + i * step);
-const y0 = Number(years[0]), y1 = Number(years[years.length - 1]);
-const x = (y: string) => L + (y1 === y0 ? (W - L - R) / 2 : ((Number(y) - y0) / (y1 - y0)) * (W - L - R));
+const y0 = Number(years[0]),
+  y1 = Number(years[years.length - 1]);
+const x = (y: string) =>
+  L + (y1 === y0 ? (W - L - R) / 2 : ((Number(y) - y0) / (y1 - y0)) * (W - L - R));
 const yv = (v: number) => T + (1 - (v / divide - lo) / (hi - lo)) * (H - T - B);
 const tickDigits = Math.max(0, -Math.floor(Math.log10(step)));
 // Year labels: every year up to ten years, then every second or fifth, always the last one.
 const span = y1 - y0;
 const every = span <= 10 ? 1 : span <= 20 ? 2 : 5;
-const labels = Array.from({ length: span + 1 }, (_, k) => y0 + k).filter((y) => y === y1 || ((y - y0) % every === 0 && y1 - y >= every)).map(String);
+const labels = Array.from({ length: span + 1 }, (_, k) => y0 + k)
+  .filter((y) => y === y1 || ((y - y0) % every === 0 && y1 - y >= every))
+  .map(String);
 const lines = series.map((s, i) => {
   const segs: string[] = [];
   let open = false;
   years.forEach((y, k) => {
     const v = s.values[y];
-    const joined = k > 0 && Number(years[k - 1]) === Number(y) - 1 && s.values[years[k - 1]] != null;
-    if (v == null) { open = false; return; }
+    const joined =
+      k > 0 && Number(years[k - 1]) === Number(y) - 1 && s.values[years[k - 1]] != null;
+    if (v == null) {
+      open = false;
+      return;
+    }
     segs.push(`${open && joined ? "L" : "M"}${x(y).toFixed(1)},${yv(v).toFixed(1)}`);
     open = true;
   });
-  const dots = years.filter((y) => s.values[y] != null).map((y) => ({ cx: x(y), cy: yv(s.values[y] as number) }));
+  const dots = years
+    .filter((y) => s.values[y] != null)
+    .map((y) => ({ cx: x(y), cy: yv(s.values[y] as number) }));
   return { cls: `s${i}`, d: segs.join(" "), dots, name: s.name };
 });
 ---
+
 <figure class="stack" style="gap: var(--space-2); margin: 0" data-m5="chart">
   <svg class="m5-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
     <g class="axis">
       {ticks.map((t) => (
-        <g><line class="grid" x1={L} x2={W - R} y1={yv(t * divide)} y2={yv(t * divide)} />
-          <text x={L - 8} y={yv(t * divide) + 4} text-anchor="end">{num(lang, t, tickDigits)}</text></g>
+        <g>
+          <line class="grid" x1={L} x2={W - R} y1={yv(t * divide)} y2={yv(t * divide)} />
+          <text x={L - 8} y={yv(t * divide) + 4} text-anchor="end">
+            {num(lang, t, tickDigits)}
+          </text>
+        </g>
       ))}
-      {labels.map((y) => <text x={x(y)} y={H - 10} text-anchor="middle">{y}</text>)}
+      {labels.map((y) => (
+        <text x={x(y)} y={H - 10} text-anchor="middle">
+          {y}
+        </text>
+      ))}
     </g>
     {lines.map((l) => (
       <g class={l.cls}>
         {l.d.includes("L") && <path d={l.d} />}
-        {l.dots.map((d) => <circle cx={d.cx} cy={d.cy} r="3.5" />)}
+        {l.dots.map((d) => (
+          <circle cx={d.cx} cy={d.cy} r="3.5" />
+        ))}
       </g>
     ))}
   </svg>
   <ul class="m5-legend">
-    {lines.map((l) => <li><span class={`key ${l.cls}`} aria-hidden="true"></span>{l.name}</li>)}
+    {lines.map((l) => (
+      <li>
+        <span class={`key ${l.cls}`} aria-hidden="true"></span>
+        {l.name}
+      </li>
+    ))}
   </ul>
 </figure>

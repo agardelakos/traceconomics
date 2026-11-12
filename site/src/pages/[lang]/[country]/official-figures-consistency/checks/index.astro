@@ -14,7 +14,13 @@ const SLUG = "official-figures-consistency";
 const lang = Astro.params.lang as Lang;
 const country = Astro.params.country as string;
 ---
-<Base lang={lang} title={t(lang, "nav.checks")} description={t(lang, "m5.checks.lead")} topic={{ slug: SLUG, country, section: "checks" }}>
+
+<Base
+  lang={lang}
+  title={t(lang, "nav.checks")}
+  description={t(lang, "m5.checks.lead")}
+  topic={{ slug: SLUG, country, section: "checks" }}
+>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <h1>{t(lang, "nav.checks")}</h1>

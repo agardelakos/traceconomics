@@ -18,7 +18,8 @@ export const LANGS = ["el", "en"] as const;
 
 /** The languages offered to readers (src/i18n/languages.json). */
 export const OFFERED = languages.offered as Lang[];
-if (!OFFERED.length || OFFERED.some((l) => !LANGS.includes(l))) throw new Error(`bad offered languages: ${OFFERED}`);
+if (!OFFERED.length || OFFERED.some((l) => !LANGS.includes(l)))
+  throw new Error(`bad offered languages: ${OFFERED}`);
 
 export const isOffered = (lang: Lang) => OFFERED.includes(lang);
 

@@ -3,6 +3,7 @@ title: "Data and downloads"
 summary: "Every number on this site, for every combination of options, as CSV or Parquet."
 sources: [elstat-cpi-items, elstat-hbs-puf, eurostat-prc-hicp-minr, eu-vocabularies-ecoicop2]
 ---
+
 ### What there is
 
 For each of the 48 settings of the options (spending concept, imputed rent, price source, weights timing, tutoring), four tables cover every group:
