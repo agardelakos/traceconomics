@@ -21,12 +21,11 @@ import json
 import re
 import shutil
 
+import chrome
 import pytest
+from helpers import BLOCKED, DIST, REPORT, Site
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-
-import chrome
-from helpers import BLOCKED, DIST, REPORT, Site
 from server import StaticServer
 
 DESKTOP = (1280, 900)

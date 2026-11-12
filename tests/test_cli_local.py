@@ -10,8 +10,9 @@ import pytest
 
 pd = pytest.importorskip("pandas")
 
-from traceconomics.archive.store import Archive  # noqa: E402
 from clitools import no_store, run, setup  # noqa: E402,F401 - fixtures
+
+from traceconomics.archive.store import Archive  # noqa: E402
 
 pytestmark = pytest.mark.unit
 

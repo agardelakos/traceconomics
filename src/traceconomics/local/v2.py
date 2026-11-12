@@ -35,8 +35,8 @@ from traceconomics.archive.store import Archive
 from traceconomics.checks import require
 from traceconomics.local import bootstrap, puf
 from traceconomics.local.groups import household_size
-from traceconomics.local.shares import leaves
 from traceconomics.local.puf import Survey
+from traceconomics.local.shares import leaves
 from traceconomics.sources.elstat import hbs_tables
 from traceconomics.sources.elstat.hbs_tables import ALL, Table103
 

@@ -16,6 +16,7 @@ import collect  # noqa: E402
 import history  # noqa: E402
 import validate  # noqa: E402
 import vm_pull  # noqa: E402
+
 import wiki  # noqa: E402
 
 pytestmark = pytest.mark.repository

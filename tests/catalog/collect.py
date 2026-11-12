@@ -24,7 +24,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent

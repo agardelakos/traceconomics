@@ -29,10 +29,9 @@ import duckdb
 
 from traceconomics.archive.store import Archive, read_jsonl
 from traceconomics.catalog import DatasetSpec, datasets
-from traceconomics.sources.aade import parse as aade_parse
-from traceconomics.sources.elstat import parse as elstat_parse
-from traceconomics.sources.elstat import table05 as elstat_table05
 from traceconomics.sources import oet_local
+from traceconomics.sources.aade import parse as aade_parse
+from traceconomics.sources.elstat import parse as elstat_parse, table05 as elstat_table05
 from traceconomics.sources.eurostat import parse as eurostat_parse
 from traceconomics.store.registry import Snapshot, label_files, snapshots
 

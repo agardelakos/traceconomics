@@ -14,10 +14,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from clitools import no_store, run, setup  # noqa: F401 - fixtures
 
 from traceconomics import __version__, analytics, backup, cli, config as config_mod, job, release, schedule
 from traceconomics.archive.store import Archive
-from clitools import no_store, run, setup  # noqa: F401 - fixtures
 
 pytestmark = pytest.mark.unit
 
@@ -887,6 +887,7 @@ def test_module1_run_writes_the_default_setting(setup, run, monkeypatch, tmp_pat
     And it exits with code 0
     """
     import sitedata
+
     from traceconomics.module1 import combinations, index
 
     cpi, hicp = sitedata.blocks(), sitedata.blocks(hicp=True)
@@ -920,6 +921,7 @@ def test_module5_run_prints_each_check_and_writes_its_files(setup, run, monkeypa
     And it writes the check's CSV and checks.json under gr/m5, and exits with code 0
     """
     import sitedata
+
     from traceconomics.module5 import run as m5
     from traceconomics.module5.record import Check, Comparison
 

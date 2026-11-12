@@ -34,7 +34,7 @@ Standard library only.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 
 SUITES = {"pytest": "PY", "selenium": "SEL", "playwright": "PW", "vitest": "VT"}
 ID = re.compile(r"^(PY|SEL|PW|VT)-([A-Z][A-Z0-9]{1,9})-(\d{3})$")

@@ -33,7 +33,7 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent

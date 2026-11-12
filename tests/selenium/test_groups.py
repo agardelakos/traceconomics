@@ -3,9 +3,8 @@ links to the calculator and Explore) and the income panel (each fifth's income r
 household, in euros or purchasing power standards). Expected values from the published cut-offs."""
 
 import pytest
-from selenium.webdriver.common.keys import Keys
-
 from helpers import cutoffs, data, equivalent_size, eur, household_type, js_round, num, pct, place_income, pps, t
+from selenium.webdriver.common.keys import Keys
 
 PAGE = "/{lang}/gr/inflation-by-group/groups/"
 

@@ -8,12 +8,12 @@ from types import SimpleNamespace
 
 import openpyxl
 import pytest
+from storetools import months, store
 
 from traceconomics.archive.store import Archive
 from traceconomics.checks import FormatError
 from traceconomics.module1 import attribution, benchmarks
 from traceconomics.module1.weights_used import Basket
-from storetools import months, store
 
 pytestmark = pytest.mark.unit
 

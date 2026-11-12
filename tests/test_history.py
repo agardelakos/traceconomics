@@ -242,6 +242,7 @@ def test_a_lock_left_by_a_dead_run_is_taken_over(tmp_path):
     And after the run the lock is gone
     """
     import os
+
     from traceconomics import job
 
     lock = tmp_path / job.LOCK_FILE

@@ -2,7 +2,6 @@
 error. Small enough to run against a deployed copy too (`-m smoke --base-url ...`)."""
 
 import pytest
-
 from helpers import t
 
 PAGES = [

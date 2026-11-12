@@ -17,10 +17,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
-
-from email.utils import parsedate_to_datetime
 
 from traceconomics.archive.store import Archive, StoreResult, sha256_file, utc_now
 from traceconomics.sources import elstat

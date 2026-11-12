@@ -5,10 +5,10 @@ import json
 
 import duckdb
 import pytest
-
 import sitedata
-from traceconomics.module1 import combinations
+
 from traceconomics.export import site
+from traceconomics.module1 import combinations
 
 pytestmark = pytest.mark.integration
 

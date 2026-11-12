@@ -19,7 +19,7 @@ from pathlib import Path
 import xlrd
 
 from traceconomics.sources.base import RunContext
-from traceconomics.sources.elstat import BASE, SOURCE, document_links, doc_url, page_content
+from traceconomics.sources.elstat import BASE, SOURCE, doc_url, document_links, page_content
 
 PAGE_URL = BASE + "/en/statistics/-/publication/DKT87/{year}-M12"
 

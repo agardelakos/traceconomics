@@ -7,8 +7,8 @@ import pytest
 
 from traceconomics.checks import FormatError
 from traceconomics.module5 import cpi
-from traceconomics.module5.record import Check, Comparison, load_explanations
 from traceconomics.module5.hbs import Question
+from traceconomics.module5.record import Check, Comparison, load_explanations
 from traceconomics.module5.run import write
 
 pytestmark = pytest.mark.unit
@@ -387,6 +387,7 @@ def test_attribution_names_every_publisher_and_dataset_the_questions_use(tmp_pat
     """
     import re
     from pathlib import Path
+
     from traceconomics.module5 import questions
 
     write(
@@ -419,6 +420,7 @@ def test_spending_check_counts_figures_to_the_cent_and_links_years_with_other_we
     And the name of each item that differs is kept where the table gives one
     """
     import duckdb
+
     from traceconomics.module5 import hbs
 
     con = duckdb.connect()
@@ -505,6 +507,7 @@ def test_hicp_rebuild_uses_the_finest_detail_and_is_left_out_without_its_files(m
     And a validation without the finest detail gives no check either
     """
     from types import SimpleNamespace
+
     from traceconomics.module5 import rebuilds
     from traceconomics.validate import v1
 
@@ -598,6 +601,7 @@ def test_household_types_are_read_by_year_type_and_measure():
     And the other country's row is left out
     """
     import duckdb
+
     from traceconomics.module5 import hbs
 
     con = duckdb.connect()

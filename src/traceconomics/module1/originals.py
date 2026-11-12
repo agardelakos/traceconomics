@@ -29,9 +29,9 @@ re-issue recomputed 2010 rather than re-coding it (`seam` measures the differenc
 
 from __future__ import annotations
 
+from traceconomics import mapping_tables
 from traceconomics.checks import require
 from traceconomics.engine.chain import Prices, link_month, months
-from traceconomics import mapping_tables
 from traceconomics.sources.elstat.original07 import Original07, parse
 
 YEARS = (2008, 2009, 2010)

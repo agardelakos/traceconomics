@@ -395,8 +395,9 @@ def test_quintile_matrix_matches_one_column_at_a_time():
     Then the household with a missing value is 0 in both columns
     And in each column every household with a quintile has the same one as quintiles taken for that column alone
     """
-    from traceconomics.local.groups import quintile_matrix
     import numpy as np
+
+    from traceconomics.local.groups import quintile_matrix
 
     value = pd.Series([3.0, 1.0, None, 2.0, 5.0, 4.0, 2.0])
     ids = pd.Series(list("abcdefg"))
@@ -440,8 +441,9 @@ def test_deciles_hold_equal_parts_in_order():
     When the values are ranked into ten parts
     Then the deciles hold two values each, in order
     """
-    from traceconomics.local.groups import quintile_matrix
     import numpy as np
+
+    from traceconomics.local.groups import quintile_matrix
 
     q = quintile_matrix(pd.Series(range(20), dtype=float), np.ones(20), pd.Series(range(20)), parts=10)[:, 0]
     assert q.tolist() == [k // 2 + 1 for k in range(20)]
@@ -475,6 +477,7 @@ def test_cut_points_are_midpoints_between_neighbouring_households():
     And none is any household's own value
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points
 
     value = pd.Series([float(v) for v in range(10, 110, 10)])  # 10, 20, ... 100, two a fifth
@@ -494,6 +497,7 @@ def test_cut_points_skip_households_without_weight_and_follow_each_column():
     And the second column's first limit moves, and none of its limits is missing
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points
 
     value = pd.Series([float(v) for v in range(10, 110, 10)])
@@ -513,6 +517,7 @@ def test_cut_points_ignore_missing_values_and_mark_an_empty_part():
     Then at least one limit is missing, since two households can't fill five parts
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points
 
     value = pd.Series([10.0, None, 20.0])
@@ -550,6 +555,7 @@ def test_every_household_lies_between_its_fifths_limits():
     And some households sit exactly on a limit, so ties are covered
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points, ranking
 
     rng = np.random.default_rng(20261108)

@@ -13,7 +13,6 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
 import pytest
-
 from helpers import ROOT, sitemap_paths
 
 PAGES = sitemap_paths() + [p.replace("/en/", "/el/", 1) for p in sitemap_paths() if p.startswith("/en/")]

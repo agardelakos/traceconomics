@@ -8,9 +8,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from test_release import FakeSteps, config, host, no_email  # noqa: F401 (fixtures: a fake host, no email)
 
 from traceconomics import release, testresults
-from test_release import FakeSteps, config, host, no_email  # noqa: F401 (fixtures: a fake host, no email)
 
 pytestmark = pytest.mark.unit
 

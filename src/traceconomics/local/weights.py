@@ -58,9 +58,9 @@ from traceconomics.archive.store import Archive
 from traceconomics.checks import require
 from traceconomics.local import bootstrap, calibration, mapping, puf, v2
 from traceconomics.local.groups import ELSTAT_TYPES, RANKED, assign, cut_points, ranking
+from traceconomics.local.shares import PUBLISHED, SPENDING, memberships, shares
 from traceconomics.module1.index import HOUSEHOLD_TYPES
 from traceconomics.module1.schedule import UNUSABLE_INCOMES, unusable
-from traceconomics.local.shares import PUBLISHED, SPENDING, memberships, shares
 from traceconomics.sources.elstat import hbs_tables
 
 SOURCE = "oet-local"

@@ -6,12 +6,12 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
+from storetools import months, store
 
 from traceconomics.archive.store import Archive
 from traceconomics.checks import FormatError
 from traceconomics.module1 import checks, index
 from traceconomics.module1.schedule import elstat_rule
-from storetools import months, store
 
 pytestmark = pytest.mark.unit
 

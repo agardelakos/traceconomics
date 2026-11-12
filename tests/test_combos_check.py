@@ -9,8 +9,8 @@ import shutil
 
 import duckdb
 import pytest
-
 import sitedata
+
 from traceconomics.module1 import availability, combinations, combos_check as cc, output
 
 pytestmark = pytest.mark.integration

@@ -4,10 +4,9 @@ euros (shares, the total, a wrong amount); the chart. Expected rates from the se
 series, which the calculator must reproduce exactly when nothing is changed."""
 
 import pytest
+from helpers import data, default_slug, latest, month, months, num, t
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
-
-from helpers import data, default_slug, latest, month, months, num, t
 
 PAGE = "/{lang}/gr/inflation-by-group/calculator/"
 PRESETS = [

@@ -6,7 +6,6 @@ everything the page sent."""
 from urllib.parse import unquote, urlsplit
 
 import pytest
-
 from selenium.webdriver.common.keys import Keys
 
 GR = "/en/gr/inflation-by-group/"

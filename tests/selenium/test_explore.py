@@ -4,7 +4,6 @@ are noted with the reason; the summary and the data table show the setting's pub
 files link and the citation follow the setting; the breakdown view; full screen."""
 
 import pytest
-
 from helpers import BLOCKED, data, default_slug, latest, month, months, num, t
 
 PAGE = "/{lang}/gr/inflation-by-group/explore/"

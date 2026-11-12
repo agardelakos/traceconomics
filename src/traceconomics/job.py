@@ -22,8 +22,8 @@ from traceconomics.archive.store import Archive, iso, utc_now
 from traceconomics.config import Config
 from traceconomics.notify import notify
 from traceconomics.sources import ec_empl, elstat, eurostat, terms
-from traceconomics.sources.elstat import history as elstat_history
 from traceconomics.sources.base import HttpClient, RunContext
+from traceconomics.sources.elstat import history as elstat_history
 
 STATE_FILE = "state/state.json"
 LOCK_FILE = "state/run.lock"

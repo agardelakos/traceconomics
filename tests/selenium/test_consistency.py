@@ -6,9 +6,8 @@ import json
 import urllib.request
 
 import pytest
-from selenium.webdriver.common.action_chains import ActionChains
-
 from helpers import DIST, num, t
+from selenium.webdriver.common.action_chains import ActionChains
 
 M5 = "/{lang}/gr/official-figures-consistency/"
 DATA = "/data/v1/gr/m5/latest"

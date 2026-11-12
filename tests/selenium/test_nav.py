@@ -7,9 +7,8 @@ import urllib.request
 from urllib.parse import urlsplit
 
 import pytest
-from selenium.webdriver.common.keys import Keys
-
 from helpers import ROOT, t
+from selenium.webdriver.common.keys import Keys
 
 # The languages offered to readers, as the site's own list has them.
 OFFERED = json.loads((ROOT / "site/src/i18n/languages.json").read_text(encoding="utf-8"))["offered"]

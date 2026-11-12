@@ -3,7 +3,6 @@ key, `theme`), removed again by "device setting"; both copies of the control (he
 stay in step; the stored choice applies before the page is drawn."""
 
 import pytest
-
 from helpers import t
 
 
