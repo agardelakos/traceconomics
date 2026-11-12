@@ -21,6 +21,7 @@ in [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONT
 | Unit and integration | pytest | every push and pull request | parsers, archive, store, engine, method code, export, release logic behave as specified |
 | Microdata code | pytest with the optional `local` extra (separate job) | every push and pull request | groups, income bands, bootstrap standard errors, code mapping and the survey reader, on synthetic surveys |
 | Fixture integrity | pytest (`tests/test_fixtures.py`) | every push and pull request | untouched publisher files are byte-identical to what was served |
+| Code style | Ruff (Python); Prettier and ESLint (the site, its Markdown, the wiki) | every push and pull request (`lint`, required) | one format everywhere; likely bugs the type checker misses (unused values, `zip` without `strict`, `any`); the formatters never reach fixtures or generated files (`tests/test_lint_config.py`) |
 | Dependency integrity | pytest (`tests/test_lock_files.py`) | every push and pull request | every hashed lock file agrees with the pins in `pyproject.toml` |
 | Site unit tests | Vitest | every push and pull request; release builds | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series |
 | Site checks | `site/scripts/checks.mjs` | every push and pull request; release builds | translations complete, glossary terms kept in both languages, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses |
@@ -161,7 +162,7 @@ CI's `coverage` job writes the split on the run's page and keeps the Python HTML
 
 | Gate | Where | Blocks |
 |---|---|---|
-| Required checks `python`, `site`, code scanning | pull requests to `main` | merging |
+| Required checks `python`, `site`, `catalog`, `lint`, code scanning | pull requests to `main` | merging |
 | Coverage of the site's own code (Vitest and Playwright merged) | `site` job | fails below 90%, or if any file of the site's code is loaded by no test |
 | Coverage of the Python package | `coverage` job | fails below 90% (the ratchet, which rose from the first measurement's 73.9% to the site's floor); fails if a covered line has a wrong or missing layer |
 | Every test has a layer | pytest collection | the run |

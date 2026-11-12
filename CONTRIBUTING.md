@@ -100,6 +100,25 @@ python3.14 -m venv .venv
 The lock files pin every package and check it against its hash. `requirements-local.txt` adds the
 optional microdata code (pandas); `requirements-selenium.txt` adds the Selenium browser tests.
 
+## Code style
+
+The tools set the style, and CI's required `lint` job checks it; nobody formats by hand. Before a
+commit, from the repository root:
+
+```sh
+.venv/bin/ruff format && .venv/bin/ruff check      # Python: format, then lint
+cd site
+npm run format           # Prettier: the site's code, its Markdown, the wiki, the repository's Markdown
+npm run lint             # ESLint: the site's TypeScript and Astro
+```
+
+`ruff check --fix` applies the fixes Ruff marks safe; never use `--unsafe-fixes` in bulk. A rule
+that is wrong for one line is switched off on that line only, with the reason:
+`# noqa: B905  # lengths differ on purpose: …` or
+`// eslint-disable-next-line no-control-regex -- strips terminal colour codes`.
+Never formatted: `tests/fixtures/`, the data tables in `src/traceconomics/data/`, the files the site
+serves as written (`site/public/`), generated files, and `CODE_OF_CONDUCT.md`.
+
 ## Running the tests
 
 **Python** (from the repository root):

@@ -83,6 +83,13 @@ cd site && npm run build                                       # build only (bef
 .venv/bin/python -I -m pytest tests/selenium --selenium -n auto   # Selenium suite (Selenium lock)
 ```
 
+Code style (CI's `lint` job runs these in check mode; settings in `pyproject.toml` and `site/`):
+
+```sh
+.venv/bin/ruff format && .venv/bin/ruff check                  # Python
+cd site && npm run format && npm run lint                      # Prettier (code, Markdown, wiki), ESLint
+```
+
 Test cases (every test carries an ID and Given/When/Then; see the wiki's "Test management as code"):
 
 ```sh
@@ -106,6 +113,8 @@ Lock files: after a pin change in `pyproject.toml`, regenerate `requirements-dev
 ## Conventions
 
 Code:
+- Format and lint with the commands above before you finish; never format by hand or against the
+  tools' settings. A rule switched off for one line names its reason on that line.
 - Standard library first (`urllib`, `html.parser`, `tomllib`, `smtplib`).
 - Write text files with `newline="\n"`.
 - Add `ORDER BY` to every query whose rows feed an output or a sum.
@@ -136,7 +145,8 @@ Site:
 
 ## Never touch or do
 
-- Files in `tests/fixtures/` (any change breaks `tests/test_fixtures.py` and their provenance).
+- Files in `tests/fixtures/` (any change breaks `tests/test_fixtures.py` and their provenance), even
+  to format them: the formatters' settings keep them out (`tests/test_lint_config.py`).
 - Lock files by hand; regenerate them with their header command.
 - `AGENTS.md`, `CONTRIBUTING.md`, `.github/` unless the task is explicitly about them.
 - Generated output (`site/dist/`, `site/coverage/`, reports) as if it were source.
@@ -156,6 +166,7 @@ Run the suites that cover your change and report each result exactly as it came 
 | Site code, content or i18n | `npm run check`, `npm run test:ui`, the Selenium suite |
 | `site/public/_headers` or CSP | the host tests above, both suites |
 | Browser tests only | the suite you changed, in full |
+| Any change | `ruff format --check`, `ruff check`; in `site/`, `npm run format:check`, `npm run lint` |
 
 - Done means every relevant suite passed locally, or you report which failed and why.
 - Report failures, skips and flaky results as they are; never retry until green and call it a pass.
