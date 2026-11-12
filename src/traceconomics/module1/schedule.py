@@ -21,11 +21,11 @@ FIRST, FINAL = "first", "final"
 
 @dataclass(frozen=True)
 class Entry:
-    year: int            # the index year
-    survey: int          # the survey whose shares are used
-    status: str          # FIRST or FINAL
-    valid_from: str      # first month the weights apply to
-    basis: str           # why this survey, in words
+    year: int  # the index year
+    survey: int  # the survey whose shares are used
+    status: str  # FIRST or FINAL
+    valid_from: str  # first month the weights apply to
+    basis: str  # why this survey, in words
 
     @property
     def price_update_from(self) -> int:
@@ -35,7 +35,9 @@ class Entry:
 
 def releases() -> dict[int, dict]:
     """{survey year: {"available": date, "basis": ..., "note": ...}} from the package data file."""
-    data = tomllib.loads(resources.files("traceconomics.data").joinpath("hbs_puf_releases.toml").read_text(encoding="utf-8"))
+    data = tomllib.loads(
+        resources.files("traceconomics.data").joinpath("hbs_puf_releases.toml").read_text(encoding="utf-8")
+    )
     return {int(y): {**e, "available": date.fromisoformat(e["available"])} for y, e in data.items()}
 
 
@@ -59,8 +61,11 @@ def rule_n(years, surveys: set[int], release_dates: dict[int, dict] | None = Non
             break
         h = max(ready)
         r = release_dates[h]
-        out.append(Entry(y, h, FIRST, f"{y}-01",
-                         f"survey {h}, the newest available on {start} ({r['basis']} {r['available']})"))
+        out.append(
+            Entry(
+                y, h, FIRST, f"{y}-01", f"survey {h}, the newest available on {start} ({r['basis']} {r['available']})"
+            )
+        )
     return out
 
 
@@ -143,7 +148,12 @@ def with_stand_ins(grouping: str, entries: list[Entry]) -> list[Entry]:
     for e in entries:
         if unusable(grouping, e.survey):
             by = UNUSABLE_INCOMES[e.survey]
-            e = Entry(e.year, by, e.status, e.valid_from,
-                      f"survey {by}, standing in for survey {e.survey}, whose incomes can't rank households")
+            e = Entry(
+                e.year,
+                by,
+                e.status,
+                e.valid_from,
+                f"survey {by}, standing in for survey {e.survey}, whose incomes can't rank households",
+            )
         out.append(e)
     return out

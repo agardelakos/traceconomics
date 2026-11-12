@@ -42,16 +42,16 @@ from traceconomics.local.puf import Survey
 from traceconomics.local.shares import PUBLISHED, basket, group_shares, memberships
 
 REPLICATES = 1000
-SEED = 20261019          # fixed, so a rerun gives the same errors; the year is mixed in per survey
-CHUNK = 100              # replicates computed at a time, to bound memory
+SEED = 20261019  # fixed, so a rerun gives the same errors; the year is mixed in per survey
+CHUNK = 100  # replicates computed at a time, to bound memory
 # Calibration of weights (households x replicates -> the same, calibrated column by column).
 Calibrate = Callable[[np.ndarray], np.ndarray]
-HIGH_RSE = 0.25          # relative standard error at which a share is flagged (BLS/ABS practice)
+HIGH_RSE = 0.25  # relative standard error at which a share is flagged (BLS/ABS practice)
 
 
 @dataclass
 class Design:
-    status: str                      # "full", "approximate" or "unavailable"
+    status: str  # "full", "approximate" or "unavailable"
     note: str
     strata: np.ndarray | None = None
     areas: np.ndarray | None = None
@@ -60,11 +60,16 @@ class Design:
 def design(survey: Survey) -> Design:
     h = survey.households
     if survey.design == "no-clusters":
-        return Design("unavailable", f"{survey.year}: the files have no primary sampling unit (HA07), "
-                                     "so the areas can't be resampled")
+        return Design(
+            "unavailable",
+            f"{survey.year}: the files have no primary sampling unit (HA07), so the areas can't be resampled",
+        )
     if survey.design == "no-strata":
-        status, note, strata = "approximate", (f"{survey.year}: no stratum column; the region (HA08) "
-                                              "stands in for the strata"), h.region
+        status, note, strata = (
+            "approximate",
+            (f"{survey.year}: no stratum column; the region (HA08) stands in for the strata"),
+            h.region,
+        )
     else:
         status, note, strata = "full", f"{survey.year}: strata HA06, areas HA07", h.stratum
     strata, areas = strata.astype(str).to_numpy(), h.cluster.astype(str).to_numpy()
@@ -83,7 +88,7 @@ def replicate_factors(d: Design, replicates: int, rng: np.random.Generator) -> n
     for stratum in sorted(set(stratum_of_area)):
         mine = np.flatnonzero(stratum_of_area == stratum)
         n = len(mine)
-        draws = rng.multinomial(n - 1, np.full(n, 1 / n), size=replicates)     # replicates x n
+        draws = rng.multinomial(n - 1, np.full(n, 1 / n), size=replicates)  # replicates x n
         factors[mine] = draws.T * n / (n - 1)
     return factors[area_index]
 
@@ -95,9 +100,14 @@ def replicate(w: np.ndarray, factors: np.ndarray, calibrate: Calibrate | None) -
     return calibrate(rw) if calibrate is not None else rw
 
 
-def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPLICATES,
-                    seed: int = SEED, spending: str = "purchases",
-                    calibrate: Calibrate | None = None) -> tuple[Design, pd.DataFrame]:
+def standard_errors(
+    survey: Survey,
+    groups: pd.DataFrame,
+    replicates: int = REPLICATES,
+    seed: int = SEED,
+    spending: str = "purchases",
+    calibrate: Calibrate | None = None,
+) -> tuple[Design, pd.DataFrame]:
     """(the design used, a table grouping, group, imputed_rent, code, se) for the published
     groupings. The table is empty when the design is unavailable. `calibrate`: how the survey's
     weights were calibrated, applied again to each replicate's weights."""
@@ -113,9 +123,9 @@ def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPL
     fixed = [(g, label, m) for g, label, m in memberships(groups, PUBLISHED) if g not in RANKED]
     ranked = [g for g in PUBLISHED if g in RANKED]
 
-    trees, xs = zip(*(basket(survey, spending, option) for option in (1, 2)))
-    point = {}        # the estimate, from the full-sample weights
-    for t, x in zip(trees, xs):
+    trees, xs = zip(*(basket(survey, spending, option) for option in (1, 2)), strict=True)
+    point = {}  # the estimate, from the full-sample weights
+    for t, x in zip(trees, xs, strict=True):
         for g, label, m in memberships(groups, PUBLISHED):
             point[(g, label, t.option)] = group_shares(x, (w * m)[:, None], t)[:, 0]
     # Sums of deviations from the estimate, and of their squares, per cell.
@@ -123,35 +133,47 @@ def standard_errors(survey: Survey, groups: pd.DataFrame, replicates: int = REPL
     s2 = {k: np.zeros_like(v) for k, v in point.items()}
 
     for start in range(0, replicates, CHUNK):
-        rw = replicate(w, factors[:, start:start + CHUNK], calibrate)       # households x chunk
+        rw = replicate(w, factors[:, start : start + CHUNK], calibrate)  # households x chunk
         members = [(g, label, m[:, None]) for g, label, m in fixed]
         for g in ranked:
             value, by_people, parts, prefix = RANKED[g]
             basis = rw * np.nan_to_num(size)[:, None] if by_people else rw
             q = quintile_matrix(values[value], basis, ids, parts)
             members += [(g, f"{prefix}{k}", q == k) for k in range(1, parts + 1)]
-        for t, x in zip(trees, xs):
+        for t, x in zip(trees, xs, strict=True):
             for g, label, m in members:
                 key = (g, label, t.option)
                 if key not in point:
                     continue
                 dev = group_shares(x, rw * m, t) - point[key][:, None]
                 s1[key] += dev.sum(axis=1)
-                s2[key] += (dev ** 2).sum(axis=1)
+                s2[key] += (dev**2).sum(axis=1)
 
     rows = []
     for t in trees:
         for g, label, _ in memberships(groups, PUBLISHED):
             key = (g, label, t.option)
             var = (s2[key] - s1[key] ** 2 / replicates) / (replicates - 1)
-            for code, v in zip(t.codes, var):
-                rows.append({"grouping": g, "group": label, "imputed_rent": t.option, "code": code,
-                             "se": float(np.sqrt(max(v, 0.0)))})
+            for code, v in zip(t.codes, var, strict=True):
+                rows.append(
+                    {
+                        "grouping": g,
+                        "group": label,
+                        "imputed_rent": t.option,
+                        "code": code,
+                        "se": float(np.sqrt(max(v, 0.0))),
+                    }
+                )
     return d, pd.DataFrame(rows)
 
 
-def limit_errors(survey: Survey, grouping: str = "B", replicates: int = REPLICATES,
-                 seed: int = SEED, calibrate: Calibrate | None = None) -> tuple[Design, np.ndarray | None]:
+def limit_errors(
+    survey: Survey,
+    grouping: str = "B",
+    replicates: int = REPLICATES,
+    seed: int = SEED,
+    calibrate: Calibrate | None = None,
+) -> tuple[Design, np.ndarray | None]:
     """(the design used, the standard error of each limit between the grouping's parts, or None
     when the design is unavailable). The same replicates as `standard_errors` (same seed and
     draws): in each one the households are ranked again and the limits recomputed."""
@@ -163,9 +185,15 @@ def limit_errors(survey: Survey, grouping: str = "B", replicates: int = REPLICAT
     values, size = ranking(survey)
     value, by_people, parts, _ = RANKED[grouping]
     scale = np.nan_to_num(size.to_numpy(float))[:, None] if by_people else 1.0
-    cuts = np.concatenate([cut_points(values[value], replicate(w, factors[:, s:s + CHUNK], calibrate) * scale,
-                                      survey.households.hh, parts)
-                           for s in range(0, replicates, CHUNK)], axis=1)
+    cuts = np.concatenate(
+        [
+            cut_points(
+                values[value], replicate(w, factors[:, s : s + CHUNK], calibrate) * scale, survey.households.hh, parts
+            )
+            for s in range(0, replicates, CHUNK)
+        ],
+        axis=1,
+    )
     return d, cuts.std(axis=1, ddof=1)
 
 

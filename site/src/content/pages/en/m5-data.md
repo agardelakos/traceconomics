@@ -1,8 +1,26 @@
 ---
 title: "Consistency of official figures: files"
 summary: "Every check of an official figure against its own inputs, period by period, as CSV."
-sources: [elstat-cpi-rates, elstat-cpi-items, eurostat-prc-hicp-minr, eurostat-prc-hicp-iw, elstat-hbs-puf, elstat-silc-puf, eurostat-ilc-di01, eurostat-ilc-lvho02, eurostat-nama-10-co3-p3, eurostat-nasa-10-nf-tr, eurostat-une-rt-a, eurostat-cens-11htts-r2, eurostat-cens-21hhct-r3, aade-pit-stats, ec-lmp-database]
+sources:
+  [
+    elstat-cpi-rates,
+    elstat-cpi-items,
+    eurostat-prc-hicp-minr,
+    eurostat-prc-hicp-iw,
+    elstat-hbs-puf,
+    elstat-silc-puf,
+    eurostat-ilc-di01,
+    eurostat-ilc-lvho02,
+    eurostat-nama-10-co3-p3,
+    eurostat-nasa-10-nf-tr,
+    eurostat-une-rt-a,
+    eurostat-cens-11htts-r2,
+    eurostat-cens-21hhct-r3,
+    aade-pit-stats,
+    ec-lmp-database,
+  ]
 ---
+
 `checks.json` holds each check’s summary: what is compared, how often the two sides agree, and every difference with its cause. Each check and each question across sources also has a CSV with every period compared: the published value, the value from the inputs, the difference, whether they agree and why not. `SHA256SUMS` lists the files’ checksums.
 
 ### Licence and attribution of these files

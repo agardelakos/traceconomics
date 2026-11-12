@@ -12,7 +12,8 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 
 const site = new URL("..", import.meta.url).pathname;
-const W = 1200, H = 630;
+const W = 1200,
+  H = 630;
 const DOMAIN = "traceconomics.com";
 const ACCENT = "#0d5e6e";
 
@@ -21,11 +22,13 @@ const font = (family, weight, file) => {
   const data = readFileSync(join(site, "node_modules/@fontsource", file)).toString("base64");
   return `@font-face{font-family:"${family}";font-weight:${weight};src:url(data:font/woff2;base64,${data}) format("woff2");}`;
 };
-const fonts = ["latin", "greek"].flatMap((s) => [
-  font("OgSerif", 600, `source-serif-4/files/source-serif-4-${s}-600-normal.woff2`),
-  font("OgSans", 400, `source-sans-3/files/source-sans-3-${s}-400-normal.woff2`),
-  font("OgSans", 700, `source-sans-3/files/source-sans-3-${s}-700-normal.woff2`),
-]).join("");
+const fonts = ["latin", "greek"]
+  .flatMap((s) => [
+    font("OgSerif", 600, `source-serif-4/files/source-serif-4-${s}-600-normal.woff2`),
+    font("OgSans", 400, `source-sans-3/files/source-sans-3-${s}-400-normal.woff2`),
+    font("OgSans", 700, `source-sans-3/files/source-sans-3-${s}-700-normal.woff2`),
+  ])
+  .join("");
 
 // The poorest group's index in the default setting, from January 2021 (as the home page's example).
 function line() {
@@ -37,11 +40,20 @@ function line() {
   const axis = [];
   for (let p = s.start; p <= s.end; p = `${y}-${String(m).padStart(2, "0")}`) {
     axis.push(p);
-    if (++m > 12) { m = 1; y++; }
+    if (++m > 12) {
+      m = 1;
+      y++;
+    }
   }
   const values = index.slice(axis.indexOf("2021-01")).filter((v) => v !== null);
-  const lo = Math.min(...values), hi = Math.max(...values);
-  return values.map((v, i) => `${((i / (values.length - 1)) * 330).toFixed(1)},${(108 - ((v - lo) / (hi - lo)) * 104).toFixed(1)}`).join(" ");
+  const lo = Math.min(...values),
+    hi = Math.max(...values);
+  return values
+    .map(
+      (v, i) =>
+        `${((i / (values.length - 1)) * 330).toFixed(1)},${(108 - ((v - lo) / (hi - lo)) * 104).toFixed(1)}`,
+    )
+    .join(" ");
 }
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -72,9 +84,17 @@ for (const lang of ["el", "en"]) {
   const p = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   await p.setContent(page(lang, points));
   // Wait for every face, and refuse to write an image in a fallback font.
+  // The function below runs in the browser page, where `document` exists.
+  /* global document */
   const loaded = await p.evaluate(async () => {
-    await Promise.all(["600 76px OgSerif", "400 24px OgSans", "700 24px OgSans"].map((f) => document.fonts.load(f, "aΩ")));
-    return ["600 76px OgSerif", "400 24px OgSans", "700 24px OgSans"].every((f) => document.fonts.check(f, "aΩ"));
+    await Promise.all(
+      ["600 76px OgSerif", "400 24px OgSans", "700 24px OgSans"].map((f) =>
+        document.fonts.load(f, "aΩ"),
+      ),
+    );
+    return ["600 76px OgSerif", "400 24px OgSans", "700 24px OgSans"].every((f) =>
+      document.fonts.check(f, "aΩ"),
+    );
   });
   if (!loaded) throw new Error(`fonts did not load for ${lang}`);
   const out = join(site, "public/og", `${lang}.png`);

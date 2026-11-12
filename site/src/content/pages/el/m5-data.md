@@ -1,8 +1,26 @@
 ---
 title: "Συνέπεια επίσημων στοιχείων: αρχεία"
 summary: "Κάθε έλεγχος ενός επίσημου αριθμού έναντι των δικών του στοιχείων, περίοδο προς περίοδο, σε CSV."
-sources: [elstat-cpi-rates, elstat-cpi-items, eurostat-prc-hicp-minr, eurostat-prc-hicp-iw, elstat-hbs-puf, elstat-silc-puf, eurostat-ilc-di01, eurostat-ilc-lvho02, eurostat-nama-10-co3-p3, eurostat-nasa-10-nf-tr, eurostat-une-rt-a, eurostat-cens-11htts-r2, eurostat-cens-21hhct-r3, aade-pit-stats, ec-lmp-database]
+sources:
+  [
+    elstat-cpi-rates,
+    elstat-cpi-items,
+    eurostat-prc-hicp-minr,
+    eurostat-prc-hicp-iw,
+    elstat-hbs-puf,
+    elstat-silc-puf,
+    eurostat-ilc-di01,
+    eurostat-ilc-lvho02,
+    eurostat-nama-10-co3-p3,
+    eurostat-nasa-10-nf-tr,
+    eurostat-une-rt-a,
+    eurostat-cens-11htts-r2,
+    eurostat-cens-21hhct-r3,
+    aade-pit-stats,
+    ec-lmp-database,
+  ]
 ---
+
 Το `checks.json` περιέχει τη σύνοψη κάθε ελέγχου: τι συγκρίνεται, πόσο συχνά συμφωνούν οι δύο πλευρές και κάθε διαφορά με την αιτία της. Κάθε έλεγχος και κάθε ερώτημα με πολλές πηγές έχει επίσης ένα CSV με κάθε περίοδο που συγκρίθηκε: τη δημοσιευμένη τιμή, την τιμή από τα στοιχεία, τη διαφορά, αν συμφωνούν και γιατί όχι. Το `SHA256SUMS` παραθέτει τα αθροίσματα ελέγχου των αρχείων.
 
 ### Άδεια και αναφορά για αυτά τα αρχεία

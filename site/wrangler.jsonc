@@ -10,8 +10,8 @@
   "name": "traceconomics",
   "compatibility_date": "2026-10-01",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
   },
   "workers_dev": false,
-  "preview_urls": true
+  "preview_urls": true,
 }

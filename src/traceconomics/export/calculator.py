@@ -24,9 +24,13 @@ from traceconomics.engine.chain import DROP, _price_ratio, link_month, months
 from traceconomics.engine.rates import rebase
 from traceconomics.module1.index import BASE_YEAR, HOUSEHOLD_TYPES, Series
 
-PRESETS = [("all", "all")] + [("B", f"Q{k}") for k in range(1, 6)] + \
-          [("tenure", g) for g in ("renter", "owner", "rent_free")] + [("pensioners", g) for g in ("pensioners", "other")] + \
-          [("hhtype", g) for g in HOUSEHOLD_TYPES]
+PRESETS = (
+    [("all", "all")]
+    + [("B", f"Q{k}") for k in range(1, 6)]
+    + [("tenure", g) for g in ("renter", "owner", "rent_free")]
+    + [("pensioners", g) for g in ("pensioners", "other")]
+    + [("hhtype", g) for g in HOUSEHOLD_TYPES]
+)
 
 
 def _sig(v: float, digits: int) -> float:
@@ -66,14 +70,15 @@ def ratios(series: list[Series], blocks, years=None) -> dict[str, dict[str, list
                 found = _price_ratio(block, code, period, base)
                 values.append(None if found is None else found[0])
             while values and values[-1] is None:
-                values.pop()                       # months not published yet
+                values.pop()  # months not published yet
             per[code] = values
         out[str(year)] = per
     return out
 
 
-def rebuild(weights: dict[str, dict[str, float]], ratio: dict[str, dict[str, list]], first_year: int,
-            base_year: int = BASE_YEAR) -> dict[str, float]:
+def rebuild(
+    weights: dict[str, dict[str, float]], ratio: dict[str, dict[str, list]], first_year: int, base_year: int = BASE_YEAR
+) -> dict[str, float]:
     """The index (base_year = 100, unrounded) from calculator inputs: what the browser computes.
     The chain starts at 100 in the December before `first_year`; rebasing removes that level."""
     index = {link_month(first_year): 100.0}
@@ -99,10 +104,14 @@ def compact(weights: dict, ratio: dict) -> dict:
     """The file layout: one list of pricing codes, then arrays that refer to it by position."""
     codes = sorted({c for per in ratio.values() for c in per})
     pos = {c: i for i, c in enumerate(codes)}
-    return {"codes": codes,
-            "ratios": {y: [[pos[c], vals] for c, vals in sorted(per.items())] for y, per in ratio.items()},
-            "presets": {k: {y: [[pos[c], w] for c, w in sorted(per.items())] for y, per in yrs.items()}
-                        for k, yrs in weights.items()}}
+    return {
+        "codes": codes,
+        "ratios": {y: [[pos[c], vals] for c, vals in sorted(per.items())] for y, per in ratio.items()},
+        "presets": {
+            k: {y: [[pos[c], w] for c, w in sorted(per.items())] for y, per in yrs.items()}
+            for k, yrs in weights.items()
+        },
+    }
 
 
 # The calculator covers the recent years a person compares their own inflation with (from 2019:
@@ -117,7 +126,7 @@ def build_checked(series: list[Series], blocks, first_year: int = FIRST_YEAR) ->
     for digits in range(8, 16):
         try:
             return build(series, blocks, first_year, digits)
-        except FormatError as e:    # a month that rounds the other way: try more digits
+        except FormatError as e:  # a month that rounds the other way: try more digits
             last = e
     raise last
 
@@ -128,10 +137,16 @@ def build(series: list[Series], blocks, first_year: int | None = None, digits: i
     by = {(s.grouping, s.group): s for s in series}
     first_year = first_year or min(by[PRESETS[0]].used)
     years = {y for y in by[PRESETS[0]].used if y >= first_year}
-    weights = {f"{g}/{q}": {y: {c: _sig(w, digits) for c, w in per.items()}
-                            for y, per in preset_weights(by[(g, q)], years).items()} for g, q in PRESETS}
-    ratio = {y: {c: [None if v is None else _sig(v, digits) for v in vals] for c, vals in per.items()}
-             for y, per in ratios([by[p] for p in PRESETS], blocks, years).items()}
+    weights = {
+        f"{g}/{q}": {
+            y: {c: _sig(w, digits) for c, w in per.items()} for y, per in preset_weights(by[(g, q)], years).items()
+        }
+        for g, q in PRESETS
+    }
+    ratio = {
+        y: {c: [None if v is None else _sig(v, digits) for v in vals] for c, vals in per.items()}
+        for y, per in ratios([by[p] for p in PRESETS], blocks, years).items()
+    }
     for g, q in PRESETS:
         s = by[(g, q)]
         got = {p: round(v, 2) for p, v in rebuild(weights[f"{g}/{q}"], ratio, first_year).items()}

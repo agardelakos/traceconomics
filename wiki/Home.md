@@ -35,14 +35,14 @@ More topics and countries are planned.
 
 The repository holds the code and the binding rules; the wiki holds the longer explanations.
 
-| Page | Read it to |
-|---|---|
-| [Architecture](Architecture) | understand how data flows from publishers' files to the site |
-| [Design principles](Design-principles) | know the rules the project keeps, and why |
-| [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country |
-| [Test strategy](Test-strategy) | see what each test layer proves, and what isn't tested |
-| [Test management as code](Test-management-as-code) | see how test cases and run history are kept with the code |
-| [Future](Future) | see what is deliberately left for later |
+| Page                                                     | Read it to                                                   |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| [Architecture](Architecture)                             | understand how data flows from publishers' files to the site |
+| [Design principles](Design-principles)                   | know the rules the project keeps, and why                    |
+| [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                            |
+| [Test strategy](Test-strategy)                           | see what each test layer proves, and what isn't tested       |
+| [Test management as code](Test-management-as-code)       | see how test cases and run history are kept with the code    |
+| [Future](Future)                                         | see what is deliberately left for later                      |
 
 Wiki pages follow the current rules on `main`. If a page and the code disagree, the code and
 [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONTRIBUTING.md) win;
@@ -59,4 +59,4 @@ through private vulnerability reporting
 
 ---
 
-*This page is kept in the repository, in [`wiki/Home.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Home.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update.*
+_This page is kept in the repository, in [`wiki/Home.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Home.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update._

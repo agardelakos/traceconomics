@@ -6,10 +6,22 @@ import { getEntry } from "astro:content";
 import TermPopover from "./TermPopover.astro";
 import { href, t, type Lang } from "../lib/i18n";
 
-interface Props { lang: Lang; term: string; label?: string; instance?: string }
+interface Props {
+  lang: Lang;
+  term: string;
+  label?: string;
+  instance?: string;
+}
 const { lang, term, label, instance } = Astro.props;
 const entry = await getEntry("glossary", `${lang}/${term}`);
 if (!entry) throw new Error(`no glossary term "${term}" in ${lang}`);
 ---
-<TermPopover key={instance ? `${term}-${instance}` : term} label={label ?? entry.data.term} heading={entry.data.term} text={entry.data.short}
-  href={href(lang, `glossary/${term}`)} more={t(lang, "glossary.more")} />
+
+<TermPopover
+  key={instance ? `${term}-${instance}` : term}
+  label={label ?? entry.data.term}
+  heading={entry.data.term}
+  text={entry.data.short}
+  href={href(lang, `glossary/${term}`)}
+  more={t(lang, "glossary.more")}
+/>

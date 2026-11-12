@@ -72,18 +72,28 @@ class Feed:
     name: str
     dataset: str
     state_key: str
-    scope: str          # "accounts" or "zones"
-    tag_env: str        # the environment variable holding the account or zone id
+    scope: str  # "accounts" or "zones"
+    tag_env: str  # the environment variable holding the account or zone id
     node: str
     query: str
     counts: Callable[[dict], dict]  # group -> its count fields
-    kept_days: int      # how long Cloudflare keeps exact rows: the time a failing export has
+    kept_days: int  # how long Cloudflare keeps exact rows: the time a failing export has
 
 
-VISITS = Feed("visits", DATASET, STATE_KEY, "accounts", ACCOUNT_ENV, "rumPageloadEventsAdaptiveGroups",
-              QUERY, _visit_counts, 7)
-DOWNLOADS = Feed("downloads", "downloads", "downloads_through", "zones", ZONE_ENV, "httpRequestsAdaptiveGroups",
-                 DOWNLOADS_QUERY, _download_counts, 31)
+VISITS = Feed(
+    "visits", DATASET, STATE_KEY, "accounts", ACCOUNT_ENV, "rumPageloadEventsAdaptiveGroups", QUERY, _visit_counts, 7
+)
+DOWNLOADS = Feed(
+    "downloads",
+    "downloads",
+    "downloads_through",
+    "zones",
+    ZONE_ENV,
+    "httpRequestsAdaptiveGroups",
+    DOWNLOADS_QUERY,
+    _download_counts,
+    31,
+)
 FEEDS = (VISITS, DOWNLOADS)
 
 
@@ -107,8 +117,15 @@ def _post_json(url: str, body: dict, headers: dict, post=default_post, timeout: 
     return json.loads(resp_bytes)
 
 
-def fetch_day(day: date, *, token: str, account: str | None = None, zone: str | None = None,
-              post=default_post, feed: Feed = VISITS) -> list[dict]:
+def fetch_day(
+    day: date,
+    *,
+    token: str,
+    account: str | None = None,
+    zone: str | None = None,
+    post=default_post,
+    feed: Feed = VISITS,
+) -> list[dict]:
     """Fetch one feed's rows for one UTC day.
 
     *account* is the tag for an account feed, *zone* for a zone feed. Raises AnalyticsError on
@@ -171,7 +188,7 @@ def days_to_fetch(state: dict, today: date, key: str = STATE_KEY) -> list[date]:
         return [yesterday]
     try:
         last = date.fromisoformat(last_str)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return [yesterday]
     days = []
     current = last + timedelta(days=1)
@@ -183,8 +200,14 @@ def days_to_fetch(state: dict, today: date, key: str = STATE_KEY) -> list[date]:
 
 def _store_day(archive: Archive, day: date, rows: list[dict], now: datetime | None, feed: Feed) -> StoreResult:
     return archive.store_bytes(
-        SOURCE, feed.dataset, payload(day, rows), url=GRAPHQL_URL, retrieved_at=now or utc_now(), ext=".json",
-        kind="fetched", extra={"day": day.isoformat(), "sampled": any(r["sample_interval"] != 1 for r in rows)},
+        SOURCE,
+        feed.dataset,
+        payload(day, rows),
+        url=GRAPHQL_URL,
+        retrieved_at=now or utc_now(),
+        ext=".json",
+        kind="fetched",
+        extra={"day": day.isoformat(), "sampled": any(r["sample_interval"] != 1 for r in rows)},
     )
 
 
@@ -195,9 +218,18 @@ def _credentials(feed: Feed, token: str | None, account: str | None, zone: str |
     return token, None, zone or os.environ.get(ZONE_ENV)
 
 
-def export(archive: Archive, state: dict, today: date, *, token: str | None = None,
-           account: str | None = None, zone: str | None = None, post=default_post,
-           now: datetime | None = None, feed: Feed = VISITS) -> dict:
+def export(
+    archive: Archive,
+    state: dict,
+    today: date,
+    *,
+    token: str | None = None,
+    account: str | None = None,
+    zone: str | None = None,
+    post=default_post,
+    now: datetime | None = None,
+    feed: Feed = VISITS,
+) -> dict:
     """Fetch and archive every finished day of *feed* not yet stored.
 
     Returns ``result`` ("ok", "off" without a token or the feed's account or zone id, or "failed"
@@ -221,9 +253,17 @@ def export(archive: Archive, state: dict, today: date, *, token: str | None = No
     return {"result": "ok", "days": done, "stored": stored}
 
 
-def export_day(archive: Archive, day: date, *, token: str | None = None, account: str | None = None,
-               zone: str | None = None, post=default_post, now: datetime | None = None,
-               feed: Feed = VISITS) -> dict:
+def export_day(
+    archive: Archive,
+    day: date,
+    *,
+    token: str | None = None,
+    account: str | None = None,
+    zone: str | None = None,
+    post=default_post,
+    now: datetime | None = None,
+    feed: Feed = VISITS,
+) -> dict:
     """Fetch and archive one day without touching any state (a manual fill or a test). Raises on failure."""
     token, account, zone = _credentials(feed, token, account, zone)
     if not token or not (account or zone):

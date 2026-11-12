@@ -49,7 +49,7 @@ TC = re.compile(r"^TC-[A-Z][A-Z0-9]{1,9}-\d{3}$")
 @dataclass
 class Finding:
     rule: str
-    where: str          # file:line or the mapping file
+    where: str  # file:line or the mapping file
     message: str
     error: bool = False
 
@@ -108,7 +108,7 @@ def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, requ
                 add("missing-steps", c, f"{c.id}: no {', '.join(gaps)}")
         for p in c.problems:
             if p == "no docstring" or p.startswith("first line is not"):
-                continue            # already a missing-id
+                continue  # already a missing-id
             add("text", c, f"{c.id or label}: {p}")
     for cid, where in seen.items():
         if len(where) > 1:
@@ -137,7 +137,7 @@ def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, requ
         if not entry.get("playwright") and not entry.get("selenium"):
             add("mapping", "cases.toml", f"{tc} names no case")
         elif not (entry.get("playwright") and entry.get("selenium")) and not entry.get("why"):
-            add("mapping", "cases.toml", f"{tc} is in one suite only: say why (`why = \"…\"`)")
+            add("mapping", "cases.toml", f'{tc} is in one suite only: say why (`why = "…"`)')
     complete = bool(strict.get("mapping_complete"))
     for c in cases:
         if c.suite in ("playwright", "selenium") and c.id and c.id not in mapped:

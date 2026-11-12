@@ -31,8 +31,13 @@ FORMATS = {
     },
     "oet-groups": {
         "dims": ("geo", "grouping", "group"),
-        "measures": ("n_households", "households_weighted", "people_weighted", "uncovered_purchases_share",
-                     "se_design"),
+        "measures": (
+            "n_households",
+            "households_weighted",
+            "people_weighted",
+            "uncovered_purchases_share",
+            "se_design",
+        ),
     },
     "oet-limits": {
         "dims": ("geo", "grouping", "group", "unit"),
@@ -48,16 +53,31 @@ FORMATS = {
     },
     "oet-hhtypes": {
         "dims": ("geo", "group"),
-        "measures": ("n_households", "share_households", "elstat_n_households", "elstat_share_households",
-                     "agreement", "elstat_status"),
+        "measures": (
+            "n_households",
+            "share_households",
+            "elstat_n_households",
+            "elstat_share_households",
+            "agreement",
+            "elstat_status",
+        ),
     },
     "oet-spending": {
         "dims": ("geo", "group", "coicop"),
         "measures": ("item", "published", "ours", "result"),
     },
     "oet-bands": {
-        "dims": ("geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",
-                 "unit"),
+        "dims": (
+            "geo",
+            "grouping",
+            "group",
+            "spending",
+            "imputed_rent",
+            "price_source",
+            "weights_timing",
+            "tutoring",
+            "unit",
+        ),
         "measures": ("se",),
         "period": "ref_period",
     },

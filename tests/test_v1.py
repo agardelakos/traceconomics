@@ -46,8 +46,14 @@ def test_v1_catches_a_broken_engine():
     weights, prices, official, rates = load()
     # Drop food from every year's basket: the rebuilt index is no longer the official one.
     broken = {y: {c: w for c, w in ws.items() if not c.startswith("01")} for y, ws in weights.items()}
-    result = chain(broken, prices, first_year=2015, last_year=int(max(official)[:4]),
-                   base_value=official["2014-12"], periods=set(official))
+    result = chain(
+        broken,
+        prices,
+        first_year=2015,
+        last_year=int(max(official)[:4]),
+        base_value=official["2014-12"],
+        periods=set(official),
+    )
     assert not compare("broken", result, official, rates).passed
 
 

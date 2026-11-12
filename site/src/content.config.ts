@@ -14,9 +14,9 @@ const glossary = defineCollection({
     // The words that mark this term in running text, in every form it takes (Greek inflects):
     // the first mention on each page becomes a popover (src/lib/glossary-terms.mjs).
     forms: z.array(z.string()).min(1),
-    short: z.string(),                 // one plain sentence: the popover and the index
-    other: z.string(),                 // the term in the other site language
-    category: z.enum(GLOSSARY_CATEGORIES),  // where the glossary's index lists it (lib/glossary.ts)
+    short: z.string(), // one plain sentence: the popover and the index
+    other: z.string(), // the term in the other site language
+    category: z.enum(GLOSSARY_CATEGORIES), // where the glossary's index lists it (lib/glossary.ts)
     sources: z.array(z.string()).min(1),
     related: z.array(z.string()).default([]),
   }),
@@ -28,7 +28,7 @@ const method = defineCollection({
     title: z.string(),
     summary: z.string(),
     order: z.number(),
-    option: z.string().optional(),     // the option key this page explains, if any
+    option: z.string().optional(), // the option key this page explains, if any
     sources: z.array(z.string()).min(1),
   }),
 });
@@ -61,7 +61,7 @@ const findings = defineCollection({
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    check: z.string(),                 // the module5 check id it belongs to
+    check: z.string(), // the module5 check id it belongs to
     sources: z.array(z.string()).min(1),
   }),
 });

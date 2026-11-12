@@ -80,9 +80,9 @@ def test_run_moves_folders_writes_config_and_copies_the_password(tmp_path):
     new = (base / "traceconomics" / "config.toml").read_text(encoding="utf-8")
     assert 'dir = "~/traceconomics-archive"' in new and "Traceconomics/0.1" in new
     assert "traceconomics-smtp" in new and "TRACECONOMICS_SMTP_PASSWORD" in new and "oet" not in new
-    assert (base / "oet" / "config.toml").read_text(encoding="utf-8") == OLD_CONFIG     # the old file is kept
+    assert (base / "oet" / "config.toml").read_text(encoding="utf-8") == OLD_CONFIG  # the old file is kept
     assert kr.entries[("traceconomics-smtp", "someone@example.org")] == "secret"
-    assert all("secret" not in s for s in plan.steps)                                  # never shown
+    assert all("secret" not in s for s in plan.steps)  # never shown
 
 
 def test_a_taken_target_is_a_problem_not_a_merge(tmp_path):
@@ -141,14 +141,16 @@ def test_without_an_old_config_there_is_nothing_to_move(tmp_path):
     Then the plan says there is no old config and no old folders, with no problems
     And no keyring is consulted
     """
-    plan = migrate.run(dry_run=False, home=tmp_path / "home", config_base=tmp_path / "base",
-                       keyring_module=None, schtasks=False)
+    plan = migrate.run(
+        dry_run=False, home=tmp_path / "home", config_base=tmp_path / "base", keyring_module=None, schtasks=False
+    )
     assert plan.steps[0].startswith("config: no old config") and not plan.problems
     assert all("not found; nothing to move" in s for s in plan.steps[1:])
 
 
-@pytest.mark.parametrize("platform, variable, expected", [
-    ("linux", "XDG_CONFIG_HOME", "xdg"), ("win32", "APPDATA", "appdata")])
+@pytest.mark.parametrize(
+    "platform, variable, expected", [("linux", "XDG_CONFIG_HOME", "xdg"), ("win32", "APPDATA", "appdata")]
+)
 def test_the_config_folder_follows_the_platform(tmp_path, monkeypatch, platform, variable, expected):
     """PY-MIGRATE-007: the config folder is the platform's own
 
@@ -176,11 +178,14 @@ def test_the_old_windows_task_is_removed(tmp_path, monkeypatch, exists):
     def run(args, **kw):
         calls.append(args)
         return subprocess.CompletedProcess(args, 0 if exists else 1)
+
     monkeypatch.setattr(migrate.sys, "platform", "win32")
     monkeypatch.setattr(migrate.subprocess, "run", run)
     for dry in (True, False):
         plan = migrate.run(dry_run=dry, home=tmp_path, config_base=tmp_path, keyring_module=FakeKeyring({}))
-        assert any(("remove the old scheduled task oet-archive" if exists else "no scheduled task oet-archive") in s
-                   for s in plan.steps)
+        assert any(
+            ("remove the old scheduled task oet-archive" if exists else "no scheduled task oet-archive") in s
+            for s in plan.steps
+        )
     deletes = [c for c in calls if "/Delete" in c]
     assert deletes == ([["schtasks", "/Delete", "/TN", "oet-archive", "/F"]] if exists else [])

@@ -66,8 +66,10 @@ def test_config_example_parses():
 
 # -- email -------------------------------------------------------------------------------------------
 
+
 class FakeSMTP:
     """Stands in for smtplib.SMTP and SMTP_SSL: records what the sender asks of the server."""
+
     sent: list = []
 
     def __init__(self, host, port, **kw):
@@ -106,9 +108,18 @@ def smtp(monkeypatch):
 
 
 def _email_config(tmp_path, security="starttls"):
-    return Config(archive_dir=tmp_path, user_agent="t", email=EmailConfig(
-        smtp_host="smtp.example", smtp_port=587 if security == "starttls" else 465, username="bot",
-        sender="Bot <bot@example>", recipients=("a@example", "b@example"), security=security))
+    return Config(
+        archive_dir=tmp_path,
+        user_agent="t",
+        email=EmailConfig(
+            smtp_host="smtp.example",
+            smtp_port=587 if security == "starttls" else 465,
+            username="bot",
+            sender="Bot <bot@example>",
+            recipients=("a@example", "b@example"),
+            security=security,
+        ),
+    )
 
 
 @pytest.mark.parametrize("security, cls, tls", [("starttls", "FakeSMTP", True), ("ssl", "FakeSMTP_SSL", False)])
@@ -169,6 +180,7 @@ def test_the_smtp_password_comes_from_the_environment_then_the_keyring(monkeypat
 
     A server may have no credential store backend at all; that is no password, not a crash.
     """
+
     class Store:
         def get_password(self, service, user):
             return f"{service}:{user}"
@@ -176,6 +188,7 @@ def test_the_smtp_password_comes_from_the_environment_then_the_keyring(monkeypat
     class Broken:
         def get_password(self, service, user):
             raise RuntimeError("no backend")
+
     monkeypatch.setenv(notify_mod.PASSWORD_ENV, "from-env")
     monkeypatch.setitem(sys.modules, "keyring", Store())
     assert notify_mod.smtp_password("bot") == "from-env"
@@ -203,6 +216,7 @@ def test_two_reports_in_the_same_second_get_two_outbox_files(tmp_path, monkeypat
 
 # -- the Windows task ----------------------------------------------------------------------------------
 
+
 @pytest.fixture
 def windows(monkeypatch, tmp_path):
     """A Windows machine: sys.platform is win32 and every schtasks call is recorded, with the task
@@ -213,6 +227,7 @@ def windows(monkeypatch, tmp_path):
         xml = Path(args[args.index("/XML") + 1]).read_text(encoding="utf-16") if "/XML" in args else None
         calls.append((args, xml, kw))
         return subprocess.CompletedProcess(args, 0, stdout="TaskName: \\traceconomics-archive\n", stderr="")
+
     monkeypatch.setattr(schedule.sys, "platform", "win32")
     monkeypatch.setattr(schedule.subprocess, "run", run)
     return calls

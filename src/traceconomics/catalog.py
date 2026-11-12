@@ -19,20 +19,20 @@ class CatalogError(Exception):
 
 @dataclass(frozen=True)
 class DatasetSpec:
-    id: str                  # e.g. "eurostat:prc_hicp_minr"
+    id: str  # e.g. "eurostat:prc_hicp_minr"
     source: str
     name: str
     archive: tuple[str, ...]
     format: str
     dimensions: tuple[str, ...]
-    freq: str | None = None      # when all periods share one frequency
+    freq: str | None = None  # when all periods share one frequency
     coicop: str | None = None
     classification: str | None = None
     backcast_before: str | None = None
     release: str | None = None
     file_name: re.Pattern | None = None
     label_files: re.Pattern | None = None
-    regions: bool = False        # the geo column also holds NUTS regions (the censuses)
+    regions: bool = False  # the geo column also holds NUTS regions (the censuses)
 
     def covers(self, source: str, dataset: str) -> bool:
         """Whether an archived dataset is one this store dataset is built from (its `archive` list)."""
@@ -59,10 +59,17 @@ def datasets() -> dict[str, DatasetSpec]:
     for source, entries in _load("datasets.toml").items():
         for name, e in entries.items():
             spec = DatasetSpec(
-                id=f"{source}:{name}", source=source, name=name,
-                archive=tuple(e["archive"]), format=e["format"], freq=e.get("freq"),
-                dimensions=tuple(e["dimensions"]), coicop=e.get("coicop"), regions=bool(e.get("regions", False)),
-                classification=e.get("classification"), backcast_before=e.get("backcast_before"),
+                id=f"{source}:{name}",
+                source=source,
+                name=name,
+                archive=tuple(e["archive"]),
+                format=e["format"],
+                freq=e.get("freq"),
+                dimensions=tuple(e["dimensions"]),
+                coicop=e.get("coicop"),
+                regions=bool(e.get("regions", False)),
+                classification=e.get("classification"),
+                backcast_before=e.get("backcast_before"),
                 release=e.get("release"),
                 file_name=re.compile(e["file_name"]) if "file_name" in e else None,
                 label_files=re.compile(e["label_files"]) if "label_files" in e else None,
@@ -93,8 +100,12 @@ class GeoMap:
 
     def is_known(self, code: str) -> bool:
         """A source code we can place: renamed, kept, an aggregate, or already two capital letters."""
-        return (code in self.rename or code in self.keep or self.is_aggregate(code)
-                or re.fullmatch(r"[A-Z]{2}", code) is not None)
+        return (
+            code in self.rename
+            or code in self.keep
+            or self.is_aggregate(code)
+            or re.fullmatch(r"[A-Z]{2}", code) is not None
+        )
 
 
 @cache

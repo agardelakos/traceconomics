@@ -39,7 +39,7 @@ def source_commit(repo: Path) -> str | None:
     image has no git. None when it can't be told (no checkout, a detached state we can't read)."""
     git = repo / ".git"
     try:
-        if git.is_file():                                   # a worktree: `.git` names the real folder
+        if git.is_file():  # a worktree: `.git` names the real folder
             line = git.read_text(encoding="utf-8").strip()
             if not line.startswith("gitdir:"):
                 return None
@@ -60,25 +60,37 @@ def source_commit(repo: Path) -> str | None:
             parts = line.split()
             if len(parts) == 2 and parts[1] == ref and COMMIT.match(parts[0]):
                 return parts[0]
-    except (OSError, ValueError):                       # unreadable, or not text
+    except OSError, ValueError:  # unreadable, or not text
         return None
     return None
 
 
 def environment() -> dict[str, str]:
-    return {"platform": f"{platform.system().lower()}-{platform.machine().lower()}", "data": "real",
-            "runner": "release build"}
+    return {
+        "platform": f"{platform.system().lower()}-{platform.machine().lower()}",
+        "data": "real",
+        "runner": "release build",
+    }
 
 
 def _put(url: str, body: bytes, timeout: float) -> None:
     req = urllib.request.Request(url, data=body, method="PUT", headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:   # noqa: S310 (our own https link)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (our own https link)
         resp.read()
 
 
-def send(*, build: str, commit: str | None, step: str, started: datetime, result: str,
-         results: Path | None = None, url: str | None = None, put: Callable[[str, bytes, float], None] = _put,
-         timeout: float = 60.0) -> dict:
+def send(
+    *,
+    build: str,
+    commit: str | None,
+    step: str,
+    started: datetime,
+    result: str,
+    results: Path | None = None,
+    url: str | None = None,
+    put: Callable[[str, bytes, float], None] = _put,
+    timeout: float = 60.0,
+) -> dict:
     """Upload one step run's results. Returns {"result": "off" | "ok" | "failed", …}; never raises."""
     url = (url if url is not None else os.environ.get(URL_ENV, "")).strip()
     if not url:
@@ -91,15 +103,22 @@ def send(*, build: str, commit: str | None, step: str, started: datetime, result
         return {"result": "failed", "error": "the build's commit is unknown"}
     at = started.strftime("%Y%m%dT%H%M%SZ")
     folder = f"results/{urllib.parse.quote(build)}/{step}-{at}/"
-    meta = {"schema": 1, "build": build, "commit": commit, "step": step,
-            "started": started.strftime("%Y-%m-%dT%H:%M:%SZ"), "environment": environment(), "result": result}
+    meta = {
+        "schema": 1,
+        "build": build,
+        "commit": commit,
+        "step": step,
+        "started": started.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "environment": environment(),
+        "result": result,
+    }
     try:
         if step != "promote":
             if results is None or not results.is_file():
                 return {"result": "failed", "error": "no results file"}
             put(url + folder + "playwright.json", results.read_bytes(), timeout)
         put(url + folder + "meta.json", json.dumps(meta, indent=1).encode("utf-8"), timeout)
-    except Exception as exc:                                # noqa: BLE001 (a report, never a reason to stop)
+    except Exception as exc:  # noqa: BLE001 (a report, never a reason to stop)
         # The message names the object and the kind of failure, never the link (it works like a
         # password, and some errors quote the address they were given).
         if isinstance(exc, urllib.error.HTTPError):

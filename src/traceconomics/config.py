@@ -83,8 +83,7 @@ def load(path: Path | None = None) -> Config:
     path = path or Path(os.environ.get(CONFIG_ENV) or default_config_path())
     if not path.is_file():
         raise ConfigError(
-            f"No config file at {path}. Copy config.example.toml there and edit it, "
-            f"or point {CONFIG_ENV} at your file."
+            f"No config file at {path}. Copy config.example.toml there and edit it, or point {CONFIG_ENV} at your file."
         )
     with path.open("rb") as f:
         raw = tomllib.load(f)
@@ -137,9 +136,7 @@ def parse(raw: dict, base_dir: Path) -> Config:
             run_after=time(hour, minute),
             request_pause_seconds=float(fetch.get("pause_seconds", 2.0)),
             email=email,
-            extra_release_dates=tuple(
-                date.fromisoformat(d) for d in schedule.get("extra_release_dates", [])
-            ),
+            extra_release_dates=tuple(date.fromisoformat(d) for d in schedule.get("extra_release_dates", [])),
             store_dir=_path(store.get("dir", "~/traceconomics-store"), base_dir),
             store_memory_limit=str(store.get("memory_limit", "2GB")),
             store_threads=int(store["threads"]) if "threads" in store else None,

@@ -5,6 +5,7 @@ order: 4
 option: "price_source"
 sources: [elstat-cpi-qr-2026, elstat-hicp-qr-2026, hicp-manual-2024, eurostat-prc-hicp-minr]
 ---
+
 ## The default: the national CPI
 
 ELSTAT's CPI covers households resident in Greece, the same population as the household budget survey, so its item indices suit survey-based weights.

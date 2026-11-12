@@ -47,6 +47,7 @@ def doc_url(doc: str, locale: str = "en") -> str:
     """Download URL for a document; locale "el" gives the Greek-language file under the same ID."""
     return DOC_URL.format(doc=doc).replace("_locale=en", f"_locale={locale}")
 
+
 # Calendar entries that trigger a run, matched on the indicator name.
 CALENDAR_TOPICS = {
     "cpi": lambda name: "consumer price index" in name and "harmoni" not in name,
@@ -123,13 +124,14 @@ def run(ctx: RunContext, state: dict) -> dict[str, list[date]]:
     dates: dict[str, list[date]] = {}
 
     # 1. The calendar first, so the rest of the run knows what was released.
-    result, data = ctx.fetch_and_store(SOURCE, "calendar", CALENDAR_URL, ext=".html",
-                                       content_of=calendar_content)
+    result, data = ctx.fetch_and_store(SOURCE, "calendar", CALENDAR_URL, ext=".html", content_of=calendar_content)
     if data:
         dates = release_dates(data)
         if not any(d > ctx.today for d in dates.get("cpi", [])):
-            ctx.alerts.append("ELSTAT calendar: no future CPI release date found. "
-                              "Add dates by hand (schedule.extra_release_dates) until it's published.")
+            ctx.alerts.append(
+                "ELSTAT calendar: no future CPI release date found. "
+                "Add dates by hand (schedule.extra_release_dates) until it's published."
+            )
 
     # 2. Publication pages and their documents.
     last_full = state.setdefault("elstat_last_full", {})
@@ -150,20 +152,24 @@ def run(ctx: RunContext, state: dict) -> dict[str, list[date]]:
             dataset = f"doc-{doc}"
             if not full and ctx.archive.latest(SOURCE, dataset):
                 continue  # already archived, and nothing released since
-            res, _ = ctx.fetch_and_store(SOURCE, dataset, DOC_URL.format(doc=doc),
-                                         extra={"title": title, "listed_on": url})
+            res, _ = ctx.fetch_and_store(
+                SOURCE, dataset, DOC_URL.format(doc=doc), extra={"title": title, "listed_on": url}
+            )
             ok = ok and res is not None
         if full and ok:
             last_full[topic] = cutoff.isoformat()
 
     # 3. The microdata catalogue: a new survey year means a manual download is due.
-    result, data = ctx.fetch_and_store(SOURCE, "puf-catalogue", PUF_CATALOGUE_URL, ext=".html",
-                                       content_of=lambda b: "\n".join(puf_rows(b)))
+    result, data = ctx.fetch_and_store(
+        SOURCE, "puf-catalogue", PUF_CATALOGUE_URL, ext=".html", content_of=lambda b: "\n".join(puf_rows(b))
+    )
     if result and result.status == "stored":
         before = _previous_payload(ctx.archive, "puf-catalogue")
         if before is not None:
             old, new = set(puf_rows(before)), set(puf_rows(data or b""))
             changes = [f"  was: {r}" for r in sorted(old - new)] + [f"  now: {r}" for r in sorted(new - old)]
-            ctx.alerts.append("ELSTAT microdata catalogue changed. If a new HBS year is listed, "
-                              "download it and run `traceconomics import`:\n" + "\n".join(changes))
+            ctx.alerts.append(
+                "ELSTAT microdata catalogue changed. If a new HBS year is listed, "
+                "download it and run `traceconomics import`:\n" + "\n".join(changes)
+            )
     return dates

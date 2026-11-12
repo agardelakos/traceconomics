@@ -33,6 +33,7 @@ NNBSP = "\u202f"  # narrow no-break space: the site's thousands mark in both lan
 
 # --- texts and numbers, as the site writes them -------------------------------------------------
 
+
 @cache
 def _texts(lang: str) -> dict[str, str]:
     return json.loads((SITE / "src" / "i18n" / f"{lang}.json").read_text(encoding="utf-8"))
@@ -46,6 +47,7 @@ def t(lang: str, key: str, **values) -> str:
         if m[1] not in values:
             raise KeyError(f"text {key!r} needs {{{m[1]}}}")
         return str(values[m[1]])
+
     return re.sub(r"\{(\w+)\}", slot, text)
 
 
@@ -60,6 +62,7 @@ def num(lang: str, value: float, digits: int = 1) -> str:
 
 # JavaScript's rounding, not Python's: round() goes to the even number on a tie (592.5 -> 592),
 # the site's toFixed(0) and Math.round go up (593).
+
 
 def js_round(value: float) -> int:
     """Math.round: ties towards +infinity."""
@@ -96,13 +99,49 @@ def pps(value: float) -> str:
     return f"{_fixed0(abs(value)):,d}".replace(",", NNBSP) + "\u00a0PPS"
 
 
-EN_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
-             "October", "November", "December"]
+EN_MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
 EL_MONTHS = {
-    "nom": ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος",
-            "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"],
-    "acc": ["Ιανουάριο", "Φεβρουάριο", "Μάρτιο", "Απρίλιο", "Μάιο", "Ιούνιο", "Ιούλιο", "Αύγουστο",
-            "Σεπτέμβριο", "Οκτώβριο", "Νοέμβριο", "Δεκέμβριο"],
+    "nom": [
+        "Ιανουάριος",
+        "Φεβρουάριος",
+        "Μάρτιος",
+        "Απρίλιος",
+        "Μάιος",
+        "Ιούνιος",
+        "Ιούλιος",
+        "Αύγουστος",
+        "Σεπτέμβριος",
+        "Οκτώβριος",
+        "Νοέμβριος",
+        "Δεκέμβριος",
+    ],
+    "acc": [
+        "Ιανουάριο",
+        "Φεβρουάριο",
+        "Μάρτιο",
+        "Απρίλιο",
+        "Μάιο",
+        "Ιούνιο",
+        "Ιούλιο",
+        "Αύγουστο",
+        "Σεπτέμβριο",
+        "Οκτώβριο",
+        "Νοέμβριο",
+        "Δεκέμβριο",
+    ],
 }
 
 
@@ -112,6 +151,7 @@ def month(lang: str, period: str, form: str = "nom") -> str:
 
 
 # --- data files ---------------------------------------------------------------------------------
+
 
 @cache
 def data(rel: str):
@@ -155,6 +195,7 @@ def sitemap_paths() -> list[str]:
 
 # Income fifths, as the finder and the income panel compute them (the modified OECD scale).
 
+
 def equivalent_size(older: int, children: int) -> float:
     return round(10 + 5 * (older - 1) + 3 * children) / 10
 
@@ -165,7 +206,9 @@ def place_income(cuts: dict, size: float, yearly: float) -> tuple[str, str | Non
     tops = [cuts[q] for q in fifths[:4]]
     e = yearly / size
     at = next((i for i, c in enumerate(tops) if e <= c), 4)
-    near = sorted((abs(e - tops[k]) / tops[k], k) for k in (at - 1, at) if 0 <= k < 4 and abs(e - tops[k]) / tops[k] <= 0.05)
+    near = sorted(
+        (abs(e - tops[k]) / tops[k], k) for k in (at - 1, at) if 0 <= k < 4 and abs(e - tops[k]) / tops[k] <= 0.05
+    )
     neighbour = None
     if near:
         k = near[0][1]
@@ -174,6 +217,7 @@ def place_income(cuts: dict, size: float, yearly: float) -> tuple[str, str | Non
 
 
 # --- the browser --------------------------------------------------------------------------------
+
 
 class Site:
     """One browser on the site: addresses relative to the base, waits, the console, requests."""
@@ -215,15 +259,20 @@ class Site:
 
     # Waiting: every check that depends on a script polls until it holds or WAIT runs out.
     def wait(self, condition, message: str = "", timeout: float = WAIT):
-        return WebDriverWait(self.driver, timeout, ignored_exceptions=[StaleElementReferenceException]).until(condition, message)
+        return WebDriverWait(self.driver, timeout, ignored_exceptions=[StaleElementReferenceException]).until(
+            condition, message
+        )
 
     def visible(self, css: str) -> WebElement:
-        return self.wait(lambda d: next((e for e in d.find_elements(By.CSS_SELECTOR, css) if e.is_displayed()), False),
-                         f"{css} never became visible")
+        return self.wait(
+            lambda d: next((e for e in d.find_elements(By.CSS_SELECTOR, css) if e.is_displayed()), False),
+            f"{css} never became visible",
+        )
 
     def hidden(self, css: str):
-        self.wait(lambda d: all(not e.is_displayed() for e in d.find_elements(By.CSS_SELECTOR, css)),
-                  f"{css} stayed visible")
+        self.wait(
+            lambda d: all(not e.is_displayed() for e in d.find_elements(By.CSS_SELECTOR, css)), f"{css} stayed visible"
+        )
 
     def text(self, css: str, expected: str) -> WebElement:
         """Waits until the element's text is `expected`; the message shows what it was instead."""
@@ -233,6 +282,7 @@ class Site:
             el = d.find_element(By.CSS_SELECTOR, css)
             seen[:] = [el.text]
             return el if el.text == expected else False
+
         try:
             return self.wait(check)
         except Exception:
@@ -245,6 +295,7 @@ class Site:
             v = d.find_element(By.CSS_SELECTOR, css).get_attribute(name)
             seen[:] = [v]
             return v == expected
+
         try:
             self.wait(check)
         except Exception:
@@ -252,9 +303,11 @@ class Site:
 
     def url_has(self, **params):
         """Waits until the address carries exactly these values (None: the parameter is absent)."""
+
         def check(_):
             q = self.query
             return all(q.get(k) == v for k, v in params.items())
+
         try:
             self.wait(check)
         except Exception:
@@ -265,8 +318,12 @@ class Site:
 
     def scripts_ran(self, css: str):
         """A script-built element exists and the script has run (its first child is drawn)."""
-        self.wait(lambda d: d.execute_script("const e = document.querySelector(arguments[0]); return !!e && e.childElementCount > 0", css),
-                  f"{css} was never drawn")
+        self.wait(
+            lambda d: d.execute_script(
+                "const e = document.querySelector(arguments[0]); return !!e && e.childElementCount > 0", css
+            ),
+            f"{css} was never drawn",
+        )
 
     # What the browser saw: console entries and network requests since the test began.
     def console(self) -> list[dict]:
@@ -299,5 +356,6 @@ class Site:
             "const done = arguments[arguments.length - 1];"
             "axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']}})"
             ".then(r => done(r.violations.map(v => ({id: v.id, impact: v.impact, help: v.help,"
-            " nodes: v.nodes.slice(0, 5).map(n => n.target.join(' '))}))), e => done([{id: 'axe-error', impact: 'critical', help: String(e), nodes: []}]));")
+            " nodes: v.nodes.slice(0, 5).map(n => n.target.join(' '))}))), e => done([{id: 'axe-error', impact: 'critical', help: String(e), nodes: []}]));"
+        )
         return [v for v in result if v["impact"] in impacts]

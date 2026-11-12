@@ -31,9 +31,9 @@ TOTAL = "TOTAL"
 @dataclass
 class Original07:
     year: int
-    base: str                                          # e.g. "2009"
-    weights: dict[str, float] = field(default_factory=dict)   # per mille
-    months: dict[str, list[float]] = field(default_factory=dict)   # code -> 12 monthly values
+    base: str  # e.g. "2009"
+    weights: dict[str, float] = field(default_factory=dict)  # per mille
+    months: dict[str, list[float]] = field(default_factory=dict)  # code -> 12 monthly values
     average: dict[str, float] = field(default_factory=dict)
     labels: dict[str, str] = field(default_factory=dict)
 
@@ -63,7 +63,7 @@ def parse(path: Path, year: int) -> Original07:
         else:
             continue
         if key in t.months:
-            continue                                   # summary blocks repeat the divisions
+            continue  # summary blocks repeat the divisions
         w = sheet.cell_value(r, 2)
         if isinstance(w, float):
             t.weights[key] = w

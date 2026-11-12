@@ -29,13 +29,16 @@ def cpi_blocks(con: duckdb.DuckDBPyConnection, when=None) -> dict[int, Prices]:
     if when is not None:
         cond += " AND published_at <= $when"
         params["when"] = when
-    rows = con.execute(f"""
+    rows = con.execute(
+        f"""
         SELECT archive_dataset, coicop18, ref_period, value FROM observations WHERE {cond}
         QUALIFY row_number() OVER (PARTITION BY archive_dataset, key, ref_period
                                    ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
         ORDER BY archive_dataset, coicop18, ref_period    -- fixed order: see load_baskets
-    """, params).fetchall()
+    """,
+        params,
+    ).fetchall()
     by_file: dict[str, Prices] = {}
     for archive_dataset, code, period, value in rows:
         if value is not None:
@@ -112,12 +115,15 @@ def hicp_blocks(con: duckdb.DuckDBPyConnection, when=None, geo: str = "GR") -> d
     if when is not None:
         cond += " AND published_at <= $when"
         params["when"] = when
-    rows = con.execute(f"""
+    rows = con.execute(
+        f"""
         SELECT coicop18, ref_period, value FROM observations WHERE {cond}
         QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY published_at DESC, retrieved_at DESC) = 1
             AND status <> 'withdrawn'
         ORDER BY coicop18, ref_period                     -- fixed order: see load_baskets
-    """, params).fetchall()
+    """,
+        params,
+    ).fetchall()
     series: Prices = {}
     for code, period, value in rows:
         if value is not None and code[:1].isdigit():
@@ -131,6 +137,5 @@ def hicp_blocks(con: duckdb.DuckDBPyConnection, when=None, geo: str = "GR") -> d
         # An item belongs to the year only if it has the link month and every month so far:
         # a series that stops (education not by level ends in 2014-12) or starts in December
         # (games of chance, 2025-12) must not seem to price the year from one month.
-        blocks[year] = {c: {p: s[p] for p in wanted} for c, s in series.items()
-                        if all(p in s for p in wanted)}
+        blocks[year] = {c: {p: s[p] for p in wanted} for c, s in series.items() if all(p in s for p in wanted)}
     return blocks

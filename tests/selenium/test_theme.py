@@ -3,7 +3,6 @@ key, `theme`), removed again by "device setting"; both copies of the control (he
 stay in step; the stored choice applies before the page is drawn."""
 
 import pytest
-
 from helpers import t
 
 
@@ -109,7 +108,9 @@ def test_stored_choice_applies_before_drawing(site):
 
 
 def _device(site, scheme):
-    site.driver.execute_cdp_cmd("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-color-scheme", "value": scheme}]})
+    site.driver.execute_cdp_cmd(
+        "Emulation.setEmulatedMedia", {"features": [{"name": "prefers-color-scheme", "value": scheme}]}
+    )
 
 
 def test_device_setting_follows_the_system(site):
@@ -202,13 +203,21 @@ def test_with_storage_blocked_a_choice_still_applies(site):
 
     The site must not break when the browser refuses it storage (private modes, strict settings).
     """
-    script = site.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": (
-        "Object.defineProperty(window, 'localStorage', {get() { throw new DOMException('blocked', 'SecurityError'); }});")})
+    script = site.driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {
+            "source": (
+                "Object.defineProperty(window, 'localStorage', {get() { throw new DOMException('blocked', 'SecurityError'); }});"
+            )
+        },
+    )
     try:
         site.open("/en/")
         assert site.js("try { localStorage; return false; } catch (e) { return true; }"), "storage was not blocked"
         _pick(site, "dark")
-        site.wait(lambda _: site.js("return document.documentElement.getAttribute('data-theme')") == "dark",
-                  "the dark theme was not applied")
+        site.wait(
+            lambda _: site.js("return document.documentElement.getAttribute('data-theme')") == "dark",
+            "the dark theme was not applied",
+        )
     finally:
         site.driver.execute_cdp_cmd("Page.removeScriptToEvaluateOnNewDocument", {"identifier": script["identifier"]})

@@ -23,10 +23,49 @@ export const pct = (lang: Lang, value: number, digits = 1) => `${num(lang, value
 
 // Greek uses the accusative after "τον" ("τον Σεπτέμβριο 2026"), which Intl doesn't provide.
 const EL_MONTHS = {
-  nom: ["Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"],
-  acc: ["Ιανουάριο", "Φεβρουάριο", "Μάρτιο", "Απρίλιο", "Μάιο", "Ιούνιο", "Ιούλιο", "Αύγουστο", "Σεπτέμβριο", "Οκτώβριο", "Νοέμβριο", "Δεκέμβριο"],
+  nom: [
+    "Ιανουάριος",
+    "Φεβρουάριος",
+    "Μάρτιος",
+    "Απρίλιος",
+    "Μάιος",
+    "Ιούνιος",
+    "Ιούλιος",
+    "Αύγουστος",
+    "Σεπτέμβριος",
+    "Οκτώβριος",
+    "Νοέμβριος",
+    "Δεκέμβριος",
+  ],
+  acc: [
+    "Ιανουάριο",
+    "Φεβρουάριο",
+    "Μάρτιο",
+    "Απρίλιο",
+    "Μάιο",
+    "Ιούνιο",
+    "Ιούλιο",
+    "Αύγουστο",
+    "Σεπτέμβριο",
+    "Οκτώβριο",
+    "Νοέμβριο",
+    "Δεκέμβριο",
+  ],
 };
-const EN_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const EN_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 /** "September 2026" / "Σεπτέμβριος 2026"; `form: "acc"` for Greek after "τον". */
 export function month(lang: Lang, period: string, form: "nom" | "acc" = "nom"): string {

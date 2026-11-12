@@ -15,9 +15,17 @@ pytestmark = pytest.mark.unit
 
 def config(tmp_path: Path) -> Config:
     site = tmp_path / "site"
-    return Config(archive_dir=tmp_path / "archive", user_agent="test",
-                  release=ReleaseConfig(enabled=True, releases_dir=tmp_path / "releases", site_dir=site, keep=2,
-                                        production_url="https://example.org"))
+    return Config(
+        archive_dir=tmp_path / "archive",
+        user_agent="test",
+        release=ReleaseConfig(
+            enabled=True,
+            releases_dir=tmp_path / "releases",
+            site_dir=site,
+            keep=2,
+            production_url="https://example.org",
+        ),
+    )
 
 
 class FakeSteps:
@@ -39,8 +47,10 @@ class FakeSteps:
             meta.write_text(json.dumps({"generated_at": log.parent.parent.name}), encoding="utf-8")
         if step.name in ("upload", "promote"):
             alias = step.argv[step.argv.index("--preview-alias") + 1] if "--preview-alias" in step.argv else "x"
-            text += ("Worker Version ID: 1234\nVersion Preview URL: https://ab12cd34-traceconomics.example.workers.dev\n"
-                     f"Version Preview Alias URL: https://{alias}-traceconomics.example.workers.dev\n")
+            text += (
+                "Worker Version ID: 1234\nVersion Preview URL: https://ab12cd34-traceconomics.example.workers.dev\n"
+                f"Version Preview Alias URL: https://{alias}-traceconomics.example.workers.dev\n"
+            )
         if step.name == "series":
             out = Path(step.argv[step.argv.index("--out") + 1]) / "gr" / "m1"
             out.mkdir(parents=True)
@@ -56,9 +66,10 @@ def host(monkeypatch, tmp_path):
 
     def fetch(url, user_agent):
         asked.append(url)
-        assert user_agent == "test"                          # the config's, never Python's default
+        assert user_agent == "test"  # the config's, never Python's default
         build_id = url.rsplit("promote=", 1)[1]
         return (tmp_path / "releases" / build_id / "dist" / release.METADATA).read_bytes()
+
     monkeypatch.setattr(release, "_fetch", fetch)
     return asked
 
@@ -86,8 +97,22 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     fake = FakeSteps(cfg.release.site_dir)
     rec = release.build(cfg, now=datetime(2026, 11, 10, 11, 30, tzinfo=UTC), runner=fake)
     assert rec["result"] == "ok" and rec["id"] == "20261110T113000Z"
-    assert fake.ran == ["store", "series", "bands", "store-bands", "check-v1", "check-v1-cpi", "check-combos",
-                        "consistency", "export", "npm-ci", "site-check", "ui-test", "upload", "smoke"]
+    assert fake.ran == [
+        "store",
+        "series",
+        "bands",
+        "store-bands",
+        "check-v1",
+        "check-v1-cpi",
+        "check-combos",
+        "consistency",
+        "export",
+        "npm-ci",
+        "site-check",
+        "ui-test",
+        "upload",
+        "smoke",
+    ]
     folder = cfg.release.releases_dir / rec["id"]
     assert rec["preview_url"] == "https://build-20261110t113000z-traceconomics.example.workers.dev"
     sums = (folder / "SHA256SUMS").read_text(encoding="utf-8")
@@ -155,8 +180,9 @@ def test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline(tmp_path)
     And no promote record is written
     """
     cfg = config(tmp_path)
-    bad = release.build(cfg, now=datetime(2026, 11, 4, tzinfo=UTC),
-                        runner=FakeSteps(cfg.release.site_dir, fail="series"))
+    bad = release.build(
+        cfg, now=datetime(2026, 11, 4, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="series")
+    )
     with pytest.raises(SystemExit):
         release.promote(cfg, bad["id"], "staging", runner=FakeSteps(cfg.release.site_dir))
     assert not (cfg.release.releases_dir / release.PROMOTED).exists()
@@ -190,8 +216,10 @@ def test_pruning_keeps_the_newest_and_the_promoted_build(tmp_path):
     Then the promoted build and the two newest are left
     """
     cfg = config(tmp_path)
-    ids = [release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))["id"]
-           for d in (1, 2)]
+    ids = [
+        release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))["id"]
+        for d in (1, 2)
+    ]
     release.promote(cfg, ids[0], "staging", runner=FakeSteps(cfg.release.site_dir))
     for d in (3, 4):
         release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
@@ -208,12 +236,18 @@ def test_changes_since_the_last_release(tmp_path):
     And one value was revised, by 0.1 points at most
     """
     duckdb = pytest.importorskip("duckdb")
-    cols = "geo, grouping, \"group\", spending, imputed_rent, price_source, weights_timing, tutoring, coicop18, unit, ref_period, value_text"
+    cols = 'geo, grouping, "group", spending, imputed_rent, price_source, weights_timing, tutoring, coicop18, unit, ref_period, value_text'
+
     def write(folder, rows):
         (folder / "gr" / "m1").mkdir(parents=True)
-        values = ", ".join(f"('GR', 'B', 'Q1', 'purchases', 'excluded', 'cpi', 'N', 'priced', 'TOTAL', 'RCH_A', '{p}', '{v}')"
-                           for p, v in rows)
-        duckdb.sql(f"COPY (SELECT * FROM (VALUES {values}) t({cols})) TO '{(folder / 'gr' / 'm1' / 'm1_rates.parquet').as_posix()}'")
+        values = ", ".join(
+            f"('GR', 'B', 'Q1', 'purchases', 'excluded', 'cpi', 'N', 'priced', 'TOTAL', 'RCH_A', '{p}', '{v}')"
+            for p, v in rows
+        )
+        duckdb.sql(
+            f"COPY (SELECT * FROM (VALUES {values}) t({cols})) TO '{(folder / 'gr' / 'm1' / 'm1_rates.parquet').as_posix()}'"
+        )
+
     write(tmp_path / "old", [("2026-08", "3.1"), ("2026-09", "2.9")])
     write(tmp_path / "new", [("2026-08", "3.1"), ("2026-09", "3.0"), ("2026-10", "2.7")])
     c = release.changes(tmp_path / "old", tmp_path / "new")
@@ -228,13 +262,18 @@ def test_only_files_that_feed_the_store_trigger_a_release(tmp_path):
     When the files that feed the store are picked
     Then only the stored HICP dataset is listed
     """
+
     def stored(source, dataset, name=None):
         folder = tmp_path / source / dataset
         folder.mkdir(parents=True)
         (folder / "manifest.json").write_text(json.dumps({"original_name": name}), encoding="utf-8")
         return StoreResult("stored", source, dataset, "0" * 64, folder / "payload.bin")
-    results = [stored("eurostat", "prc_hicp_minr"), stored("elstat", "calendar"),
-               StoreResult("unchanged", "eurostat", "prc_hicp_iw", "0" * 64, None)]
+
+    results = [
+        stored("eurostat", "prc_hicp_minr"),
+        stored("elstat", "calendar"),
+        StoreResult("unchanged", "eurostat", "prc_hicp_iw", "0" * 64, None),
+    ]
     assert release.feeds_store(None, results) == ["eurostat/prc_hicp_minr"]
 
 
@@ -291,7 +330,9 @@ def test_staging_and_production_serve_their_own_builds(tmp_path):
     # The public site is what the next build is compared with.
     assert release.baseline(cfg.release.releases_dir)["id"] == ids[0]
     assert {b["id"]: b["on"] for b in release.status(cfg.release.releases_dir)} == {
-        ids[1]: ["staging"], ids[0]: ["production"]}
+        ids[1]: ["staging"],
+        ids[0]: ["production"],
+    }
     for d in (3, 4, 5):
         release.build(cfg, now=datetime(2026, 11, d, tzinfo=UTC), runner=keep)
     left = sorted(p.name for p in cfg.release.releases_dir.iterdir() if (p / "release.json").is_file())
@@ -328,10 +369,10 @@ def test_the_browser_tests_run_before_upload_and_again_on_the_preview(tmp_path):
     fake = FakeSteps(cfg.release.site_dir)
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=fake)
     folder = cfg.release.releases_dir / rec["id"]
-    assert "BASE_URL" not in fake.envs["ui-test"]            # a local server on the built files
-    argv = dict(zip(fake.ran, fake.argvs))
-    assert "--grep" not in argv["ui-test"]                   # the full suite before upload
-    assert argv["smoke"][-2:] == ("--grep", "@smoke")        # the short set on the preview
+    assert "BASE_URL" not in fake.envs["ui-test"]  # a local server on the built files
+    argv = dict(zip(fake.ran, fake.argvs, strict=True))
+    assert "--grep" not in argv["ui-test"]  # the full suite before upload
+    assert argv["smoke"][-2:] == ("--grep", "@smoke")  # the short set on the preview
     assert fake.envs["smoke"]["BASE_URL"] == rec["preview_url"]
     assert fake.envs["smoke"]["UI_REPORT"] == str(folder / "ui" / "smoke" / "report")
 
@@ -370,12 +411,17 @@ def test_a_retest_runs_the_rest_on_the_files_the_build_made(tmp_path, no_email):
     And it can then be promoted to staging
     """
     cfg = config(tmp_path)
-    rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="ui-test"))
+    rec = release.build(
+        cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="ui-test")
+    )
     # A later build left other files in the site folder; the retest must test this build's.
     (cfg.release.site_dir / "dist" / "en" / "index.html").write_text("<p>a later build</p>", encoding="utf-8")
     fake = FakeSteps(cfg.release.site_dir)
     seen = []
-    fake_ui = lambda step, env, log: seen.append((cfg.release.site_dir / "dist" / "en" / "index.html").read_text()) or fake(step, env, log)
+
+    def fake_ui(step, env, log):
+        return seen.append((cfg.release.site_dir / "dist" / "en" / "index.html").read_text()) or fake(step, env, log)
+
     again = release.retest(cfg, rec["id"], runner=fake_ui, now=datetime(2026, 11, 10, 12, tzinfo=UTC))
     assert fake.ran == ["ui-test", "upload", "smoke"] and seen[0] == "<p>ok</p>"
     assert again["result"] == "ok" and "failed_step" not in again and again["retests"][0]["result"] == "ok"
@@ -392,7 +438,9 @@ def test_a_retest_after_the_upload_tests_the_version_already_uploaded(tmp_path):
     Then only ui-test and smoke run, with no new upload
     """
     cfg = config(tmp_path)
-    rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="smoke"))
+    rec = release.build(
+        cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="smoke")
+    )
     fake = FakeSteps(cfg.release.site_dir)
     release.retest(cfg, rec["id"], runner=fake, now=datetime(2026, 11, 10, 12, tzinfo=UTC))
     assert fake.ran == ["ui-test", "smoke"]
@@ -411,12 +459,16 @@ def test_a_retest_refuses_what_a_retest_cant_fix(tmp_path):
     """
     cfg = config(tmp_path)
     for day, fail, why in ((1, None, "already passed"), (2, "check-v1", "build again")):
-        rec = release.build(cfg, now=datetime(2026, 11, day, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail=fail))
+        rec = release.build(
+            cfg, now=datetime(2026, 11, day, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail=fail)
+        )
         with pytest.raises(SystemExit, match=why):
             release.retest(cfg, rec["id"], runner=FakeSteps(cfg.release.site_dir))
     with pytest.raises(SystemExit, match="no release"):
         release.retest(cfg, "20990101T000000Z", runner=FakeSteps(cfg.release.site_dir))
-    held = release.build(cfg, now=datetime(2026, 11, 3, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="ui-test"))
+    held = release.build(
+        cfg, now=datetime(2026, 11, 3, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir, fail="ui-test")
+    )
     # Tests changed since the build: they aren't the ones it ran.
     (cfg.release.site_dir / "tests" / "ui").mkdir(parents=True)
     (cfg.release.site_dir / "tests" / "ui" / "smoke.ui.ts").write_text("// changed", encoding="utf-8")
@@ -453,8 +505,14 @@ def test_a_promote_is_refused_while_the_target_serves_another_build(tmp_path, ho
     release.promote(cfg, good["id"], "production", runner=FakeSteps(cfg.release.site_dir))
     naps = []
     with pytest.raises(SystemExit, match="doesn't serve it"):
-        release.promote(cfg, good["id"], "staging", runner=FakeSteps(cfg.release.site_dir),
-                        fetch=lambda url: b'{"generated_at": "another build"}', sleep=naps.append)
+        release.promote(
+            cfg,
+            good["id"],
+            "staging",
+            runner=FakeSteps(cfg.release.site_dir),
+            fetch=lambda url: b'{"generated_at": "another build"}',
+            sleep=naps.append,
+        )
     assert naps == [release.CONFIRM_EVERY] * (release.CONFIRM_FOR // release.CONFIRM_EVERY)
     on = release.promoted(cfg.release.releases_dir)
     assert "unconfirmed" in on["staging"] and "confirmed" in on["production"]
@@ -470,12 +528,15 @@ def test_a_promote_to_production_needs_the_public_address(tmp_path):
     """
     cfg = config(tmp_path)
     good = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir))
-    bare = Config(archive_dir=cfg.archive_dir, user_agent="test",
-                  release=ReleaseConfig(enabled=True, releases_dir=cfg.release.releases_dir, site_dir=cfg.release.site_dir))
+    bare = Config(
+        archive_dir=cfg.archive_dir,
+        user_agent="test",
+        release=ReleaseConfig(enabled=True, releases_dir=cfg.release.releases_dir, site_dir=cfg.release.site_dir),
+    )
     fake = FakeSteps(cfg.release.site_dir)
     with pytest.raises(SystemExit, match="production_url"):
         release.promote(bare, good["id"], "production", runner=fake)
-    assert fake.ran == []                                    # refused before anything was uploaded
+    assert fake.ran == []  # refused before anything was uploaded
 
 
 def test_the_public_address_is_read_from_the_config_without_a_trailing_slash(tmp_path):
@@ -489,18 +550,45 @@ def test_the_public_address_is_read_from_the_config_without_a_trailing_slash(tmp
     from traceconomics.config import parse
 
     base = {"archive": {"dir": str(tmp_path)}, "fetch": {"user_agent": "test"}}
-    c = parse({**base, "release": {"site_dir": str(tmp_path / "site"), "production_url": "https://example.org/"}}, tmp_path)
+    c = parse(
+        {**base, "release": {"site_dir": str(tmp_path / "site"), "production_url": "https://example.org/"}}, tmp_path
+    )
     assert c.release.production_url == "https://example.org"
     assert parse(base, tmp_path).release.production_url is None
 
 
 PLAYWRIGHT_RESULTS = {
-    "suites": [{"title": "smoke.ui.ts", "specs": [
-        {"title": "/en/ loads", "tests": [{"status": "expected", "results": [{"status": "passed"}]}]},
-    ], "suites": [{"title": "on the host", "specs": [
-        {"title": "pages carry the security headers", "tests": [{"status": "unexpected", "results": [
-            {"status": "failed", "error": {"message": "\u001b[2mexpect(\u001b[22mreceived).toContain()\n\nExpected substring"}}]}]},
-    ]}]}],
+    "suites": [
+        {
+            "title": "smoke.ui.ts",
+            "specs": [
+                {"title": "/en/ loads", "tests": [{"status": "expected", "results": [{"status": "passed"}]}]},
+            ],
+            "suites": [
+                {
+                    "title": "on the host",
+                    "specs": [
+                        {
+                            "title": "pages carry the security headers",
+                            "tests": [
+                                {
+                                    "status": "unexpected",
+                                    "results": [
+                                        {
+                                            "status": "failed",
+                                            "error": {
+                                                "message": "\u001b[2mexpect(\u001b[22mreceived).toContain()\n\nExpected substring"
+                                            },
+                                        }
+                                    ],
+                                }
+                            ],
+                        },
+                    ],
+                }
+            ],
+        }
+    ],
     "errors": [{"message": "Error: Timed out waiting 60000ms from config.webServer."}],
 }
 
@@ -541,11 +629,15 @@ def test_a_browser_test_failure_email_names_the_tests_and_the_report(tmp_path, n
                 Path(env["UI_JSON"]).write_text(json.dumps(PLAYWRIGHT_RESULTS), encoding="utf-8")
             return super().__call__(step, env, log)
 
-    rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WritesResults(cfg.release.site_dir, fail="ui-test"))
+    rec = release.build(
+        cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WritesResults(cfg.release.site_dir, fail="ui-test")
+    )
     folder = cfg.release.releases_dir / rec["id"]
     assert rec["ui_report"] == str(folder / "ui" / "ui-test" / "report" / "index.html")
     body = no_email[0][1]
     assert "Failing browser tests:" in body and "pages carry the security headers" in body and rec["ui_report"] in body
     # A retest that passes clears them.
-    again = release.retest(cfg, rec["id"], runner=FakeSteps(cfg.release.site_dir), now=datetime(2026, 11, 10, 12, tzinfo=UTC))
+    again = release.retest(
+        cfg, rec["id"], runner=FakeSteps(cfg.release.site_dir), now=datetime(2026, 11, 10, 12, tzinfo=UTC)
+    )
     assert "ui_failures" not in again and "ui_report" not in again

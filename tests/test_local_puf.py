@@ -22,11 +22,30 @@ def households(era: str) -> tuple[str, str]:
     """(household csv, person csv) for N made-up households of two people each."""
     sep = "," if era == "2023" else ";"
     total = "C" if era in ("2016", "2024") else ""
-    head = ["HA04", "HA06", "HA07", "HA08", "HA10", "HH095", "HH099", "HI11", "HB074",
-            "HE01A", "HE01B", f"HE01{total}", "HE0111A", "HE0111B", f"HE0111{total}", "HE12704A", "HE12704B"]
-    activity = "ME01\u00c1" if era == "2020" else "ME01"      # 2020 spells it with a garbled letter
-    rows, people = [sep.join(head)], [sep.join(["MA04", "MB03", "MB05", activity]
-                                               + (["HA07"] if era in ("2023", "2024") else []))]
+    head = [
+        "HA04",
+        "HA06",
+        "HA07",
+        "HA08",
+        "HA10",
+        "HH095",
+        "HH099",
+        "HI11",
+        "HB074",
+        "HE01A",
+        "HE01B",
+        f"HE01{total}",
+        "HE0111A",
+        "HE0111B",
+        f"HE0111{total}",
+        "HE12704A",
+        "HE12704B",
+    ]
+    activity = "ME01\u00c1" if era == "2020" else "ME01"  # 2020 spells it with a garbled letter
+    rows, people = (
+        [sep.join(head)],
+        [sep.join(["MA04", "MB03", "MB05", activity] + (["HA07"] if era in ("2023", "2024") else []))],
+    )
     for i in range(N):
         cluster = f"{30000000 + i // 6}"
         if era == "2023":
@@ -35,13 +54,32 @@ def households(era: str) -> tuple[str, str]:
             hh = f"{cluster}{i % 6 + 1:02d}"
         else:
             hh = f"{100 + i}"
+
         def dec(x):
             text = f"{x:.2f}".replace(".", ",")
             return f'"{text}"' if sep == "," else text
-        values = [hh, f"{i % 3}", cluster, "EL30", dec(1000 + i), dec(8000 + 100 * i), dec(10000 + 100 * i), "1", "4",
-                  dec(120), dec(30), dec(150), dec(100), dec(0), dec(100), dec(5), dec(1)]
+
+        values = [
+            hh,
+            f"{i % 3}",
+            cluster,
+            "EL30",
+            dec(1000 + i),
+            dec(8000 + 100 * i),
+            dec(10000 + 100 * i),
+            "1",
+            "4",
+            dec(120),
+            dec(30),
+            dec(150),
+            dec(100),
+            dec(0),
+            dec(100),
+            dec(5),
+            dec(1),
+        ]
         rows.append(sep.join(values))
-        acts = ("Z1", "Z8") if era == "2020" else ("1", "8")        # 2020's re-ordered codes
+        acts = ("Z1", "Z8") if era == "2020" else ("1", "8")  # 2020's re-ordered codes
         for person, age, relation, act in ((1, 45, "1", acts[0]), (2, 10, "3", acts[1])):
             if era == "2023":
                 ma04, extra = f"{i % 6 + 1:02d}{person:02d}", [cluster]
@@ -69,17 +107,27 @@ def archived(tmp_path, year: int, era: str, fmt: str, hh_text=None, p_text=None)
             for n, t in names.items():
                 z.writestr(t.encode("latin-1"), n)
     archive = Archive(tmp_path / "archive")
-    archive.store_bytes("elstat", puf.dataset(year), buf.getvalue(), url=None,
-                        retrieved_at=datetime(2026, 10, 14, tzinfo=UTC), ext=f".{fmt}", kind="manual")
+    archive.store_bytes(
+        "elstat",
+        puf.dataset(year),
+        buf.getvalue(),
+        url=None,
+        retrieved_at=datetime(2026, 10, 14, tzinfo=UTC),
+        ext=f".{fmt}",
+        kind="manual",
+    )
     return archive
 
 
-@pytest.mark.parametrize("year,era,fmt,link", [
-    (2016, "2016", "7z", "MA04 = household + person number"),
-    (2020, "2020", "zip", "MA04 is the household"),
-    (2023, "2023", "zip", "cluster - household number in MA04"),
-    (2024, "2024", "zip", "cluster + 2 digits of MA04"),
-])
+@pytest.mark.parametrize(
+    "year,era,fmt,link",
+    [
+        (2016, "2016", "7z", "MA04 = household + person number"),
+        (2020, "2020", "zip", "MA04 is the household"),
+        (2023, "2023", "zip", "cluster - household number in MA04"),
+        (2024, "2024", "zip", "cluster + 2 digits of MA04"),
+    ],
+)
 def test_each_era_reads_the_same(tmp_path, year, era, fmt, link):
     """PY-PUF-001: every era's PUF layout reads the same
 
@@ -100,13 +148,16 @@ def test_each_era_reads_the_same(tmp_path, year, era, fmt, link):
     s = puf.read(archived(tmp_path, year, era, fmt), year)
     assert s.person_link == link
     assert len(s.households) == N and len(s.persons) == 2 * N and not s.households_without_persons
-    assert s.households.weight.iloc[1] == pytest.approx(1001.0)            # decimal comma read as a decimal
-    assert s.spending["01"].iloc[0] == pytest.approx(150.0)               # the all-modes total
+    assert s.households.weight.iloc[1] == pytest.approx(1001.0)  # decimal comma read as a decimal
+    assert s.spending["01"].iloc[0] == pytest.approx(150.0)  # the all-modes total
     assert s.purchases["01"].iloc[0] == pytest.approx(120.0)
     assert s.derived_totals == ("12704",) and s.spending["12704"].iloc[0] == pytest.approx(6.0)
     assert s.design == "full"
     # 2020's codes are read as the older ones where they mean the same (Z1 employed = 1 working).
-    assert s.persons[["relation", "activity"]].iloc[:2].values.tolist() == [["1", "1"], ["3", "Z8" if year == 2020 else "8"]]
+    assert s.persons[["relation", "activity"]].iloc[:2].values.tolist() == [
+        ["1", "1"],
+        ["3", "Z8" if year == 2020 else "8"],
+    ]
     assert (s.households.elstat_type == "4").all()
     assert s.classification == ("coicop2018" if year >= 2024 else "ecoicop1")
 
@@ -156,6 +207,6 @@ def test_unknown_activity_code_is_refused(tmp_path):
     Then a FormatError about the ME01 codes is raised
     """
     hh, pp = households("2016")
-    pp = pp.replace(";45;1;1\n", ";45;1;Z1\n", 1)                  # a 2020 code in an older file
+    pp = pp.replace(";45;1;1\n", ";45;1;Z1\n", 1)  # a 2020 code in an older file
     with pytest.raises(FormatError, match="ME01 codes"):
         puf.read(archived(tmp_path, 2016, "2016", "7z", p_text=pp), 2016)

@@ -9,6 +9,7 @@
 An open, transparent tracker of the economy, built only on public data. Greece first, designed for many countries.
 
 **The site: [traceconomics.com](https://traceconomics.com).** What it does today:
+
 - an archive job that keeps every published version of the source statistics;
 - a store and calculation engine that rebuild the official Greek inflation figures from their published parts;
 - inflation by household group for Greece (income fifths, renters and owners, pensioner households), monthly from 2010, under every combination of the method options, with error bands;
@@ -105,16 +106,16 @@ python -m traceconomics mapping build --out src/traceconomics/data  # rebuild th
 
 **Checks** (`python -m traceconomics check <name>`)
 
-| Name | What it checks |
-|---|---|
-| `v1`, `v1-cpi` | The engine rebuilds Greece's official HICP (from Eurostat's parts) and CPI (from ELSTAT's) |
-| `v2` | The survey microdata rebuild ELSTAT's published household spending (local extra) |
-| `mapping` | The survey's old codes mapped to COICOP 2018, against the next year (local extra) |
-| `v3` | Our all-households series against the official CPI |
-| `v4`, `v5` | Other studies' Greek series, rebuilt with their own settings, and ours against them one setting at a time |
-| `v6` | Eurostat's contributions of each division to the euro area's rate, rebuilt |
+| Name                         | What it checks                                                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `v1`, `v1-cpi`               | The engine rebuilds Greece's official HICP (from Eurostat's parts) and CPI (from ELSTAT's)                           |
+| `v2`                         | The survey microdata rebuild ELSTAT's published household spending (local extra)                                     |
+| `mapping`                    | The survey's old codes mapped to COICOP 2018, against the next year (local extra)                                    |
+| `v3`                         | Our all-households series against the official CPI                                                                   |
+| `v4`, `v5`                   | Other studies' Greek series, rebuilt with their own settings, and ours against them one setting at a time            |
+| `v6`                         | Eurostat's contributions of each division to the euro area's rate, rebuilt                                           |
 | `prices`, `seam`, `hospital` | Reports: CPI against HICP prices, the 2010 seam between ELSTAT's old and new tables, the effect of hospital services |
-| `combos` | Every option combination: identities that must hold, and how much each option moves the result |
+| `combos`                     | Every option combination: identities that must hold, and how much each option moves the result                       |
 
 **Running it**
 

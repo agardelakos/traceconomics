@@ -30,8 +30,12 @@ function apply(theme: Theme) {
 export function start(boxes: HTMLElement[]) {
   // The same choice can be shown twice (the settings button, and the phone menu): every copy
   // shows the current value and changes with the others.
-  const radios = boxes.flatMap((box) => [...box.querySelectorAll<HTMLInputElement>('input[type="radio"]')]);
-  const show = (theme: Theme) => { for (const r of radios) r.checked = r.value === theme; };
+  const radios = boxes.flatMap((box) => [
+    ...box.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
+  ]);
+  const show = (theme: Theme) => {
+    for (const r of radios) r.checked = r.value === theme;
+  };
   show(stored());
   for (const r of radios) {
     r.addEventListener("change", () => {

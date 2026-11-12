@@ -22,8 +22,8 @@ from traceconomics.archive.store import Archive, iso, utc_now
 from traceconomics.config import Config
 from traceconomics.notify import notify
 from traceconomics.sources import ec_empl, elstat, eurostat, terms
-from traceconomics.sources.elstat import history as elstat_history
 from traceconomics.sources.base import HttpClient, RunContext
+from traceconomics.sources.elstat import history as elstat_history
 
 STATE_FILE = "state/state.json"
 LOCK_FILE = "state/run.lock"
@@ -33,6 +33,7 @@ ANALYTICS_ALERT_DAYS = 4
 
 
 # -- state (a rebuildable cache next to the archive) ------------------------
+
 
 def load_state(root: Path) -> dict:
     path = root / STATE_FILE
@@ -77,11 +78,12 @@ class RunLock:
 
 # -- when to run ------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class Due:
     due: bool
     release_days: list[date]  # release days since the last good run
-    missed: list[date]        # of those, days with no run on the day itself
+    missed: list[date]  # of those, days with no run on the day itself
     reason: str
 
 
@@ -98,8 +100,7 @@ def check_due(state: dict, config: Config, now: datetime) -> Due:
         return Due(True, [], [], "first run")
     last_day = date.fromisoformat(last)
     pending = sorted(
-        d for d in all_release_dates(state, config)
-        if d > last_day and (d < today or (d == today and after_hour))
+        d for d in all_release_dates(state, config) if d > last_day and (d < today or (d == today and after_hour))
     )
     if not pending:
         return Due(False, [], [], "no release since the last good run")
@@ -109,6 +110,7 @@ def check_due(state: dict, config: Config, now: datetime) -> Due:
 
 
 # -- one run ----------------------------------------------------------------
+
 
 def run(config: Config, *, force: bool = False, dry_run: bool = False, now: datetime | None = None) -> dict:
     tz = ZoneInfo(config.timezone)
@@ -134,8 +136,13 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         return record
 
     released_through = now.date() if now.time() >= config.run_after else now.date() - timedelta(days=1)
-    ctx = RunContext(archive=archive, http=HttpClient(config.user_agent, config.request_pause_seconds),
-                     today=now.date(), released_through=released_through, dry_run=dry_run)
+    ctx = RunContext(
+        archive=archive,
+        http=HttpClient(config.user_agent, config.request_pause_seconds),
+        today=now.date(),
+        released_through=released_through,
+        dry_run=dry_run,
+    )
     if dry_run:
         _run_sources(ctx, state)
         return {"result": "dry-run", "due": due.reason, "planned": ctx.planned}
@@ -161,12 +168,18 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     subject = f"{flag}archive run {now.date().isoformat()}: {len(stored)} new, {len(ctx.failures)} failed"
     sent_to = notify(config, subject, report)
     record = {
-        "started": iso(started), "finished": iso(utc_now()), "result": "ok" if good else "failures",
+        "started": iso(started),
+        "finished": iso(utc_now()),
+        "result": "ok" if good else "failures",
         "reason": "forced" if force and not due.due else due.reason,
         "release_days": [d.isoformat() for d in due.release_days],
         "missed": [d.isoformat() for d in due.missed],
-        "stored": len(stored), "unchanged": len(unchanged), "failures": ctx.failures,
-        "alerts": len(ctx.alerts), "report": sent_to, "analytics": visits,
+        "stored": len(stored),
+        "unchanged": len(unchanged),
+        "failures": ctx.failures,
+        "alerts": len(ctx.alerts),
+        "report": sent_to,
+        "analytics": visits,
         "downloads": downloads,
     }
     if stored or visits.get("stored") or downloads.get("stored"):
@@ -174,15 +187,16 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     record["heartbeat"] = heartbeat.send(record)
     archive.append_run(record)
     if config.release.enabled and good:
-        from traceconomics import release   # imports this module; loaded only when needed
+        from traceconomics import release  # imports this module; loaded only when needed
 
         if new_inputs := release.feeds_store(archive, stored):
             record["release"] = release.build(config, reason="new data: " + ", ".join(sorted(set(new_inputs))))["id"]
     return record
 
 
-def export_analytics(config: Config, archive: Archive, state: dict, now: datetime,
-                     feed: analytics.Feed = analytics.VISITS) -> dict:
+def export_analytics(
+    config: Config, archive: Archive, state: dict, now: datetime, feed: analytics.Feed = analytics.VISITS
+) -> dict:
     """Copy the finished days of one feed (visit or download counts) into the archive; alert if it falls behind.
 
     A failure doesn't fail the run (the sources are what the run is for), but Cloudflare keeps
@@ -193,8 +207,11 @@ def export_analytics(config: Config, archive: Archive, state: dict, now: datetim
     if feed.state_key not in state:
         # The state is a rebuildable cache: the latest finished day in the archive came last (a
         # manual export of one day may be stored after later ones, or be today's, not yet over).
-        days = [d for s in archive.snapshots(analytics.SOURCE, feed.dataset)
-                if (d := archive.manifest(s).get("day")) and date.fromisoformat(d) < today]
+        days = [
+            d
+            for s in archive.snapshots(analytics.SOURCE, feed.dataset)
+            if (d := archive.manifest(s).get("day")) and date.fromisoformat(d) < today
+        ]
         if days:
             state[feed.state_key] = max(days)
     result = analytics.export(archive, state, today, feed=feed)
@@ -205,11 +222,13 @@ def export_analytics(config: Config, archive: Archive, state: dict, now: datetim
             missing = "no day copied yet" if behind is None else f"{behind} days not copied"
             only = "" if feed is analytics.VISITS else f" --feed {feed.name}"
             result["alert"] = notify(
-                config, f"ALERT: analytics export ({feed.name}) failing, {missing}",
+                config,
+                f"ALERT: analytics export ({feed.name}) failing, {missing}",
                 f"The {feed.name} export failed: {result.get('error')}\n\nCloudflare keeps exact rows for "
                 f"{feed.kept_days} days. Last day copied: {through or 'none'}. Fix the cause (a 401 or 403 means "
                 f"the token expired, was revoked or lacks a permission), then run "
-                f"`traceconomics analytics export{only}`.\n")
+                f"`traceconomics analytics export{only}`.\n",
+            )
     return result
 
 
@@ -232,8 +251,10 @@ def _run_sources(ctx: RunContext, state: dict) -> None:
 
 
 def render_report(config, now, due, force, stored, unchanged, ctx, to_back_up) -> str:
-    lines = [f"Archive run at {now:%Y-%m-%d %H:%M} ({config.timezone}).",
-             f"Why: {'forced by hand' if force and not due.due else due.reason}."]
+    lines = [
+        f"Archive run at {now:%Y-%m-%d %H:%M} ({config.timezone}).",
+        f"Why: {'forced by hand' if force and not due.due else due.reason}.",
+    ]
     if due.release_days:
         lines.append("Release days covered: " + ", ".join(d.isoformat() for d in due.release_days))
     if due.missed:
@@ -243,8 +264,11 @@ def render_report(config, now, due, force, stored, unchanged, ctx, to_back_up) -
             lines += ["", f"{title}:"] + [f"- {x}" for x in items]
     lines += ["", f"New files stored: {len(stored)}. Checked and unchanged: {len(unchanged)}."]
     lines += [f"- {r.source}/{r.dataset}" for r in stored]
-    lines += ["", f"Archive folder: {config.archive_dir}",
-              f"Files to back up (stored since the last `traceconomics backup-done`): {len(to_back_up)}"]
+    lines += [
+        "",
+        f"Archive folder: {config.archive_dir}",
+        f"Files to back up (stored since the last `traceconomics backup-done`): {len(to_back_up)}",
+    ]
     lines += [f"- {r['path']}" for r in to_back_up[:200]]
     if len(to_back_up) > 200:
         lines.append(f"- ... and {len(to_back_up) - 200} more (see `traceconomics status`)")
@@ -257,8 +281,13 @@ def fetch_history(config: Config, years: list[int], *, pause_seconds: float, dry
     archive = Archive(root)
     started = utc_now()
     today = datetime.now(ZoneInfo(config.timezone)).date()
-    ctx = RunContext(archive=archive, http=HttpClient(config.user_agent, pause_seconds),
-                     today=today, released_through=today, dry_run=dry_run)
+    ctx = RunContext(
+        archive=archive,
+        http=HttpClient(config.user_agent, pause_seconds),
+        today=today,
+        released_through=today,
+        dry_run=dry_run,
+    )
     if dry_run:
         elstat_history.fetch_years(ctx, years)
         return {"result": "dry-run", "planned": ctx.planned}
@@ -274,17 +303,25 @@ def fetch_history(config: Config, years: list[int], *, pause_seconds: float, dry
         if items:
             lines += [f"{title}:"] + [f"- {x}" for x in items] + [""]
     lines += [f"- {n}" for n in notes]
-    lines += ["", f"New files stored: {len(stored)}.", f"Archive folder: {config.archive_dir}",
-              f"Files to back up (stored since the last `traceconomics backup-done`): {len(to_back_up)}"]
+    lines += [
+        "",
+        f"New files stored: {len(stored)}.",
+        f"Archive folder: {config.archive_dir}",
+        f"Files to back up (stored since the last `traceconomics backup-done`): {len(to_back_up)}",
+    ]
     lines += [f"- {r['path']}" for r in to_back_up[:200]]
     flag = "ALERT: " if (ctx.failures or ctx.alerts) else ""
     sent_to = notify(config, f"{flag}history fetch: {len(stored)} new, {len(ctx.failures)} failed", "\n".join(lines))
     record = {
-        "started": iso(started), "finished": iso(utc_now()),
+        "started": iso(started),
+        "finished": iso(utc_now()),
         "result": "ok" if not ctx.failures else "failures",
         "reason": "history fetch, CPI table 07 " + ",".join(map(str, years)),
-        "stored": len(stored), "unchanged": len([r for r in ctx.results if r.status == "unchanged"]),
-        "failures": ctx.failures, "alerts": len(ctx.alerts), "report": sent_to,
+        "stored": len(stored),
+        "unchanged": len([r for r in ctx.results if r.status == "unchanged"]),
+        "failures": ctx.failures,
+        "alerts": len(ctx.alerts),
+        "report": sent_to,
     }
     archive.append_run(record)
     return record

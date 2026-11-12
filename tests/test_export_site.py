@@ -18,8 +18,10 @@ def blocks():
     b = {}
     for y in range(2008, 2027):
         last = 9 if y == 2026 else 12
-        b[y] = {c: {f"{y - 1}-12": 100.0, **{f"{y}-{m:02d}": 100 + m * k + (y % 3) * 0.17 * m for m in range(1, last + 1)}}
-                for c, k in (("011", 0.61), ("012", 0.23), ("041", 0.31), ("07", 0.83))}
+        b[y] = {
+            c: {f"{y - 1}-12": 100.0, **{f"{y}-{m:02d}": 100 + m * k + (y % 3) * 0.17 * m for m in range(1, last + 1)}}
+            for c, k in (("011", 0.61), ("012", 0.23), ("041", 0.31), ("07", 0.83))
+        }
     return b
 
 
@@ -27,8 +29,14 @@ def baskets(groups):
     out = {}
     for h in range(2008, 2025):
         for n, (g, q) in enumerate(groups):
-            shares = {"01": 0.4, "011": 0.3 + 0.01 * n, "012": 0.1 - 0.01 * n, "04": 0.25, "041": 0.25,
-                      "07": 0.35 - 0.001 * h % 7}
+            shares = {
+                "01": 0.4,
+                "011": 0.3 + 0.01 * n,
+                "012": 0.1 - 0.01 * n,
+                "04": 0.25,
+                "041": 0.25,
+                "07": 0.35 - 0.001 * h % 7,
+            }
             out[(h, g, q)] = Basket(shares, dict.fromkeys(shares, "normal"))
     return out
 
@@ -57,7 +65,7 @@ def test_calculator_file_rebuilds_every_preset_exactly():
     rebuilt = calculator.rebuild(w, r, 2019)
     s = next(x for x in series if (x.grouping, x.group) == ("B", "Q1"))
     assert all(round(v, 2) == s.published[p] for p, v in rebuilt.items() if p >= "2019-01")
-    assert max(len(v) for _, v in data["ratios"]["2026"]) == 9                 # months not out yet are left off
+    assert max(len(v) for _, v in data["ratios"]["2026"]) == 9  # months not out yet are left off
 
 
 def test_calculator_weights_are_summed_by_the_index_that_prices_them():
@@ -92,8 +100,11 @@ def write_outputs(tmp_path):
     b = blocks()
     groups = [("B", "Q1"), ("B", "Q5"), ("all", "all")]
     k = baskets(groups)
-    series = [index.build(None, g, q, blocks=b, baskets=k, first_year=None, options=dict(o))
-              for o in ({}, {"weights_timing": "U"}) for g, q in groups]
+    series = [
+        index.build(None, g, q, blocks=b, baskets=k, first_year=None, options=dict(o))
+        for o in ({}, {"weights_timing": "U"})
+        for g, q in groups
+    ]
     folder = tmp_path / "out" / "gr" / "m1"
     output.write(tmp_path / "out", series, [], {}, b)
     availability.write(folder, availability.build([availability.Summary.of(s) for s in series]))
@@ -120,11 +131,13 @@ def test_series_file_holds_published_values_on_one_month_axis(tmp_path):
     f = site.series_file(con, default, se, {})
     q1 = f["groups"]["B/Q1"]
     i = site._months(f["start"], f["end"]).index("2022-12")
-    expect = next(s for s in series if s.group == "Q1" and s.options["weights_timing"] == "N").rates()["2022-12"]["annual"]
+    expect = next(s for s in series if s.group == "Q1" and s.options["weights_timing"] == "N").rates()["2022-12"][
+        "annual"
+    ]
     assert q1["rch_a"][i] == round(expect, 1)
     assert f["gaps"]["B"]["se_a"][site._months(f["start"], f["end"]).index("2015-06")] == 0.123
     assert f["flags"][0]["code"] == "less certain" and f["flags"][0]["rch_a_to"] == "2011-12"
-    assert json.dumps(f)                                                       # plain JSON, no NaN
+    assert json.dumps(f)  # plain JSON, no NaN
 
 
 def test_a_rule_u_series_file_ends_with_its_surveys(tmp_path):
@@ -173,8 +186,10 @@ def test_official_rate_from_the_published_levels_of_two_files():
 
     Each year's file holds its own months plus the previous December; only its own months count.
     """
-    b = {2025: {"TOTAL": {"2024-12": 1.0, "2025-09": 122.06030611018821, "2025-12": 122.5}},
-         2026: {"TOTAL": {"2025-12": 999.0, "2026-08": 125.6, "2026-09": 128.223356317791}}}
+    b = {
+        2025: {"TOTAL": {"2024-12": 1.0, "2025-09": 122.06030611018821, "2025-12": 122.5}},
+        2026: {"TOTAL": {"2025-12": 999.0, "2026-08": 125.6, "2026-09": 128.223356317791}},
+    }
     out = site.official_rate(b, {"2026-08": 0.037, "2026-09": 0.05049184623573861})
     ours, theirs = out["computed"], out["published"]
     # Full precision, as ELSTAT computes it: rounding the indices first would give 5.0467.
@@ -267,10 +282,14 @@ def test_income_limits_file_names_the_missing_dataset_when_the_store_has_no_euro
         site.income_limits_file(con)
 
 
-@pytest.mark.parametrize("eur, pps, message", [
-    ({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000}, "one factor"),
-    ({"Q1": 7110}, {"Q2": 8272}, "don't match"),
-], ids=["ratios differ", "different quintiles"])
+@pytest.mark.parametrize(
+    "eur, pps, message",
+    [
+        ({"Q1": 7110, "Q2": 10269}, {"Q1": 8272, "Q2": 13000}, "one factor"),
+        ({"Q1": 7110}, {"Q2": 8272}, "don't match"),
+    ],
+    ids=["ratios differ", "different quintiles"],
+)
 def test_pps_factor_refuses_limits_that_dont_share_one(eur, pps, message):
     """PY-SITEEXP-012: the PPS factor refuses limits that don't share one
 

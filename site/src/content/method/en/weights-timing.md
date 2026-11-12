@@ -5,6 +5,7 @@ order: 5
 option: "weights_timing"
 sources: [reg-2020-1148, reg-2016-792, kepe-2024, kepe-2025]
 ---
+
 ## The default: rule N
 
 The law asks consumer price index weights to represent the year before. Rule N does that: a year's final weights come from the survey of the year before. That survey's microdata appear about sixteen months into the year, so until then a first estimate uses the newest survey available, and the year is revised once. In the pandemic years this gives what Eurostat and ELSTAT did: 2021 from the 2020 survey, 2023 from the 2022 survey.

@@ -25,7 +25,7 @@ import sys
 from html import escape
 from pathlib import Path
 
-ORDER = ("unit", "integration", "e2e")       # the lowest layer first
+ORDER = ("unit", "integration", "e2e")  # the lowest layer first
 
 # The back-end's standing, the same bounds as the site's (site/scripts/coverage-options.mjs): red
 # below FLOOR, yellow from FLOOR, green from GOOD.
@@ -97,16 +97,23 @@ def back_end(data_file: Path) -> dict:
 def front_end(summary_file: Path) -> dict:
     """Lines per layer for the site's code, from site/scripts/coverage.mjs's summary."""
     summary = json.loads(summary_file.read_text(encoding="utf-8"))
-    return {"files": summary["layers"]["files"], "problems": summary["layers"].get("problems", []),
-            "standing": summary.get("standing")}
+    return {
+        "files": summary["layers"]["files"],
+        "problems": summary["layers"].get("problems", []),
+        "standing": summary.get("standing"),
+    }
 
 
 def totals(files: dict, layers: tuple[str, ...]) -> dict:
     total = sum(f["total"] for f in files.values())
     covered = {k: sum(f[k] for f in files.values()) for k in layers}
     tenths, parts = split(total, covered)
-    return {"lines": total, "covered": sum(covered.values()), "pct": tenths / 10,
-            "layers": {k: {"lines": covered[k], "pct": parts[k] / 10} for k in layers}}
+    return {
+        "lines": total,
+        "covered": sum(covered.values()),
+        "pct": tenths / 10,
+        "layers": {k: {"lines": covered[k], "pct": parts[k] / 10} for k in layers},
+    }
 
 
 # The badge. Drawn here rather than by a badge service, so no third party sees or serves it.
@@ -124,25 +131,33 @@ def width(text: str) -> int:
 
 def badge(name: str, result: dict, level: str) -> str:
     """The badge's SVG; `level` (a standing) colours the total."""
-    pct = lambda v: f"{v:.1f}%"
+
+    def pct(v):
+        return f"{v:.1f}%"
+
     segments = [(f"{name} coverage", LABEL), (pct(result["pct"]), TOTAL[level])]
     segments += [(f"{NAMES[k]} {pct(v['pct'])}", LAYER[k]) for k, v in result["layers"].items()]
     parts = ", ".join(f"{LONG[k]} {pct(v['pct'])}" for k, v in result["layers"].items())
-    title = (f"{name.capitalize()} coverage: {pct(result['pct'])} of lines with code are run by a test "
-             f"({result['covered']} of {result['lines']}): {parts}. A line run by several kinds of test "
-             f"counts once, for the first of unit, integration, end-to-end.")
+    title = (
+        f"{name.capitalize()} coverage: {pct(result['pct'])} of lines with code are run by a test "
+        f"({result['covered']} of {result['lines']}): {parts}. A line run by several kinds of test "
+        f"counts once, for the first of unit, integration, end-to-end."
+    )
     x, rects, texts = 0, [], []
     for text, colour in segments:
         w = width(text)
         rects.append(f'<rect x="{x}" width="{w}" height="20" fill="{colour}"/>')
         texts.append(f'<text x="{x + w / 2}" y="14">{escape(text)}</text>')
         x += w
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{x}" height="20" role="img" '
-            f'aria-label="{escape(title)}">\n<title>{escape(title)}</title>\n'
-            f'<clipPath id="r"><rect width="{x}" height="20" rx="3"/></clipPath>\n'
-            f'<g clip-path="url(#r)">\n' + "\n".join(rects) + "\n</g>\n"
-            f'<g fill="#fff" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">\n'
-            + "\n".join(texts) + "\n</g>\n</svg>\n")
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{x}" height="20" role="img" '
+        f'aria-label="{escape(title)}">\n<title>{escape(title)}</title>\n'
+        f'<clipPath id="r"><rect width="{x}" height="20" rx="3"/></clipPath>\n'
+        f'<g clip-path="url(#r)">\n' + "\n".join(rects) + "\n</g>\n"
+        '<g fill="#fff" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">\n'
+        + "\n".join(texts)
+        + "\n</g>\n</svg>\n"
+    )
 
 
 def main(argv=None) -> int:
@@ -154,18 +169,21 @@ def main(argv=None) -> int:
     a = p.parse_args(argv)
 
     back, front = back_end(a.python), front_end(a.site)
-    summary = {"back-end": totals(back["files"], ("unit", "integration")) | {"files": back["files"]},
-               "front-end": totals(front["files"], ORDER) | {"files": front["files"]}}
+    summary = {
+        "back-end": totals(back["files"], ("unit", "integration")) | {"files": back["files"]},
+        "front-end": totals(front["files"], ORDER) | {"files": front["files"]},
+    }
     problems = back["problems"] + front["problems"]
     a.out.mkdir(parents=True, exist_ok=True)
     (a.out / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8", newline="\n")
     standings = {"back-end": standing(summary["back-end"]["pct"]), "front-end": front["standing"]}
     for name, level in standings.items():
-        (a.out / f"coverage-{name}.svg").write_text(badge(name, summary[name], level), encoding="utf-8",
-                                                    newline="\n")
+        (a.out / f"coverage-{name}.svg").write_text(badge(name, summary[name], level), encoding="utf-8", newline="\n")
         s = summary[name]
-        print(f"{name} coverage {s['pct']}% ({s['covered']} of {s['lines']} lines): "
-              + ", ".join(f"{k} {v['pct']}%" for k, v in s["layers"].items()))
+        print(
+            f"{name} coverage {s['pct']}% ({s['covered']} of {s['lines']} lines): "
+            + ", ".join(f"{k} {v['pct']}%" for k, v in s["layers"].items())
+        )
     failed = False
     if problems:
         print(f"{len(problems)} covered lines with a wrong or missing layer:", *problems[:20], sep="\n  ")

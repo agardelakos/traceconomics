@@ -8,7 +8,6 @@ import re
 import urllib.request
 
 import pytest
-
 from helpers import SITE, default_slug, sitemap_paths
 
 

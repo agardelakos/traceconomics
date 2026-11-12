@@ -1,7 +1,15 @@
 ---
 title: "How we check official figures"
 summary: "What “agree” means for each check, and what a check can tell you."
-sources: [elstat-cpi-rates, elstat-cpi-items, eurostat-prc-hicp-minr, elstat-hbs-t103, elstat-hbs-puf, eurostat-ilc-di01]
+sources:
+  [
+    elstat-cpi-rates,
+    elstat-cpi-items,
+    eurostat-prc-hicp-minr,
+    elstat-hbs-t103,
+    elstat-hbs-puf,
+    eurostat-ilc-di01,
+  ]
 ---
 
 ## Two published numbers, one rule

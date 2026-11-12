@@ -11,7 +11,6 @@ approximately otherwise (2008, 2009 and 2014: monthly money income rounded to th
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 
 from traceconomics.archive.store import Archive
@@ -22,9 +21,9 @@ from traceconomics.module1 import index
 from traceconomics.module1.weights_used import load_baskets
 from traceconomics.sources.elstat import hbs_tables
 
-HOSPITAL_OLD = "06311"        # in the 2008-2014 tables
-HOSPITAL_2018 = "06310"       # where the mapping sends the old group 06.3
-SURVEYS = range(2008, 2015)   # the surveys behind index years 2009-2015 that lack it
+HOSPITAL_OLD = "06311"  # in the 2008-2014 tables
+HOSPITAL_2018 = "06310"  # where the mapping sends the old group 06.3
+SURVEYS = range(2008, 2015)  # the surveys behind index years 2009-2015 that lack it
 
 
 def with_hospital(survey, table) -> tuple[pd.Series, str]:
@@ -51,7 +50,9 @@ def baskets_with_hospital(archive: Archive, year: int, groups_wanted) -> tuple[d
     mapped.purchases = p
     out = baskets_from(year, mapped, groups, groups_wanted)
     w = survey.households.weight
-    share = float((euros * w).sum() / (mapped.purchases[[c for c in mapped.purchases if len(c) == 2]].sum(axis=1) * w).sum())
+    share = float(
+        (euros * w).sum() / (mapped.purchases[[c for c in mapped.purchases if len(c) == 2]].sum(axis=1) * w).sum()
+    )
     return out, how, share
 
 

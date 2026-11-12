@@ -17,10 +17,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
-
-from email.utils import parsedate_to_datetime
 
 from traceconomics.archive.store import Archive, StoreResult, sha256_file, utc_now
 from traceconomics.sources import elstat
@@ -63,12 +62,20 @@ def dataset_for_url(url: str) -> tuple[str, str] | None:
     return None
 
 
-def import_file(archive: Archive, path: Path, *, source: str, dataset: str | None, url: str | None,
-                downloaded: date | None, note: str | None) -> StoreResult:
+def import_file(
+    archive: Archive,
+    path: Path,
+    *,
+    source: str,
+    dataset: str | None,
+    url: str | None,
+    downloaded: date | None,
+    note: str | None,
+) -> StoreResult:
     if dataset is None and source == "aade":
         # Named as the adapter names a fetched workbook, so a hand import and a fetch of the
         # same file land in the same dataset (two would count one tax year twice).
-        from traceconomics.sources.aade import dataset_for   # aade imports this module
+        from traceconomics.sources.aade import dataset_for  # aade imports this module
 
         dataset = dataset_for(path.name)
     dataset = dataset or f"puf-{slug(path.stem)}"
@@ -76,16 +83,27 @@ def import_file(archive: Archive, path: Path, *, source: str, dataset: str | Non
     extra = {"original_name": path.name, "note": note or "downloaded by hand"}
     if downloaded:
         extra["retrieved_at_precision"] = "date"
-    return archive.store_file(source, dataset, path, url=url, retrieved_at=when, ext=_ext(path),
-                              kind="manual", dedupe="any", extra=extra, move=False)
+    return archive.store_file(
+        source,
+        dataset,
+        path,
+        url=url,
+        retrieved_at=when,
+        ext=_ext(path),
+        kind="manual",
+        dedupe="any",
+        extra=extra,
+        move=False,
+    )
 
 
 # A Wayback Machine address for a capture's raw bytes: /web/<14-digit capture time>id_/<original address>.
 WAYBACK = re.compile(r"^https?://web\.archive\.org/web/(\d{14})id_/(https?://.+)$")
 
 
-def import_wayback(archive: Archive, path: Path, *, source: str, dataset: str, url: str,
-                   downloaded: date, note: str | None) -> StoreResult:
+def import_wayback(
+    archive: Archive, path: Path, *, source: str, dataset: str, url: str, downloaded: date, note: str | None
+) -> StoreResult:
     """Add a publisher's past file as kept by the Internet Archive's Wayback Machine.
 
     The snapshot is stamped with the capture time, not the download time, so a 2010 copy
@@ -99,14 +117,30 @@ def import_wayback(archive: Archive, path: Path, *, source: str, dataset: str, u
     if not dataset.endswith("-wayback"):
         raise ValueError(f"a Wayback copy's dataset must end in '-wayback': {dataset}")
     captured = datetime.strptime(m.group(1), "%Y%m%d%H%M%S").replace(tzinfo=UTC)
-    extra = {"original_name": path.name, "original_url": m.group(2),
-             "captured_at": captured.strftime("%Y-%m-%dT%H:%M:%SZ"), "downloaded": downloaded.isoformat(),
-             "copy_of": "web.archive.org", "note": note or "a past copy kept by the Internet Archive's Wayback Machine"}
-    return archive.store_file(source, dataset, path, url=url, retrieved_at=captured, ext=_ext(path),
-                              kind="wayback", dedupe="any", extra=extra, move=False)
+    extra = {
+        "original_name": path.name,
+        "original_url": m.group(2),
+        "captured_at": captured.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "downloaded": downloaded.isoformat(),
+        "copy_of": "web.archive.org",
+        "note": note or "a past copy kept by the Internet Archive's Wayback Machine",
+    }
+    return archive.store_file(
+        source,
+        dataset,
+        path,
+        url=url,
+        retrieved_at=captured,
+        ext=_ext(path),
+        kind="wayback",
+        dedupe="any",
+        extra=extra,
+        move=False,
+    )
 
 
 # -- seeding ----------------------------------------------------------------
+
 
 @dataclass
 class Candidate:
@@ -151,7 +185,10 @@ def _md_tables(text: str) -> list[list[dict[str, str]]]:
             if header is None:
                 header = [c.lower() for c in cells]
             elif not all(set(c) <= set("-: ") for c in cells):
-                rows.append(dict(zip(header, cells)))
+                # Not strict: these are hand-written tables, and a row with a stray "|" in a cell is
+                # read as far as its header reaches. Every file seeded from them is checked against
+                # its recorded checksum first, so a misread row can't bring in the wrong file.
+                rows.append(dict(zip(header, cells, strict=False)))
         elif header is not None:
             tables.append(rows)
             rows, header = [], None
@@ -201,7 +238,11 @@ def find_candidates(research_root: Path) -> tuple[list[Candidate], list[str], in
                 if not name or not url or not url.startswith("http"):
                     continue
                 day_text = _pick(row, "date", "downloaded")
-                day = date.fromisoformat(day_text[:10]) if day_text and re.match(r"\d{4}-\d{2}-\d{2}", day_text) else _folder_date(folder)
+                day = (
+                    date.fromisoformat(day_text[:10])
+                    if day_text and re.match(r"\d{4}-\d{2}-\d{2}", day_text)
+                    else _folder_date(folder)
+                )
                 sha = _pick(row, "sha")
                 sha = sha.lower() if sha and re.fullmatch(r"[0-9a-fA-F]{64}", sha) else sums.get(name)
                 path = folder / name
@@ -226,7 +267,8 @@ def find_candidates(research_root: Path) -> tuple[list[Candidate], list[str], in
         listed.add(c.path.resolve())
     records = {"MANIFEST.md", "README.md", "SHA256SUMS"}
     unrecorded = sum(
-        1 for p in research_root.rglob("*")
+        1
+        for p in research_root.rglob("*")
         if p.is_file() and p.name not in records and p.suffix != ".hdr" and p.resolve() not in listed
     )
     return candidates, skipped, unrecorded
@@ -263,8 +305,11 @@ def _hdr_candidates(research_root: Path, listed: set[Path]) -> list[Candidate]:
         url = elstat.DOC_URL.format(doc=doc).replace("locale=en", f"locale={lang}")
         when = parsedate_to_datetime(headers["date"]).astimezone(UTC)
         dataset = f"doc-{doc}" + ("" if lang == "en" else "-el")
-        out.append(Candidate(path, url, when.date(), None, "elstat", dataset,
-                             http={"status": status, "headers": headers}, when=when))
+        out.append(
+            Candidate(
+                path, url, when.date(), None, "elstat", dataset, http={"status": status, "headers": headers}, when=when
+            )
+        )
     return out
 
 
@@ -290,8 +335,17 @@ def seed(archive: Archive, research_root: Path, *, dry_run: bool = False) -> See
             extra["note"] = "copied from an earlier research download; URL rebuilt from the document ID"
             when = c.when
         result = archive.store_file(
-            c.source, c.dataset, c.path, url=c.url, retrieved_at=when, http=c.http,
-            ext=_ext(c.path), kind=c.kind, dedupe="any", extra=extra, move=False,
+            c.source,
+            c.dataset,
+            c.path,
+            url=c.url,
+            retrieved_at=when,
+            http=c.http,
+            ext=_ext(c.path),
+            kind=c.kind,
+            dedupe="any",
+            extra=extra,
+            move=False,
         )
         if result.status == "stored":
             report.stored.append(f"{c.source}/{c.dataset}")

@@ -28,8 +28,8 @@ from traceconomics.local.weights import Prepared, prepare
 from traceconomics.module1 import index
 from traceconomics.module1.weights_used import load_baskets
 
-RENT = "041"                    # actual rentals for housing, COICOP 2018
-SAME_BASKET = 1e-12             # a tenure group's basket after scaling all its members alike: equal up to rounding
+RENT = "041"  # actual rentals for housing, COICOP 2018
+SAME_BASKET = 1e-12  # a tenure group's basket after scaling all its members alike: equal up to rounding
 
 
 def renter_share(weights: np.ndarray, tenure) -> float:
@@ -47,11 +47,18 @@ def survey_baskets(p: Prepared, wanted) -> tuple[dict, dict, dict]:
         if grouping == "tenure":
             a = after[(y, grouping, label)].shares
             moved = max(abs(a.get(c, 0.0) - s) for c, s in b.shares.items())
-            require(moved < SAME_BASKET, f"{year}: the {label} basket moved by {moved:g} when only weights within it were scaled")
+            require(
+                moved < SAME_BASKET,
+                f"{year}: the {label} basket moved by {moved:g} when only weights within it were scaled",
+            )
     tenure = p.as_read["tenure"]
-    note = {"renters_before": renter_share(p.survey.households.weight.to_numpy(float), tenure),
-            "renters_after": renter_share(p.calibrated.households.weight.to_numpy(float), tenure),
-            "target": p.target.shares["renter"], "basis": p.target.basis, "factors": p.factors}
+    note = {
+        "renters_before": renter_share(p.survey.households.weight.to_numpy(float), tenure),
+        "renters_after": renter_share(p.calibrated.households.weight.to_numpy(float), tenure),
+        "target": p.target.shares["renter"],
+        "basis": p.target.basis,
+        "factors": p.factors,
+    }
     return before, after, note
 
 
@@ -66,9 +73,18 @@ def run(archive: Archive, con, groups_wanted=None, years=None) -> dict:
     for year in years:
         before, after, note = survey_baskets(prepare(archive, year), wanted)
         # The calibrated baskets rebuilt here should be the stored ones: a gap means the store is stale.
-        gap = max((abs(stored[k].shares.get(c, 0.0) - s) for k, b in after.items() if k in stored
-                   for c, s in b.shares.items()), default=0.0)
-        require(all(k in stored for k in after), f"{year}: groups built here are missing from the store: run `weights run`")
+        gap = max(
+            (
+                abs(stored[k].shares.get(c, 0.0) - s)
+                for k, b in after.items()
+                if k in stored
+                for c, s in b.shares.items()
+            ),
+            default=0.0,
+        )
+        require(
+            all(k in stored for k in after), f"{year}: groups built here are missing from the store: run `weights run`"
+        )
         note["store_gap"] = gap
         base.update(before)
         changed.update(after)
@@ -82,15 +98,26 @@ def run(archive: Archive, con, groups_wanted=None, years=None) -> dict:
         rates[(grouping, label)] = (ra, rb)
         name = f"{grouping}/{label}"
         report["series"][name] = {
-            y: {"annual_average": round(rb[y] - ra[y], 3),
+            y: {
+                "annual_average": round(rb[y] - ra[y], 3),
                 "december": round(db[f"{y}-12"]["annual"] - da[f"{y}-12"]["annual"], 3)
-                if "annual" in da.get(f"{y}-12", {}) and "annual" in db.get(f"{y}-12", {}) else None}
-            for y in sorted(ra) if y in rb}
-        report["rent_share"][name] = {y: (round(base[(y, grouping, label)].shares.get(RENT, 0.0), 4),
-                                          round(changed[(y, grouping, label)].shares.get(RENT, 0.0), 4))
-                                      for y in years if (y, grouping, label) in base and (y, grouping, label) in changed}
+                if "annual" in da.get(f"{y}-12", {}) and "annual" in db.get(f"{y}-12", {})
+                else None,
+            }
+            for y in sorted(ra)
+            if y in rb
+        }
+        report["rent_share"][name] = {
+            y: (
+                round(base[(y, grouping, label)].shares.get(RENT, 0.0), 4),
+                round(changed[(y, grouping, label)].shares.get(RENT, 0.0), 4),
+            )
+            for y in years
+            if (y, grouping, label) in base and (y, grouping, label) in changed
+        }
     if ("B", "Q1") in rates and ("B", "Q5") in rates:
         (a1, b1), (a5, b5) = rates[("B", "Q1")], rates[("B", "Q5")]
-        report["gap_change"] = {y: round((b1[y] - b5[y]) - (a1[y] - a5[y]), 3)
-                                for y in sorted(a1) if y in b1 and y in a5 and y in b5}
+        report["gap_change"] = {
+            y: round((b1[y] - b5[y]) - (a1[y] - a5[y]), 3) for y in sorted(a1) if y in b1 and y in a5 and y in b5
+        }
     return report

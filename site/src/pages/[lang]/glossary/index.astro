@@ -18,10 +18,19 @@ const collator = new Intl.Collator(LOCALE[lang]);
 const terms = (await getCollection("glossary", (e) => e.id.startsWith(`${lang}/`)))
   .map((e) => ({ slug: e.id.split("/")[1], ...e.data }))
   .sort((a, b) => collator.compare(a.term, b.term));
-const groups = GLOSSARY_CATEGORIES.map((key) => ({ key, terms: terms.filter((e) => e.category === key) }))
-  .filter((g) => g.terms.length > 0);
+const groups = GLOSSARY_CATEGORIES.map((key) => ({
+  key,
+  terms: terms.filter((e) => e.category === key),
+})).filter((g) => g.terms.length > 0);
 ---
-<Base lang={lang} title={t(lang, "glossary.title")} description={t(lang, "glossary.lead")} path="glossary" current="glossary">
+
+<Base
+  lang={lang}
+  title={t(lang, "glossary.title")}
+  description={t(lang, "glossary.lead")}
+  path="glossary"
+  current="glossary"
+>
   <div class="stack-lg" style="max-width: 760px">
     <div class="stack" style="gap: var(--space-2)">
       <Breadcrumb lang={lang} trail={[[t(lang, "nav.glossary")]]} />
@@ -29,21 +38,35 @@ const groups = GLOSSARY_CATEGORIES.map((key) => ({ key, terms: terms.filter((e) 
       <p class="muted">{t(lang, "glossary.lead")}</p>
     </div>
     <nav aria-label={t(lang, "glossary.jump")} class="chips">
-      {groups.map((g) => <a class="chip" href={`#${g.key}`} style="text-decoration: none">{t(lang, `glossary.cat.${g.key}`)}</a>)}
+      {groups.map((g) => (
+        <a class="chip" href={`#${g.key}`} style="text-decoration: none">
+          {t(lang, `glossary.cat.${g.key}`)}
+        </a>
+      ))}
     </nav>
-    <label class="stack" style="gap: 6px; font-weight: 600">{t(lang, "glossary.search")}
+    <label class="stack" style="gap: 6px; font-weight: 600">
+      {t(lang, "glossary.search")}
       <input type="search" id="glossary-search" autocomplete="off" />
     </label>
     <div class="stack-lg" id="glossary-list">
       {groups.map((g) => (
         <section class="stack glossary-group" aria-labelledby={g.key} style="gap: 0">
           <h2 id={g.key}>{t(lang, `glossary.cat.${g.key}`)}</h2>
-          <p class="muted small" style="margin: 2px 0 var(--space-2)">{t(lang, `glossary.cat.${g.key}.text`)}</p>
+          <p class="muted small" style="margin: 2px 0 var(--space-2)">
+            {t(lang, `glossary.cat.${g.key}.text`)}
+          </p>
           <ul class="stack" style="list-style: none; margin: 0; padding: 0; gap: 0">
             {g.terms.map((e) => (
-              <li data-text={`${e.term} ${e.other} ${e.short}`.toLowerCase()} style="padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border)">
-                <a href={href(lang, `glossary/${e.slug}`)} style="font-weight: 700">{e.term}</a>
-                <p class="muted" style="margin-top: 2px">{e.short}</p>
+              <li
+                data-text={`${e.term} ${e.other} ${e.short}`.toLowerCase()}
+                style="padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border)"
+              >
+                <a href={href(lang, `glossary/${e.slug}`)} style="font-weight: 700">
+                  {e.term}
+                </a>
+                <p class="muted" style="margin-top: 2px">
+                  {e.short}
+                </p>
               </li>
             ))}
           </ul>
@@ -55,7 +78,9 @@ const groups = GLOSSARY_CATEGORIES.map((key) => ({ key, terms: terms.filter((e) 
 
 <script>
   const input = document.getElementById("glossary-search") as HTMLInputElement | null;
-  const groups = Array.from(document.querySelectorAll<HTMLElement>("#glossary-list > .glossary-group"));
+  const groups = Array.from(
+    document.querySelectorAll<HTMLElement>("#glossary-list > .glossary-group"),
+  );
   const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
   input?.addEventListener("input", () => {
     const q = fold(input.value.trim());

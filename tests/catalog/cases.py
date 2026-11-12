@@ -34,7 +34,7 @@ Standard library only.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 
 SUITES = {"pytest": "PY", "selenium": "SEL", "playwright": "PW", "vitest": "VT"}
 ID = re.compile(r"^(PY|SEL|PW|VT)-([A-Z][A-Z0-9]{1,9})-(\d{3})$")
@@ -46,28 +46,29 @@ ISSUE = re.compile(r"(?<![\w/])#(\d+)\b")
 @dataclass
 class Case:
     """One test case: what the catalog, the validator, the run history and the wiki share."""
-    id: str | None                      # None: a test with no case yet
-    suite: str                          # pytest | selenium | playwright | vitest
+
+    id: str | None  # None: a test with no case yet
+    suite: str  # pytest | selenium | playwright | vitest
     title: str
-    file: str                           # repository-relative path
+    file: str  # repository-relative path
     line: int
-    node: str                           # the test's own name in its suite (pytest node ID without
-                                        # parameters; Playwright and Vitest: file › titles)
+    node: str  # the test's own name in its suite (pytest node ID without
+    # parameters; Playwright and Vitest: file › titles)
     given: list[str] = field(default_factory=list)
     when: list[str] = field(default_factory=list)
     then: list[str] = field(default_factory=list)
     notes: str = ""
-    examples: list[str] = field(default_factory=list)   # outline examples (parameter IDs, titles)
-    defects: list[int] = field(default_factory=list)    # issue numbers
+    examples: list[str] = field(default_factory=list)  # outline examples (parameter IDs, titles)
+    defects: list[int] = field(default_factory=list)  # issue numbers
     tags: list[str] = field(default_factory=list)
-    problems: list[str] = field(default_factory=list)   # what the reader found wrong in the text
-    named: bool = False                                 # the title was given with the case, not taken from the test
+    problems: list[str] = field(default_factory=list)  # what the reader found wrong in the text
+    named: bool = False  # the title was given with the case, not taken from the test
 
     def to_json(self) -> dict:
         return asdict(self)
 
     @staticmethod
-    def from_json(d: dict) -> "Case":
+    def from_json(d: dict) -> Case:
         return Case(**d)
 
 

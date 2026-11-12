@@ -112,17 +112,29 @@ def test_badge_shows_total_and_parts_and_nothing_else():
     And its title gives the total, each part and the rule for lines run by several layers
     And it has no script and refers to no other file or site
     """
-    result = {"lines": 1000, "covered": 924, "pct": 92.4,
-              "layers": {"unit": {"lines": 600, "pct": 60.0}, "integration": {"lines": 50, "pct": 5.0},
-                         "e2e": {"lines": 274, "pct": 27.4}}}
+    result = {
+        "lines": 1000,
+        "covered": 924,
+        "pct": 92.4,
+        "layers": {
+            "unit": {"lines": 600, "pct": 60.0},
+            "integration": {"lines": 50, "pct": 5.0},
+            "e2e": {"lines": 274, "pct": 27.4},
+        },
+    }
     svg = overview.badge("front-end", result, "fair")
     root = ET.fromstring(svg)
     ns = {"s": "http://www.w3.org/2000/svg"}
     texts = [t.text for t in root.iterfind(".//s:g/s:text", ns)]
     assert texts == ["front-end coverage", "92.4%", "unit 60.0%", "integration 5.0%", "e2e 27.4%"]
     title = root.find("s:title", ns).text
-    for part in ("92.4%", "unit tests 60.0%", "integration tests 5.0%", "end-to-end tests in a browser 27.4%",
-                 "counts once"):
+    for part in (
+        "92.4%",
+        "unit tests 60.0%",
+        "integration tests 5.0%",
+        "end-to-end tests in a browser 27.4%",
+        "counts once",
+    ):
         assert part in title
     assert "<script" not in svg and "href" not in svg and "http" not in svg.replace(ns["s"], "")
 
@@ -140,9 +152,19 @@ def test_back_end_standing_has_the_sites_bounds():
 
 
 def site_summary(path: Path) -> Path:
-    path.write_text(json.dumps({"standing": "good", "layers": {
-        "files": {"src/lib/a.ts": {"total": 2, "unit": 1, "integration": 0, "e2e": 1}}, "problems": []}}),
-        encoding="utf-8", newline="\n")
+    path.write_text(
+        json.dumps(
+            {
+                "standing": "good",
+                "layers": {
+                    "files": {"src/lib/a.ts": {"total": 2, "unit": 1, "integration": 0, "e2e": 1}},
+                    "problems": [],
+                },
+            }
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
     return path
 
 
@@ -167,8 +189,7 @@ def test_strict_run_fails_below_the_ratchet(tmp_path):
     full = tmp_path / "full"
     full.mkdir()
     data_file, _ = write_data(full, {"unit": [1, 2, 3, 4, 5]})
-    assert overview.main(["--python", str(data_file), "--site", str(site), "--out", str(full / "out"),
-                          "--strict"]) == 0
+    assert overview.main(["--python", str(data_file), "--site", str(site), "--out", str(full / "out"), "--strict"]) == 0
 
 
 def run_pytest(project: Path, *args: str) -> subprocess.CompletedProcess:
@@ -183,9 +204,12 @@ def project(tmp_path: Path, tests: dict[str, str]) -> Path:
     (tmp_path / "pyproject.toml").write_text(
         '[tool.pytest.ini_options]\nmarkers = ["unit: u", "integration: i", "repository: r"]\n'
         '[tool.coverage.run]\ncore = "ctrace"\nsource = ["."]\nomit = ["conftest.py", "test_*.py"]\n',
-        encoding="utf-8", newline="\n")
+        encoding="utf-8",
+        newline="\n",
+    )
     (tmp_path / "lib.py").write_text(
-        "def low():\n    return 1\n\n\ndef high():\n    return 2\n", encoding="utf-8", newline="\n")
+        "def low():\n    return 1\n\n\ndef high():\n    return 2\n", encoding="utf-8", newline="\n"
+    )
     for name, body in tests.items():
         (tmp_path / name).write_text(body, encoding="utf-8", newline="\n")
     return tmp_path
@@ -199,10 +223,13 @@ def test_a_test_file_without_a_layer_stops_the_run(tmp_path):
     Then it stops with a usage error naming the file without a layer
     And no test runs
     """
-    p = project(tmp_path, {
-        "test_marked.py": "import pytest\n\npytestmark = pytest.mark.unit\n\n\ndef test_a():\n    pass\n",
-        "test_bare.py": "def test_b():\n    pass\n",
-    })
+    p = project(
+        tmp_path,
+        {
+            "test_marked.py": "import pytest\n\npytestmark = pytest.mark.unit\n\n\ndef test_a():\n    pass\n",
+            "test_bare.py": "def test_b():\n    pass\n",
+        },
+    )
     done = run_pytest(p, "-m", "pytest", "-p", "no:cacheprovider")
     assert done.returncode == pytest.ExitCode.USAGE_ERROR, done.stdout + done.stderr
     assert "test_bare.py" in done.stderr and "test_marked.py" not in done.stderr
@@ -217,16 +244,21 @@ def test_each_line_is_labelled_with_the_layer_that_ran_it(tmp_path):
     Then the first function's body is recorded under unit and the second's under integration
     And the module-level lines, run when the file is imported, are recorded under the file's layer
     """
-    p = project(tmp_path, {
-        "test_lib.py": ("import pytest\n\nimport lib\n\npytestmark = pytest.mark.unit\n\n\n"
-                        "def test_low():\n    assert lib.low() == 1\n\n\n"
-                        "@pytest.mark.integration\ndef test_high():\n    assert lib.high() == 2\n"),
-    })
+    p = project(
+        tmp_path,
+        {
+            "test_lib.py": (
+                "import pytest\n\nimport lib\n\npytestmark = pytest.mark.unit\n\n\n"
+                "def test_low():\n    assert lib.low() == 1\n\n\n"
+                "@pytest.mark.integration\ndef test_high():\n    assert lib.high() == 2\n"
+            ),
+        },
+    )
     done = run_pytest(p, "-m", "coverage", "run", "-m", "pytest", "-p", "no:cacheprovider")
     assert done.returncode == 0, done.stdout + done.stderr
     data = coverage.CoverageData(str(p / ".coverage"))
     data.read()
     by_line = data.contexts_by_lineno(str(p / "lib.py"))
-    assert set(by_line[2]) == {"unit"}              # low()'s body
-    assert set(by_line[6]) == {"integration"}       # high()'s body
-    assert set(by_line[1]) == {"unit"} and set(by_line[5]) == {"unit"}   # the defs, run on import
+    assert set(by_line[2]) == {"unit"}  # low()'s body
+    assert set(by_line[6]) == {"integration"}  # high()'s body
+    assert set(by_line[1]) == {"unit"} and set(by_line[5]) == {"unit"}  # the defs, run on import

@@ -5,6 +5,7 @@ order: 3
 option: "imputed_rent"
 sources: [hicp-manual-2024, bruegel-inflation-inequality, ecb-article-2023]
 ---
+
 ## The default: left out
 
 Owners don't pay rent, but the survey records what their home would rent for, so that owners' and renters' spending can be compared. No price index for it exists for Greece, and the HICP leaves it out ("currently not permitted", in Eurostat's manual). We leave it out too and rescale the other shares, as Bruegel's and the ECB's studies of inflation by income group do.

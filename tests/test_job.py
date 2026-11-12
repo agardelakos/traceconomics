@@ -30,6 +30,7 @@ def state_with(dates, last):
 
 # -- when a run is due ------------------------------------------------------
 
+
 def test_first_run_is_due(tmp_path):
     """PY-JOB-001: the first run is always due
 
@@ -101,6 +102,7 @@ def test_extra_dates_count(tmp_path):
 
 # -- whole runs against fake publishers -------------------------------------
 
+
 class FakeHttp:
     """Serves fixtures instead of the network and records what was asked for."""
 
@@ -138,7 +140,9 @@ def fake_files():
         "prc_hicp_esms": b"<html><body><p>metadata</p></body></html>",
         "copyright-notice": b"<html><body><p>reuse allowed</p></body></html>",
         "legal-notice": b"<html><body><p>reuse allowed</p></body></html>",
-        "annual-statistical-reports-natural-persons": (FIX / "aade_annual_reports_natural_persons_en.html").read_bytes(),
+        "annual-statistical-reports-natural-persons": (
+            FIX / "aade_annual_reports_natural_persons_en.html"
+        ).read_bytes(),
         "/sites/default/files/": b"xlsx bytes",
         "terms-use-iaprs-website": b"<html><body><p>use allowed if accurately reproduced</p></body></html>",
         "pneumatika": b"<html><body><p>reuse allowed</p></body></html>",
@@ -366,6 +370,7 @@ def test_release_is_off_by_default(tmp_path, fake_http, monkeypatch):
 
 # -- visit counts (exported every day, due or not) ---------------------------
 
+
 def _not_due_state(tmp_path):
     root = tmp_path / "archive"
     (root / "state").mkdir(parents=True)
@@ -389,9 +394,15 @@ def test_a_quiet_day_still_exports_visit_counts_and_backs_them_up(tmp_path, monk
         if feed is not job.analytics.VISITS:
             return {"result": "off"}
         seen.append(today)
-        archive.store_bytes("cloudflare", "web-analytics", b'{"day": "2026-11-11"}\n', url=None,
-                            retrieved_at=datetime(2026, 11, 12, 11, tzinfo=ZoneInfo("UTC")), ext=".json",
-                            extra={"day": "2026-11-11"})
+        archive.store_bytes(
+            "cloudflare",
+            "web-analytics",
+            b'{"day": "2026-11-11"}\n',
+            url=None,
+            retrieved_at=datetime(2026, 11, 12, 11, tzinfo=ZoneInfo("UTC")),
+            ext=".json",
+            extra={"day": "2026-11-11"},
+        )
         state["analytics_through"] = "2026-11-11"
         return {"result": "ok", "days": ["2026-11-11"], "stored": 1}
 
@@ -415,11 +426,19 @@ def test_the_bookmark_is_rebuilt_from_the_archive(tmp_path, monkeypatch):
     archive = Archive(tmp_path / "archive")
     # Stored last but not the latest day (a manual fill), and today's, not over yet: neither counts.
     for day, stored_hour in (("2026-11-09", 11), ("2026-11-05", 12), ("2026-11-12", 13)):
-        archive.store_bytes("cloudflare", "web-analytics", f'{{"day": "{day}"}}\n'.encode(), url=None,
-                            retrieved_at=datetime(2026, 11, 12, stored_hour, tzinfo=ZoneInfo("UTC")), ext=".json",
-                            extra={"day": day})
+        archive.store_bytes(
+            "cloudflare",
+            "web-analytics",
+            f'{{"day": "{day}"}}\n'.encode(),
+            url=None,
+            retrieved_at=datetime(2026, 11, 12, stored_hour, tzinfo=ZoneInfo("UTC")),
+            ext=".json",
+            extra={"day": day},
+        )
     seen = []
-    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today, feed: seen.append(dict(state)) or {"result": "off"})
+    monkeypatch.setattr(
+        job.analytics, "export", lambda archive, state, today, feed: seen.append(dict(state)) or {"result": "off"}
+    )
     job.export_analytics(cfg(tmp_path), archive, {}, at(2026, 11, 12, 13))
     assert seen[0]["analytics_through"] == "2026-11-09"
 
@@ -436,7 +455,9 @@ def test_a_failing_export_alerts_only_when_days_are_running_out(tmp_path, monkey
     """
     sent = []
     monkeypatch.setattr(job, "notify", lambda config, subject, body: sent.append(subject) or "outbox")
-    monkeypatch.setattr(job.analytics, "export", lambda archive, state, today, feed: {"result": "failed", "error": "401"})
+    monkeypatch.setattr(
+        job.analytics, "export", lambda archive, state, today, feed: {"result": "failed", "error": "401"}
+    )
     state = {} if through is None else {"analytics_through": through}
     job.export_analytics(cfg(tmp_path), Archive(tmp_path / "archive"), state, at(2026, 11, 12, 13))
     assert len(sent) == alerts and all(s.startswith("ALERT: analytics export") for s in sent)
@@ -453,16 +474,25 @@ def test_each_feed_has_its_own_bookmark_and_alert(tmp_path, monkeypatch):
     And its body says how many days Cloudflare keeps (31) and gives the command with "--feed downloads"
     """
     archive = Archive(tmp_path / "archive")
-    archive.store_bytes("cloudflare", "downloads", b'{"day": "2026-11-07"}\n', url=None,
-                        retrieved_at=datetime(2026, 11, 9, 11, tzinfo=ZoneInfo("UTC")), ext=".json",
-                        extra={"day": "2026-11-07"})
+    archive.store_bytes(
+        "cloudflare",
+        "downloads",
+        b'{"day": "2026-11-07"}\n',
+        url=None,
+        retrieved_at=datetime(2026, 11, 9, 11, tzinfo=ZoneInfo("UTC")),
+        ext=".json",
+        extra={"day": "2026-11-07"},
+    )
     sent, seen = [], []
     monkeypatch.setattr(job, "notify", lambda config, subject, body: sent.append((subject, body)) or "outbox")
-    monkeypatch.setattr(job.analytics, "export",
-                        lambda archive, state, today, feed: seen.append(dict(state)) or {"result": "failed", "error": "403"})
+    monkeypatch.setattr(
+        job.analytics,
+        "export",
+        lambda archive, state, today, feed: seen.append(dict(state)) or {"result": "failed", "error": "403"},
+    )
     state = {"analytics_through": "2026-11-11"}
     job.export_analytics(cfg(tmp_path), archive, state, at(2026, 11, 12, 13), job.analytics.DOWNLOADS)
     assert seen[0] == {"analytics_through": "2026-11-11", "downloads_through": "2026-11-07"}
-    (subject, body), = sent
+    ((subject, body),) = sent
     assert subject == "ALERT: analytics export (downloads) failing, 4 days not copied"
     assert "31 days" in body and "--feed downloads" in body

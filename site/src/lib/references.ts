@@ -36,10 +36,21 @@ export function reference(key: string): Reference {
 
 /** Parts of a formatted reference: text, the title (italic for books, manuals, reports, data),
  *  and a link (DOI first). */
-export function format(key: string, lang: "el" | "en"): { lead: string; title: string; italic: boolean; rest: string; link?: { href: string; text: string } } {
+export function format(
+  key: string,
+  lang: "el" | "en",
+): {
+  lead: string;
+  title: string;
+  italic: boolean;
+  rest: string;
+  link?: { href: string; text: string };
+} {
   const r = reference(key);
   const year = r.date ? ` (${r.date.slice(0, 4)})` : "";
-  const italic = ["book", "manual", "report", "dataset", "software", "online"].includes(r.entrytype);
+  const italic = ["book", "manual", "report", "dataset", "software", "online"].includes(
+    r.entrytype,
+  );
   const parts: string[] = [];
   if (r.journaltitle) {
     let j = r.journaltitle;
@@ -48,11 +59,22 @@ export function format(key: string, lang: "el" | "en"): { lead: string; title: s
     if (r.pages) j += `: ${r.pages}`;
     parts.push(j);
   }
-  if (r.edition && r.entrytype !== "article") parts.push(lang === "el" ? `έκδοση ${r.edition}` : `${r.edition} edition`);
+  if (r.edition && r.entrytype !== "article")
+    parts.push(lang === "el" ? `έκδοση ${r.edition}` : `${r.edition} edition`);
   if (r.series) parts.push(r.series);
   if (r.number && r.entrytype !== "article") parts.push(r.number);
   if (r.publisher) parts.push(r.publisher);
   if (r.institution) parts.push(r.institution);
-  const link = r.doi ? { href: `https://doi.org/${r.doi}`, text: `doi:${r.doi}` } : r.url ? { href: r.url, text: new URL(r.url).hostname } : undefined;
-  return { lead: `${r.author}${year}.`, title: r.title, italic, rest: parts.length ? `${parts.join(". ")}.` : "", link };
+  const link = r.doi
+    ? { href: `https://doi.org/${r.doi}`, text: `doi:${r.doi}` }
+    : r.url
+      ? { href: r.url, text: new URL(r.url).hostname }
+      : undefined;
+  return {
+    lead: `${r.author}${year}.`,
+    title: r.title,
+    italic,
+    rest: parts.length ? `${parts.join(". ")}.` : "",
+    link,
+  };
 }

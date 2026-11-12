@@ -24,9 +24,9 @@ export interface CalculatorData {
   presets: Record<string, Record<string, [number, number][]>>;
 }
 
-export type YearWeights = Map<string, number>;          // pricing code -> weight
-export type Shares = Record<string, number>;            // division ("01" ... "13") -> share, summing to 1
-export type Index = Map<string, number>;                // "YYYY-MM" -> value
+export type YearWeights = Map<string, number>; // pricing code -> weight
+export type Shares = Record<string, number>; // division ("01" ... "13") -> share, summing to 1
+export type Index = Map<string, number>; // "YYYY-MM" -> value
 
 export const division = (code: string): string => code.slice(0, 2);
 
@@ -85,7 +85,7 @@ export function chain(data: CalculatorData, preset: string, shares?: Shares): In
     const raw = weightsByYear.get(year)!;
     const w = shares ? withShares(raw, shares) : raw;
     const ratios = new Map(data.ratios[String(year)].map(([i, values]) => [data.codes[i], values]));
-    const codes = [...w.keys()].sort();             // the reference sums in code order
+    const codes = [...w.keys()].sort(); // the reference sums in code order
     const months = Math.max(...codes.map((c) => ratios.get(c)?.length ?? 0));
     for (let m = 0; m < months; m++) {
       let num = 0;

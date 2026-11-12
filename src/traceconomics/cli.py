@@ -15,7 +15,9 @@ from traceconomics.notify import notify
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="traceconomics", description="TracEconomics: an open economy tracker built only on public data.")
+    p = argparse.ArgumentParser(
+        prog="traceconomics", description="TracEconomics: an open economy tracker built only on public data."
+    )
     p.add_argument("--version", action="version", version=__version__)
     p.add_argument("--config", type=Path, help="config file (default: the user config folder)")
     sub = p.add_subparsers(dest="command", required=True)
@@ -27,15 +29,19 @@ def main(argv: list[str] | None = None) -> int:
     i = sub.add_parser("import", help="add a file downloaded by hand (e.g. microdata)")
     i.add_argument("file", type=Path)
     i.add_argument("--source", default="elstat")
-    i.add_argument("--dataset", help="default: puf-<file name>, e.g. puf-hbs-2025; "
-                                     "with --source aade, pit-<file name>, e.g. pit-sd-fp-22f-3")
+    i.add_argument(
+        "--dataset",
+        help="default: puf-<file name>, e.g. puf-hbs-2025; with --source aade, pit-<file name>, e.g. pit-sd-fp-22f-3",
+    )
     i.add_argument("--url", help="the page it was downloaded from, if any")
     i.add_argument("--downloaded", type=date.fromisoformat, help="download date (YYYY-MM-DD) if not today")
     i.add_argument("--note")
 
     w = sub.add_parser("import-wayback", help="add a publisher's past file as kept by the Wayback Machine")
     w.add_argument("file", type=Path)
-    w.add_argument("--url", required=True, help="the raw-capture address: https://web.archive.org/web/<YYYYMMDDhhmmss>id_/<url>")
+    w.add_argument(
+        "--url", required=True, help="the raw-capture address: https://web.archive.org/web/<YYYYMMDDhhmmss>id_/<url>"
+    )
     w.add_argument("--dataset", required=True, help="ends in -wayback, e.g. cpi05-wayback")
     w.add_argument("--source", default="elstat")
     w.add_argument("--downloaded", type=date.fromisoformat, required=True, help="download date (YYYY-MM-DD)")
@@ -52,58 +58,112 @@ def main(argv: list[str] | None = None) -> int:
     h.add_argument("--dry-run", action="store_true")
 
     ck = sub.add_parser("check", help="rebuild official figures from their parts, to test the engine")
-    ck.add_argument("which", choices=["v1", "v1-cpi", "v2", "mapping", "v3", "v4", "v5", "v6", "hospital", "prices", "seam",
-                                      "combos", "tenure"],
-                    help="v1: all-items HICP from Eurostat sub-indices and weights; "
-                         "v1-cpi: Greek CPI from ELSTAT's table 07; "
-                         "v2: ELSTAT's household spending table from the survey microdata (needs the local extra); "
-                         "mapping: the surveys' old codes mapped to COICOP 2018, against the next year (needs the local extra); "
-                         "tenure: what calibrating the survey's weights to the census's tenure split changes in "
-                         "the series (needs the local extra)")
+    ck.add_argument(
+        "which",
+        choices=[
+            "v1",
+            "v1-cpi",
+            "v2",
+            "mapping",
+            "v3",
+            "v4",
+            "v5",
+            "v6",
+            "hospital",
+            "prices",
+            "seam",
+            "combos",
+            "tenure",
+        ],
+        help="v1: all-items HICP from Eurostat sub-indices and weights; "
+        "v1-cpi: Greek CPI from ELSTAT's table 07; "
+        "v2: ELSTAT's household spending table from the survey microdata (needs the local extra); "
+        "mapping: the surveys' old codes mapped to COICOP 2018, against the next year (needs the local extra); "
+        "tenure: what calibrating the survey's weights to the census's tenure split changes in "
+        "the series (needs the local extra)",
+    )
     ck.add_argument("--geo", default="GR", help="country (ISO code, default GR)")
-    ck.add_argument("--outputs", type=Path, default=Path.home() / "traceconomics-outputs",
-                    help="combos: the module 1 outputs folder (default ~/traceconomics-outputs)")
-    ck.add_argument("--baseline", type=Path, help="combos: an earlier build's outputs folder to compare the default with")
+    ck.add_argument(
+        "--outputs",
+        type=Path,
+        default=Path.home() / "traceconomics-outputs",
+        help="combos: the module 1 outputs folder (default ~/traceconomics-outputs)",
+    )
+    ck.add_argument(
+        "--baseline", type=Path, help="combos: an earlier build's outputs folder to compare the default with"
+    )
 
     st = sub.add_parser("store", help="the observation store, built from the archive")
-    st.add_argument("action", choices=["update", "rebuild"],
-                    help="update: read new snapshots only; rebuild: delete and read everything again")
+    st.add_argument(
+        "action",
+        choices=["update", "rebuild"],
+        help="update: read new snapshots only; rebuild: delete and read everything again",
+    )
     st.add_argument("--dataset", action="append", help="limit to a dataset, e.g. eurostat:prc_hicp_iw (repeatable)")
 
     ex = sub.add_parser("export", help="write published files from the store")
-    ex.add_argument("what", choices=["skeleton", "site"],
-                    help="skeleton: Greece's all-households HICP, rebuilt; site: the website's data from module 1's outputs")
+    ex.add_argument(
+        "what",
+        choices=["skeleton", "site"],
+        help="skeleton: Greece's all-households HICP, rebuilt; site: the website's data from module 1's outputs",
+    )
     ex.add_argument("--out", type=Path, required=True, help="folder to write into (e.g. site/public/data)")
-    ex.add_argument("--outputs", type=Path, default=Path.home() / "traceconomics-outputs",
-                    help="site: module 1's outputs folder (default ~/traceconomics-outputs)")
+    ex.add_argument(
+        "--outputs",
+        type=Path,
+        default=Path.home() / "traceconomics-outputs",
+        help="site: module 1's outputs folder (default ~/traceconomics-outputs)",
+    )
     ex.add_argument("--no-downloads", action="store_true", help="site: skip the per-setting download files")
 
     m1 = sub.add_parser("module1", help="inflation by household group, from the store")
     m1.add_argument("action", choices=["run"], help="run: compute every group's index and rates and write them")
-    m1.add_argument("--out", type=Path, required=True, help="folder to write into (rebuildable, e.g. ~/traceconomics-outputs)")
-    m1.add_argument("--combinations", choices=["all", "default"], default="all",
-                    help="all: every combination of the options (default); default: the default one only")
-    m1.add_argument("--spending", action="append", choices=["purchases", "all"],
-                    help="spending concept(s) to compute (default: both)")
+    m1.add_argument(
+        "--out", type=Path, required=True, help="folder to write into (rebuildable, e.g. ~/traceconomics-outputs)"
+    )
+    m1.add_argument(
+        "--combinations",
+        choices=["all", "default"],
+        default="all",
+        help="all: every combination of the options (default); default: the default one only",
+    )
+    m1.add_argument(
+        "--spending",
+        action="append",
+        choices=["purchases", "all"],
+        help="spending concept(s) to compute (default: both)",
+    )
 
     m5 = sub.add_parser("module5", help="consistency of official figures: every check, from the store")
-    m5.add_argument("action", choices=["run"], help="run: compare each official figure with its own inputs and write the results")
-    m5.add_argument("--out", type=Path, required=True, help="folder to write into (rebuildable, e.g. ~/traceconomics-outputs)")
+    m5.add_argument(
+        "action", choices=["run"], help="run: compare each official figure with its own inputs and write the results"
+    )
+    m5.add_argument(
+        "--out", type=Path, required=True, help="folder to write into (rebuildable, e.g. ~/traceconomics-outputs)"
+    )
 
     sl = sub.add_parser("silc", help="tenure and rent paid from the EU-SILC microdata (needs the local extra)")
-    sl.add_argument("action", choices=["run"], help="run: build each SILC year's tenure table and archive it as oet-local")
+    sl.add_argument(
+        "action", choices=["run"], help="run: build each SILC year's tenure table and archive it as oet-local"
+    )
     sl.add_argument("--years", type=_years, help="e.g. 2024-2025 (default: every archived SILC file)")
 
     wt = sub.add_parser("weights", help="spending shares by group from the survey microdata (needs the local extra)")
-    wt.add_argument("action", choices=["run"], help="run: build each survey year's tables and archive them as oet-local")
+    wt.add_argument(
+        "action", choices=["run"], help="run: build each survey year's tables and archive them as oet-local"
+    )
     wt.add_argument("--years", type=_years, help="e.g. 2008-2024 (default: every archived survey)")
     wt.add_argument("--replicates", type=int, default=1000, help="bootstrap replicates (default 1000)")
 
     bd = sub.add_parser("bands", help="error bands for the group series (needs the local extra and the microdata)")
     bd.add_argument("action", choices=["run"], help="run: compute the bands and archive them as oet-local")
     bd.add_argument("--replicates", type=int, default=1000, help="bootstrap replicates (default 1000)")
-    bd.add_argument("--combinations", choices=["all", "default"], default="all",
-                    help="all: every combination of the options (default); default: the default one only")
+    bd.add_argument(
+        "--combinations",
+        choices=["all", "default"],
+        default="all",
+        help="all: every combination of the options (default); default: the default one only",
+    )
 
     mp = sub.add_parser("mapping", help="the survey's old codes mapped to COICOP 2018 (needs the local extra)")
     mp.add_argument("action", choices=["build"], help="build: write the mapping tables from the archive and the store")
@@ -117,22 +177,35 @@ def main(argv: list[str] | None = None) -> int:
     bk.add_argument("action", choices=["sync", "plan"], help="sync: send them; plan: list what would be sent")
 
     an = sub.add_parser("analytics", help="copy the site's visit and download counts from Cloudflare into the archive")
-    an.add_argument("action", choices=["export"], help="export: every finished day not yet copied (the daily run does this)")
+    an.add_argument(
+        "action", choices=["export"], help="export: every finished day not yet copied (the daily run does this)"
+    )
     an.add_argument("--day", help="one UTC day (YYYY-MM-DD) only, without moving the bookmark: for a test or a gap")
     an.add_argument("--feed", choices=["visits", "downloads"], help="only this feed (default: both)")
 
     rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
-    rl.add_argument("action", choices=["build", "promote", "retest", "status"],
-                    help="retest: run a held-back build's browser tests again, on the files it built")
+    rl.add_argument(
+        "action",
+        choices=["build", "promote", "retest", "status"],
+        help="retest: run a held-back build's browser tests again, on the files it built",
+    )
     rl.add_argument("id", nargs="?", help="promote, retest: the build (from `release status`)")
-    rl.add_argument("--to", choices=["staging", "production"],
-                    help="promote: the private staging address or the public site; no default, choose each time")
+    rl.add_argument(
+        "--to",
+        choices=["staging", "production"],
+        help="promote: the private staging address or the public site; no default, choose each time",
+    )
 
     sc = sub.add_parser("schedule", help="the daily trigger: Windows Task Scheduler, or systemd units on Linux")
-    sc.add_argument("action", choices=["install", "remove", "show", "units"],
-                    help="install/remove/show: Windows; units: write the Linux service and timer files")
+    sc.add_argument(
+        "action",
+        choices=["install", "remove", "show", "units"],
+        help="install/remove/show: Windows; units: write the Linux service and timer files",
+    )
     sc.add_argument("--out", type=Path, help="units: folder to write into (e.g. ~/.config/systemd/user)")
-    sc.add_argument("--bin", type=Path, help="units: folder for the `traceconomics` shell command (default ~/.local/bin)")
+    sc.add_argument(
+        "--bin", type=Path, help="units: folder for the `traceconomics` shell command (default ~/.local/bin)"
+    )
 
     mg = sub.add_parser("migrate-local", help="one-off: move a local setup from the project's earlier name")
     mg.add_argument("--dry-run", action="store_true", help="show what would move; change nothing")
@@ -217,9 +290,13 @@ def _store(cfg, action: str, only: list[str] | None) -> int:
         return 2
     started = time.perf_counter()
     with job.RunLock(cfg.store_dir):
-        reports = update(Archive(cfg.archive_dir), Store(cfg.store_dir),
-                         connect(cfg.store_memory_limit, cfg.store_threads),
-                         only=only, full=action == "rebuild")
+        reports = update(
+            Archive(cfg.archive_dir),
+            Store(cfg.store_dir),
+            connect(cfg.store_memory_limit, cfg.store_threads),
+            only=only,
+            full=action == "rebuild",
+        )
     for r in reports:
         print(r.line())
     print(f"Store: {cfg.store_dir} ({time.perf_counter() - started:.0f} s)")
@@ -239,11 +316,13 @@ def _check_v2(cfg) -> int:
         strict = r.year not in v2.REPORT_ONLY
         verdict = ("PASS" if r.passed else "FAIL") if strict else "report only"
         ok = ok and (r.passed or not strict)
-        where = f"{r.year}" if r.group == v2.ALL else f"  {r.group.replace(chr(0x20ac), 'EUR')}"
-        print(f"{where}: {verdict:11s} households {'same' if r.same_households else 'differ'}; "
-              f"{r.matched}/{r.compared} figures to the cent; {len(r.excused)} excused (items missing from the PUF); "
-              f"{len(r.mismatches)} other differences"
-              + ("" if r.uncovered is None else f"; PUF lacks {r.uncovered:.1%} of purchases"))
+        where = f"{r.year}" if r.group == v2.ALL else f"  {r.group.replace(chr(0x20AC), 'EUR')}"
+        print(
+            f"{where}: {verdict:11s} households {'same' if r.same_households else 'differ'}; "
+            f"{r.matched}/{r.compared} figures to the cent; {len(r.excused)} excused (items missing from the PUF); "
+            f"{len(r.mismatches)} other differences"
+            + ("" if r.uncovered is None else f"; PUF lacks {r.uncovered:.1%} of purchases")
+        )
         if strict:
             for code, label, pub, ours in r.mismatches[:10]:
                 print(f"    {code} {label[:40]}: published {pub}, ours {ours}")
@@ -271,10 +350,14 @@ def _check_v6(cfg) -> int:
     r = checks.v6(con, Archive(cfg.archive_dir))
     period, h, ours, official = r.worst
     ok = r.compared > 0 and abs(round(ours, 2) - official) <= 0.0100001
-    print("V6: our contributions code against Eurostat's contributions to euro-area inflation "
-          "(12 divisions, 2016-2025, two decimals)")
-    print(f"{r.exact}/{r.compared} equal; largest difference {abs(round(ours, 2) - official):.2f} pp "
-          f"({period}, division {h}: ours {ours:.4f}, Eurostat {official:.2f})")
+    print(
+        "V6: our contributions code against Eurostat's contributions to euro-area inflation "
+        "(12 divisions, 2016-2025, two decimals)"
+    )
+    print(
+        f"{r.exact}/{r.compared} equal; largest difference {abs(round(ours, 2) - official):.2f} pp "
+        f"({period}, division {h}: ours {ours:.4f}, Eurostat {official:.2f})"
+    )
     print("V6 passed." if ok else "V6 FAILED (more than rounding).")
     return 0 if ok else 1
 
@@ -296,8 +379,10 @@ def _check_v3(cfg) -> int:
             note = ""
             if abs(r.weights_effect) > checks.REPORT_PP:
                 note = "  <- " + checks.KNOWN.get(r.year, checks.EXPLAINED.get(r.year, "TO EXPLAIN"))
-            print(f"            {r.year}  {r.official:7.2f} {r.l1:6.2f} {r.l2:6.2f}   {r.weights_effect:+6.2f}"
-                  f"        {r.timing_effect:+6.2f}{note}")
+            print(
+                f"            {r.year}  {r.official:7.2f} {r.l1:6.2f} {r.l2:6.2f}   {r.weights_effect:+6.2f}"
+                f"        {r.timing_effect:+6.2f}{note}"
+            )
     return 0
 
 
@@ -308,8 +393,12 @@ def _check_mapping(cfg) -> int:
 
     archive = Archive(cfg.archive_dir)
     print("Mapping to COICOP 2018: the last year in the old codes, mapped, against the next year")
-    print(f"(all households, no imputed rent; flagged: over {mc.MIN_PP} pp, over {mc.TIMES_USUAL}x the usual yearly change,")
-    print(f"and over {mc.NOISE_SE} combined standard errors; from the mapping if splits decided {mc.EXPOSURE:.0%} or more)")
+    print(
+        f"(all households, no imputed rent; flagged: over {mc.MIN_PP} pp, over {mc.TIMES_USUAL}x the usual yearly change,"
+    )
+    print(
+        f"and over {mc.NOISE_SE} combined standard errors; from the mapping if splits decided {mc.EXPOSURE:.0%} or more)"
+    )
     usual = mc.usual_change(archive)
     reasons = mc.explained()
     ok = True
@@ -318,13 +407,20 @@ def _check_mapping(cfg) -> int:
         ok = ok and r.passed
         div = r.table[r.table.index.str.len() == 2]
         print()
-        print(f"{older} mapped -> {newer}: {'PASS' if r.passed else 'FAIL'}; divisions within "
-              f"{div['diff'].abs().max():.2f} pp; {len(r.flags)} flagged")
+        print(
+            f"{older} mapped -> {newer}: {'PASS' if r.passed else 'FAIL'}; divisions within "
+            f"{div['diff'].abs().max():.2f} pp; {len(r.flags)} flagged"
+        )
         for f in r.flags:
-            verdict = ("explained: " + f.explanation) if f.explanation else (
-                "NOT EXPLAINED" if f.from_mapping else "not from the mapping")
-            print(f"    {f.code}: {f.older:.2f}% -> {f.newer:.2f}%  (usual change {f.usual:.2f}, noise {f.noise:.2f}, "
-                  f"decided by splits {f.exposure:.1%}): {verdict}")
+            verdict = (
+                ("explained: " + f.explanation)
+                if f.explanation
+                else ("NOT EXPLAINED" if f.from_mapping else "not from the mapping")
+            )
+            print(
+                f"    {f.code}: {f.older:.2f}% -> {f.newer:.2f}%  (usual change {f.usual:.2f}, noise {f.noise:.2f}, "
+                f"decided by splits {f.exposure:.1%}): {verdict}"
+            )
     print()
     print("Report: ELSTAT's CPI weights (table 07, COICOP 2018) against our mapped shares of the survey a year or")
     print("two before; mean absolute difference per division, per mille (no pass rule)")
@@ -360,23 +456,39 @@ def _dispatch(args, cfg) -> int:
         return 0 if result.get("result") in ("ok", "not-due", "dry-run") else 1
 
     if args.command == "import":
-        r = backfill.import_file(Archive(cfg.archive_dir), args.file, source=args.source, dataset=args.dataset,
-                                 url=args.url, downloaded=args.downloaded, note=args.note)
+        r = backfill.import_file(
+            Archive(cfg.archive_dir),
+            args.file,
+            source=args.source,
+            dataset=args.dataset,
+            url=args.url,
+            downloaded=args.downloaded,
+            note=args.note,
+        )
         print(f"{r.status}: {r.source}/{r.dataset}" + (f" -> {r.path}" if r.path else ""))
         return 0
 
     if args.command == "import-wayback":
-        r = backfill.import_wayback(Archive(cfg.archive_dir), args.file, source=args.source, dataset=args.dataset,
-                                    url=args.url, downloaded=args.downloaded, note=args.note)
+        r = backfill.import_wayback(
+            Archive(cfg.archive_dir),
+            args.file,
+            source=args.source,
+            dataset=args.dataset,
+            url=args.url,
+            downloaded=args.downloaded,
+            note=args.note,
+        )
         print(f"{r.status}: {r.source}/{r.dataset}" + (f" -> {r.path}" if r.path else ""))
         return 0
 
     if args.command == "seed":
         rep = backfill.seed(Archive(cfg.archive_dir), args.folder, dry_run=args.dry_run)
         verb = "would store" if args.dry_run else "stored"
-        print(f"{verb}: {len(rep.stored)}; already archived: {rep.unchanged}; "
-              f"skipped (no date/checksum/file): {len(rep.skipped)}; checksum mismatch: {len(rep.bad_checksum)}; "
-              f"not seeded, no recorded source (papers, scripts, extracted copies, older pages): {rep.unrecorded}")
+        print(
+            f"{verb}: {len(rep.stored)}; already archived: {rep.unchanged}; "
+            f"skipped (no date/checksum/file): {len(rep.skipped)}; checksum mismatch: {len(rep.bad_checksum)}; "
+            f"not seeded, no recorded source (papers, scripts, extracted copies, older pages): {rep.unrecorded}"
+        )
         for line in rep.stored:
             print(f"  + {line}")
         for line in rep.skipped + [f"BAD CHECKSUM {x}" for x in rep.bad_checksum]:
@@ -398,8 +510,14 @@ def _dispatch(args, cfg) -> int:
         if args.what == "site":
             from traceconomics.export import site
 
-            written = site.export(con, Archive(cfg.archive_dir), args.outputs, args.out,
-                                  with_downloads=not args.no_downloads, log=lambda line: print(line, flush=True))
+            written = site.export(
+                con,
+                Archive(cfg.archive_dir),
+                args.outputs,
+                args.out,
+                with_downloads=not args.no_downloads,
+                log=lambda line: print(line, flush=True),
+            )
             print(f"Wrote {len(written)} files under {Path(args.out) / site.FORMAT}")
             return 0
         for path in skeleton.export(con, args.out):
@@ -419,7 +537,9 @@ def _dispatch(args, cfg) -> int:
         found = m5.all_checks(con, Archive(cfg.archive_dir), cfg.archive_dir, connect())
         for c in found:
             s = c.summary()
-            print(f"{c.id}: {s['agree']} of {s['compared']} agree ({s['first']} to {s['last']}); differ: {s['differ'] or 'none'}")
+            print(
+                f"{c.id}: {s['agree']} of {s['compared']} agree ({s['first']} to {s['last']}); differ: {s['differ'] or 'none'}"
+            )
         questions = m5.all_questions(con)
         for q in questions:
             print(f"{q.id}: {len(q.sources)} sources")
@@ -446,17 +566,23 @@ def _dispatch(args, cfg) -> int:
             writer.add(series, blocks)
             summaries += [availability.Summary.of(s) for s in series]
             fell_back = sum(len(u.price_with) for s in series for u in s.used.values())
-            print(f"[{k}/{len(only)}] {combinations.label(setting)}: {len(series)} series, "
-                  f"{min(min(s.published) for s in series)} to {max(max(s.published) for s in series)}; "
-                  f"{fell_back} item-years priced by another code", flush=True)
+            print(
+                f"[{k}/{len(only)}] {combinations.label(setting)}: {len(series)} series, "
+                f"{min(min(s.published) for s in series)} to {max(max(s.published) for s in series)}; "
+                f"{fell_back} item-years priced by another code",
+                flush=True,
+            )
         written = writer.close()
         validation = []
         for spending in sorted({s["spending"] for s in only}):
             validation += index.build_all(con, archive, spending=spending, groups=index.VALIDATION_GROUPS)
         written += output.write_validation(folder, validation, index.price_blocks(con, archive))
         written += availability.write(folder, availability.build(summaries))
-        written.append(output.write_metadata(folder, first_period=writer.first_period,
-                                             last_period=writer.last_period, manifest=output.manifest(con)))
+        written.append(
+            output.write_metadata(
+                folder, first_period=writer.first_period, last_period=writer.last_period, manifest=output.manifest(con)
+            )
+        )
         for path in written:
             print(f"Wrote {path}")
         print(json.dumps(writer.counts))
@@ -488,14 +614,23 @@ def _dispatch(args, cfg) -> int:
         from traceconomics.module1 import combinations
 
         only = combinations.settings() if args.combinations == "all" else [combinations.DEFAULT]
-        r = bands.run(Archive(cfg.archive_dir), con, args.replicates, only=only,
-                      log=lambda line: print(line, flush=True))
+        r = bands.run(
+            Archive(cfg.archive_dir), con, args.replicates, only=only, log=lambda line: print(line, flush=True)
+        )
         t = r.pop("table")
         print(json.dumps(r, ensure_ascii=False))
-        default = (t.spending == "purchases") & (t.imputed_rent == "excluded") & (t.price_source == "cpi")             & (t.weights_timing == "N") & (t.tutoring == "priced") & (t.grouping == "B")
+        default = (
+            (t.spending == "purchases")
+            & (t.imputed_rent == "excluded")
+            & (t.price_source == "cpi")
+            & (t.weights_timing == "N")
+            & (t.tutoring == "priced")
+            & (t.grouping == "B")
+        )
         gap = t[default & (t.unit == "RCH_A_AVG_GAP")]
-        print("Q1-Q5 gap, annual averages: standard error (pp) by year:",
-              dict(zip(gap.ref_period, gap.se)))
+        print(
+            "Q1-Q5 gap, annual averages: standard error (pp) by year:", dict(zip(gap.ref_period, gap.se, strict=True))
+        )
         return 0
 
     if args.command == "mapping":
@@ -522,22 +657,32 @@ def _dispatch(args, cfg) -> int:
             con = connect(cfg.store_memory_limit, cfg.store_threads)
             open_views(con, cfg.store_dir)
             ok = True
-            print("V4: other studies rebuilt with their own settings (tier B: months within "
-                  f"{benchmarks.MONTHLY_PP} pp, annual averages within {benchmarks.ANNUAL_LIMIT_PP} pp)")
+            print(
+                "V4: other studies rebuilt with their own settings (tier B: months within "
+                f"{benchmarks.MONTHLY_PP} pp, annual averages within {benchmarks.ANNUAL_LIMIT_PP} pp)"
+            )
             for r in benchmarks.v4_bruegel(con, Archive(cfg.archive_dir)):
                 ok = ok and r.passed
                 p, a, b = r.worst_month
-                print(f"{r.name}: {'PASS' if r.passed else 'FAIL'}; {r.months} months, largest gap {abs(a - b):.2f} pp ({p}); "
-                      "annual averages " + ", ".join(f"{y} {x:.2f}/{z:.2f}" for y, (x, z) in r.annual.items()) + " (ours/theirs)")
+                print(
+                    f"{r.name}: {'PASS' if r.passed else 'FAIL'}; {r.months} months, largest gap {abs(a - b):.2f} pp ({p}); "
+                    "annual averages "
+                    + ", ".join(f"{y} {x:.2f}/{z:.2f}" for y, (x, z) in r.annual.items())
+                    + " (ours/theirs)"
+                )
             if r.provisional:
                 print(f"  not compared, built by Bruegel on provisional data: {', '.join(r.provisional)}")
             print()
             print("KEPE (report: KEPE priced the 12 COICOP 1999 divisions as published then; only ELSTAT's re-issued")
-            print("COICOP 2018 series exist now, so an exact rebuild isn't possible). Annual averages, ours vs KEPE's chart 1:")
+            print(
+                "COICOP 2018 series exist now, so an exact rebuild isn't possible). Annual averages, ours vs KEPE's chart 1:"
+            )
             pub = benchmarks.kepe_published()["chart1"]
             for (spending, ranking), v in benchmarks.v4_kepe(con).items():
-                cells = "; ".join(f"{k} " + " ".join(f"{y}:{v['rates'][k][y]:.2f}/{pub[k][str(y)]}" for y in sorted(v["rates"][k]))
-                                  for k in ("P20", "R20", "R10"))
+                cells = "; ".join(
+                    f"{k} " + " ".join(f"{y}:{v['rates'][k][y]:.2f}/{pub[k][str(y)]}" for y in sorted(v["rates"][k]))
+                    for k in ("P20", "R20", "R10")
+                )
                 print(f"  {spending}, ranking {ranking}: largest gap {v['max_gap']:.2f}, mean {v['mean_gap']:.2f}")
                 print(f"     {cells}")
             print("V4 passed (Bruegel, tier B; KEPE is a report)." if ok else "V4 FAILED (Bruegel, tier B).")
@@ -550,8 +695,10 @@ def _dispatch(args, cfg) -> int:
             con = connect(cfg.store_memory_limit, cfg.store_threads)
             open_views(con, cfg.store_dir)
             print("V5: our default against Bruegel and KEPE, one setting at a time (gap, annual averages, pp; report)")
-            for title, rows in (("Bruegel (Q1-Q5)", attribution.v5_bruegel(con, Archive(cfg.archive_dir))),
-                                ("KEPE (P20-R20)", attribution.v5_kepe(con, Archive(cfg.archive_dir)))):
+            for title, rows in (
+                ("Bruegel (Q1-Q5)", attribution.v5_bruegel(con, Archive(cfg.archive_dir))),
+                ("KEPE (P20-R20)", attribution.v5_kepe(con, Archive(cfg.archive_dir))),
+            ):
                 years = sorted(next(iter(rows.values())))
                 print()
                 print(title.ljust(52) + "  ".join(f"{y:>5}" for y in years))
@@ -571,8 +718,10 @@ def _dispatch(args, cfg) -> int:
             print("Price source, annual averages (%): all households CPI / HICP; Q1-Q5 gap (B) CPI / HICP")
             for y, r in cc.source(folder).items():
                 gc, gh = r["gap_cpi"], r["gap_hicp"]
-                print(f"  {y}  {r['all_cpi']:6.2f} {r['all_hicp']:6.2f}  ({r['all_hicp'] - r['all_cpi']:+.2f})   "
-                      + (f"gap {gc:+.1f} {gh:+.1f}" if gc is not None and gh is not None else ""))
+                print(
+                    f"  {y}  {r['all_cpi']:6.2f} {r['all_hicp']:6.2f}  ({r['all_hicp'] - r['all_cpi']:+.2f})   "
+                    + (f"gap {gc:+.1f} {gh:+.1f}" if gc is not None and gh is not None else "")
+                )
             print()
             print("Timing, Q1-Q5 gap (B), annual averages (pp): rules N / F / U")
             for y, r in cc.timing(folder).items():
@@ -581,14 +730,20 @@ def _dispatch(args, cfg) -> int:
             print("Imputed rent kept (option 2): its weight in 2025, and the change in annual-average rates (pp)")
             for g, r in cc.rent(folder).items():
                 ch = r["change"]
-                print(f"  {g:10s} weight {r['weight_2025']:.3f}   " + ", ".join(f"{y} {ch[y]:+.2f}" for y in sorted(ch)
-                                                                           if y in (2010, 2015, 2020, 2022, 2023, 2025)))
+                print(
+                    f"  {g:10s} weight {r['weight_2025']:.3f}   "
+                    + ", ".join(f"{y} {ch[y]:+.2f}" for y in sorted(ch) if y in (2010, 2015, 2020, 2022, 2023, 2025))
+                )
             print()
             t = cc.tutoring(folder)
-            print(f"Tutoring from 2026: annual rate {t['period']} priced / excluded; education weight 2026 priced / excluded")
+            print(
+                f"Tutoring from 2026: annual rate {t['period']} priced / excluded; education weight 2026 priced / excluded"
+            )
             for g, r in t["groups"].items():
-                print(f"  {g:14s} {r['priced']:6.2f} {r['excluded']:6.2f}  ({r['excluded'] - r['priced']:+.2f})   "
-                      f"{r['education_weight_priced']:.4f} {r['education_weight_excluded']:.4f}")
+                print(
+                    f"  {g:14s} {r['priced']:6.2f} {r['excluded']:6.2f}  ({r['excluded'] - r['priced']:+.2f})   "
+                    f"{r['education_weight_priced']:.4f} {r['education_weight_excluded']:.4f}"
+                )
             ok = all(ok for _, ok, _ in results)
             print()
             print("Identities passed." if ok else "Identities FAILED.")
@@ -644,14 +799,21 @@ def _dispatch(args, cfg) -> int:
             print("Survey weights calibrated to the tenure target (renters' share of households, weight factors):")
             for year, n in r["surveys"].items():
                 f = n["factors"]
-                print(f"  survey {year}: renters {n['renters_before']:.1%} -> {n['renters_after']:.1%} "
-                      f"(target {n['target']:.1%}: {n['basis']}); renters x{f['renter']:.3f}, owners x{f['owner']:.3f}, "
-                      f"housed free x{f['rent_free']:.3f}; rebuilt vs stored baskets {n['store_gap']:.1e}")
+                print(
+                    f"  survey {year}: renters {n['renters_before']:.1%} -> {n['renters_after']:.1%} "
+                    f"(target {n['target']:.1%}: {n['basis']}); renters x{f['renter']:.3f}, owners x{f['owner']:.3f}, "
+                    f"housed free x{f['rent_free']:.3f}; rebuilt vs stored baskets {n['store_gap']:.1e}"
+                )
             print("Change the calibration makes to the rates (pp), by group: annual average / December")
             for name, changes in r["series"].items():
-                print(f"  {name}: " + ", ".join(
-                    f"{y} {v['annual_average']:+.3f}/" + ("n/a" if v["december"] is None else f"{v['december']:+.3f}")
-                    for y, v in changes.items()))
+                print(
+                    f"  {name}: "
+                    + ", ".join(
+                        f"{y} {v['annual_average']:+.3f}/"
+                        + ("n/a" if v["december"] is None else f"{v['december']:+.3f}")
+                        for y, v in changes.items()
+                    )
+                )
             print("Rent's share of the basket, by survey: ELSTAT's weights -> calibrated")
             for name, by_year in r["rent_share"].items():
                 print(f"  {name}: " + ", ".join(f"{y} {a:.1%}->{b:.1%}" for y, (a, b) in by_year.items()))
@@ -668,8 +830,10 @@ def _dispatch(args, cfg) -> int:
         upcoming = sorted(d for d in job.all_release_dates(state, cfg) if d >= date.today())[:5]
         print("Next release days: " + (", ".join(d.isoformat() for d in upcoming) or "none known"))
         for r in archive.runs()[-5:]:
-            print(f"  run {r.get('started')}: {r.get('result')} ({r.get('reason', '')}) "
-                  f"stored={r.get('stored', 0)} failures={len(r.get('failures', []))}")
+            print(
+                f"  run {r.get('started')}: {r.get('result')} ({r.get('reason', '')}) "
+                f"stored={r.get('stored', 0)} failures={len(r.get('failures', []))}"
+            )
         waiting = archive.stored_since(state.get("backup_mark"))
         print(f"Files waiting for backup since {state.get('backup_mark', 'the start')}: {len(waiting)}")
         return 0
@@ -741,7 +905,9 @@ def _dispatch(args, cfg) -> int:
             return 0
         for b in release.status(cfg.release.releases_dir):
             on = ",".join(b["on"])
-            print(f"  {b['id']}  {b['result']:7s}  {on:18s}  {b.get('failed_step') or ''}  {b.get('preview_url') or ''}")
+            print(
+                f"  {b['id']}  {b['result']:7s}  {on:18s}  {b.get('failed_step') or ''}  {b.get('preview_url') or ''}"
+            )
         return 0
 
     if args.command == "schedule":
@@ -753,7 +919,9 @@ def _dispatch(args, cfg) -> int:
                 print(f"Wrote {path}")
             return 0
         if args.action == "install":
-            print(f"Installed task {schedule.install(cfg)}: daily at {cfg.run_after:%H:%M}, runs missed triggers later.")
+            print(
+                f"Installed task {schedule.install(cfg)}: daily at {cfg.run_after:%H:%M}, runs missed triggers later."
+            )
         elif args.action == "remove":
             schedule.remove()
             print("Removed.")

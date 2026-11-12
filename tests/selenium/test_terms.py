@@ -167,5 +167,7 @@ def test_glossary_search_ignores_accents(site):
     every = _shown(site)
     accented = next(text for text in every if "πληθωρισμός" in text)
     site.find("#glossary-search").send_keys("πληθωρισμος")
-    site.wait(lambda _: accented in _shown(site) and len(_shown(site)) < len(every),
-              "an unaccented search missed the accented term")
+    site.wait(
+        lambda _: accented in _shown(site) and len(_shown(site)) < len(every),
+        "an unaccented search missed the accented term",
+    )

@@ -69,19 +69,19 @@ def classification(year: int) -> str:
 @dataclass
 class Survey:
     year: int
-    classification: str            # see `classification`
-    households: pd.DataFrame       # one row per household, see `read`
-    persons: pd.DataFrame          # hh, age, relation (MB05), activity (ME01), as text
-    spending: pd.DataFrame         # all modes, annual euros; columns are codes, index aligned with households
-    purchases: pd.DataFrame        # mode A only (what the published table 1.03 shows)
-    design: str                    # "full", "no-strata" or "no-clusters"
+    classification: str  # see `classification`
+    households: pd.DataFrame  # one row per household, see `read`
+    persons: pd.DataFrame  # hh, age, relation (MB05), activity (ME01), as text
+    spending: pd.DataFrame  # all modes, annual euros; columns are codes, index aligned with households
+    purchases: pd.DataFrame  # mode A only (what the published table 1.03 shows)
+    design: str  # "full", "no-strata" or "no-clusters"
     source_sha256: str
     person_link: str = ""
     households_without_persons: tuple[str, ...] = ()
-    derived_totals: tuple[str, ...] = ()   # codes whose all-modes total is purchases + non-monetary
+    derived_totals: tuple[str, ...] = ()  # codes whose all-modes total is purchases + non-monetary
 
 
-ME01_CODES = {"1", "2", "3", "4", "5", "6", "7", "8", ""}       # 1 working, 2 unemployed, ... 8 under 14
+ME01_CODES = {"1", "2", "3", "4", "5", "6", "7", "8", ""}  # 1 working, 2 unemployed, ... 8 under 14
 ME01A_AS_ME01 = {"Z1": "1", "Z2": "2", "Z3": "3", "Z4": "6", "Z5": "4", "Z6": "5"}
 ME01A_OTHER = {"Z7", "10", "Z8", "Z9", ""}
 
@@ -110,7 +110,11 @@ def _members(path: Path) -> dict[str, bytes]:
     elif path.suffix.lower() == ".7z":
         with py7zr.SevenZipFile(path) as z:
             names = [i.filename for i in z.list() if not i.is_directory]
-            keep = [n for n in names if HOUSEHOLD_FILE.match(n.rsplit("/", 1)[-1]) or PERSON_FILE.match(n.rsplit("/", 1)[-1])]
+            keep = [
+                n
+                for n in names
+                if HOUSEHOLD_FILE.match(n.rsplit("/", 1)[-1]) or PERSON_FILE.match(n.rsplit("/", 1)[-1])
+            ]
             factory = py7zr.io.BytesIOFactory(limit=500_000_000)
             z.extract(targets=keep, factory=factory)
             for n in keep:
@@ -179,13 +183,17 @@ def _spending(hh: pd.DataFrame, year: int) -> tuple[pd.DataFrame, pd.DataFrame, 
 
 def read(archive: Archive, year: int) -> Survey:
     rec = archive.latest(SOURCE, dataset(year))
-    require(rec is not None, f"no archived PUF for {year} ({SOURCE}/{dataset(year)}); add it with `traceconomics import`")
+    require(
+        rec is not None, f"no archived PUF for {year} ({SOURCE}/{dataset(year)}); add it with `traceconomics import`"
+    )
     path = archive.root / rec["path"]
     files = _members(path)
     hh_names = [n for n in files if HOUSEHOLD_FILE.match(n)]
     p_names = [n for n in files if PERSON_FILE.match(n)]
-    require(len(hh_names) == 1 and len(p_names) == 1,
-            f"{year}: expected one household and one person file, found {sorted(files)}")
+    require(
+        len(hh_names) == 1 and len(p_names) == 1,
+        f"{year}: expected one household and one person file, found {sorted(files)}",
+    )
     hh = _table(files[hh_names[0]], hh_names[0])
     pp = _table(files[p_names[0]], p_names[0])
 
@@ -210,8 +218,14 @@ def read(archive: Archive, year: int) -> Survey:
             link_name, p_id = name, candidate
             break
     require(p_id is not None, f"{year}: no person-link rule links every person to a household")
-    people = pd.DataFrame({"hh": p_id, "age": _number(pp["MB03"], f"{year} MB03"),
-                           "relation": pp["MB05"].str.strip(), "activity": _activity(pp[activity[0]], activity[0], year)})
+    people = pd.DataFrame(
+        {
+            "hh": p_id,
+            "age": _number(pp["MB03"], f"{year} MB03"),
+            "relation": pp["MB05"].str.strip(),
+            "activity": _activity(pp[activity[0]], activity[0], year),
+        }
+    )
     without = tuple(sorted(ids - set(people.hh)))
     require(len(without) <= 10, f"{year}: {len(without)} households have no person records")
 
@@ -220,19 +234,21 @@ def read(archive: Archive, year: int) -> Survey:
         design = "no-clusters"
     elif "HA06" not in hh.columns:
         design = "no-strata"
-    households = pd.DataFrame({
-        "hh": hh_id,
-        "weight": _number(hh["HA10"], f"{year} HA10"),
-        "region": hh["HA08"],
-        "stratum": hh["HA06"] if "HA06" in hh.columns else None,
-        "cluster": hh["HA07"] if "HA07" in hh.columns else None,
-        # Money income after taxes (HH095) is what households are ranked by; the total (HH099)
-        # adds income in kind and imputed rent.
-        "money_income": _number(hh["HH095"], f"{year} HH095"),
-        "total_income": _number(hh["HH099"], f"{year} HH099"),
-        "main_income_source": hh["HI11"].str.strip(),
-        "elstat_type": hh["HB074"].str.strip() if "HB074" in hh.columns else "",
-    })
+    households = pd.DataFrame(
+        {
+            "hh": hh_id,
+            "weight": _number(hh["HA10"], f"{year} HA10"),
+            "region": hh["HA08"],
+            "stratum": hh["HA06"] if "HA06" in hh.columns else None,
+            "cluster": hh["HA07"] if "HA07" in hh.columns else None,
+            # Money income after taxes (HH095) is what households are ranked by; the total (HH099)
+            # adds income in kind and imputed rent.
+            "money_income": _number(hh["HH095"], f"{year} HH095"),
+            "total_income": _number(hh["HH099"], f"{year} HH099"),
+            "main_income_source": hh["HI11"].str.strip(),
+            "elstat_type": hh["HB074"].str.strip() if "HB074" in hh.columns else "",
+        }
+    )
     require((households.weight > 0).all(), f"{year}: households with no weight")
     spending, purchases, derived = _spending(hh, year)
     return Survey(

@@ -40,15 +40,27 @@ def revised(text: str) -> str:
 
 
 def put_minr(archive: Archive, text: str, when: datetime, updated: str):
-    return archive.store_bytes("eurostat", "prc_hicp_minr", gzip.compress(text.encode("utf-8")),
-                               url="https://example.invalid/minr", retrieved_at=when, ext=".tsv.gz",
-                               extra={"eurostat_updated": updated})
+    return archive.store_bytes(
+        "eurostat",
+        "prc_hicp_minr",
+        gzip.compress(text.encode("utf-8")),
+        url="https://example.invalid/minr",
+        retrieved_at=when,
+        ext=".tsv.gz",
+        extra={"eurostat_updated": updated},
+    )
 
 
 def put_cpi07(archive: Archive, name: str, doc: str, when: datetime):
-    archive.store_bytes("elstat", doc, (FIX / name).read_bytes(), url="https://example.invalid/doc",
-                        retrieved_at=when, ext=Path(name).suffix,
-                        extra={"original_name": f"A0515_DKT87_TS_MM_01_{name[13:17]}_12_{name[13:17]}_07_F_EN{Path(name).suffix}"})
+    archive.store_bytes(
+        "elstat",
+        doc,
+        (FIX / name).read_bytes(),
+        url="https://example.invalid/doc",
+        retrieved_at=when,
+        ext=Path(name).suffix,
+        extra={"original_name": f"A0515_DKT87_TS_MM_01_{name[13:17]}_12_{name[13:17]}_07_F_EN{Path(name).suffix}"},
+    )
 
 
 @pytest.fixture
@@ -83,8 +95,9 @@ def test_first_load_then_a_revision_and_a_withdrawal(tmp_path, con):
 
     put_minr(archive, revised(minr_text()), T2, "2026-10-15T23:00:00+0200")
     second = update(archive, store, con, only=[MINR])[0]
-    cy_food = rows(con, store.root, "SELECT count(*) FROM observations WHERE key = "
-                   "'freq=M,unit=I25,coicop18=01,geo=CY'")[0][0]
+    cy_food = rows(
+        con, store.root, "SELECT count(*) FROM observations WHERE key = 'freq=M,unit=I25,coicop18=01,geo=CY'"
+    )[0][0]
     assert second.snapshots == 1 and second.added == 1 and second.withdrawn == cy_food // 2
 
     # What was known before and after the revision.
@@ -111,12 +124,16 @@ def test_vintage_dates_and_status(tmp_path, con):
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
     update(archive, store, con, only=[MINR])
-    (pub, quality, status_2025, status_2026), = rows(con, store.root, f"""
+    ((pub, quality, status_2025, status_2026),) = rows(
+        con,
+        store.root,
+        f"""
         SELECT any_value(published_at), any_value(published_at_quality),
                any_value(status) FILTER (WHERE ref_period = '2025-12'),
                any_value(status) FILTER (WHERE ref_period = '2026-01')
-        FROM observations WHERE key = '{GR_TOTAL}'""")
-    assert pub == datetime(2026, 9, 16, 21, 0) and quality == "dataset"   # Eurostat's update time, in UTC
+        FROM observations WHERE key = '{GR_TOTAL}'""",
+    )
+    assert pub == datetime(2026, 9, 16, 21, 0) and quality == "dataset"  # Eurostat's update time, in UTC
     assert (status_2025, status_2026) == ("backcast", "final")
 
 
@@ -154,11 +171,14 @@ def test_two_files_feed_one_dataset_without_withdrawing_each_other(tmp_path, con
     r = update(archive, store, con, only=["elstat:cpi07"])[0]
     assert r.snapshots == 2 and r.withdrawn == 0
     # December 2025 comes from both files: as a month of 2025 and as 2026's link month.
-    (n,), = rows(con, store.root, "SELECT count(DISTINCT archive_dataset) FROM observations "
-                 "WHERE coicop18 = 'TOTAL' AND ref_period = '2025-12'")
+    ((n,),) = rows(
+        con,
+        store.root,
+        "SELECT count(DISTINCT archive_dataset) FROM observations WHERE coicop18 = 'TOTAL' AND ref_period = '2025-12'",
+    )
     assert n == 2
-    (en, el), = con.execute("SELECT label_en, label_el FROM labels WHERE code = '01111'").fetchall()
-    assert en.strip() == "CEREALS" and el is None   # no Greek file in this archive
+    ((en, el),) = con.execute("SELECT label_en, label_el FROM labels WHERE code = '01111'").fetchall()
+    assert en.strip() == "CEREALS" and el is None  # no Greek file in this archive
 
 
 def test_table05_english_file_only(tmp_path, con):
@@ -172,12 +192,22 @@ def test_table05_english_file_only(tmp_path, con):
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     data = (FIX / "elstat_cpi05_2026_09.xlsx").read_bytes()
     for doc, lang in (("doc-114837", "EN"), ("doc-114837-el", "GR")):
-        archive.store_bytes("elstat", doc, data, url="https://example.invalid/doc", retrieved_at=T1, ext=".xlsx",
-                            extra={"original_name": f"114837__A0515_DKT87_TS_MM_01_1959_09_2026_05_F_{lang}.xlsx"})
+        archive.store_bytes(
+            "elstat",
+            doc,
+            data,
+            url="https://example.invalid/doc",
+            retrieved_at=T1,
+            ext=".xlsx",
+            extra={"original_name": f"114837__A0515_DKT87_TS_MM_01_1959_09_2026_05_F_{lang}.xlsx"},
+        )
     r = update(archive, store, con, only=["elstat:cpi05"])[0]
     assert r.snapshots == 1
-    (value, text), = rows(con, store.root, "SELECT value, value_text FROM observations "
-                          "WHERE unit = 'RCH_A_FR' AND freq = 'M' AND ref_period = '2026-09'")
+    ((value, text),) = rows(
+        con,
+        store.root,
+        "SELECT value, value_text FROM observations WHERE unit = 'RCH_A_FR' AND freq = 'M' AND ref_period = '2026-09'",
+    )
     assert value == 0.05049184623573861 and text == "0.05049184623573861"
 
 
@@ -192,7 +222,7 @@ def test_older_snapshot_arriving_late_rebuilds(tmp_path, con):
     archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
     put_minr(archive, revised(minr_text()), T2, "2026-10-15T23:00:00+0200")
     update(archive, store, con, only=[MINR])
-    put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")   # e.g. seeded from an older download
+    put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")  # e.g. seeded from an older download
     r = update(archive, store, con, only=[MINR])[0]
     assert r.rebuilt and "older snapshot" in r.rebuilt and r.snapshots == 2
 
@@ -226,7 +256,7 @@ def test_part_without_a_loaded_record_is_dropped(tmp_path, con):
     update(archive, store, con, only=[MINR])
     folder = store.observations / "eurostat.prc_hicp_minr"
     part = next(folder.glob("*.parquet"))
-    (folder / "99999-orphan.parquet").write_bytes(part.read_bytes())   # as if a crash came before logging
+    (folder / "99999-orphan.parquet").write_bytes(part.read_bytes())  # as if a crash came before logging
     update(archive, store, con, only=[MINR])
     assert not (folder / "99999-orphan.parquet").exists()
 
@@ -271,9 +301,19 @@ def test_label_files_come_only_from_the_datasets_the_store_reads(tmp_path):
     from traceconomics.store.registry import label_files
 
     archive = Archive(tmp_path / "a")
-    for dataset, name in (("doc-457128-el", "457128_el__A0515_DKT87_TS_MM_01_2022_12_2022_07_F_GR.xls"),
-                          ("cpi07-original-2008", "A0515_DKT87_TS_MM_01_2008_12_2008_07_F_GR.xls")):
-        archive.store_bytes("elstat", dataset, name.encode(), url=None, retrieved_at=T1, ext=".xls",
-                            kind="manual", extra={"original_name": name})
+    for dataset, name in (
+        ("doc-457128-el", "457128_el__A0515_DKT87_TS_MM_01_2022_12_2022_07_F_GR.xls"),
+        ("cpi07-original-2008", "A0515_DKT87_TS_MM_01_2008_12_2008_07_F_GR.xls"),
+    ):
+        archive.store_bytes(
+            "elstat",
+            dataset,
+            name.encode(),
+            url=None,
+            retrieved_at=T1,
+            ext=".xls",
+            kind="manual",
+            extra={"original_name": name},
+        )
     found = label_files(archive, catalog.dataset("elstat:cpi07"))
     assert [p.parts[-3] for p in found] == ["doc-457128-el"]

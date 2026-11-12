@@ -26,28 +26,56 @@ def sample(strata=10, areas=6, households=8, design="full", seed=1) -> Survey:
             for k in range(households):
                 hh = f"{s:02d}{a:02d}{k:02d}"
                 income = rng.lognormal(10, 0.6)
-                rows.append({"hh": hh, "weight": 500 + 50 * s + rng.uniform(0, 100), "region": f"EL{s % 3}",
-                             "stratum": f"S{s}", "cluster": f"C{s:02d}{a:02d}", "money_income": income,
-                             "total_income": income, "main_income_source": "4" if k % 3 == 0 else "1"})
+                rows.append(
+                    {
+                        "hh": hh,
+                        "weight": 500 + 50 * s + rng.uniform(0, 100),
+                        "region": f"EL{s % 3}",
+                        "stratum": f"S{s}",
+                        "cluster": f"C{s:02d}{a:02d}",
+                        "money_income": income,
+                        "total_income": income,
+                        "main_income_source": "4" if k % 3 == 0 else "1",
+                    }
+                )
                 persons += [(hh, 40)] + [(hh, 10)] * (k % 3)
                 renter = k % 4 == 0
-                spend.append({"0111": area_food * rng.uniform(0.5, 1.5) + 0.02 * income,
-                              "0411": 4000.0 if renter else 0.0, "0421": 0.0 if renter else 3000.0, "04221": 0.0,
-                              "0451": rng.gamma(2, 400)})
+                spend.append(
+                    {
+                        "0111": area_food * rng.uniform(0.5, 1.5) + 0.02 * income,
+                        "0411": 4000.0 if renter else 0.0,
+                        "0421": 0.0 if renter else 3000.0,
+                        "04221": 0.0,
+                        "0451": rng.gamma(2, 400),
+                    }
+                )
     h = pd.DataFrame(rows)
     leaf = pd.DataFrame(spend)
-    s = leaf.assign(**{"011": leaf["0111"], "01": leaf["0111"], "041": leaf["0411"], "0422": leaf["04221"],
-                       "042": leaf["0421"] + leaf["04221"],
-                       "045": leaf["0451"]})
+    s = leaf.assign(
+        **{
+            "011": leaf["0111"],
+            "01": leaf["0111"],
+            "041": leaf["0411"],
+            "0422": leaf["04221"],
+            "042": leaf["0421"] + leaf["04221"],
+            "045": leaf["0451"],
+        }
+    )
     s["04"] = s["041"] + s["042"] + s["045"]
     if design == "no-strata":
         h["stratum"] = None
     if design == "no-clusters":
         h["cluster"] = None
-    return Survey(year=2016, classification="ecoicop1", households=h,
-                  persons=pd.DataFrame(persons, columns=["hh", "age"]).assign(relation="1", activity="1"),
-                  spending=s, purchases=s.copy(),
-                  design=design, source_sha256="0" * 64)
+    return Survey(
+        year=2016,
+        classification="ecoicop1",
+        households=h,
+        persons=pd.DataFrame(persons, columns=["hh", "age"]).assign(relation="1", activity="1"),
+        spending=s,
+        purchases=s.copy(),
+        design=design,
+        source_sha256="0" * 64,
+    )
 
 
 def test_factors_keep_each_stratum_whole_and_are_reproducible():
@@ -65,7 +93,7 @@ def test_factors_keep_each_stratum_whole_and_are_reproducible():
     f2 = bootstrap.replicate_factors(d, 50, np.random.default_rng([7, 2016]))
     assert (f1 == f2).all()
     per_area = pd.DataFrame(f1).groupby(s.households.cluster.to_numpy()).first()
-    per_stratum = per_area.groupby(per_area.index.str[:3]).sum()           # n_h - 1 draws x n_h / (n_h - 1)
+    per_stratum = per_area.groupby(per_area.index.str[:3]).sum()  # n_h - 1 draws x n_h / (n_h - 1)
     assert np.allclose(per_stratum.to_numpy(), 6.0)
     # Every household in an area gets the same factor.
     assert (pd.DataFrame(f1).groupby(s.households.cluster.to_numpy()).nunique() == 1).all().all()
@@ -83,7 +111,7 @@ def test_bootstrap_agrees_with_the_linearised_variance_of_a_share():
     s = sample()
     w = s.households.weight.to_numpy()
     food = s.spending["0111"].to_numpy()
-    total = s.spending[["0111", "0411", "0451"]].sum(axis=1).to_numpy()      # option 1: no imputed rent
+    total = s.spending[["0111", "0411", "0451"]].sum(axis=1).to_numpy()  # option 1: no imputed rent
     share = (w * food).sum() / (w * total).sum()
     # Taylor linearisation, PSUs with replacement: z = w (y - R x) / X, summed per area.
     z = pd.Series(w * (food - share * total) / (w * total).sum()).groupby(s.households.cluster.to_numpy()).sum()
@@ -111,7 +139,7 @@ def test_errors_cover_every_share_and_flag_high_relative_errors():
     g = assign(s)
     d, se = bootstrap.standard_errors(s, g, replicates=200)
     t = bootstrap.with_errors(shares(s, g), se, d)
-    assert t[~t.grouping.isin(PUBLISHED)].se.isna().all()                  # validation-only groupings: none
+    assert t[~t.grouping.isin(PUBLISHED)].se.isna().all()  # validation-only groupings: none
     t = t[t.grouping.isin(PUBLISHED)]
     assert t.se.notna().all() and (t.se[t.share > 0] > 0).all() and (t.se[t.share == 0] == 0).all()
     assert set(t.grouping) == {"all", "A", "B", "C", "tenure", "pensioners", "hhtype"}
@@ -157,9 +185,14 @@ def _area_in_two_strata(s):
     s.households.loc[0, "stratum"] = "S1"
 
 
-@pytest.mark.parametrize("break_design, message", [
-    (_single_area_stratum, "single area"), (_area_in_two_strata, "more than one stratum"),
-], ids=["single-area stratum", "area in two strata"])
+@pytest.mark.parametrize(
+    "break_design, message",
+    [
+        (_single_area_stratum, "single area"),
+        (_area_in_two_strata, "more than one stratum"),
+    ],
+    ids=["single-area stratum", "area in two strata"],
+)
 def test_design_refuses_a_single_area_stratum_and_an_area_in_two_strata(break_design, message):
     """PY-BOOT-005: the design refuses a single-area stratum and an area in two strata
 
@@ -213,12 +246,13 @@ def test_limit_errors_come_from_the_same_replicates_and_shrink_with_more_areas()
     And the second computation gives the same errors
     """
     from traceconomics.local.bootstrap import limit_errors
+
     small, big = sample(strata=4, areas=3, households=6), sample(strata=16, areas=8, households=6)
     d, se_small = limit_errors(small, replicates=200)
     _, se_big = limit_errors(big, replicates=200)
     assert d.status == "full" and len(se_small) == 4 and (se_small > 0).all()
     assert se_big.mean() < se_small.mean()
-    assert (limit_errors(small, replicates=200)[1] == se_small).all()     # same seed, same errors
+    assert (limit_errors(small, replicates=200)[1] == se_small).all()  # same seed, same errors
 
 
 def test_without_areas_the_income_limits_have_no_errors():
@@ -229,4 +263,5 @@ def test_without_areas_the_income_limits_have_no_errors():
     Then there are none (None)
     """
     from traceconomics.local.bootstrap import limit_errors
+
     assert limit_errors(sample(design="no-clusters"), replicates=50)[1] is None

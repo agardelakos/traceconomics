@@ -5,6 +5,7 @@ order: 2
 option: "spending"
 sources: [elstat-cpi-sims-2026, eurostat-hbs-qr-2020]
 ---
+
 ## The default: purchases
 
 A price index measures the prices of what is bought, so ELSTAT's CPI weights are shares of households' money spending (in its words, "household final monetary consumption expenditure"). We do the same.

@@ -4,7 +4,9 @@
 // build time (`generated_at`): every build of the same data must give the same pages.
 
 /** The licences our files may carry (metadata.json `licence`), by their canonical address. */
-const LICENCES: Record<string, string> = { "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/" };
+const LICENCES: Record<string, string> = {
+  "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+};
 
 const FORMATS: Record<string, string> = {
   ".csv": "text/csv",
@@ -13,20 +15,21 @@ const FORMATS: Record<string, string> = {
 };
 
 export interface DatasetInput {
-  site: URL;                       // the public address (Astro.site)
+  site: URL; // the public address (Astro.site)
   lang: string;
   name: string;
   description: string;
-  page: string;                    // the dataset's place on its page, from the site's root ("/en/data/gr/#…")
+  page: string; // the dataset's place on its page, from the site's root ("/en/data/gr/#…")
   metadata: { licence: string; first_period: string; last_period: string; attribution: string };
-  place: string;                   // the country's name
-  basedOn: string[];               // the publishers' home pages
-  files: string[];                 // addresses from the site's root ("/data/v1/…")
+  place: string; // the country's name
+  basedOn: string[]; // the publishers' home pages
+  files: string[]; // addresses from the site's root ("/data/v1/…")
 }
 
 export function dataset(d: DatasetInput): Record<string, unknown> {
   const licence = LICENCES[d.metadata.licence];
-  if (!licence) throw new Error(`unknown licence "${d.metadata.licence}": add its address to LICENCES`);
+  if (!licence)
+    throw new Error(`unknown licence "${d.metadata.licence}": add its address to LICENCES`);
   const full = (p: string) => new URL(p, d.site).href;
   return {
     "@context": "https://schema.org",

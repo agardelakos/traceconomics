@@ -44,12 +44,13 @@ from traceconomics.mapping_tables import FIELDS, OLD_TO_V1, V1_TO_2018, read
 
 SUBCLASS = re.compile(r"^\d{5}$")
 OLD_LIST_YEARS = range(2008, 2015)
-BRIDGE_YEAR = 2015           # the survey whose shares split the older list's classes
-WEIGHTS_YEAR = "2025"        # the year whose HICP weights exist in both classifications
-MISFIT = 0.01                # a RAS group whose new-subclass totals are missed by more is flagged
+BRIDGE_YEAR = 2015  # the survey whose shares split the older list's classes
+WEIGHTS_YEAR = "2025"  # the year whose HICP weights exist in both classifications
+MISFIT = 0.01  # a RAS group whose new-subclass totals are missed by more is flagged
 
 
 # ---- applying ---------------------------------------------------------------------------------
+
 
 def load(name: str) -> pd.DataFrame:
     return pd.DataFrame(read(name), columns=list(FIELDS))
@@ -58,6 +59,7 @@ def load(name: str) -> pd.DataFrame:
 def _apply(frame: pd.DataFrame, table: pd.DataFrame, what: str) -> pd.DataFrame:
     """Spending per source code -> spending per target code (same households, same totals)."""
     from traceconomics.local.shares import leaves
+
     keep = leaves(frame.columns)
     missing = sorted(set(keep) - set(table.from_code))
     require(not missing, f"{what}: codes with no mapping: {missing[:10]}")
@@ -81,7 +83,10 @@ def to_2018(survey: Survey) -> Survey:
     """The same survey with spending and purchases in COICOP 2018 subclasses (and their parents)."""
     if survey.classification == "coicop2018":
         return survey
-    require(survey.classification in ("ecoicop1", "hbs-gr-2008"), f"{survey.year}: unknown code list {survey.classification}")
+    require(
+        survey.classification in ("ecoicop1", "hbs-gr-2008"),
+        f"{survey.year}: unknown code list {survey.classification}",
+    )
     v1 = load(V1_TO_2018)
     old = load(OLD_TO_V1) if survey.classification == "hbs-gr-2008" else None
 
@@ -90,11 +95,13 @@ def to_2018(survey: Survey) -> Survey:
             frame = with_parents(_apply(frame, old, f"{survey.year} (older national list)"))
         return with_parents(_apply(frame, v1, f"{survey.year} (ECOICOP v1)"))
 
-    return replace(survey, classification="coicop2018", spending=convert(survey.spending),
-                   purchases=convert(survey.purchases))
+    return replace(
+        survey, classification="coicop2018", spending=convert(survey.spending), purchases=convert(survey.purchases)
+    )
 
 
 # ---- building ---------------------------------------------------------------------------------
+
 
 def correspondence(path: Path) -> pd.DataFrame:
     """The official links at subclass level: columns v1, v2 (5 digits, no dots)."""
@@ -102,8 +109,9 @@ def correspondence(path: Path) -> pd.DataFrame:
     for col in ("srcNot", "tgtNot"):
         require(col in raw.columns, f"{path.name}: no column {col}")
     pairs = raw[["srcNot", "tgtNot"]].drop_duplicates()
-    pairs = pd.DataFrame({"v2": pairs.srcNot.str.replace(".", "", regex=False),
-                          "v1": pairs.tgtNot.str.replace(".", "", regex=False)})
+    pairs = pd.DataFrame(
+        {"v2": pairs.srcNot.str.replace(".", "", regex=False), "v1": pairs.tgtNot.str.replace(".", "", regex=False)}
+    )
     sub = pairs[pairs.v1.str.match(SUBCLASS) & pairs.v2.str.match(SUBCLASS)].reset_index(drop=True)
     require(len(sub) > 300, f"{path.name}: only {len(sub)} subclass links")
     return sub
@@ -129,8 +137,9 @@ def subclass_weights(weights: pd.Series, subclasses) -> pd.Series:
     return pd.Series(out)
 
 
-def ras(links: pd.DataFrame, rows: pd.Series, cols: pd.Series, tolerance: float = 1e-10,
-        max_iter: int = 20_000) -> tuple[pd.Series, dict]:
+def ras(
+    links: pd.DataFrame, rows: pd.Series, cols: pd.Series, tolerance: float = 1e-10, max_iter: int = 20_000
+) -> tuple[pd.Series, dict]:
     """Fit a table on `links` (columns v1, v2) to row totals `rows` (v1) and column totals `cols` (v2).
 
     Only rows and columns with a positive total take part. Each connected group of links is fitted
@@ -150,7 +159,7 @@ def ras(links: pd.DataFrame, rows: pd.Series, cols: pd.Series, tolerance: float 
             x = parent[x]
         return x
 
-    for a, b in zip("r" + live.v1, "c" + live.v2):
+    for a, b in zip("r" + live.v1, "c" + live.v2, strict=True):
         parent[find(a)] = find(b)
     live["component"] = ["r" + v for v in live.v1]
     live["component"] = live.component.map(find)
@@ -165,13 +174,13 @@ def ras(links: pd.DataFrame, rows: pd.Series, cols: pd.Series, tolerance: float 
         c = cols[c_codes].to_numpy(float)
         c = c * r.sum() / c.sum()
         x = np.ones(len(part))
-        for it in range(max_iter):
+        for it in range(max_iter):  # noqa: B007 - read after the loop: how many iterations ran
             before = x.copy()
             x *= (r / np.bincount(i, x, len(r)))[i]
             x *= (c / np.bincount(j, x, len(c)))[j]
             if np.abs(x - before).max() <= tolerance * r.sum():
                 break
-        x *= (r / np.bincount(i, x, len(r)))[i]          # end on the rows: each source's split is exact
+        x *= (r / np.bincount(i, x, len(r)))[i]  # end on the rows: each source's split is exact
         misfit = float(np.abs(np.bincount(j, x, len(c)) / c - 1).max())
         report["components"] += 1
         report["iterations"] = max(report["iterations"], it + 1)
@@ -201,20 +210,26 @@ def build_v1_to_2018(links: pd.DataFrame, w1: pd.Series, w2: pd.Series) -> tuple
             shares, method = list(cols_w[targets] / cols_w[targets].sum()), "targets' 2025 weights (source has none)"
         else:
             shares, method = [1 / len(targets)] * len(targets), "equal split (no 2025 weights)"
-        for t, s in zip(targets, shares):
+        for t, s in zip(targets, shares, strict=True):
             if s > 0:
                 out.append({"from_code": v1, "to_code": t, "share": s, "method": method, "note": note})
     table = pd.DataFrame(out)
     table["share"] = table.share / table.groupby("from_code").share.transform("sum")
     report["conflicting_sources"] = sorted(k for k, m in report.pop("misfit").items() if m > MISFIT)
-    report.update({"v1_weight_total": float(rows_w.sum()), "v2_weight_total": float(cols_w.sum()),
-                   "methods": table.drop_duplicates("from_code").method.value_counts().to_dict()})
+    report.update(
+        {
+            "v1_weight_total": float(rows_w.sum()),
+            "v2_weight_total": float(cols_w.sum()),
+            "methods": table.drop_duplicates("from_code").method.value_counts().to_dict(),
+        }
+    )
     return table, report
 
 
 @dataclass
 class OldList:
     """One code of the 2008-2014 list: its label per year and the years it appears in."""
+
     code: str
     labels: dict[int, str] = field(default_factory=dict)
 
@@ -232,11 +247,18 @@ def build_old_to_v1(old_codes: dict[str, OldList], v1_labels: dict[str, str], v1
     out = []
     same = {}
     for code, entry in old_codes.items():
-        labels = {_norm(l) for l in entry.labels.values() if l}
+        labels = {_norm(text) for text in entry.labels.values() if text}
         if code in v1_spending.index and labels and _norm(v1_labels.get(code)) in labels and len(labels) == 1:
             same[code] = code
-            out.append({"from_code": code, "to_code": code, "share": 1.0, "method": "same code and label",
-                        "note": next(iter(entry.labels.values()))})
+            out.append(
+                {
+                    "from_code": code,
+                    "to_code": code,
+                    "share": 1.0,
+                    "method": "same code and label",
+                    "note": next(iter(entry.labels.values())),
+                }
+            )
     taken = set(same.values())
     for code in sorted(set(old_codes) - set(same)):
         # The class (4 digits); an older 3- or 4-digit code with no subclass under it falls back to its group.
@@ -248,11 +270,17 @@ def build_old_to_v1(old_codes: dict[str, OldList], v1_labels: dict[str, str], v1
         require(under, f"no ECOICOP v1 subclass under {code[:4]} or {code[:3]} for {code}")
         free = [c for c in under if c not in taken] or under
         weight = v1_spending[free]
-        label = next((l for l in old_codes[code].labels.values() if l), "")
+        label = next((text for text in old_codes[code].labels.values() if text), "")
         if weight.sum() > 0:
-            shares, method = weight / weight.sum(), f"{'class' if len(prefix) == 4 else 'group'} {prefix} split by {BRIDGE_YEAR} spending"
+            shares, method = (
+                weight / weight.sum(),
+                f"{'class' if len(prefix) == 4 else 'group'} {prefix} split by {BRIDGE_YEAR} spending",
+            )
         else:
-            shares, method = pd.Series(1 / len(free), index=free), f"equal split over {prefix} (no {BRIDGE_YEAR} spending)"
+            shares, method = (
+                pd.Series(1 / len(free), index=free),
+                f"equal split over {prefix} (no {BRIDGE_YEAR} spending)",
+            )
         for target, s in shares.items():
             if s > 0:
                 out.append({"from_code": code, "to_code": target, "share": float(s), "method": method, "note": label})
@@ -292,30 +320,52 @@ def build(archive, store_root: Path, out_dir: Path) -> dict:
     w = bridge.households.weight
     spend = pd.Series({c: float((bridge.spending[c] * w).sum()) for c in leaves(bridge.spending.columns)})
     targets = sorted(set(links.v1))
-    require(set(spend.index) <= set(targets), f"{BRIDGE_YEAR} codes outside the correspondence: {sorted(set(spend.index) - set(targets))[:5]}")
+    require(
+        set(spend.index) <= set(targets),
+        f"{BRIDGE_YEAR} codes outside the correspondence: {sorted(set(spend.index) - set(targets))[:5]}",
+    )
     old_table = build_old_to_v1(old, labels[BRIDGE_YEAR], spend.reindex(targets, fill_value=0.0))
 
     for year in range(BRIDGE_YEAR, 2024):
         codes = set(leaves(puf.read(archive, year).spending.columns))
-        require(codes <= set(v1_table.from_code), f"{year}: codes with no COICOP 2018 mapping: {sorted(codes - set(v1_table.from_code))[:5]}")
+        require(
+            codes <= set(v1_table.from_code),
+            f"{year}: codes with no COICOP 2018 mapping: {sorted(codes - set(v1_table.from_code))[:5]}",
+        )
     require(set(old_table.to_code) <= set(v1_table.from_code), "older-list targets missing from the v1 table")
 
     source = f"correspondence {rec['sha256'][:12]} (retrieved {rec['retrieved_at'][:10]})"
-    write(v1_table, out_dir / V1_TO_2018, [
-        "ECOICOP v1 subclass -> COICOP 2018 subclass: share of the source's spending. Written by `traceconomics mapping build`.",
-        "Links: EU Vocabularies correspondence ECOICOP ver. 2 - ECOICOP ver. 1 (subclass level), " + source + ".",
-        f"Splits: RAS fitted to Greece's {WEIGHTS_YEAR} HICP item weights, Eurostat prc_hicp_inw (v1) and prc_hicp_iw (COICOP 2018).",
-        "note: the 2025 weights (per mille) of the source and its targets.",
-    ])
-    write(old_table, out_dir / OLD_TO_V1, [
-        "Code of the 2008-2014 household budget surveys -> ECOICOP v1 subclass: share of the code's spending. Written by `traceconomics mapping build`.",
-        "Same number and same label in that code's table 1.03 and in 2015's: mapped to itself. Otherwise the code's class",
-        f"(its group for older 3-digit codes) is split over the remaining v1 subclasses by the {BRIDGE_YEAR} survey's all-households spending.",
-        "note: the code's label in table 1.03.",
-    ])
-    report.update({"v1_rows": len(v1_table), "old_rows": len(old_table),
-                   "old_methods": old_table.drop_duplicates("from_code").method.str.replace(r" \d+ ", " ", regex=True)
-                                  .str.replace(r" \d+$", "", regex=True).value_counts().to_dict()})
+    write(
+        v1_table,
+        out_dir / V1_TO_2018,
+        [
+            "ECOICOP v1 subclass -> COICOP 2018 subclass: share of the source's spending. Written by `traceconomics mapping build`.",
+            "Links: EU Vocabularies correspondence ECOICOP ver. 2 - ECOICOP ver. 1 (subclass level), " + source + ".",
+            f"Splits: RAS fitted to Greece's {WEIGHTS_YEAR} HICP item weights, Eurostat prc_hicp_inw (v1) and prc_hicp_iw (COICOP 2018).",
+            "note: the 2025 weights (per mille) of the source and its targets.",
+        ],
+    )
+    write(
+        old_table,
+        out_dir / OLD_TO_V1,
+        [
+            "Code of the 2008-2014 household budget surveys -> ECOICOP v1 subclass: share of the code's spending. Written by `traceconomics mapping build`.",
+            "Same number and same label in that code's table 1.03 and in 2015's: mapped to itself. Otherwise the code's class",
+            f"(its group for older 3-digit codes) is split over the remaining v1 subclasses by the {BRIDGE_YEAR} survey's all-households spending.",
+            "note: the code's label in table 1.03.",
+        ],
+    )
+    report.update(
+        {
+            "v1_rows": len(v1_table),
+            "old_rows": len(old_table),
+            "old_methods": old_table.drop_duplicates("from_code")
+            .method.str.replace(r" \d+ ", " ", regex=True)
+            .str.replace(r" \d+$", "", regex=True)
+            .value_counts()
+            .to_dict(),
+        }
+    )
     return report
 
 

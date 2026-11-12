@@ -34,11 +34,11 @@ ALL = "All households"
 @dataclass
 class Table103:
     year: int
-    groups: list[str]                                             # "All households", then the income bands
-    households: dict[str, float] = field(default_factory=dict)    # group -> number of households (weighted)
-    purchases: dict[str, dict[str, float]] = field(default_factory=dict)   # code -> group -> euros a month
+    groups: list[str]  # "All households", then the income bands
+    households: dict[str, float] = field(default_factory=dict)  # group -> number of households (weighted)
+    purchases: dict[str, dict[str, float]] = field(default_factory=dict)  # code -> group -> euros a month
     labels: dict[str, str] = field(default_factory=dict)
-    anomalies: list[str] = field(default_factory=list)            # irregularities in the published table, kept visible
+    anomalies: list[str] = field(default_factory=list)  # irregularities in the published table, kept visible
 
 
 def _rows(path: Path) -> list[list]:
@@ -67,7 +67,7 @@ def _number(v, where: str) -> float | None:
         return None
     try:
         return float(v)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise FormatError(f"{where}: expected a number, got {v!r}") from None
 
 
@@ -87,19 +87,19 @@ def parse(path: Path, year: int) -> Table103:
         stated = m.group(1) if m else ""
     require(not stated or int(stated) == year, f"{path.name}: the table says {stated}, expected {year}")
 
-    bands = [_text(v) for v in rows[3][first_value + 1:]]
+    bands = [_text(v) for v in rows[3][first_value + 1 :]]
     groups = [ALL] + [b for b in bands if b]
     require(len(groups) >= 6, f"{path.name}: expected income bands in row 4, found {groups}")
     t = Table103(year=year, groups=groups)
 
     in_purchases = False
-    division = "00"   # the division of the last code seen in the purchases block, to vet codes stored as numbers
+    division = "00"  # the division of the last code seen in the purchases block, to vet codes stored as numbers
     for i, r in enumerate(rows[4:], start=5):
         r = list(r) + [None] * (first_value + len(groups) - len(r))
         code, label = _text(r[code_col]), _text(r[label_col])
-        values = r[first_value:first_value + len(groups)]
+        values = r[first_value : first_value + len(groups)]
         if ALL in (label, code) and not CODE.match(code):
-            t.households = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values)}
+            t.households = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values, strict=True)}
             continue
         if new_layout:
             if not CODE.match(code) or _text(r[4]) != "1":
@@ -118,8 +118,11 @@ def parse(path: Path, year: int) -> Table103:
                 # would have lost its zero (01111 -> 1111) and could pass for another real code; it
                 # shows up as a "10-13" code among codes of a lower division, and is refused.
                 ok = code[:2] in ("10", "11", "12", "13") and 0 <= int(code[:2]) - int(division) <= 1
-                require(ok, f"{path.name} row {i}: code stored as a number ({r[code_col]!r}) "
-                            f"among codes of division {division}; a leading zero may be lost")
+                require(
+                    ok,
+                    f"{path.name} row {i}: code stored as a number ({r[code_col]!r}) "
+                    f"among codes of division {division}; a leading zero may be lost",
+                )
             if CODE.match(code):
                 division = code[:2]
         if code in t.purchases:
@@ -129,7 +132,7 @@ def parse(path: Path, year: int) -> Table103:
             require(len(code) > 5, f"{path.name} row {i}: code {code} twice in the purchases block")
             t.anomalies.append(f"row {i}: code {code} ({label}) repeated; the first occurrence is kept")
             continue
-        t.purchases[code] = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values)}
+        t.purchases[code] = {g: _number(v, f"{path.name} row {i}") for g, v in zip(groups, values, strict=True)}
         t.labels[code] = label
 
     require(t.households.get(ALL), f"{path.name}: no 'All households' count")

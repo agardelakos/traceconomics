@@ -42,9 +42,9 @@ FLAG = re.compile(r"^(@[CN]|[bcdefimnpuz]+)$")
 
 @dataclass(frozen=True)
 class Parsed:
-    table: str            # DuckDB table holding the result
-    rows: int             # observations, including flagged cells without a value
-    values: int           # observations with a number
+    table: str  # DuckDB table holding the result
+    rows: int  # observations, including flagged cells without a value
+    values: int  # observations with a number
     periods: tuple[str, str]
     series: int
 
@@ -65,8 +65,10 @@ def parse(con: duckdb.DuckDBPyConnection, path: Path, spec: DatasetSpec, table: 
     # Compared without regard to case: DG EMPL's files, served by the same API, write the key
     # dimensions in capitals. The column is still read by its name as written.
     dims = [d.lower() for d in raw_dims]
-    require(tuple(dims) == spec.dimensions,
-            f"{path.name}: key dimensions are {raw_dims}, expected {list(spec.dimensions)} for {spec.id}")
+    require(
+        tuple(dims) == spec.dimensions,
+        f"{path.name}: key dimensions are {raw_dims}, expected {list(spec.dimensions)} for {spec.id}",
+    )
     pattern = PERIOD[spec.freq]
     bad = [p for p in periods if not pattern.match(p)]
     require(not bad, f"{path.name}: unexpected period columns {examples(bad)}")
@@ -82,7 +84,7 @@ def parse(con: duckdb.DuckDBPyConnection, path: Path, spec: DatasetSpec, table: 
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE _cells AS
         WITH u AS (UNPIVOT _wide ON COLUMNS(* EXCLUDE ("{first}")) INTO NAME period VALUE raw)
-        SELECT {', '.join(key_cols)}, trim(period) AS ref_period, trim(raw) AS raw
+        SELECT {", ".join(key_cols)}, trim(period) AS ref_period, trim(raw) AS raw
         FROM u WHERE trim(raw) <> ':'
     """)
     con.execute("DROP TABLE _wide")
@@ -98,11 +100,12 @@ def parse(con: duckdb.DuckDBPyConnection, path: Path, spec: DatasetSpec, table: 
         else:
             select.append(d)
     number = "CASE WHEN starts_with(raw, ':') THEN NULL ELSE split_part(raw, ' ', 1) END"
-    rest = ("CASE WHEN starts_with(raw, ':') THEN substr(raw, 2) "
-            "ELSE substr(raw, length(split_part(raw, ' ', 1)) + 1) END")
+    rest = (
+        "CASE WHEN starts_with(raw, ':') THEN substr(raw, 2) ELSE substr(raw, length(split_part(raw, ' ', 1)) + 1) END"
+    )
     con.execute(f"""
         CREATE OR REPLACE TABLE {table} AS
-        SELECT {', '.join(select)}, ref_period,
+        SELECT {", ".join(select)}, ref_period,
                {number} AS value_text,
                TRY_CAST({number} AS DOUBLE) AS value,
                nullif(trim({rest}), '') AS flags
@@ -112,7 +115,8 @@ def parse(con: duckdb.DuckDBPyConnection, path: Path, spec: DatasetSpec, table: 
 
     _check(con, table, spec, path)
     rows, values, series = con.execute(
-        f"SELECT count(*), count(value), count(DISTINCT ({', '.join(dims)})) FROM {table}").fetchone()
+        f"SELECT count(*), count(value), count(DISTINCT ({', '.join(dims)})) FROM {table}"
+    ).fetchone()
     require(rows > 0, f"{path.name}: no values at all")
     return Parsed(table=table, rows=rows, values=values, periods=(periods[0], periods[-1]), series=series)
 
@@ -133,8 +137,10 @@ def _geo_sql(source: str) -> str:
 
 
 def _coicop_sql(col: str) -> str:
-    return (f"CASE WHEN {col} IN ('TOTAL', 'CP00') THEN 'TOTAL' "
-            f"WHEN regexp_full_match({col}, 'CP[0-9]+') THEN substr({col}, 3) ELSE {col} END")
+    return (
+        f"CASE WHEN {col} IN ('TOTAL', 'CP00') THEN 'TOTAL' "
+        f"WHEN regexp_full_match({col}, 'CP[0-9]+') THEN substr({col}, 3) ELSE {col} END"
+    )
 
 
 def _check(con: duckdb.DuckDBPyConnection, table: str, spec: DatasetSpec, path: Path) -> None:
@@ -147,8 +153,7 @@ def _check(con: duckdb.DuckDBPyConnection, table: str, spec: DatasetSpec, path: 
     bad = [f for f in flags if not FLAG.match(f)]
     require(not bad, f"{path.name}: unknown observation flags {examples(bad)}")
 
-    empty = [d for d in spec.dimensions
-             if con.execute(f"SELECT count(*) FROM {table} WHERE {d} = ''").fetchone()[0]]
+    empty = [d for d in spec.dimensions if con.execute(f"SELECT count(*) FROM {table} WHERE {d} = ''").fetchone()[0]]
     require(not empty, f"{path.name}: empty codes in {empty}")
 
     geos = [g for (g,) in con.execute(f"SELECT DISTINCT geo FROM {table}").fetchall()]
@@ -157,12 +162,15 @@ def _check(con: duckdb.DuckDBPyConnection, table: str, spec: DatasetSpec, path: 
     # (Greece: EL, as NUTS writes it) and one to three more characters. They stay as NUTS writes
     # them, a code system of its own; only whole countries are translated (geo.toml).
     region = re.compile(r"[A-Z]{2}[0-9A-Z]{1,3}")
-    unknown = [g for g in geos if not places.is_known(g)
-               and not (spec.regions and region.fullmatch(g) and places.is_known(g[:2]))]
+    unknown = [
+        g
+        for g in geos
+        if not places.is_known(g) and not (spec.regions and region.fullmatch(g) and places.is_known(g[:2]))
+    ]
     require(not unknown, f"{path.name}: unknown country codes {examples(unknown)}")
 
     dup = con.execute(f"""
-        SELECT {', '.join(spec.dimensions)}, ref_period FROM {table}
+        SELECT {", ".join(spec.dimensions)}, ref_period FROM {table}
         GROUP BY ALL HAVING count(*) > 1 LIMIT 3""").fetchall()
     if dup:
         raise FormatError(f"{path.name}: the same series and period appear twice, e.g. {dup[0]}")

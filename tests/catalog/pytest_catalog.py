@@ -34,7 +34,7 @@ LAYERS = ("unit", "integration", "repository")
 
 
 def _markers(item) -> list[str]:
-    names = [m.name for m in item.iter_markers()]          # closest first
+    names = [m.name for m in item.iter_markers()]  # closest first
     applied = next((n for n in names if n in LAYERS), None)
     return sorted({n for n in names if n not in LAYERS} | ({applied} if applied else set()))
 
@@ -49,15 +49,18 @@ def pytest_collection_finish(session):
         fn = getattr(item, "function", None)
         path, line, _ = item.location
         callspec = getattr(item, "callspec", None)
-        items.append({
-            "nodeid": item.nodeid,
-            "base": item.nodeid.split("[", 1)[0],
-            "file": Path(path).as_posix(),
-            "line": (line or 0) + 1,
-            "doc": inspect.getdoc(fn) if fn is not None else None,
-            "param": callspec.id if callspec is not None else None,
-            "reasons": _reasons(item),
-            "markers": _markers(item),
-        })
-    Path(out).write_text(json.dumps({"root": root.as_posix(), "items": items}, indent=1),
-                         encoding="utf-8", newline="\n")
+        items.append(
+            {
+                "nodeid": item.nodeid,
+                "base": item.nodeid.split("[", 1)[0],
+                "file": Path(path).as_posix(),
+                "line": (line or 0) + 1,
+                "doc": inspect.getdoc(fn) if fn is not None else None,
+                "param": callspec.id if callspec is not None else None,
+                "reasons": _reasons(item),
+                "markers": _markers(item),
+            }
+        )
+    Path(out).write_text(
+        json.dumps({"root": root.as_posix(), "items": items}, indent=1), encoding="utf-8", newline="\n"
+    )

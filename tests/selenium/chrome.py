@@ -29,7 +29,7 @@ def paths() -> dict[str, str]:
     cache_dir = Path(os.environ.get("SE_CACHE_PATH", Path.home() / ".cache" / "selenium"))
     cache_dir.mkdir(parents=True, exist_ok=True)
     with open(cache_dir / "traceconomics-tests.lock", "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)    # released when the file closes
+        fcntl.flock(lock, fcntl.LOCK_EX)  # released when the file closes
         found = SeleniumManager().binary_paths(["--browser", "chrome", "--browser-version", CHROME_VERSION])
     for key in ("driver_path", "browser_path"):
         if not Path(found.get(key) or "").is_file():
@@ -40,8 +40,9 @@ def paths() -> dict[str, str]:
 def main() -> int:
     p = paths()
     print(f"Chrome {CHROME_VERSION}: {p['browser_path']}\nchromedriver: {p['driver_path']}", flush=True)
-    run = subprocess.run([p["browser_path"], "--headless=new", "--dump-dom", "about:blank"],
-                         capture_output=True, text=True, timeout=60)
+    run = subprocess.run(
+        [p["browser_path"], "--headless=new", "--dump-dom", "about:blank"], capture_output=True, text=True, timeout=60
+    )
     if run.returncode != 0 or "<html" not in run.stdout:
         print(f"Chrome did not start (exit {run.returncode}):\n{run.stderr.strip()}", file=sys.stderr)
         return 1

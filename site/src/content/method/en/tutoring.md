@@ -5,6 +5,7 @@ order: 6
 option: "tutoring"
 sources: [elstat-cpi-items, elstat-hbs-puf]
 ---
+
 ## Why there is a choice
 
 From 2026 ELSTAT's CPI gives "education not defined by level", mostly tutoring and language schools, no weight of its own, though it still collects those prices under secondary education. Until 2025 tutoring was weighted inside secondary education.

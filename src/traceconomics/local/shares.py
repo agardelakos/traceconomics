@@ -55,10 +55,11 @@ def reliability(n: int) -> str:
 @dataclass
 class Tree:
     """The leaves in scope under one imputed-rent option, and every code above them."""
+
     option: int
     leaves: list[str]
     codes: list[str]
-    incidence: np.ndarray      # codes x leaves: 1 where the leaf sits under (or is) the code
+    incidence: np.ndarray  # codes x leaves: 1 where the leaf sits under (or is) the code
 
     @classmethod
     def build(cls, all_leaves: list[str], option: int) -> Tree:
@@ -72,7 +73,7 @@ class Tree:
 def group_shares(x: np.ndarray, weights: np.ndarray, tree: Tree) -> np.ndarray:
     """codes x R shares, from x (households x leaves, euros) and weights (households x R) that are
     already zero outside the group."""
-    sums = x.T @ weights                         # leaves x R
+    sums = x.T @ weights  # leaves x R
     return tree.incidence @ sums / sums.sum(axis=0)
 
 
@@ -119,12 +120,20 @@ def shares(survey: Survey, groups: pd.DataFrame | None = None, spending: str = "
             share = group_shares(x, (w * member)[:, None], tree)[:, 0]
             # Households that reported anything under each code (at a leaf: on the item itself).
             n = ((reporting[member] @ tree.incidence.T) > 0).sum(axis=0)
-            for code, s, k in zip(tree.codes, share, n):
-                rows.append({
-                    "grouping": grouping, "group": group, "imputed_rent": option,
-                    "code": code, "digits": len(code), "leaf": code in tree.leaves,
-                    "share": float(s), "n_reporting": int(k), "reliability": reliability(int(k)),
-                    "n_households": int(member.sum()),
-                    "households_weighted": float(w[member].sum()),
-                })
+            for code, s, k in zip(tree.codes, share, n, strict=True):
+                rows.append(
+                    {
+                        "grouping": grouping,
+                        "group": group,
+                        "imputed_rent": option,
+                        "code": code,
+                        "digits": len(code),
+                        "leaf": code in tree.leaves,
+                        "share": float(s),
+                        "n_reporting": int(k),
+                        "reliability": reliability(int(k)),
+                        "n_households": int(member.sum()),
+                        "households_weighted": float(w[member].sum()),
+                    }
+                )
     return pd.DataFrame(rows)

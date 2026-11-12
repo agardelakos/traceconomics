@@ -7,4 +7,5 @@ short: "How many 'adult equivalents' a household counts as: the modified OECD sc
 sources: [eurostat-equivalence-scale]
 related: [equivalised-income]
 ---
+
 A couple with two young children counts as 1 + 0.5 + 0.3 + 0.3 = 2.1 adult equivalents: living costs grow with household size, but less than proportionally. This is the scale Eurostat uses.

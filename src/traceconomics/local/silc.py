@@ -33,9 +33,9 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-from pathlib import Path
 import re
 from datetime import UTC, datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -50,13 +50,21 @@ WORKBOOK = re.compile(r"Public Use Files\.xls[xb]$")
 OUT_SOURCE = "oet-local"
 OUT = "silc-tenure-gr-{year}"
 GEO = "GR"
-SMALL = 20                          # counts under this are written as "<20", as in the HBS tables
+SMALL = 20  # counts under this are written as "<20", as in the HBS tables
 
-TENURE = {"1": "owner", "2": "owner", "3": "renter_market", "4": "renter_reduced", "5": "rent_free"}   # HH021
-TENURE_OLD = {"1": "owner", "2": "renter_market", "3": "renter_reduced", "4": "rent_free"}               # HH020
+TENURE = {"1": "owner", "2": "owner", "3": "renter_market", "4": "renter_reduced", "5": "rent_free"}  # HH021
+TENURE_OLD = {"1": "owner", "2": "renter_market", "3": "renter_reduced", "4": "rent_free"}  # HH020
 ROWS = ("all", "owner", "renter", "renter_market", "renter_reduced", "rent_free")
-COLUMNS = ["geo", "ref_year", "tenure", "n_households", "households_weighted", "people_weighted",
-           "rent_paid_eur", "source_version"]
+COLUMNS = [
+    "geo",
+    "ref_year",
+    "tenure",
+    "n_households",
+    "households_weighted",
+    "people_weighted",
+    "rent_paid_eur",
+    "source_version",
+]
 NEEDED = {"D_FILE": ("DB030", "DB090"), "H_FILE": ("HB030", "HH060"), "R_FILE": ("RB030", "RB040", "RB050")}
 
 
@@ -66,7 +74,9 @@ def years(archive: Archive) -> dict[int, str]:
     for source, dataset in archive.datasets():
         m = DATASET.match(dataset) if source == SOURCE else None
         if m:
-            require(int(m.group(1)) not in out, f"two SILC files for {m.group(1)}: {out.get(int(m.group(1)))} and {dataset}")
+            require(
+                int(m.group(1)) not in out, f"two SILC files for {m.group(1)}: {out.get(int(m.group(1)))} and {dataset}"
+            )
             out[int(m.group(1))] = dataset
     return dict(sorted(out.items()))
 
@@ -91,7 +101,10 @@ def read(archive: Archive, year: int) -> dict[str, pd.DataFrame]:
     for sheet, cols in NEEDED.items():
         # Written D_FILE from 2020, D-FILE before: the same sheet.
         names = [n for n in book.sheet_names if n.strip().upper().replace("-", "_") == sheet]
-        require(len(names) == 1, f"{year}: expected one sheet {sheet} (or {sheet.replace('_', '-')}), found {book.sheet_names}")
+        require(
+            len(names) == 1,
+            f"{year}: expected one sheet {sheet} (or {sheet.replace('_', '-')}), found {book.sheet_names}",
+        )
         sheets[sheet] = book.parse(names[0], dtype=str)
         missing = [c for c in cols if c not in sheets[sheet].columns]
         require(not missing, f"{year}: {sheet} has no {missing}")
@@ -141,10 +154,19 @@ def table(sheets: dict[str, pd.DataFrame], year: int, source_version: str) -> pd
             member = np.isin(tenure, ("renter_market", "renter_reduced"))
         else:
             member = tenure == label
-        rows.append({"geo": GEO, "ref_year": year, "tenure": label, "n_households": _count(int(member.sum())),
-                     "households_weighted": float(w[member].sum()), "people_weighted": float(by_household[member].sum()),
-                     # HH060 is monthly (see the module docstring): twelve months make the year.
-                     "rent_paid_eur": float(12 * (w * rent)[member].sum()), "source_version": source_version})
+        rows.append(
+            {
+                "geo": GEO,
+                "ref_year": year,
+                "tenure": label,
+                "n_households": _count(int(member.sum())),
+                "households_weighted": float(w[member].sum()),
+                "people_weighted": float(by_household[member].sum()),
+                # HH060 is monthly (see the module docstring): twelve months make the year.
+                "rent_paid_eur": float(12 * (w * rent)[member].sum()),
+                "source_version": source_version,
+            }
+        )
     return pd.DataFrame(rows)[COLUMNS]
 
 
@@ -159,21 +181,37 @@ def run(archive: Archive, only: list[int] | None = None) -> list[dict]:
 
     found = years(archive)
     report = []
-    for year in (only or list(found)):
+    for year in only or list(found):
         rec = archive.latest(SOURCE, found.get(year, ""))
         require(rec is not None, f"no archived SILC public use file for {year}")
         source_version = f"{SOURCE}/{found[year]}@{rec['sha256'][:12]}"
         t = table(read(archive, year), year, source_version)
-        head = [f"Greek EU-SILC {year}: tenure and rent paid for the main home, by household and person, euros a year.",
-                "Built from the survey's public use file by Traceconomics; aggregates only. Counts under 20 are written as <20.",
-                "provenance: " + json.dumps({"survey": source_version, "code_fingerprint": code_fingerprint()[:16]},
-                                            sort_keys=True)]
+        head = [
+            f"Greek EU-SILC {year}: tenure and rent paid for the main home, by household and person, euros a year.",
+            "Built from the survey's public use file by Traceconomics; aggregates only. Counts under 20 are written as <20.",
+            "provenance: "
+            + json.dumps({"survey": source_version, "code_fingerprint": code_fingerprint()[:16]}, sort_keys=True),
+        ]
         dataset = OUT.format(year=year)
-        res = archive.store_bytes(OUT_SOURCE, dataset, to_csv(t, head), url=None, retrieved_at=datetime.now(UTC),
-                                  ext=".csv", kind="local",
-                                  extra={"original_name": f"{dataset}.csv", "note": "built locally"})
+        res = archive.store_bytes(
+            OUT_SOURCE,
+            dataset,
+            to_csv(t, head),
+            url=None,
+            retrieved_at=datetime.now(UTC),
+            ext=".csv",
+            kind="local",
+            extra={"original_name": f"{dataset}.csv", "note": "built locally"},
+        )
         s = t.set_index("tenure")
-        report.append({"year": year, "result": res.status,
-                       "renters_households": round(float(s.loc["renter", "households_weighted"] / s.loc["all", "households_weighted"]), 4),
-                       "rent_paid_eur": int(round(float(s.loc["all", "rent_paid_eur"])))})
+        report.append(
+            {
+                "year": year,
+                "result": res.status,
+                "renters_households": round(
+                    float(s.loc["renter", "households_weighted"] / s.loc["all", "households_weighted"]), 4
+                ),
+                "rent_paid_eur": int(round(float(s.loc["all", "rent_paid_eur"]))),
+            }
+        )
     return report

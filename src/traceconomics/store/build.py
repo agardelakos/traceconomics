@@ -29,35 +29,50 @@ import duckdb
 
 from traceconomics.archive.store import Archive, read_jsonl
 from traceconomics.catalog import DatasetSpec, datasets
-from traceconomics.sources.aade import parse as aade_parse
-from traceconomics.sources.elstat import parse as elstat_parse
-from traceconomics.sources.elstat import table05 as elstat_table05
 from traceconomics.sources import oet_local
+from traceconomics.sources.aade import parse as aade_parse
+from traceconomics.sources.elstat import parse as elstat_parse, table05 as elstat_table05
 from traceconomics.sources.eurostat import parse as eurostat_parse
 from traceconomics.store.registry import Snapshot, label_files, snapshots
 
 LOADED = "loaded.jsonl"
-PARSERS = {"eurostat-tsv": eurostat_parse.PARSER_VERSION, "elstat-cpi07": elstat_parse.PARSER_VERSION,
-           "elstat-cpi05": elstat_table05.PARSER_VERSION, "aade-pit": aade_parse.PARSER_VERSION,
-           **{fmt: oet_local.PARSER_VERSION for fmt in oet_local.FORMATS}}
+PARSERS = {
+    "eurostat-tsv": eurostat_parse.PARSER_VERSION,
+    "elstat-cpi07": elstat_parse.PARSER_VERSION,
+    "elstat-cpi05": elstat_table05.PARSER_VERSION,
+    "aade-pit": aade_parse.PARSER_VERSION,
+    **{fmt: oet_local.PARSER_VERSION for fmt in oet_local.FORMATS},
+}
 COMMON_HEAD = ["dataset", "archive_dataset", "key"]
-COMMON_TAIL = ["ref_period", "published_at", "published_at_quality", "retrieved_at", "value", "value_text",
-               "status", "flags", "raw_sha256", "parser_version"]
+COMMON_TAIL = [
+    "ref_period",
+    "published_at",
+    "published_at_quality",
+    "retrieved_at",
+    "value",
+    "value_text",
+    "status",
+    "flags",
+    "raw_sha256",
+    "parser_version",
+]
 
 
 @dataclass
 class DatasetReport:
     dataset: str
-    rebuilt: str | None = None          # why everything was re-read, if it was
-    snapshots: int = 0                  # snapshots read this time
-    added: int = 0                      # new or revised values
+    rebuilt: str | None = None  # why everything was re-read, if it was
+    snapshots: int = 0  # snapshots read this time
+    added: int = 0  # new or revised values
     withdrawn: int = 0
     skipped: list[str] = field(default_factory=list)
 
     def line(self) -> str:
         why = f" (re-read everything: {self.rebuilt})" if self.rebuilt else ""
-        return (f"{self.dataset}: {self.snapshots} snapshot(s) read, {self.added:,} values added or revised, "
-                f"{self.withdrawn:,} withdrawn{why}")
+        return (
+            f"{self.dataset}: {self.snapshots} snapshot(s) read, {self.added:,} values added or revised, "
+            f"{self.withdrawn:,} withdrawn{why}"
+        )
 
 
 def folder_name(spec: DatasetSpec) -> str:
@@ -97,12 +112,14 @@ class Store:
         for part in folder.glob("*.parquet"):
             part.unlink()
         keep = [r for r in self.loaded() if r["dataset"] != dataset_id]
-        _write_atomic(self.root / LOADED, "".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n"
-                                                  for r in keep))
+        _write_atomic(
+            self.root / LOADED, "".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in keep)
+        )
 
 
-def update(archive: Archive, store: Store, con: duckdb.DuckDBPyConnection, *,
-           only: list[str] | None = None, full: bool = False) -> list[DatasetReport]:
+def update(
+    archive: Archive, store: Store, con: duckdb.DuckDBPyConnection, *, only: list[str] | None = None, full: bool = False
+) -> list[DatasetReport]:
     reports = []
     for spec in datasets().values():
         if only and spec.id not in only:
@@ -152,16 +169,25 @@ def _update_dataset(archive: Archive, store: Store, con, spec: DatasetSpec, full
                 continue
             seq += 1
             added, withdrawn, part = _ingest(con, spec, snap, folder, seq, version)
-            store._append_loaded({
-                "dataset": spec.id, "archive_dataset": ad, "sha256": snap.sha256,
-                "retrieved_at": snap.retrieved_at, "parser_version": version,
-                "added": added, "withdrawn": withdrawn, "part": part,
-                "loaded_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            })
+            store._append_loaded(
+                {
+                    "dataset": spec.id,
+                    "archive_dataset": ad,
+                    "sha256": snap.sha256,
+                    "retrieved_at": snap.retrieved_at,
+                    "parser_version": version,
+                    "added": added,
+                    "withdrawn": withdrawn,
+                    "part": part,
+                    "loaded_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                }
+            )
             report.snapshots += 1
             report.added += added
             report.withdrawn += withdrawn
-    if spec.label_files is not None and (report.snapshots or not (store.labels / f"{folder_name(spec)}.parquet").exists()):
+    if spec.label_files is not None and (
+        report.snapshots or not (store.labels / f"{folder_name(spec)}.parquet").exists()
+    ):
         _write_labels(con, archive, store, spec)
     return report
 
@@ -171,26 +197,40 @@ def _parse_into(con, spec: DatasetSpec, snap: Snapshot, table: str) -> None:
         eurostat_parse.parse(con, snap.path, spec, table=table)
     elif spec.format == "elstat-cpi07":
         t = elstat_parse.parse(snap.path)
-        con.execute(f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, coicop18 VARCHAR, geo VARCHAR, "
-                    "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)")
-        con.executemany(f"INSERT INTO {table} VALUES (?, ?, ?, 'GR', ?, ?, ?, NULL)",
-                        [(f, u, c, p, repr(v), v) for f, u, c, p, v in t.rows()])
+        con.execute(
+            f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, coicop18 VARCHAR, geo VARCHAR, "
+            "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)"
+        )
+        con.executemany(
+            f"INSERT INTO {table} VALUES (?, ?, ?, 'GR', ?, ?, ?, NULL)",
+            [(f, u, c, p, repr(v), v) for f, u, c, p, v in t.rows()],
+        )
     elif spec.format == "elstat-cpi05":
         t5 = elstat_table05.parse(snap.path)
-        con.execute(f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, geo VARCHAR, "
-                    "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)")
-        con.executemany(f"INSERT INTO {table} VALUES (?, ?, 'GR', ?, ?, ?, NULL)",
-                        [(f, u, p, repr(v), v) for f, u, p, v in t5.rows()])
+        con.execute(
+            f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, geo VARCHAR, "
+            "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)"
+        )
+        con.executemany(
+            f"INSERT INTO {table} VALUES (?, ?, 'GR', ?, ?, ?, NULL)",
+            [(f, u, p, repr(v), v) for f, u, p, v in t5.rows()],
+        )
     elif spec.format == "aade-pit":
-        con.execute(f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, measure VARCHAR, geo VARCHAR, "
-                    "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)")
-        con.executemany(f"INSERT INTO {table} VALUES ('A', ?, ?, 'GR', ?, ?, ?, NULL)",
-                        [(u, m, p, text, v) for m, u, p, text, v in aade_parse.rows(snap.path)])
+        con.execute(
+            f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, measure VARCHAR, geo VARCHAR, "
+            "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)"
+        )
+        con.executemany(
+            f"INSERT INTO {table} VALUES ('A', ?, ?, 'GR', ?, ?, ?, NULL)",
+            [(u, m, p, text, v) for m, u, p, text, v in aade_parse.rows(snap.path)],
+        )
     elif spec.format in oet_local.FORMATS:
         dims = oet_local.FORMATS[spec.format]["dims"]
         cols = ", ".join(f'"{d}" VARCHAR' for d in (*dims, "measure"))
-        con.execute(f"CREATE OR REPLACE TABLE {table} ({cols}, ref_period VARCHAR, value_text VARCHAR, "
-                    "value DOUBLE, flags VARCHAR)")
+        con.execute(
+            f"CREATE OR REPLACE TABLE {table} ({cols}, ref_period VARCHAR, value_text VARCHAR, "
+            "value DOUBLE, flags VARCHAR)"
+        )
         rows = list(oet_local.rows(snap.path, spec.format))
         # A table with no rows is valid (the 2010 survey's income limits, which can't be built):
         # it withdraws the dataset's earlier rows. DuckDB's executemany refuses an empty list.
@@ -210,12 +250,15 @@ def _ingest(con, spec: DatasetSpec, snap: Snapshot, folder: Path, seq: int, vers
 
     parts = sorted(folder.glob("*.parquet"))
     if parts:
-        con.execute(f"""
+        con.execute(
+            f"""
             CREATE OR REPLACE TEMP TABLE cur AS
-            SELECT * FROM read_parquet('{(folder / '*.parquet').as_posix()}', union_by_name = true)
+            SELECT * FROM read_parquet('{(folder / "*.parquet").as_posix()}', union_by_name = true)
             WHERE archive_dataset = ?
             QUALIFY row_number() OVER (PARTITION BY key, ref_period ORDER BY retrieved_at DESC) = 1
-        """, [snap.archive_dataset])
+        """,
+            [snap.archive_dataset],
+        )
         con.execute("DELETE FROM cur WHERE status = 'withdrawn'")
     else:
         cols = ", ".join(f'NULL::VARCHAR AS "{c}"' for c in ["key", *dims, "ref_period", "value_text", "flags"])
@@ -227,11 +270,14 @@ def _ingest(con, spec: DatasetSpec, snap: Snapshot, folder: Path, seq: int, vers
     retrieved_at = _utc(snap.retrieved_at)
     backcast = f"ref_period < '{spec.backcast_before}'" if spec.backcast_before else "false"
     flash = f"{spec.release} = 'FLS'" if spec.release else "false"
-    status = (f"CASE WHEN gone THEN 'withdrawn' WHEN {backcast} THEN 'backcast' WHEN {flash} THEN 'flash' "
-              "WHEN coalesce(flags, '') LIKE '%p%' THEN 'provisional' ELSE 'final' END")
+    status = (
+        f"CASE WHEN gone THEN 'withdrawn' WHEN {backcast} THEN 'backcast' WHEN {flash} THEN 'flash' "
+        "WHEN coalesce(flags, '') LIKE '%p%' THEN 'provisional' ELSE 'final' END"
+    )
     dim_cols = ", ".join(f'"{d}"' for d in dims)
     params = [spec.id, snap.archive_dataset, published_at, quality, retrieved_at, snap.sha256, version]
-    con.execute(f"""
+    con.execute(
+        f"""
         CREATE OR REPLACE TEMP TABLE out AS
         SELECT ?::VARCHAR AS dataset, ?::VARCHAR AS archive_dataset, key, {dim_cols}, ref_period,
                ?::TIMESTAMP AS published_at, ?::VARCHAR AS published_at_quality, ?::TIMESTAMP AS retrieved_at,
@@ -244,11 +290,13 @@ def _ingest(con, spec: DatasetSpec, snap: Snapshot, folder: Path, seq: int, vers
                OR c.flags IS DISTINCT FROM n.flags
             UNION ALL BY NAME
             -- withdrawn: in the previous snapshot of this file, not in this one
-            SELECT c.key, {', '.join(f'c."{d}"' for d in dims)}, c.ref_period,
+            SELECT c.key, {", ".join(f'c."{d}"' for d in dims)}, c.ref_period,
                    NULL::VARCHAR AS value_text, NULL::DOUBLE AS value, NULL::VARCHAR AS flags, true AS gone
             FROM cur c ANTI JOIN new n ON c.key = n.key AND c.ref_period = n.ref_period
         )
-    """, params)
+    """,
+        params,
+    )
     added, withdrawn = con.execute(
         "SELECT count(*) FILTER (WHERE status <> 'withdrawn'), count(*) FILTER (WHERE status = 'withdrawn') FROM out"
     ).fetchone()
@@ -273,8 +321,9 @@ def _write_labels(con, archive: Archive, store: Store, spec: DatasetSpec) -> Non
         for code, label in t.labels.items():
             labels.setdefault(code, {})[t.language] = label
     con.execute("CREATE OR REPLACE TEMP TABLE lab (code VARCHAR, label_en VARCHAR, label_el VARCHAR)")
-    con.executemany("INSERT INTO lab VALUES (?, ?, ?)",
-                    [(c, v.get("en"), v.get("el")) for c, v in sorted(labels.items())])
+    con.executemany(
+        "INSERT INTO lab VALUES (?, ?, ?)", [(c, v.get("en"), v.get("el")) for c, v in sorted(labels.items())]
+    )
     path = store.labels / f"{folder_name(spec)}.parquet"
     tmp = path.with_name(path.name + ".part")
     con.execute(f"COPY lab TO '{tmp.as_posix()}' (FORMAT parquet)")

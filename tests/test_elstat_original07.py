@@ -67,6 +67,7 @@ def _sheet(monkeypatch, rows, title="ΠΙΝΑΚΑΣ VII. ΔΤΚ έτους 2009 
     class Book:
         def sheet_by_index(self, i):
             return sheet
+
     monkeypatch.setattr(original07.xlrd, "open_workbook", lambda path: Book())
 
 
@@ -97,11 +98,14 @@ def test_the_layout_rules_of_the_original_files(monkeypatch):
     assert t.months["1000"] == [100.0] * 12 and t.labels["1000"] == "item 0"
 
 
-@pytest.mark.parametrize("title, rows, message", [
-    ("ΠΙΝΑΚΑΣ VII. ΔΤΚ έτους 2009", _items(151) + [_item("", "ΓΕΝΙΚΟΣ ΔΕΙΚΤΗΣ")], "no base year in the title"),
-    ("ΔΤΚ έτους 2009 (2009=100)", _items(151), "no overall index row"),
-    ("ΔΤΚ έτους 2009 (2009=100)", _items(10) + [_item("", "ΓΕΝΙΚΟΣ ΔΕΙΚΤΗΣ")], "only 11 rows"),
-])
+@pytest.mark.parametrize(
+    "title, rows, message",
+    [
+        ("ΠΙΝΑΚΑΣ VII. ΔΤΚ έτους 2009", _items(151) + [_item("", "ΓΕΝΙΚΟΣ ΔΕΙΚΤΗΣ")], "no base year in the title"),
+        ("ΔΤΚ έτους 2009 (2009=100)", _items(151), "no overall index row"),
+        ("ΔΤΚ έτους 2009 (2009=100)", _items(10) + [_item("", "ΓΕΝΙΚΟΣ ΔΕΙΚΤΗΣ")], "only 11 rows"),
+    ],
+)
 def test_a_file_that_isnt_a_whole_table_is_refused(monkeypatch, title, rows, message):
     """PY-ORIG-010: a file that isn't a whole table VII is refused, never guessed
 

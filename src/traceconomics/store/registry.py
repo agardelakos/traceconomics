@@ -11,10 +11,10 @@ from traceconomics.catalog import DatasetSpec
 
 @dataclass(frozen=True)
 class Snapshot:
-    archive_dataset: str      # source/dataset in the archive, e.g. "elstat/doc-585819"
-    path: Path                # the payload
+    archive_dataset: str  # source/dataset in the archive, e.g. "elstat/doc-585819"
+    path: Path  # the payload
     sha256: str
-    retrieved_at: str         # ISO UTC, as in the archive index
+    retrieved_at: str  # ISO UTC, as in the archive index
     manifest: dict
 
 
@@ -27,9 +27,15 @@ def snapshots(archive: Archive, spec: DatasetSpec) -> dict[str, list[Snapshot]]:
             manifest = archive.manifest(rec)
             if not spec.feeds(source, dataset, manifest.get("original_name")):
                 continue
-            out.setdefault(f"{source}/{dataset}", []).append(Snapshot(
-                archive_dataset=f"{source}/{dataset}", path=archive.root / rec["path"],
-                sha256=rec["sha256"], retrieved_at=rec["retrieved_at"], manifest=manifest))
+            out.setdefault(f"{source}/{dataset}", []).append(
+                Snapshot(
+                    archive_dataset=f"{source}/{dataset}",
+                    path=archive.root / rec["path"],
+                    sha256=rec["sha256"],
+                    retrieved_at=rec["retrieved_at"],
+                    manifest=manifest,
+                )
+            )
     return out
 
 

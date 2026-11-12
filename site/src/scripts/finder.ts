@@ -10,17 +10,19 @@ import { equivalentSize, householdType, parseAmount, placeIncome } from "../lib/
 interface Config {
   lang: Lang;
   cutoffs: Record<string, number>;
-  names: Record<string, string>;      // group key -> its name
-  inNames: Record<string, string>;    // group key -> its name inside a sentence
-  calculator: string;                 // the calculator's address
-  explore: string;                    // Explore's address
+  names: Record<string, string>; // group key -> its name
+  inNames: Record<string, string>; // group key -> its name inside a sentence
+  calculator: string; // the calculator's address
+  explore: string; // Explore's address
   text: Record<string, string>;
 }
 
 export function startFinder(root: HTMLElement): void {
   const cfg: Config = JSON.parse(root.dataset.finder!);
-  const $ = <T extends HTMLElement>(role: string) => root.querySelector<T>(`[data-find="${role}"]`)!;
-  const value = (name: string) => root.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? null;
+  const $ = <T extends HTMLElement>(role: string) =>
+    root.querySelector<T>(`[data-find="${role}"]`)!;
+  const value = (name: string) =>
+    root.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? null;
 
   // A number box the reader is still typing in may be empty or out of range: keep it within
   // bounds for the sums, and leave the box itself alone.
@@ -39,7 +41,11 @@ export function startFinder(root: HTMLElement): void {
     const older = count($<HTMLInputElement>("older"), 1);
     const children = count($<HTMLInputElement>("children"), 0);
     const size = equivalentSize(older, children);
-    const type = householdType(older, children, Math.min(count($<HTMLInputElement>("dependents"), 0), older));
+    const type = householdType(
+      older,
+      children,
+      Math.min(count($<HTMLInputElement>("dependents"), 0), older),
+    );
     $("size").textContent = fill(cfg.text.size, { size: num(cfg.lang, size) });
 
     const amount = parseAmount($<HTMLInputElement>("income").value);
@@ -61,23 +67,36 @@ export function startFinder(root: HTMLElement): void {
     $("income-row").hidden = place === null;
     if (place) $("income-value").textContent = cfg.names[place.fifth];
     $("near").hidden = !place?.neighbour;
-    if (place?.neighbour) $("near").textContent = fill(cfg.text.near, { group: cfg.inNames[place.neighbour] });
+    if (place?.neighbour)
+      $("near").textContent = fill(cfg.text.near, { group: cfg.inNames[place.neighbour] });
     $("type-row").hidden = type === null;
     if (type) $("type-value").textContent = cfg.names[`hhtype/${type}`];
     $("home-row").hidden = home === null;
     if (home) $("home-value").textContent = cfg.names[`tenure/${home}`];
     $("pension-row").hidden = pension === null;
-    if (pension) $("pension-value").textContent = cfg.names[pension === "yes" ? "pensioners/pensioners" : "pensioners/other"];
+    if (pension)
+      $("pension-value").textContent =
+        cfg.names[pension === "yes" ? "pensioners/pensioners" : "pensioners/other"];
 
     const next = $("next");
     next.hidden = groups.length === 0;
-    $("starts").replaceChildren(...groups.map((g) => {
-      const a = Object.assign(document.createElement("a"), { className: "button", href: link(cfg.calculator, "from", g.calc), textContent: cfg.names[g.explore] });
-      const li = document.createElement("li");
-      li.append(a);
-      return li;
-    }));
-    $<HTMLAnchorElement>("compare").href = link(cfg.explore, "groups", groups.map((g) => g.explore).join(","));
+    $("starts").replaceChildren(
+      ...groups.map((g) => {
+        const a = Object.assign(document.createElement("a"), {
+          className: "button",
+          href: link(cfg.calculator, "from", g.calc),
+          textContent: cfg.names[g.explore],
+        });
+        const li = document.createElement("li");
+        li.append(a);
+        return li;
+      }),
+    );
+    $<HTMLAnchorElement>("compare").href = link(
+      cfg.explore,
+      "groups",
+      groups.map((g) => g.explore).join(","),
+    );
   };
 
   root.addEventListener("change", draw);

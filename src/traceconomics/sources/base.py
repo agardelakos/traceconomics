@@ -174,8 +174,15 @@ class RunContext:
         if resp.filename:
             extra.setdefault("original_name", resp.filename)
         result = self.archive.store_file(
-            source, dataset, tmp, url=url, retrieved_at=resp.retrieved_at, ext=ext,
-            content_sha256=content_sha, http=resp.manifest(), extra=extra,
+            source,
+            dataset,
+            tmp,
+            url=url,
+            retrieved_at=resp.retrieved_at,
+            ext=ext,
+            content_sha256=content_sha,
+            http=resp.manifest(),
+            extra=extra,
         )
         self.results.append(result)
         return result, data

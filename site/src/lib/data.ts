@@ -4,6 +4,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import type { CalculatorData } from "./engine/calculator";
+
 // Relative to the site folder, where `npm run build` runs: pages run from a bundled copy during
 // the build, so a path relative to this file would point elsewhere.
 export const DATA_ROOT = path.join(process.cwd(), "public", "data", "v1");
@@ -11,10 +13,14 @@ export const DATA_ROOT = path.join(process.cwd(), "public", "data", "v1");
 /** A country's current release of the inflation-by-group files, relative to DATA_ROOT. */
 export const m1Dir = (country: string) => `${country}/m1/latest`;
 
-export function readJson<T = any>(rel: string): T {
+/** One data file, parsed. `T` is its shape: name it at every call (the default, `unknown`, can't be used
+ * without a check), so the type checker holds the code to what the export writes. */
+export function readJson<T = unknown>(rel: string): T {
   const file = path.join(DATA_ROOT, rel);
   if (!fs.existsSync(file)) {
-    throw new Error(`Missing ${file}: run "python -m traceconomics export site --out site/public/data" first.`);
+    throw new Error(
+      `Missing ${file}: run "python -m traceconomics export site --out site/public/data" first.`,
+    );
   }
   return JSON.parse(fs.readFileSync(file, "utf-8"));
 }
@@ -35,8 +41,49 @@ export interface SeriesFile {
   end: string;
   flags: { code: string; index_to: string; rch_a_to: string; rch_m_to: string; avg_to: string }[];
   groups: Record<string, GroupSeries>;
-  gaps: Record<string, { rch_a: (number | null)[]; avg: Record<string, number>; se_a: (number | null)[]; se_avg: Record<string, number> }>;
-  footnotes: Record<string, Record<string, any>>;
+  gaps: Record<
+    string,
+    {
+      rch_a: (number | null)[];
+      avg: Record<string, number>;
+      se_a: (number | null)[];
+      se_avg: Record<string, number>;
+    }
+  >;
+  /** "grouping/group" -> the notes that apply to that series (module1/availability.py, footnotes). */
+  footnotes: Record<string, Footnotes>;
+}
+
+/** contributions/<setting>.json: "grouping/group" -> month -> division -> percentage points. */
+export interface ContributionsFile {
+  format: string;
+  setting: Record<string, string>;
+  unit: string;
+  groups: Record<string, Record<string, Record<string, number | null>>>;
+}
+
+/** A span of months or years, first and last ("YYYY-MM", or "YYYY" for annual averages). */
+export type Span = [string, string];
+
+export interface Footnotes {
+  hospital?: { annual_rates: Span; annual_averages: Span | null; text: string };
+  lockdown?: { index_years: number[]; text: string };
+  first_estimate?: { index_years: number[]; text: string };
+}
+
+/** availability.json: which periods each option value covers, what is greyed out and why. */
+export interface Availability {
+  periods: { index: Span; annual_rates: Span };
+  options: Record<string, Record<string, OptionAvailability>>;
+  fixed: { option: string; value: string; status: string; text: string }[];
+}
+
+export interface OptionAvailability {
+  default: boolean;
+  index: Span;
+  annual_rates: Span | null;
+  greyed: { index: Span; annual_rates: Span; reason: string; text: string }[];
+  notes: { reason: string; text: string; index?: Span; annual_rates?: Span }[];
 }
 
 export interface Settings {
@@ -46,9 +93,12 @@ export interface Settings {
 }
 
 export const settings = (country: string) => readJson<Settings>(`${m1Dir(country)}/settings.json`);
-export const series = (country: string, slug: string) => readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
-export const availability = (country: string) => readJson<any>(`${m1Dir(country)}/availability.json`);
-export const calculator = (country: string) => readJson<any>(`${m1Dir(country)}/calculator.json`);
+export const series = (country: string, slug: string) =>
+  readJson<SeriesFile>(`${m1Dir(country)}/series/${slug}.json`);
+export const availability = (country: string) =>
+  readJson<Availability>(`${m1Dir(country)}/availability.json`);
+export const calculator = (country: string) =>
+  readJson<CalculatorData>(`${m1Dir(country)}/calculator.json`);
 /** One source's upper limit of each income fifth (Q1-Q4), euros a year per adult equivalent. */
 export interface IncomeLimits {
   survey_year: number;
@@ -57,14 +107,24 @@ export interface IncomeLimits {
   top_cutoffs_pps: Record<string, number> | null;
 }
 export interface IncomeLimitsFile {
-  ours: IncomeLimits & { se: Record<string, number | null>; households: Record<string, string | null>; pps_reason: string | null };
+  ours: IncomeLimits & {
+    se: Record<string, number | null>;
+    households: Record<string, string | null>;
+    pps_reason: string | null;
+  };
   eurostat: IncomeLimits & { top_cutoffs_pps: Record<string, number> };
 }
-export const incomeLimits = (country: string) => readJson<IncomeLimitsFile>(`${m1Dir(country)}/income-limits.json`);
+export const incomeLimits = (country: string) =>
+  readJson<IncomeLimitsFile>(`${m1Dir(country)}/income-limits.json`);
 /** Each household type's share of households and surveyed households, newest survey year. */
 export const householdTypes = (country: string) =>
-  readJson<{ survey_year: number; groups: Record<string, { share: number; households: string }> }>(`${m1Dir(country)}/household-types.json`);
-export const labels = () => readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>("labels/coicop18.json");
+  readJson<{ survey_year: number; groups: Record<string, { share: number; households: string }> }>(
+    `${m1Dir(country)}/household-types.json`,
+  );
+export const labels = () =>
+  readJson<{ labels: Record<string, { en: string; el: string; kind: string | null }> }>(
+    "labels/coicop18.json",
+  );
 
 /** The month axis of a series file. */
 export function months(file: { start: string; end: string }): string[] {
@@ -75,13 +135,19 @@ export function months(file: { start: string; end: string }): string[] {
     const p = `${y}-${String(m).padStart(2, "0")}`;
     if (p > file.end) break;
     out.push(p);
-    if (++m > 12) { m = 1; y++; }
+    if (++m > 12) {
+      m = 1;
+      y++;
+    }
   }
   return out;
 }
 
 /** The last month with a value, and the value. */
-export function latest(values: (number | null)[], axis: string[]): { period: string; value: number } | null {
+export function latest(
+  values: (number | null)[],
+  axis: string[],
+): { period: string; value: number } | null {
   for (let i = values.length - 1; i >= 0; i--) {
     if (values[i] !== null) return { period: axis[i], value: values[i] as number };
   }

@@ -1,7 +1,7 @@
 # The pipeline, on every push and pull request: one run per push. The suites (python, python-local,
-# site, selenium) and the code scan (codeql) run side by side; then the coverage split by layer, the
-# test catalog's check, the run's record on the branch test-history, and the wiki, which follows from
-# both; on main, the README's coverage badges.
+# site, selenium), the style check (lint) and the code scan (codeql) run side by side; then the
+# coverage split by layer, the test catalog's check, the run's record on the branch test-history,
+# and the wiki, which follows from both; on main, the README's coverage badges.
 #
 # The website's build, its calculator parity test and its browser tests need the published data
 # files, which are generated from the raw archive and are not in the repository. Here the site
@@ -70,6 +70,37 @@ jobs:
           path: ${{ runner.temp }}/coverage-python
           retention-days: 1
           if-no-files-found: error
+
+  # One code style: Ruff for the Python, Prettier and ESLint for the site, its Markdown and the wiki.
+  # Check mode only, so a run fails on unformatted code and never rewrites it; settings in
+  # pyproject.toml and site/ (.prettierrc.json, .prettierignore, eslint.config.mjs).
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # Ruff from the lock file, checked against its hash; the project itself isn't needed.
+      - run: python -m pip install --require-hashes --no-deps -r requirements-dev.txt
+      - run: ruff format --check
+      - run: ruff check
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit
+        working-directory: site
+        env:
+          npm_config_fetch_retries: "5"
+      - run: npm run format:check
+        working-directory: site
+      - run: npm run lint
+        working-directory: site
 
   # The microdata code's tests (groups, bands, bootstrap, mapping, the survey reader), on synthetic
   # surveys: they need the optional `local` extra (pandas, py7zr), which the python job leaves out

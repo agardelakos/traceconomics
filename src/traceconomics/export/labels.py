@@ -28,8 +28,16 @@ from traceconomics.sources.elstat.hbs_tables import CODE, _rows, _text
 
 MARKER = re.compile(r"\s*\((ND|SD|D|S|ΜΔΑ|ΗΔΑ|ΔΑ|Υ)\)\s*$")
 NOTATION = re.compile(r"^\d{2}(\.\d)*\s+")
-KIND = {"ND": "non-durable", "SD": "semi-durable", "D": "durable", "S": "service",
-        "ΜΔΑ": "non-durable", "ΗΔΑ": "semi-durable", "ΔΑ": "durable", "Υ": "service"}
+KIND = {
+    "ND": "non-durable",
+    "SD": "semi-durable",
+    "D": "durable",
+    "S": "service",
+    "ΜΔΑ": "non-durable",
+    "ΗΔΑ": "semi-durable",
+    "ΔΑ": "durable",
+    "Υ": "service",
+}
 
 
 def clean(label: str) -> tuple[str, str | None]:

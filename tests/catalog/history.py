@@ -33,7 +33,7 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -46,7 +46,7 @@ RANK = {"failed": 3, "flaky": 2, "passed": 1, "skipped": 0}
 
 
 def now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class Run:
@@ -64,8 +64,9 @@ class Run:
         if not case_id:
             self.no_case[suite] = self.no_case.get(suite, 0) + 1
             return
-        c = self.cases.setdefault(case_id, {"suite": suite, "result": "skipped", "duration": 0.0,
-                                            "retries": 0, "examples": {}})
+        c = self.cases.setdefault(
+            case_id, {"suite": suite, "result": "skipped", "duration": 0.0, "retries": 0, "examples": {}}
+        )
         # The same example twice (a file run by both pytest jobs, a repeated title): the worse result
         # stands, so a failure is never hidden by a later pass.
         before = c["examples"].get(example)
@@ -78,7 +79,7 @@ class Run:
             results = set(c["examples"].values())
             c["result"] = max(results - {"skipped"} or {"skipped"}, key=RANK.get)
             if len(c["examples"]) == 1:
-                c.pop("examples")        # not an outline: the result says it all
+                c.pop("examples")  # not an outline: the result says it all
 
 
 def junit_index(catalog: dict, suite: str) -> dict[tuple[str, str], str]:
@@ -116,7 +117,7 @@ def read_junit(run: Run, path: Path, suite: str, catalog: dict):
 
 def read_playwright(run: Run, data: dict):
     def walk(suite, titles=()):
-        if suite.get("title") and suite["title"] != suite.get("file"):     # a describe block, not the file
+        if suite.get("title") and suite["title"] != suite.get("file"):  # a describe block, not the file
             titles = (*titles, suite["title"])
         for spec in suite.get("specs", []):
             for test in spec.get("tests", []):
@@ -126,11 +127,19 @@ def read_playwright(run: Run, data: dict):
                 result = {"expected": "passed", "skipped": "skipped", "flaky": "flaky"}.get(status, "failed")
                 # The describe titles too: the same test title can sit in two describe blocks.
                 example = " › ".join([*titles, spec["title"]]) + (
-                    f" [{test['projectName']}]" if test.get("projectName") not in (None, "", "chromium") else "")
-                run.add("playwright", d["id"], example, result,
-                        sum(r.get("duration", 0) for r in results) / 1000, max(len(results) - 1, 0))
+                    f" [{test['projectName']}]" if test.get("projectName") not in (None, "", "chromium") else ""
+                )
+                run.add(
+                    "playwright",
+                    d["id"],
+                    example,
+                    result,
+                    sum(r.get("duration", 0) for r in results) / 1000,
+                    max(len(results) - 1, 0),
+                )
         for child in suite.get("suites", []):
             walk(child, titles)
+
     for s in data.get("suites", []):
         walk(s)
 
@@ -141,8 +150,7 @@ def read_vitest(run: Run, data: dict):
             status = a.get("status")
             result = "passed" if status == "passed" else "failed" if status == "failed" else "skipped"
             example = " › ".join([*a.get("ancestorTitles", []), a.get("title", "")])
-            run.add("vitest", from_meta(a.get("meta"))["id"], example, result,
-                    (a.get("duration") or 0) / 1000)
+            run.add("vitest", from_meta(a.get("meta"))["id"], example, result, (a.get("duration") or 0) / 1000)
 
 
 def record(a) -> dict:
@@ -234,8 +242,13 @@ def update_catalog(store: Path, new: dict):
         now_ids = {c["id"] for c in new["cases"] if c["id"]}
         for c in old["cases"]:
             if c["id"] and c["id"] not in now_ids and c["id"] not in obsolete:
-                obsolete[c["id"]] = {"suite": c["suite"], "title": c["title"], "file": c["file"],
-                                     "last_commit": old.get("commit"), "removed_in": new.get("commit")}
+                obsolete[c["id"]] = {
+                    "suite": c["suite"],
+                    "title": c["title"],
+                    "file": c["file"],
+                    "last_commit": old.get("commit"),
+                    "removed_in": new.get("commit"),
+                }
     for c in new["cases"]:
         o = obsolete.get(c["id"])
         if o and (o["suite"], o["file"], o["title"]) == (c["suite"], c["file"], c["title"]):

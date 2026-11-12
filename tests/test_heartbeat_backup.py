@@ -44,8 +44,14 @@ def test_heartbeat_sends_counts_not_details(server):
     And the uploaded heartbeat holds only the start time, the result, the stored count and the number of failures
     """
     url, received = server
-    record = {"started": "2026-11-10T11:00:02Z", "result": "ok", "stored": 3, "failures": [],
-              "report": "email", "release_days": ["2026-11-10"]}
+    record = {
+        "started": "2026-11-10T11:00:02Z",
+        "result": "ok",
+        "stored": 3,
+        "failures": [],
+        "report": "email",
+        "release_days": ["2026-11-10"],
+    }
     assert heartbeat.send(record, url=url + "heartbeat.json") == "sent"
     beat = json.loads(received["/p/token/n/ns/b/bucket/o/heartbeat.json"])
     assert beat == {"started": "2026-11-10T11:00:02Z", "result": "ok", "stored": 3, "failures": 0}
@@ -73,13 +79,15 @@ def test_a_heartbeat_that_cant_be_sent_is_reported_as_failed():
 
 
 def archive_with_microdata(root: Path) -> None:
-    for rel, data in {"raw/index.jsonl": b"{}\n",
-                      "raw/eurostat/prc_hicp_minr/20261110T110000Z/payload.tsv.gz": b"prices",
-                      "raw/eurostat/prc_hicp_minr/20261110T110000Z/manifest.json": b"{}",
-                      "raw/elstat/puf-hbs-2024/20261014T000000Z/payload.zip": b"households",
-                      "raw/elstat/puf-hbs-2024/20261014T000000Z/manifest.json": b"{}",
-                      "raw/elstat/puf-catalogue/20261017T000000Z/payload.html": b"<html>",
-                      "outbox/report.txt": b"not archive data"}.items():
+    for rel, data in {
+        "raw/index.jsonl": b"{}\n",
+        "raw/eurostat/prc_hicp_minr/20261110T110000Z/payload.tsv.gz": b"prices",
+        "raw/eurostat/prc_hicp_minr/20261110T110000Z/manifest.json": b"{}",
+        "raw/elstat/puf-hbs-2024/20261014T000000Z/payload.zip": b"households",
+        "raw/elstat/puf-hbs-2024/20261014T000000Z/manifest.json": b"{}",
+        "raw/elstat/puf-catalogue/20261017T000000Z/payload.html": b"<html>",
+        "outbox/report.txt": b"not archive data",
+    }.items():
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_bytes(data)
 
@@ -119,7 +127,7 @@ def test_backup_guard_refuses_microdata_even_if_the_filter_misses_it(tmp_path, m
     Then a LocalOnlyError is raised
     """
     archive_with_microdata(tmp_path)
-    monkeypatch.setattr(backup, "is_local_only", lambda source, dataset: False)   # a broken filter
+    monkeypatch.setattr(backup, "is_local_only", lambda source, dataset: False)  # a broken filter
     with pytest.raises(LocalOnlyError):
         backup.plan(tmp_path)
 
@@ -137,9 +145,16 @@ def test_systemd_units_run_daily_in_athens_time_inside_the_pinned_image():
     And its command ends with the venv's Python running the archive job in isolated mode
     """
     cfg = Config(archive_dir=Path("/home/u/traceconomics-archive"), user_agent="t", run_after=time(13, 0))
-    units = schedule.systemd_units(cfg, uid=1001, gid=1001, home=Path("/home/u"), repo=Path("/home/u/traceconomics"),
-                                   venv=Path("/home/u/traceconomics-venv"), node=Path("/home/u/traceconomics-node"),
-                                   env_file=Path("/home/u/.config/traceconomics/env"))
+    units = schedule.systemd_units(
+        cfg,
+        uid=1001,
+        gid=1001,
+        home=Path("/home/u"),
+        repo=Path("/home/u/traceconomics"),
+        venv=Path("/home/u/traceconomics-venv"),
+        node=Path("/home/u/traceconomics-node"),
+        env_file=Path("/home/u/.config/traceconomics/env"),
+    )
     timer = units["traceconomics-archive.timer"]
     assert "OnCalendar=*-*-* 13:00:00 Europe/Athens" in timer and "Persistent=true" in timer
     service = units["traceconomics-archive.service"]
@@ -192,17 +207,25 @@ def test_the_shell_command_runs_the_same_container_as_the_timer():
     And its last line runs docker and passes its arguments to the traceconomics module
     And that command matches the timer's command, less its "archive" argument
     """
-    where = dict(uid=1001, gid=1001, home=Path("/home/u"), repo=Path("/home/u/traceconomics"),
-                 venv=Path("/home/u/traceconomics-venv"), node=Path("/home/u/traceconomics-node"),
-                 env_file=Path("/home/u/.config/traceconomics/env"))
+    where = dict(
+        uid=1001,
+        gid=1001,
+        home=Path("/home/u"),
+        repo=Path("/home/u/traceconomics"),
+        venv=Path("/home/u/traceconomics-venv"),
+        node=Path("/home/u/traceconomics-node"),
+        env_file=Path("/home/u/.config/traceconomics/env"),
+    )
     script = schedule.shell_command(**where)
-    service = schedule.systemd_units(Config(archive_dir=Path("/a"), user_agent="t"), **where)["traceconomics-archive.service"]
+    service = schedule.systemd_units(Config(archive_dir=Path("/a"), user_agent="t"), **where)[
+        "traceconomics-archive.service"
+    ]
     assert script.startswith("#!/bin/sh\n") and "\r" not in script
     run = script.splitlines()[-1]
     assert run.startswith("exec /usr/bin/docker run ") and run.endswith(' -m traceconomics "$@"')
     # The same container, user, mounts and secrets as the timer's command, minus its "archive" argument.
-    timer_run = next(l for l in service.splitlines() if l.startswith("ExecStart="))
-    assert run[len("exec "):-len(' "$@"')] == timer_run[len("ExecStart="):-len(" archive")]
+    timer_run = next(line for line in service.splitlines() if line.startswith("ExecStart="))
+    assert run[len("exec ") : -len(' "$@"')] == timer_run[len("ExecStart=") : -len(" archive")]
 
 
 def test_units_and_shell_command_run_the_configured_image_else_the_pinned_one(tmp_path):

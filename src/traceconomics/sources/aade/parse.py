@@ -35,7 +35,7 @@ MEASURES = {
     "ΑΠΟ ΑΓΡΟΤΙΚΗ ΕΠΙΧΕΙΡΗΜΑΤΙΚΗ ΔΡΑΣΤΗΡΙΟΤΗΤΑ": "declared_income_farming",
     "ΑΠΟ ΜΙΣΘΩΤΕΣ ΥΠΗΡΕΣΙΕΣ ΚΑΙ ΝΑΥΤΙΚΟ ΕΙΣΟΔΗΜΑ": "declared_income_employment",
 }
-UNITS = {"returns": "NR"}          # every other measure is in euros
+UNITS = {"returns": "NR"}  # every other measure is in euros
 
 
 def _text(v) -> str:
@@ -53,13 +53,19 @@ def rows(path: Path) -> list[tuple[str, str, str, str, float]]:
     years = [m.group(1) for r in table for c in r if (m := YEAR.match(c))]
     require(len(set(years)) == 1, f"{Path(path).name}: expected one 'Φορολογικό Έτος YYYY', found {sorted(set(years))}")
     heads = [i for i, r in enumerate(table) if r and r[0] == "Μετρήσιμο - Περιγραφή"]
-    require(len(heads) == 1 and heads[0] > 0, f"{Path(path).name}: the header row 'Μετρήσιμο - Περιγραφή' isn't where expected")
+    require(
+        len(heads) == 1 and heads[0] > 0,
+        f"{Path(path).name}: the header row 'Μετρήσιμο - Περιγραφή' isn't where expected",
+    )
     regions, sub = table[heads[0] - 1], table[heads[0]]
-    cols = [i for i, (g, s) in enumerate(zip(regions, sub)) if g == ALL_REGIONS and s == PER_RETURN]
-    require(len(cols) == 1, f"{Path(path).name}: expected one '{ALL_REGIONS}' / '{PER_RETURN}' column, found {len(cols)}")
+    require(len(regions) == len(sub), f"{Path(path).name}: the two header rows differ in length")
+    cols = [i for i, (g, s) in enumerate(zip(regions, sub, strict=True)) if g == ALL_REGIONS and s == PER_RETURN]
+    require(
+        len(cols) == 1, f"{Path(path).name}: expected one '{ALL_REGIONS}' / '{PER_RETURN}' column, found {len(cols)}"
+    )
     col = cols[0]
     found: dict[str, tuple[str, float]] = {}
-    for r in table[heads[0] + 1:]:
+    for r in table[heads[0] + 1 :]:
         label = r[0] if r else ""
         if label in MEASURES and MEASURES[label] not in found:
             text = r[col] if col < len(r) else ""

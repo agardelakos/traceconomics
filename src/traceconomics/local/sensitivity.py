@@ -18,7 +18,7 @@ from traceconomics.module1.schedule import unusable
 from traceconomics.module1.weights_used import Basket
 
 SPENDING = "purchases"
-IMPUTED_RENT_EXCLUDED = 1       # `shares`' option 1: imputed rent dropped and the rest rescaled
+IMPUTED_RENT_EXCLUDED = 1  # `shares`' option 1: imputed rent dropped and the rest rescaled
 
 
 def baskets_from(year: int, mapped: Survey, groups: pd.DataFrame, wanted) -> dict[tuple[int, str, str], Basket]:
@@ -32,6 +32,7 @@ def baskets_from(year: int, mapped: Survey, groups: pd.DataFrame, wanted) -> dic
     out = {}
     for (grouping, label), part in t.groupby(["grouping", "group"]):
         if (grouping, label) in wanted and not unusable(grouping, year):
-            out[(year, grouping, label)] = Basket(dict(zip(part.code, part.share)),
-                                                  dict(zip(part.code, part.reliability)))
+            out[(year, grouping, label)] = Basket(
+                dict(zip(part.code, part.share, strict=True)), dict(zip(part.code, part.reliability, strict=True))
+            )
     return out

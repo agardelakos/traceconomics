@@ -31,15 +31,21 @@ def load(con: duckdb.DuckDBPyConnection, minr: Path, iw: Path, geo: str):
     parse.parse(con, iw, catalog.dataset("eurostat:prc_hicp_iw"), table="iw")
     prices: dict[str, dict[str, float]] = {}
     for code, period, value in con.execute(
-            "SELECT coicop18, ref_period, value FROM minr WHERE geo = ? AND unit = 'I25' AND value IS NOT NULL",
-            [geo]).fetchall():
+        "SELECT coicop18, ref_period, value FROM minr WHERE geo = ? AND unit = 'I25' AND value IS NOT NULL", [geo]
+    ).fetchall():
         prices.setdefault(code, {})[period] = value
-    rates = {p: v for p, v in con.execute(
-        "SELECT ref_period, value FROM minr WHERE geo = ? AND unit = 'RCH_A' AND coicop18 = 'TOTAL' "
-        "AND value IS NOT NULL", [geo]).fetchall()}
+    rates = {
+        p: v
+        for p, v in con.execute(
+            "SELECT ref_period, value FROM minr WHERE geo = ? AND unit = 'RCH_A' AND coicop18 = 'TOTAL' "
+            "AND value IS NOT NULL",
+            [geo],
+        ).fetchall()
+    }
     weights: dict[int, dict[str, float]] = {}
     for code, year, value in con.execute(
-            "SELECT coicop18, ref_period, value FROM iw WHERE geo = ? AND value IS NOT NULL", [geo]).fetchall():
+        "SELECT coicop18, ref_period, value FROM iw WHERE geo = ? AND value IS NOT NULL", [geo]
+    ).fetchall():
         weights.setdefault(int(year), {})[code] = value
     return weights, prices, prices.get("TOTAL", {}), rates
 

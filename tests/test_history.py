@@ -35,8 +35,11 @@ class FakeHttp:
         for key, content in self.files.items():
             if key in url:
                 dest.write_bytes(content)
-                headers = {"content-disposition": 'attachment; filename="table.xls"'} \
-                    if content.startswith(b"\xd0\xcf\x11\xe0") else {}
+                headers = (
+                    {"content-disposition": 'attachment; filename="table.xls"'}
+                    if content.startswith(b"\xd0\xcf\x11\xe0")
+                    else {}
+                )
                 return base.Response(url=url, status=200, headers=headers, retrieved_at=base.utc_now())
         raise base.FetchError(f"{url}: 404")
 
@@ -137,8 +140,10 @@ def test_the_right_years_table_is_stored_and_noted_as_checked(tmp_path):
     ctx, _ = ctx_with(tmp_path, {"DKT87/2025-M12": PAGE_2025, "documentID=114865": xls})
     notes = history.fetch_years(ctx, [2025])
     assert not ctx.alerts
-    assert notes == ["2025 en: doc-114865 stored, checked (COICOP 2018, 2020=100)",
-                     "2025 el: doc-114865-el stored, checked (COICOP 2018, 2020=100)"]
+    assert notes == [
+        "2025 en: doc-114865 stored, checked (COICOP 2018, 2020=100)",
+        "2025 el: doc-114865-el stored, checked (COICOP 2018, 2020=100)",
+    ]
 
 
 @pytest.mark.integration
@@ -156,11 +161,14 @@ def test_a_page_or_table_that_cant_be_fetched_is_a_failure_not_a_crash(tmp_path)
     assert [r.dataset for r in ctx.results] == ["page-cpi-2025-M12"]
 
 
-@pytest.mark.parametrize("name, problem", [
-    ("elstat_cpi07_2011_el.xls", None),
-    ("elstat_cpi07_2026.xlsx", "can't read the file"),
-    ("elstat_hbs_t103_2018.xls", "no sheet named INDICES or ΔΕΙΚΤΕΣ"),
-])
+@pytest.mark.parametrize(
+    "name, problem",
+    [
+        ("elstat_cpi07_2011_el.xls", None),
+        ("elstat_cpi07_2026.xlsx", "can't read the file"),
+        ("elstat_hbs_t103_2018.xls", "no sheet named INDICES or ΔΕΙΚΤΕΣ"),
+    ],
+)
 def test_the_table07_check_on_other_files(name, problem):
     """PY-CPIHIST-008: the table 07 check passes the Greek file and flags files that aren't a table 07
 
@@ -183,6 +191,7 @@ def test_the_table07_check_names_a_wrong_base_and_a_missing_coicop_column(monkey
     Then it reports that the title doesn't say 2020=100
     And that the header has no COICOP18 column
     """
+
     class Sheet:
         def row_values(self, r):
             return {0: ["Monthly sub-indices for 2015 (2009=100.0)"], 2: ["COICOP", "ITEMS"]}.get(r, [])
@@ -193,6 +202,7 @@ def test_the_table07_check_names_a_wrong_base_and_a_missing_coicop_column(monkey
 
         def sheet_by_name(self, name):
             return Sheet()
+
     monkeypatch.setattr(history.xlrd, "open_workbook", lambda path, on_demand: Book())
     assert history.check_table07(Path("x.xls"), 2015) == ["title doesn't say 2020=100", "header has no COICOP18 column"]
 
@@ -232,6 +242,7 @@ def test_a_lock_left_by_a_dead_run_is_taken_over(tmp_path):
     And after the run the lock is gone
     """
     import os
+
     from traceconomics import job
 
     lock = tmp_path / job.LOCK_FILE

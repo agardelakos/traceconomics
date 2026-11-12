@@ -11,22 +11,28 @@ function declarations(block: string): string[] {
 }
 
 describe("dark theme tokens", () => {
-  it("match between the device setting and the reader's choice", { meta: {
-    id: "VT-TOKENS-001",
-    given: "the site's tokens.css",
-    when: "the dark block for the device setting and the one for a reader who picked dark are compared",
-    then: [
-      "both blocks exist",
-      "the device-setting block declares more than 10 custom properties",
-      "the chosen-dark block declares the same properties with the same values, in the same order",
-    ],
-  } }, () => {
-    const device = css.match(/:root:not\(\[data-theme="light"\]\) \{([^}]*)\}/);
-    const chosen = css.match(/:root\[data-theme="dark"\] \{([^}]*--[^}]*)\}/);
-    expect(device, "device-setting block").not.toBeNull();
-    expect(chosen, "chosen-dark block").not.toBeNull();
-    const a = declarations(device![1]);
-    expect(a.length).toBeGreaterThan(10);
-    expect(declarations(chosen![1])).toEqual(a);
-  });
+  it(
+    "match between the device setting and the reader's choice",
+    {
+      meta: {
+        id: "VT-TOKENS-001",
+        given: "the site's tokens.css",
+        when: "the dark block for the device setting and the one for a reader who picked dark are compared",
+        then: [
+          "both blocks exist",
+          "the device-setting block declares more than 10 custom properties",
+          "the chosen-dark block declares the same properties with the same values, in the same order",
+        ],
+      },
+    },
+    () => {
+      const device = css.match(/:root:not\(\[data-theme="light"\]\) \{([^}]*)\}/);
+      const chosen = css.match(/:root\[data-theme="dark"\] \{([^}]*--[^}]*)\}/);
+      expect(device, "device-setting block").not.toBeNull();
+      expect(chosen, "chosen-dark block").not.toBeNull();
+      const a = declarations(device![1]);
+      expect(a.length).toBeGreaterThan(10);
+      expect(declarations(chosen![1])).toEqual(a);
+    },
+  );
 });

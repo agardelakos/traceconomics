@@ -105,8 +105,10 @@ def _pythonw() -> Path:
 
 def install(config: Config) -> str:
     if sys.platform != "win32":
-        raise SystemExit("Task Scheduler is Windows only. On Linux: `traceconomics schedule units --out "
-                         "~/.config/systemd/user`, then `systemctl --user enable --now traceconomics-archive.timer`.")
+        raise SystemExit(
+            "Task Scheduler is Windows only. On Linux: `traceconomics schedule units --out "
+            "~/.config/systemd/user`, then `systemctl --user enable --now traceconomics-archive.timer`."
+        )
     xml = task_xml(config, _pythonw())
     with tempfile.TemporaryDirectory() as d:
         path = Path(d) / "task.xml"
@@ -120,61 +122,106 @@ def remove() -> None:
 
 
 def show() -> str:
-    out = subprocess.run(["schtasks", "/Query", "/TN", TASK_NAME, "/V", "/FO", "LIST"],
-                         capture_output=True, text=True)
+    out = subprocess.run(["schtasks", "/Query", "/TN", TASK_NAME, "/V", "/FO", "LIST"], capture_output=True, text=True)
     return out.stdout or out.stderr
 
 
-def container_command(*, uid: int, gid: int, home: Path, repo: Path, venv: Path, node: Path,
-                      env_file: Path, image: str = IMAGE, args: tuple[str, ...] = ("archive",)) -> list[str]:
+def container_command(
+    *,
+    uid: int,
+    gid: int,
+    home: Path,
+    repo: Path,
+    venv: Path,
+    node: Path,
+    env_file: Path,
+    image: str = IMAGE,
+    args: tuple[str, ...] = ("archive",),
+) -> list[str]:
     """`docker run` for one traceconomics command inside the pinned image, as the given user."""
     home, repo, venv, node, env_file = (Path(p).as_posix() for p in (home, repo, venv, node, env_file))
     path = f"{venv}/bin:{node}/bin:/usr/local/bin:/usr/bin:/bin"
-    return ["/usr/bin/docker", "run", "--rm", "--init", f"--user={uid}:{gid}",
-            f"--volume={home}:{home}", f"--env=HOME={home}", f"--env=PATH={path}",
-            f"--env-file={env_file}", f"--workdir={repo}", image,
-            f"{venv}/bin/python", "-I", "-m", "traceconomics", *args]
+    return [
+        "/usr/bin/docker",
+        "run",
+        "--rm",
+        "--init",
+        f"--user={uid}:{gid}",
+        f"--volume={home}:{home}",
+        f"--env=HOME={home}",
+        f"--env=PATH={path}",
+        f"--env-file={env_file}",
+        f"--workdir={repo}",
+        image,
+        f"{venv}/bin/python",
+        "-I",
+        "-m",
+        "traceconomics",
+        *args,
+    ]
 
 
-def systemd_units(config: Config, *, uid: int, gid: int, home: Path, repo: Path, venv: Path,
-                  node: Path, env_file: Path, image: str = IMAGE) -> dict[str, str]:
+def systemd_units(
+    config: Config,
+    *,
+    uid: int,
+    gid: int,
+    home: Path,
+    repo: Path,
+    venv: Path,
+    node: Path,
+    env_file: Path,
+    image: str = IMAGE,
+) -> dict[str, str]:
     """The service and timer files, by file name."""
-    cmd = container_command(uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node,
-                            env_file=env_file, image=image)
+    cmd = container_command(
+        uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node, env_file=env_file, image=image
+    )
     return {
         f"{TASK_NAME}.service": SERVICE.format(command=" ".join(cmd)),
         f"{TASK_NAME}.timer": TIMER.format(time=config.run_after.strftime("%H:%M"), timezone=config.timezone),
     }
 
 
-def shell_command(*, uid: int, gid: int, home: Path, repo: Path, venv: Path, node: Path, env_file: Path,
-                  image: str = IMAGE) -> str:
+def shell_command(
+    *, uid: int, gid: int, home: Path, repo: Path, venv: Path, node: Path, env_file: Path, image: str = IMAGE
+) -> str:
     """A `traceconomics` command for the server's shell: the same container as the timer's, so a
     command typed by hand (e.g. `traceconomics release promote <id>`) runs exactly as the job does."""
-    cmd = container_command(uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node,
-                            env_file=env_file, image=image, args=())
-    return ("#!/bin/sh\n"
-            "# Runs traceconomics in the pinned container, as the timer does. Written by\n"
-            "# `traceconomics schedule units`; rewrite it there rather than editing it.\n"
-            f'exec {" ".join(cmd)} "$@"\n')
+    cmd = container_command(
+        uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node, env_file=env_file, image=image, args=()
+    )
+    return (
+        "#!/bin/sh\n"
+        "# Runs traceconomics in the pinned container, as the timer does. Written by\n"
+        "# `traceconomics schedule units`; rewrite it there rather than editing it.\n"
+        f'exec {" ".join(cmd)} "$@"\n'
+    )
 
 
-def write_units(config: Config, out: Path, *, bin_dir: Path | None = None, node: Path | None = None,
-                env_file: Path | None = None) -> list[Path]:
+def write_units(
+    config: Config, out: Path, *, bin_dir: Path | None = None, node: Path | None = None, env_file: Path | None = None
+) -> list[Path]:
     """Write the unit files for this machine into `out` (the user's systemd folder) and the
     `traceconomics` shell command into `bin_dir` (default ~/.local/bin). Runs inside the container."""
     import os
 
     home = Path.home()
-    where = dict(uid=os.getuid(), gid=os.getgid(), home=home, repo=Path(__file__).resolve().parents[2],
-                 venv=Path(sys.prefix), node=node or home / "traceconomics-node",
-                 env_file=env_file or default_config_path().with_name("env"))
+    where = dict(
+        uid=os.getuid(),
+        gid=os.getgid(),
+        home=home,
+        repo=Path(__file__).resolve().parents[2],
+        venv=Path(sys.prefix),
+        node=node or home / "traceconomics-node",
+        env_file=env_file or default_config_path().with_name("env"),
+    )
     if config.image:
         where["image"] = config.image
     out.mkdir(parents=True, exist_ok=True)
     paths = []
     for name, text in systemd_units(config, **where).items():
-        (out / name).write_text(text, encoding="utf-8", newline="\n")   # Linux files, wherever written
+        (out / name).write_text(text, encoding="utf-8", newline="\n")  # Linux files, wherever written
         paths.append(out / name)
     bin_dir = bin_dir or home / ".local" / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)

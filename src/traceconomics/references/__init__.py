@@ -33,7 +33,7 @@ def entries() -> dict[str, Entry]:
     starts = list(ENTRY.finditer(src))
     out: dict[str, Entry] = {}
     for i, m in enumerate(starts):
-        body = src[m.end(): starts[i + 1].start() if i + 1 < len(starts) else len(src)]
+        body = src[m.end() : starts[i + 1].start() if i + 1 < len(starts) else len(src)]
         key = m.group(2)
         if key in out:
             raise ValueError(f"duplicate bibliography key {key!r}")

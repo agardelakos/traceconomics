@@ -18,113 +18,281 @@ import { href, isOffered, t, type Lang } from "../lib/i18n";
 import { flag } from "../lib/flags";
 import { countries, countryHref, TOPICS, topicHref } from "../lib/topics";
 
-interface Props { lang: Lang; path: string; current?: string; country?: string; countryLink?: (c: string) => string }
+interface Props {
+  lang: Lang;
+  path: string;
+  current?: string;
+  country?: string;
+  countryLink?: (c: string) => string;
+}
 const { lang, path, current, country } = Astro.props;
 const countryLink = Astro.props.countryLink ?? ((c: string) => countryHref(lang, c));
-const site = ["glossary", "data", "about"].map((key) => ({ key, link: href(lang, key), label: t(lang, `nav.${key}`) }));
+const site = ["glossary", "data", "about"].map((key) => ({
+  key,
+  link: href(lang, key),
+  label: t(lang, `nav.${key}`),
+}));
 // A language not offered yet is shown greyed and is not a link (on its own pages it stays marked as current).
-const SWITCH: { code: Lang; label: string }[] = [{ code: "el", label: "ΕΛ" }, { code: "en", label: "EN" }];
+const SWITCH: { code: Lang; label: string }[] = [
+  { code: "el", label: "ΕΛ" },
+  { code: "en", label: "EN" },
+];
 const inCountries = country !== undefined || current === "countries";
-const inTopics = current === "topics" || (country === undefined && TOPICS.some((tp) => tp.slug === current));
+const inTopics =
+  current === "topics" || (country === undefined && TOPICS.some((tp) => tp.slug === current));
 const liveTopics = TOPICS.filter((tp) => tp.status === "live");
 const shownTopics = TOPICS.filter((tp) => tp.status === "planned" && tp.shown);
 const moreTopics = TOPICS.length > liveTopics.length + shownTopics.length;
-const section = (inSection: boolean, key: string) => (current === key ? "page" : inSection ? "true" : undefined);
-const check = '<path d="M3 7.5 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>';
+const section = (inSection: boolean, key: string) =>
+  current === key ? "page" : inSection ? "true" : undefined;
+const check =
+  '<path d="M3 7.5 L6 10 L11 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>';
 ---
+
 <header class="site-header">
   <div class="container bar">
     <a class="wordmark" href={href(lang)}>
       <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-        <rect x="1" y="1" width="26" height="26" rx="6" fill="none" stroke="var(--color-accent)" stroke-width="2"></rect>
-        <path d="M6 19 L11 13 L15 16 L22 8" fill="none" stroke="var(--color-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <rect
+          x="1"
+          y="1"
+          width="26"
+          height="26"
+          rx="6"
+          fill="none"
+          stroke="var(--color-accent)"
+          stroke-width="2"
+        ></rect>
+        <path
+          d="M6 19 L11 13 L15 16 L22 8"
+          fill="none"
+          stroke="var(--color-accent)"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
       </svg>
       <span>{t(lang, "site.name")}</span>
     </a>
     <div class="header-tools">
       <div class="lang-switch" role="group" aria-label={t(lang, "lang.switch")}>
-        {SWITCH.map((l) => isOffered(l.code) || l.code === lang
-          ? <a href={href(l.code, path)} lang={l.code} aria-current={lang === l.code ? "true" : undefined}>{l.label}</a>
-          : <span class="unpublished" lang={l.code} aria-disabled="true">{l.label}</span>)}
+        {SWITCH.map((l) =>
+          isOffered(l.code) || l.code === lang ? (
+            <a
+              href={href(l.code, path)}
+              lang={l.code}
+              aria-current={lang === l.code ? "true" : undefined}
+            >
+              {l.label}
+            </a>
+          ) : (
+            <span class="unpublished" lang={l.code} aria-disabled="true">
+              {l.label}
+            </span>
+          ),
+        )}
       </div>
       <div class="settings" data-role="theme" hidden>
-        <button type="button" class="icon-button" popovertarget="settings-menu" style="anchor-name: --settings-menu" aria-label={t(lang, "settings.label")} title={t(lang, "settings.label")}>
+        <button
+          type="button"
+          class="icon-button"
+          popovertarget="settings-menu"
+          style="anchor-name: --settings-menu"
+          aria-label={t(lang, "settings.label")}
+          title={t(lang, "settings.label")}
+        >
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-            <path d="M2 5h8M14 5h2M2 13h2M8 13h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-            <circle cx="12" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
-            <circle cx="6" cy="13" r="2" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+            <path
+              d="M2 5h8M14 5h2M2 13h2M8 13h8"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            ></path>
+            <circle
+              cx="12"
+              cy="5"
+              r="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            ></circle>
+            <circle
+              cx="6"
+              cy="13"
+              r="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            ></circle>
           </svg>
         </button>
         <div popover id="settings-menu" class="theme-menu" style="position-anchor: --settings-menu">
           <fieldset>
             <legend>{t(lang, "theme.label")}</legend>
             {["system", "light", "dark"].map((v) => (
-              <label><input type="radio" name="theme" value={v} /> {t(lang, `theme.${v}`)}</label>
+              <label>
+                <input type="radio" name="theme" value={v} /> {t(lang, `theme.${v}`)}
+              </label>
             ))}
           </fieldset>
           <p class="small muted">{t(lang, "theme.stored")}</p>
         </div>
       </div>
-      <button type="button" class="icon-button menu-button" popovertarget="site-menu" aria-label={t(lang, "nav.menu")} title={t(lang, "nav.menu")}>
-        <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+      <button
+        type="button"
+        class="icon-button menu-button"
+        popovertarget="site-menu"
+        aria-label={t(lang, "nav.menu")}
+        title={t(lang, "nav.menu")}
+      >
+        <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true">
+          <path
+            d="M3 5h12M3 9h12M3 13h12"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          ></path>
+        </svg>
       </button>
     </div>
   </div>
   <nav popover id="site-menu" class="site-nav" aria-label={t(lang, "nav.label")}>
     <ul class="container">
-      <li><a href={href(lang)} aria-current={current === "home" ? "page" : undefined}>{t(lang, "nav.home")}</a></li>
+      <li>
+        <a href={href(lang)} aria-current={current === "home" ? "page" : undefined}>
+          {t(lang, "nav.home")}
+        </a>
+      </li>
       <li class="nav-split" style="anchor-name: --topic-menu">
-        <a href={href(lang, "topics")} aria-current={section(inTopics, "topics")}>{t(lang, "nav.topics")}</a>
-        <button type="button" class="nav-arrow" popovertarget="topic-menu" aria-label={t(lang, "nav.quick", { name: t(lang, "nav.topics") })}>
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <a href={href(lang, "topics")} aria-current={section(inTopics, "topics")}>
+          {t(lang, "nav.topics")}
+        </a>
+        <button
+          type="button"
+          class="nav-arrow"
+          popovertarget="topic-menu"
+          aria-label={t(lang, "nav.quick", { name: t(lang, "nav.topics") })}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+            <path
+              d="M2.5 4.5 L6 8 L9.5 4.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
         </button>
         <div popover id="topic-menu" class="nav-list" style="position-anchor: --topic-menu">
           <ul>
             {liveTopics.map((tp) => (
               <li>
-                <a href={topicHref(lang, tp.slug)} aria-current={tp.slug === current ? "true" : undefined}>
+                <a
+                  href={topicHref(lang, tp.slug)}
+                  aria-current={tp.slug === current ? "true" : undefined}
+                >
                   <span>{t(lang, `topic.${tp.slug}`)}</span>
-                  {tp.slug === current && <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" set:html={check}></svg>}
+                  {tp.slug === current && (
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      aria-hidden="true"
+                      set:html={check}
+                    />
+                  )}
                 </a>
               </li>
             ))}
             {shownTopics.map((tp) => (
-              <li><span class="planned">{t(lang, `topic.${tp.slug}`)} <span class="planned-tag">{t(lang, "soon")}</span></span></li>
+              <li>
+                <span class="planned">
+                  {t(lang, `topic.${tp.slug}`)} <span class="planned-tag">{t(lang, "soon")}</span>
+                </span>
+              </li>
             ))}
-            {moreTopics && <li><span class="planned">{t(lang, "topic.more")} <span class="planned-tag">{t(lang, "soon")}</span></span></li>}
-            <li class="nav-all"><a href={href(lang, "topics")}>{t(lang, "country.all")} →</a></li>
+            {moreTopics && (
+              <li>
+                <span class="planned">
+                  {t(lang, "topic.more")} <span class="planned-tag">{t(lang, "soon")}</span>
+                </span>
+              </li>
+            )}
+            <li class="nav-all">
+              <a href={href(lang, "topics")}>{t(lang, "country.all")} →</a>
+            </li>
           </ul>
         </div>
       </li>
       <li class="nav-split" style="anchor-name: --country-menu">
-        <a href={href(lang, "countries")} aria-current={section(inCountries, "countries")}>{t(lang, "nav.countries")}</a>
-        <button type="button" class="nav-arrow" popovertarget="country-menu" aria-label={t(lang, "nav.quick", { name: t(lang, "nav.countries") })}>
-          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <a href={href(lang, "countries")} aria-current={section(inCountries, "countries")}>
+          {t(lang, "nav.countries")}
+        </a>
+        <button
+          type="button"
+          class="nav-arrow"
+          popovertarget="country-menu"
+          aria-label={t(lang, "nav.quick", { name: t(lang, "nav.countries") })}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+            <path
+              d="M2.5 4.5 L6 8 L9.5 4.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
         </button>
         <div popover id="country-menu" class="nav-list" style="position-anchor: --country-menu">
           <ul>
             {countries().map((c) => (
               <li>
                 <a href={countryLink(c)} aria-current={c === country ? "true" : undefined}>
-                  <span class="country-name"><Fragment set:html={flag(c)} />{t(lang, `country.${c}`)}</span>
-                  {c === country && <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" set:html={check}></svg>}
+                  <span class="country-name">
+                    <Fragment set:html={flag(c)} />
+                    {t(lang, `country.${c}`)}
+                  </span>
+                  {c === country && (
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      aria-hidden="true"
+                      set:html={check}
+                    />
+                  )}
                 </a>
               </li>
             ))}
-            <li><span class="planned">{t(lang, "country.more")} <span class="planned-tag">{t(lang, "soon")}</span></span></li>
-            <li class="nav-all"><a href={href(lang, "countries")}>{t(lang, "topic.all_countries")} →</a></li>
+            <li>
+              <span class="planned">
+                {t(lang, "country.more")} <span class="planned-tag">{t(lang, "soon")}</span>
+              </span>
+            </li>
+            <li class="nav-all">
+              <a href={href(lang, "countries")}>{t(lang, "topic.all_countries")} →</a>
+            </li>
           </ul>
         </div>
       </li>
       {site.map((i) => (
-        <li><a href={i.link} aria-current={current === i.key ? "page" : undefined}>{i.label}</a></li>
+        <li>
+          <a href={i.link} aria-current={current === i.key ? "page" : undefined}>
+            {i.label}
+          </a>
+        </li>
       ))}
     </ul>
     <div class="menu-settings container" data-role="theme" hidden>
       <fieldset>
         <legend>{t(lang, "theme.label")}</legend>
         {["system", "light", "dark"].map((v) => (
-          <label><input type="radio" name="theme-menu" value={v} /> {t(lang, `theme.${v}`)}</label>
+          <label>
+            <input type="radio" name="theme-menu" value={v} /> {t(lang, `theme.${v}`)}
+          </label>
         ))}
       </fieldset>
       <p class="small muted">{t(lang, "theme.stored")}</p>

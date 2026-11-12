@@ -28,9 +28,9 @@ from dataclasses import dataclass, field
 
 from traceconomics.engine.tree import ancestors, leaves
 
-Prices = dict[str, dict[str, float]]   # code -> {"YYYY-MM": index}
+Prices = dict[str, dict[str, float]]  # code -> {"YYYY-MM": index}
 Weights = dict[int, dict[str, float]]  # year -> {code: weight}, any unit
-PriceWith = dict[str, str]             # weighted code -> code that prices it, or DROP
+PriceWith = dict[str, str]  # weighted code -> code that prices it, or DROP
 DROP = "drop"
 
 
@@ -38,14 +38,14 @@ DROP = "drop"
 class Fallback:
     period: str
     code: str
-    used: str | None   # the ancestor whose index priced it; None if nothing could
+    used: str | None  # the ancestor whose index priced it; None if nothing could
 
 
 @dataclass
 class ChainResult:
-    index: dict[str, float] = field(default_factory=dict)   # period -> chained index
-    links: dict[str, float] = field(default_factory=dict)   # period -> link to December of the previous year
-    covered: dict[str, float] = field(default_factory=dict) # period -> share of leaf weight that was priced
+    index: dict[str, float] = field(default_factory=dict)  # period -> chained index
+    links: dict[str, float] = field(default_factory=dict)  # period -> link to December of the previous year
+    covered: dict[str, float] = field(default_factory=dict)  # period -> share of leaf weight that was priced
     fallbacks: list[Fallback] = field(default_factory=list)
 
     def fallback_summary(self) -> dict[tuple[str, str | None], int]:
@@ -76,8 +76,14 @@ def _price_ratio(prices: Prices, code: str, period: str, base: str) -> tuple[flo
     return None
 
 
-def link(weights: dict[str, float], prices: Prices, period: str, base: str,
-         result: ChainResult | None = None, price_with: PriceWith | None = None) -> float | None:
+def link(
+    weights: dict[str, float],
+    prices: Prices,
+    period: str,
+    base: str,
+    result: ChainResult | None = None,
+    price_with: PriceWith | None = None,
+) -> float | None:
     """One month's link to the base month, or None if no item could be priced."""
     num = den = total = 0.0
     fallbacks = []
@@ -104,9 +110,17 @@ def link(weights: dict[str, float], prices: Prices, period: str, base: str,
     return num / den
 
 
-def chain(weights: Weights, prices: Prices | dict[int, Prices], *, first_year: int, last_year: int,
-          base_value: float = 100.0, periods: set[str] | None = None,
-          by_year: bool = False, price_with: dict[int, PriceWith] | None = None) -> ChainResult:
+def chain(
+    weights: Weights,
+    prices: Prices | dict[int, Prices],
+    *,
+    first_year: int,
+    last_year: int,
+    base_value: float = 100.0,
+    periods: set[str] | None = None,
+    by_year: bool = False,
+    price_with: dict[int, PriceWith] | None = None,
+) -> ChainResult:
     """Chain-link years first_year..last_year, starting from base_value in December first_year-1.
 
     `periods`, if given, limits which months are computed (e.g. the months an

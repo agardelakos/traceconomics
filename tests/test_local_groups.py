@@ -19,22 +19,42 @@ LEAVES = ("0111", "0411", "0421", "04221", "0451")
 
 def survey(rows, persons, year=2015) -> Survey:
     """rows: (hh, weight, money income a year, main income source, {leaf code: euros a year})."""
-    h = pd.DataFrame({
-        "hh": [r[0] for r in rows], "weight": [float(r[1]) for r in rows], "region": "EL3",
-        "stratum": None, "cluster": None,
-        "money_income": [float(r[2]) for r in rows], "total_income": [float(r[2]) for r in rows],
-        "main_income_source": [r[3] for r in rows],
-    })
+    h = pd.DataFrame(
+        {
+            "hh": [r[0] for r in rows],
+            "weight": [float(r[1]) for r in rows],
+            "region": "EL3",
+            "stratum": None,
+            "cluster": None,
+            "money_income": [float(r[2]) for r in rows],
+            "total_income": [float(r[2]) for r in rows],
+            "main_income_source": [r[3] for r in rows],
+        }
+    )
     leaf = pd.DataFrame([{c: float(r[4].get(c, 0)) for c in LEAVES} for r in rows])
-    s = leaf.assign(**{
-        "011": leaf["0111"], "01": leaf["0111"],
-        "041": leaf["0411"], "0422": leaf["04221"], "042": leaf["0421"] + leaf["04221"], "045": leaf["0451"],
-    })
+    s = leaf.assign(
+        **{
+            "011": leaf["0111"],
+            "01": leaf["0111"],
+            "041": leaf["0411"],
+            "0422": leaf["04221"],
+            "042": leaf["0421"] + leaf["04221"],
+            "045": leaf["0451"],
+        }
+    )
     s["04"] = s["041"] + s["042"] + s["045"]
     # persons: (hh, age) or (hh, age, relation, activity); by default a reference person at work.
     p = pd.DataFrame([(*r, "1", "1")[:4] for r in persons], columns=["hh", "age", "relation", "activity"])
-    return Survey(year=year, classification="ecoicop1", households=h, persons=p,
-                  spending=s, purchases=s.copy(), design="full", source_sha256="0" * 64)
+    return Survey(
+        year=year,
+        classification="ecoicop1",
+        households=h,
+        persons=p,
+        spending=s,
+        purchases=s.copy(),
+        design="full",
+        source_sha256="0" * 64,
+    )
 
 
 def adults(ids):
@@ -42,6 +62,7 @@ def adults(ids):
 
 
 # ---- groups ---------------------------------------------------------------------------------
+
 
 def test_modified_oecd_scale():
     """PY-GROUPS-001: household size on the modified OECD scale
@@ -52,12 +73,14 @@ def test_modified_oecd_scale():
     And the second household is 4 persons and 1 + 0.5 + 0.3 + 0.3 equivalents, the 13-year-old counting as a child
     And the household of children is 2 persons and 1.3 equivalents, the first child counting 1
     """
-    s = survey([("a", 1, 1, "1", {}), ("b", 1, 1, "1", {}), ("c", 1, 1, "1", {})],
-               [("a", 40), ("b", 40), ("b", 38), ("b", 13), ("b", 3), ("c", 12), ("c", 9)])
+    s = survey(
+        [("a", 1, 1, "1", {}), ("b", 1, 1, "1", {}), ("c", 1, 1, "1", {})],
+        [("a", 40), ("b", 40), ("b", 38), ("b", 13), ("b", 3), ("c", 12), ("c", 9)],
+    )
     size = household_size(s)
     assert size.loc["a"].tolist() == [1, 1.0]
-    assert size.loc["b"].tolist() == [4, pytest.approx(1 + 0.5 + 0.3 + 0.3)]   # aged 13 counts as a child
-    assert size.loc["c"].tolist() == [2, pytest.approx(1.3)]                    # no adult: the first child counts 1
+    assert size.loc["b"].tolist() == [4, pytest.approx(1 + 0.5 + 0.3 + 0.3)]  # aged 13 counts as a child
+    assert size.loc["c"].tolist() == [2, pytest.approx(1.3)]  # no adult: the first child counts 1
 
 
 def test_quintiles_hold_a_fifth_of_the_weight_each():
@@ -94,7 +117,7 @@ def test_missing_value_or_weight_gets_no_quintile():
     And the other two have no quintile
     """
     q = quintiles(pd.Series([1.0, None, 3.0]), pd.Series([1.0, 1.0, 0.0]), pd.Series(["a", "b", "c"]))
-    assert q.iloc[0] == 3 and q.iloc[1:].isna().all()      # alone, the household's middle is at 50%
+    assert q.iloc[0] == 3 and q.iloc[1:].isna().all()  # alone, the household's middle is at 50%
 
 
 def test_tenure_renter_first_then_owner_then_housed_free():
@@ -105,12 +128,15 @@ def test_tenure_renter_first_then_owner_then_housed_free():
     Then they are renter, owner and rent_free in that order
     And the household with no rent has no tenure
     """
-    s = survey([
-        ("a", 1, 1, "1", {"0411": 100, "0421": 50}),     # rent and imputed rent: a renter
-        ("b", 1, 1, "1", {"0421": 50}),
-        ("c", 1, 1, "1", {"04221": 50}),
-        ("d", 1, 1, "1", {"0111": 10}),                  # no rent of any kind
-    ], adults("abcd"))
+    s = survey(
+        [
+            ("a", 1, 1, "1", {"0411": 100, "0421": 50}),  # rent and imputed rent: a renter
+            ("b", 1, 1, "1", {"0421": 50}),
+            ("c", 1, 1, "1", {"04221": 50}),
+            ("d", 1, 1, "1", {"0111": 10}),  # no rent of any kind
+        ],
+        adults("abcd"),
+    )
     t = tenure(s)
     assert t[:3].tolist() == ["renter", "owner", "rent_free"] and pd.isna(t[3])
 
@@ -127,24 +153,28 @@ def test_unplaceable_households_are_left_out_of_that_grouping_only():
     And exactly four households are pensioners
     """
     rows = [(f"h{i}", 1, 1000 * (i + 1), "4" if i < 4 else "1", {"0111": 100, "0421": 10}) for i in range(10)]
-    rows.append(("odd", 1, 500, "", {"0111": 100}))                      # no persons, rent or income source
+    rows.append(("odd", 1, 500, "", {"0111": 100}))  # no persons, rent or income source
     g = assign(survey(rows, adults(f"h{i}" for i in range(10))))
     odd = g.iloc[-1]
-    assert odd["A"] == "Q1"                                              # A needs only income and weight
+    assert odd["A"] == "Q1"  # A needs only income and weight
     assert pd.isna(odd["B"]) and pd.isna(odd["C"]) and pd.isna(odd["tenure"]) and pd.isna(odd["pensioners"])
     assert odd["all"] == "all"
-    assert set(g["B"].dropna()) == {"Q1", "Q2", "Q3", "Q4", "Q5"}         # labels stay "Q1", even next to NA
+    assert set(g["B"].dropna()) == {"Q1", "Q2", "Q3", "Q4", "Q5"}  # labels stay "Q1", even next to NA
     assert (g.pensioners == "pensioners").sum() == 4
 
 
 # ---- shares ---------------------------------------------------------------------------------
 
+
 def three_households():
-    return survey([
-        ("a", 2, 6000, "4", {"0111": 300, "0411": 600, "0451": 100}),
-        ("b", 1, 30000, "1", {"0111": 200, "0421": 900, "0451": 400}),
-        ("c", 1, 50000, "1", {"0111": 500, "04221": 500}),
-    ], adults("abc"))
+    return survey(
+        [
+            ("a", 2, 6000, "4", {"0111": 300, "0411": 600, "0451": 100}),
+            ("b", 1, 30000, "1", {"0111": 200, "0421": 900, "0451": 400}),
+            ("c", 1, 50000, "1", {"0111": 500, "04221": 500}),
+        ],
+        adults("abc"),
+    )
 
 
 def test_leaves_are_the_finest_codes():
@@ -176,7 +206,7 @@ def test_shares_are_plutocratic_and_add_up():
     assert everyone[(1, "0111")] == pytest.approx(1300 / 3100)
     assert (1, "0421") not in everyone.index and (1, "042") not in everyone.index
     # Every level adds up to 1, and parents are the sums of their leaves.
-    for (grouping, group, option), part in t.groupby(["grouping", "group", "imputed_rent"]):
+    for _, part in t.groupby(["grouping", "group", "imputed_rent"]):
         assert part[part.leaf].share.sum() == pytest.approx(1)
         assert part[part.digits == 2].share.sum() == pytest.approx(1)
     assert everyone[(2, "04")] == pytest.approx(everyone[(2, "041")] + everyone[(2, "042")] + everyone[(2, "045")])
@@ -197,7 +227,7 @@ def test_shares_per_group_count_reporting_households():
     assert pens.loc["0411", "n_households"] == 1 and pens.loc["0411", "households_weighted"] == 2
     rest = t[(t.grouping == "pensioners") & (t.group == "other") & (t.imputed_rent == 2)].set_index("code")
     assert rest.loc["0451", "n_reporting"] == 1 and rest.loc["042", "n_reporting"] == 2
-    assert set(t.reliability) == {"suppressed"}                             # 3 households: all under 20
+    assert set(t.reliability) == {"suppressed"}  # 3 households: all under 20
 
 
 @pytest.mark.parametrize("n,tier", [(19, "suppressed"), (20, "flagged"), (49, "flagged"), (50, "normal")])
@@ -209,14 +239,21 @@ def test_reliability_tiers(n, tier):
     Then under 20 is "suppressed", 20 to 49 "flagged" and 50 or more "normal"
     """
     from traceconomics.local.shares import reliability
+
     assert reliability(n) == tier
 
 
 # ---- V2 by band -----------------------------------------------------------------------------
 
+
 def banded_table(year, groups, households, food):
-    return Table103(year=year, groups=[ALL] + groups, households=households,
-                    purchases={"0111": food}, labels={"0111": "Bread and cereals"})
+    return Table103(
+        year=year,
+        groups=[ALL] + groups,
+        households=households,
+        purchases={"0111": food},
+        labels={"0111": "Bread and cereals"},
+    )
 
 
 def test_income_bands_include_their_top_after_rounding_to_the_euro():
@@ -229,15 +266,22 @@ def test_income_bands_include_their_top_after_rounding_to_the_euro():
     Then 500 and 750 are in the first band, 750.52 (rounded to 751) in the second and 2000 in the third
     And each band's food figure matches the table, with one match per band
     """
-    s = survey([
-        ("a", 1, 6000, "1", {"0111": 120}),        # 500 a month
-        ("b", 1, 9000, "1", {"0111": 240}),        # 750: still the first band
-        ("c", 1, 9006.2, "1", {"0111": 360}),      # 750.52 rounds to 751
-        ("d", 1, 24000, "1", {"0111": 480}),
-    ], adults("abcd"))
+    s = survey(
+        [
+            ("a", 1, 6000, "1", {"0111": 120}),  # 500 a month
+            ("b", 1, 9000, "1", {"0111": 240}),  # 750: still the first band
+            ("c", 1, 9006.2, "1", {"0111": 360}),  # 750.52 rounds to 751
+            ("d", 1, 24000, "1", {"0111": 480}),
+        ],
+        adults("abcd"),
+    )
     groups = ["up 750 €", "751-1100 €", "1101 and over €"]
-    table = banded_table(2010, groups, {ALL: 4, groups[0]: 2, groups[1]: 1, groups[2]: 1},
-                         {ALL: 10.0, groups[0]: 15.0, groups[1]: 30.0, groups[2]: 40.0})
+    table = banded_table(
+        2010,
+        groups,
+        {ALL: 4, groups[0]: 2, groups[1]: 1, groups[2]: 1},
+        {ALL: 10.0, groups[0]: 15.0, groups[1]: 30.0, groups[2]: 40.0},
+    )
     band = v2.bands(s, table, "income")
     assert band.tolist() == [groups[0], groups[0], groups[1], groups[2]]
     results = [v2.compare(s, table, {}, group=g, members=band == g) for g in groups]
@@ -246,11 +290,17 @@ def test_income_bands_include_their_top_after_rounding_to_the_euro():
 
 def _size_bands():
     """Made-up households of 1, 2 and 4 members, and a table whose "3 members and over" figure is wrong."""
-    s = survey([("a", 1, 1, "1", {"0111": 120}), ("b", 1, 1, "1", {"0111": 240}), ("c", 1, 1, "1", {"0111": 360})],
-               [("a", 40), ("b", 40), ("b", 8), ("c", 40), ("c", 39), ("c", 5), ("c", 1)])
+    s = survey(
+        [("a", 1, 1, "1", {"0111": 120}), ("b", 1, 1, "1", {"0111": 240}), ("c", 1, 1, "1", {"0111": 360})],
+        [("a", 40), ("b", 40), ("b", 8), ("c", 40), ("c", 39), ("c", 5), ("c", 1)],
+    )
     groups = ["1 member", "2 members", "3 members and over"]
-    table = banded_table(2013, groups, {ALL: 3, groups[0]: 1, groups[1]: 1, groups[2]: 1},
-                         {ALL: 20.0, groups[0]: 10.0, groups[1]: 20.0, groups[2]: 99.0})
+    table = banded_table(
+        2013,
+        groups,
+        {ALL: 3, groups[0]: 1, groups[1]: 1, groups[2]: 1},
+        {ALL: 20.0, groups[0]: 10.0, groups[1]: 20.0, groups[2]: 99.0},
+    )
     return s, groups, table
 
 
@@ -289,8 +339,9 @@ def test_band_count_that_differs_fails():
     """
     s = survey([("a", 1, 6000, "1", {"0111": 120}), ("b", 1, 24000, "1", {"0111": 120})], adults("ab"))
     groups = ["up 750 €", "751-1100 €", "1101 and over €"]
-    table = banded_table(2010, groups, {ALL: 2, groups[0]: 1, groups[1]: 0, groups[2]: 3},
-                         {ALL: 10.0, groups[0]: 10.0, groups[2]: 10.0})
+    table = banded_table(
+        2010, groups, {ALL: 2, groups[0]: 1, groups[1]: 0, groups[2]: 3}, {ALL: 10.0, groups[0]: 10.0, groups[2]: 10.0}
+    )
     band = v2.bands(s, table, "income")
     assert not v2.compare(s, table, {}, group=groups[2], members=band == groups[2]).passed
 
@@ -306,11 +357,15 @@ def test_uncovered_share_counts_absent_items_whole_and_cut_items_in_part():
     And the uncovered share is 5% of total spending
     """
     s = survey([("a", 1, 1, "1", {"0111": 120}), ("b", 3, 1, "1", {"0111": 240})], adults("ab"))
-    s.purchases["07242"] = [12.0, 12.0]                                # tolls, cut: 1 a month in the PUF
-    table = Table103(year=2015, groups=[ALL], households={ALL: 4},
-                     purchases={"00": {ALL: 100.0}, "0111": {ALL: 17.5}, "12510": {ALL: 2.0}, "07242": {ALL: 4.0}})
+    s.purchases["07242"] = [12.0, 12.0]  # tolls, cut: 1 a month in the PUF
+    table = Table103(
+        year=2015,
+        groups=[ALL],
+        households={ALL: 4},
+        purchases={"00": {ALL: 100.0}, "0111": {ALL: 17.5}, "12510": {ALL: 2.0}, "07242": {ALL: 4.0}},
+    )
     share, gaps = v2.uncovered(s, table, {"12510": [2015], "07242": [2015, 2016], "12610": [2016]})
-    assert gaps == {"12510": 2.0, "07242": pytest.approx(3.0)}          # 12610 isn't listed for 2015
+    assert gaps == {"12510": 2.0, "07242": pytest.approx(3.0)}  # 12610 isn't listed for 2015
     assert share == pytest.approx(0.05)
 
 
@@ -323,7 +378,7 @@ def test_shares_leave_unplaceable_households_out_of_that_grouping_only():
     And the B and pensioners groupings count only 5 households
     """
     rows = [(f"h{i}", 1, 1000 * (i + 1), "1", {"0111": 100, "0411": 50}) for i in range(5)]
-    rows.append(("odd", 1, 500, "", {"0111": 900}))                  # no persons, no income source
+    rows.append(("odd", 1, 500, "", {"0111": 900}))  # no persons, no income source
     t = shares(survey(rows, adults(f"h{i}" for i in range(5))))
     food = t[(t.code == "0111") & (t.imputed_rent == 1)].set_index(["grouping", "group"])
     assert food.loc[("all", "all"), "share"] == pytest.approx(1400 / 1650)
@@ -340,13 +395,15 @@ def test_quintile_matrix_matches_one_column_at_a_time():
     Then the household with a missing value is 0 in both columns
     And in each column every household with a quintile has the same one as quintiles taken for that column alone
     """
-    from traceconomics.local.groups import quintile_matrix
     import numpy as np
+
+    from traceconomics.local.groups import quintile_matrix
+
     value = pd.Series([3.0, 1.0, None, 2.0, 5.0, 4.0, 2.0])
     ids = pd.Series(list("abcdefg"))
     w = np.array([[1, 2], [1, 0], [1, 1], [2, 1], [1, 3], [1, 1], [1, 1]], dtype=float)
     q = quintile_matrix(value, w, ids)
-    assert q[2].tolist() == [0, 0]                                      # missing value
+    assert q[2].tolist() == [0, 0]  # missing value
     for r in range(2):
         one = quintiles(value, pd.Series(w[:, r]), ids)
         keep = one.notna().to_numpy()
@@ -364,11 +421,14 @@ def test_purchases_leave_out_own_production_and_imputed_rent_comes_from_all_mode
     s = three_households()
     # Household a grew a third of its food: purchases are lower than all modes there.
     s.purchases.loc[0, ["0111", "011", "01"]] = 200.0
-    s.purchases[["0421", "04221", "0422", "042"]] = 0.0                  # imputed rent is never bought
+    s.purchases[["0421", "04221", "0422", "042"]] = 0.0  # imputed rent is never bought
     s.purchases["04"] = s.purchases["041"] + s.purchases["045"]
     p = shares(s, spending="purchases")
     a = shares(s, spending="all")
-    pick = lambda t, opt, code: t[(t.grouping == "all") & (t.imputed_rent == opt) & (t.code == code)].share.item()
+
+    def pick(t, opt, code):
+        return t[(t.grouping == "all") & (t.imputed_rent == opt) & (t.code == code)].share.item()
+
     # Purchases: food 2*200 + 200 + 500 = 1100; rent 1200; energy 600.
     assert pick(p, 1, "0111") == pytest.approx(1100 / 2900)
     assert pick(a, 1, "0111") == pytest.approx(1300 / 3100)
@@ -384,8 +444,10 @@ def test_deciles_hold_equal_parts_in_order():
     When the values are ranked into ten parts
     Then the deciles hold two values each, in order
     """
-    from traceconomics.local.groups import quintile_matrix
     import numpy as np
+
+    from traceconomics.local.groups import quintile_matrix
+
     q = quintile_matrix(pd.Series(range(20), dtype=float), np.ones(20), pd.Series(range(20)), parts=10)[:, 0]
     assert q.tolist() == [k // 2 + 1 for k in range(20)]
 
@@ -408,6 +470,7 @@ def test_ranking_households_instead_of_persons():
 
 # ---- income limits ---------------------------------------------------------------------------
 
+
 def test_cut_points_are_midpoints_between_neighbouring_households():
     """PY-GROUPS-019: income limits are midpoints between neighbouring households
 
@@ -417,8 +480,10 @@ def test_cut_points_are_midpoints_between_neighbouring_households():
     And none is any household's own value
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points
-    value = pd.Series([float(v) for v in range(10, 110, 10)])            # 10, 20, ... 100, two a fifth
+
+    value = pd.Series([float(v) for v in range(10, 110, 10)])  # 10, 20, ... 100, two a fifth
     ids = pd.Series(list("abcdefghij"))
     cuts = cut_points(value, np.ones(10), ids)[:, 0]
     assert cuts.tolist() == [25.0, 45.0, 65.0, 85.0]
@@ -435,11 +500,13 @@ def test_cut_points_skip_households_without_weight_and_follow_each_column():
     And the second column's first limit moves, and none of its limits is missing
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points
+
     value = pd.Series([float(v) for v in range(10, 110, 10)])
     ids = pd.Series(list("abcdefghij"))
     w = np.ones((10, 2))
-    w[2, 1] = 0                       # in the second column, 30 isn't drawn: the parts move
+    w[2, 1] = 0  # in the second column, 30 isn't drawn: the parts move
     cuts = cut_points(value, w, ids)
     assert cuts[:, 0].tolist() == [25.0, 45.0, 65.0, 85.0]
     assert cuts[0, 1] != 25.0 and not np.isnan(cuts[:, 1]).any()
@@ -453,10 +520,12 @@ def test_cut_points_ignore_missing_values_and_mark_an_empty_part():
     Then at least one limit is missing, since two households can't fill five parts
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points
+
     value = pd.Series([10.0, None, 20.0])
     cuts = cut_points(value, np.ones(3), pd.Series(list("abc")))[:, 0]
-    assert np.isnan(cuts).any()       # two households can't fill five parts
+    assert np.isnan(cuts).any()  # two households can't fill five parts
 
 
 def test_limits_table_rounds_midpoints_to_the_euro():
@@ -469,13 +538,14 @@ def test_limits_table_rounds_midpoints_to_the_euro():
     And none has a standard error
     """
     from traceconomics.local.weights import limits_table
+
     rows = [(f"h{i:02d}", 1, 1000 * (i + 1) + 0.25, "1", {}) for i in range(20)]
     s = survey(rows, adults([r[0] for r in rows]))
     t = limits_table(s, 2015, replicates=0, source_version="test")
     assert t.group.tolist() == ["Q1", "Q2", "Q3", "Q4"] and (t.unit == "EUR_PER_ADULT_EQ_Y").all()
     # Four households a fifth: the limit between the 4th and 5th incomes is (4000.25 + 5000.25) / 2.
     assert t.limit.tolist() == [4500, 8500, 12500, 16500]
-    assert t.se.isna().all()          # no replicates asked for
+    assert t.se.isna().all()  # no replicates asked for
 
 
 def test_every_household_lies_between_its_fifths_limits():
@@ -488,7 +558,9 @@ def test_every_household_lies_between_its_fifths_limits():
     And some households sit exactly on a limit, so ties are covered
     """
     import numpy as np
+
     from traceconomics.local.groups import cut_points, ranking
+
     rng = np.random.default_rng(20261108)
     n = 300
     ids = [f"h{i:03d}" for i in range(n)]
@@ -498,9 +570,14 @@ def test_every_household_lies_between_its_fifths_limits():
     income = (rng.integers(4, 16, n) * 1000).tolist()
     weight = rng.uniform(50, 900, n).round(3).tolist()
     members = np.where(rng.random(n) < 2 / 3, 1, rng.integers(2, 6, n))
-    s = survey([(h, w, inc, "1", {}) for h, w, inc in zip(ids, weight, income)],
-               [(h, 40 if k == 0 else int(rng.integers(1, 80)))
-                for h, m in zip(ids, members) for k in range(int(m))])
+    s = survey(
+        [(h, w, inc, "1", {}) for h, w, inc in zip(ids, weight, income, strict=True)],
+        [
+            (h, 40 if k == 0 else int(rng.integers(1, 80)))
+            for h, m in zip(ids, members, strict=True)
+            for k in range(int(m))
+        ],
+    )
     g = assign(s)
     values, size = ranking(s)
     v = values["B"].to_numpy(float)
@@ -513,10 +590,11 @@ def test_every_household_lies_between_its_fifths_limits():
     outside = ~((v >= lower[k]) & (v <= upper[k]))
     assert not outside.any(), f"{outside.sum()} households outside their fifth's limits"
     assert (np.diff(cuts) > 0).all()
-    assert ((v == lower[k]) | (v == upper[k])).any()     # the tie case is exercised
+    assert ((v == lower[k]) | (v == upper[k])).any()  # the tie case is exercised
 
 
 # ---- household types ---------------------------------------------------------------------------
+
 
 def test_household_types_follow_eurostats_dependent_child_rule():
     """PY-GROUPS-023: household types follow Eurostat's dependent-child rule
@@ -527,15 +605,26 @@ def test_household_types_follow_eurostats_dependent_child_rule():
     And the household with no adult has no type
     """
     from traceconomics.local.groups import household_type
+
     rows = [(h, 1, 1000, "1", {}) for h in "abcdefg"]
     persons = [
-        ("a", 70),                                          # one adult
-        ("b", 40), ("b", 15),                               # a parent and a child under 16
-        ("c", 40), ("c", 38), ("c", 20, "3", "4"),          # a 20-year-old student, child of the couple
-        ("d", 40), ("d", 38), ("d", 20, "3", "1"),          # the same, but working: an adult
-        ("e", 40), ("e", 38), ("e", 22, "5", "4"),          # a student who is a nephew: an adult
-        ("f", 40), ("f", 38), ("f", 70, "4", "3"), ("f", 25, "3", "4"),   # 25 is past the age limit
-        ("g", 10),                                          # no adult at all
+        ("a", 70),  # one adult
+        ("b", 40),
+        ("b", 15),  # a parent and a child under 16
+        ("c", 40),
+        ("c", 38),
+        ("c", 20, "3", "4"),  # a 20-year-old student, child of the couple
+        ("d", 40),
+        ("d", 38),
+        ("d", 20, "3", "1"),  # the same, but working: an adult
+        ("e", 40),
+        ("e", 38),
+        ("e", 22, "5", "4"),  # a student who is a nephew: an adult
+        ("f", 40),
+        ("f", 38),
+        ("f", 70, "4", "3"),
+        ("f", 25, "3", "4"),  # 25 is past the age limit
+        ("g", 10),  # no adult at all
     ]
     t = household_type(survey(rows, persons))
     assert t.tolist()[:6] == ["A1", "A1_DCH", "A2_DCH", "A_GE3", "A_GE3", "A_GE3"]
@@ -551,7 +640,7 @@ def test_household_types_are_a_grouping_and_unplaced_households_are_left_out():
     And the third has no household type
     """
     rows = [("a", 1, 1000, "1", {"0111": 10}), ("b", 1, 2000, "1", {"0111": 10}), ("c", 1, 3000, "1", {"0111": 10})]
-    g = assign(survey(rows, [("a", 40), ("b", 40), ("b", 5)]))       # c has no person records
+    g = assign(survey(rows, [("a", 40), ("b", 40), ("b", 5)]))  # c has no person records
     assert g.hhtype.tolist()[:2] == ["A1", "A1_DCH"] and pd.isna(g.hhtype.iloc[2])
 
 
@@ -573,6 +662,7 @@ def test_types_table_compares_with_elstats_type():
     And agreement is 0.9 and every row is "compared"
     """
     from traceconomics.local import weights
+
     s, g = _single_adults(9)
     t = weights.types_table(s, g, 2015, "v")
     a1 = t.set_index("group").loc["A1"]
@@ -589,6 +679,7 @@ def test_types_table_stops_when_far_from_elstats_type():
     """
     from traceconomics.checks import FormatError
     from traceconomics.local import weights
+
     s, g = _single_adults(0)
     with pytest.raises(FormatError, match="agree with ELSTAT's on 0.0%"):
         weights.types_table(s, g, 2015, "v")
@@ -604,6 +695,7 @@ def test_types_table_marks_elstats_2023_type_unusable():
     ELSTAT's own household-type variable is broken in the 2023 survey, so it isn't held against ours.
     """
     from traceconomics.local import weights
+
     s, g = _single_adults(0)
     assert weights.types_table(s, g, 2023, "v").elstat_status.iloc[0].startswith("unusable")
 
@@ -618,8 +710,13 @@ def test_rent_table_sums_rent_paid_by_tenure():
     And the renters are 150 households and 250 people weighted, written "<20" as counted
     """
     from traceconomics.local import weights
-    rows = [("r1", 100, 9000, "1", {"0411": 4800}), ("r2", 50, 9000, "1", {"0411": 6000}),
-            ("o", 200, 9000, "1", {"0421": 3000}), ("f", 10, 9000, "1", {"04221": 2000})]
+
+    rows = [
+        ("r1", 100, 9000, "1", {"0411": 4800}),
+        ("r2", 50, 9000, "1", {"0411": 6000}),
+        ("o", 200, 9000, "1", {"0421": 3000}),
+        ("f", 10, 9000, "1", {"04221": 2000}),
+    ]
     s = survey(rows, [("r1", 40), ("r1", 38), ("r2", 40), ("o", 40), ("f", 40)])
     t = weights.rent_table(s, assign(s), 2015, "v").set_index("tenure")
     assert t.loc["all", "rent_paid_eur"] == 780000.0 and t.loc["renter", "rent_paid_eur"] == 780000.0
@@ -637,13 +734,21 @@ def test_spending_table_lists_household_totals_and_every_figure_compared():
     And each item follows with ELSTAT's figure, ours and the result, ours left empty where the file has no column
     """
     from traceconomics.local import weights
+
     r = v2.V2Result(year=2014, households_puf=4136073.0, households_published=4152372.0, compared=3, matched=1)
-    r.rows = [("01111", "Rice", 3.21, 3.2104, "matched"), ("01112", "Bread", 9.5, 9.43, "differs"),
-              ("03111", "Clothing materials", 0.09, None, "differs")]
+    r.rows = [
+        ("01111", "Rice", 3.21, 3.2104, "matched"),
+        ("01112", "Bread", 9.5, 9.43, "differs"),
+        ("03111", "Clothing materials", 0.09, None, "differs"),
+    ]
     t = weights.spending_table([r], 2014, "v")
     assert list(t.coicop) == ["households", "01111", "01112", "03111"]
     head = t.iloc[0]
     assert (head.group, head.published, head.ours, head.result) == (ALL, 4152372.0, 4136073.0, "differs")
-    assert list(t.result[1:]) == ["matched", "differs", "differs"] and list(t.item[1:]) == ["Rice", "Bread", "Clothing materials"]
-    assert t.ours.iloc[3] != t.ours.iloc[3]          # NaN: written as an empty cell
+    assert list(t.result[1:]) == ["matched", "differs", "differs"] and list(t.item[1:]) == [
+        "Rice",
+        "Bread",
+        "Clothing materials",
+    ]
+    assert t.ours.iloc[3] != t.ours.iloc[3]  # NaN: written as an empty cell
     assert list(t.columns) == weights.SPENDING_COLUMNS

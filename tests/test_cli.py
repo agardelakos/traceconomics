@@ -14,10 +14,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from clitools import no_store, run, setup  # noqa: F401 - fixtures
 
 from traceconomics import __version__, analytics, backup, cli, config as config_mod, job, release, schedule
 from traceconomics.archive.store import Archive
-from clitools import no_store, run, setup  # noqa: F401 - fixtures
 
 pytestmark = pytest.mark.unit
 
@@ -29,6 +29,7 @@ def _sha(b):
 
 
 # -- the command line itself -------------------------------------------------------------------
+
 
 def test_version_prints_the_package_version(capsys):
     """PY-CLI-001: --version prints the package version
@@ -101,8 +102,10 @@ def test_a_crash_is_reported_and_fails_the_run(setup, run, monkeypatch):
 
     A scheduled run has no console, so a crash must reach the owner some other way.
     """
+
     def broken(*a, **k):
         raise RuntimeError("disk on fire")
+
     monkeypatch.setattr(job, "load_state", broken)
     code, out = run("status")
     assert code == 1
@@ -128,8 +131,12 @@ def test_migrate_local_runs_without_a_config_and_reports_problems(tmp_path, caps
 
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "empty"))
     monkeypatch.delenv(config_mod.CONFIG_ENV, raising=False)
-    plans = iter([SimpleNamespace(steps=["move a to b"], problems=["c is in the way"]),
-                  SimpleNamespace(steps=["move a to b"], problems=[])])
+    plans = iter(
+        [
+            SimpleNamespace(steps=["move a to b"], problems=["c is in the way"]),
+            SimpleNamespace(steps=["move a to b"], problems=[]),
+        ]
+    )
     calls = []
     monkeypatch.setattr(migrate, "run", lambda dry_run: calls.append(dry_run) or next(plans))
     assert cli.main(["migrate-local", "--dry-run"]) == 1
@@ -140,6 +147,7 @@ def test_migrate_local_runs_without_a_config_and_reports_problems(tmp_path, caps
 
 
 # -- the archive job and one-off fetches -----------------------------------------------------------
+
 
 @pytest.mark.parametrize("result, code", [("ok", 0), ("not-due", 0), ("dry-run", 0), ("partial", 1)])
 def test_archive_prints_the_run_and_fails_unless_it_went_well(run, monkeypatch, result, code):
@@ -152,8 +160,11 @@ def test_archive_prints_the_run_and_fails_unless_it_went_well(run, monkeypatch, 
     And it exits with code 0 for ok, not-due and dry-run, and 1 otherwise
     """
     seen = {}
-    monkeypatch.setattr(job, "run", lambda cfg, force, dry_run: seen.update(force=force, dry_run=dry_run)
-                        or {"result": result, "stored": 2})
+    monkeypatch.setattr(
+        job,
+        "run",
+        lambda cfg, force, dry_run: seen.update(force=force, dry_run=dry_run) or {"result": result, "stored": 2},
+    )
     got, out = run("archive", "--force")
     assert json.loads(out) == {"result": result, "stored": 2}
     assert seen == {"force": True, "dry_run": False}
@@ -175,6 +186,7 @@ def test_fetch_history_passes_the_years_and_pause(run, monkeypatch, result, code
     def fetch(cfg, years, pause_seconds, dry_run):
         seen.update(years=years, pause=pause_seconds, dry_run=dry_run)
         return {"result": result}
+
     monkeypatch.setattr(job, "fetch_history", fetch)
     got, out = run("fetch-history", "cpi07", "--years", "2011-2013,2015", "--pause", "5", "--dry-run")
     assert seen == {"years": [2011, 2012, 2013, 2015], "pause": 5.0, "dry_run": True}
@@ -245,10 +257,12 @@ def _research(tmp_path, *, bad):
         (folder / "bad.xlsx").write_bytes(b"tampered")
         rows += f"| bad.xlsx | {doc.format(2)} | 2026-10-17 | {_sha(b'original')} | changed |\n"
     (folder / "MANIFEST.md").write_text(
-        "| File | Source URL | Downloaded | SHA-256 | What |\n|---|---|---|---|---|\n" + rows, encoding="utf-8")
+        "| File | Source URL | Downloaded | SHA-256 | What |\n|---|---|---|---|---|\n" + rows, encoding="utf-8"
+    )
 
 
 # -- status, backup marks, alerts ------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_status_shows_runs_release_days_and_files_waiting_for_backup(setup, run):
@@ -263,10 +277,14 @@ def test_status_shows_runs_release_days_and_files_waiting_for_backup(setup, run)
     And after backup-done status counts 0 files waiting, since that time
     """
     Archive(setup.cfg.archive_dir).store_bytes("eurostat", "prc_hicp_iw", b"x", url=None, retrieved_at=NOW, ext=".tsv")
-    Archive(setup.cfg.archive_dir).append_run({"started": "2026-11-01T12:00:00Z", "result": "ok", "reason": "due", "stored": 1})
+    Archive(setup.cfg.archive_dir).append_run(
+        {"started": "2026-11-01T12:00:00Z", "result": "ok", "reason": "due", "stored": 1}
+    )
     tomorrow = date.today() + timedelta(days=1)
-    job.save_state(setup.cfg.archive_dir, {"last_good_run": "2026-11-01",
-                                           "release_dates": {"elstat": [tomorrow.isoformat(), "2000-01-01"]}})
+    job.save_state(
+        setup.cfg.archive_dir,
+        {"last_good_run": "2026-11-01", "release_dates": {"elstat": [tomorrow.isoformat(), "2000-01-01"]}},
+    )
     code, out = run("status")
     assert code == 0
     assert f"Archive: {setup.cfg.archive_dir}" in out
@@ -310,6 +328,7 @@ def test_notify_test_writes_a_test_message(run):
 
 
 # -- backups, analytics, releases --------------------------------------------------------------------
+
 
 def test_backup_plan_lists_at_most_fifty_files(run, monkeypatch):
     """PY-CLI-014: backup plan counts every file to send and lists the first fifty
@@ -356,6 +375,7 @@ def test_analytics_for_one_day_runs_each_feed_and_reports_a_failure(run, monkeyp
         if feed.name == "downloads":
             raise analytics.AnalyticsError("no zone id")
         return {"result": "ok"}
+
     monkeypatch.setattr(analytics, "export_day", export_day)
     code, out = run("analytics", "export", "--day", "2026-11-01")
     assert asked == [("visits", date(2026, 11, 1)), ("downloads", date(2026, 11, 1))]
@@ -372,9 +392,11 @@ def test_analytics_without_a_day_follows_the_bookmark_and_saves_it(setup, run, m
     And the moved bookmark is saved in the job's state
     And it prints the result and exits with code 0
     """
+
     def export(cfg, archive, state, now, feed):
         state["analytics_through"] = "2026-11-01"
         return {"result": "ok", "feed": feed.name}
+
     monkeypatch.setattr(job, "export_analytics", export)
     code, out = run("analytics", "export", "--feed", "visits")
     assert json.loads(out) == {"visits": {"result": "ok", "feed": "visits"}} and code == 0
@@ -382,10 +404,17 @@ def test_analytics_without_a_day_follows_the_bookmark_and_saves_it(setup, run, m
 
 
 def _record(result):
-    rec = {"id": "20261107T120000Z", "reason": "manual", "result": result,
-           "steps": [{"name": "series", "code": 0 if result == "ok" else 1, "seconds": 3}]}
+    rec = {
+        "id": "20261107T120000Z",
+        "reason": "manual",
+        "result": result,
+        "steps": [{"name": "series", "code": 0 if result == "ok" else 1, "seconds": 3}],
+    }
     if result == "ok":
-        rec |= {"preview_url": "https://preview.example", "changes": {"first_release": True, "latest_period": "2026-10"}}
+        rec |= {
+            "preview_url": "https://preview.example",
+            "changes": {"first_release": True, "latest_period": "2026-10"},
+        }
     else:
         rec |= {"failed_step": "series", "log_tail": ["boom"]}
     return rec
@@ -408,10 +437,14 @@ def test_release_build_prints_its_report(setup, run, monkeypatch, result, code):
     assert out.startswith(f"Release 20261107T120000Z (manual): {result.upper()}") and got == code
 
 
-@pytest.mark.parametrize("args, message", [
-    (["promote"], "Which build?"), (["retest"], "Which build?"),
-    (["promote", "20261107T120000Z"], "Where to? Pass --to staging or --to production."),
-])
+@pytest.mark.parametrize(
+    "args, message",
+    [
+        (["promote"], "Which build?"),
+        (["retest"], "Which build?"),
+        (["promote", "20261107T120000Z"], "Where to? Pass --to staging or --to production."),
+    ],
+)
 def test_release_promote_and_retest_need_a_build_and_a_target(run, monkeypatch, args, message):
     """PY-CLI-019: release promote and retest refuse to guess the build or the target
 
@@ -423,8 +456,10 @@ def test_release_promote_and_retest_need_a_build_and_a_target(run, monkeypatch, 
 
     A promote changes what the public sees, so it never has a default.
     """
+
     def never(*a, **k):
         raise AssertionError("must not run")
+
     monkeypatch.setattr(release, "promote", never)
     monkeypatch.setattr(release, "retest", never)
     code, out = run("release", *args)
@@ -442,12 +477,20 @@ def test_release_promote_retest_and_status(setup, run, monkeypatch):
     And the retest prints the build's report and exits with code 0
     And status lists each build with its result and where it is live
     """
-    monkeypatch.setattr(release, "promote", lambda cfg, id, to: {
-        "id": id, "to": to, "url": "https://staging.example", "confirmed": "2026-11-07T12:00:00Z"})
+    monkeypatch.setattr(
+        release,
+        "promote",
+        lambda cfg, id, to: {"id": id, "to": to, "url": "https://staging.example", "confirmed": "2026-11-07T12:00:00Z"},
+    )
     monkeypatch.setattr(release, "retest", lambda cfg, id, path: _record("ok"))
-    monkeypatch.setattr(release, "status", lambda root: [
-        {"id": "b2", "result": "ok", "on": ["staging", "production"], "preview_url": "https://p2"},
-        {"id": "b1", "result": "failed", "on": [], "failed_step": "ui-test"}])
+    monkeypatch.setattr(
+        release,
+        "status",
+        lambda root: [
+            {"id": "b2", "result": "ok", "on": ["staging", "production"], "preview_url": "https://p2"},
+            {"id": "b1", "result": "failed", "on": [], "failed_step": "ui-test"},
+        ],
+    )
     code, out = run("release", "promote", "b2", "--to", "staging")
     assert code == 0
     assert out.strip() == "Promoted b2 to staging: https://staging.example serves it (checked 2026-11-07T12:00:00Z)"
@@ -460,6 +503,7 @@ def test_release_promote_retest_and_status(setup, run, monkeypatch):
 
 
 # -- schedule ----------------------------------------------------------------------------------------
+
 
 def test_schedule_units_needs_a_folder_and_writes_the_units_there(run, tmp_path):
     """PY-CLI-021: schedule units needs a folder, then writes the units and the shell command there
@@ -512,6 +556,7 @@ def test_schedule_install_on_linux_points_to_the_units(run):
 
 # -- the store and the checks ------------------------------------------------------------------------
 
+
 def test_store_refuses_an_unknown_dataset(run):
     """PY-CLI-024: store refuses a dataset it doesn't know
 
@@ -535,8 +580,14 @@ def test_store_update_reads_an_archived_dataset(setup, run, fixture_bytes):
     And its report line names the dataset with one snapshot read
     And it prints the store's folder
     """
-    Archive(setup.cfg.archive_dir).store_bytes("eurostat", "prc_hicp_minr", fixture_bytes("eurostat_prc_hicp_minr.tsv.gz"),
-                                               url=None, retrieved_at=NOW, ext=".tsv.gz")
+    Archive(setup.cfg.archive_dir).store_bytes(
+        "eurostat",
+        "prc_hicp_minr",
+        fixture_bytes("eurostat_prc_hicp_minr.tsv.gz"),
+        url=None,
+        retrieved_at=NOW,
+        ext=".tsv.gz",
+    )
     code, out = run("store", "update", "--dataset", "eurostat:prc_hicp_minr")
     assert code == 0, out
     assert any("eurostat:prc_hicp_minr" in line and "1 snapshot" in line for line in out.splitlines()), out
@@ -567,10 +618,17 @@ def test_check_v1_rebuilds_the_archived_hicp(setup, run, fixture_bytes):
     And it ends with "V1 passed." and exit code 0
     And after the run for CY, a country the extract lacks, it says there is no all-items index for CY, with exit code 1
     """
-    Archive(setup.cfg.archive_dir).store_bytes("eurostat", "prc_hicp_minr", fixture_bytes("eurostat_v1_gr_minr.tsv.gz"),
-                                               url=None, retrieved_at=NOW, ext=".tsv.gz")
-    Archive(setup.cfg.archive_dir).store_bytes("eurostat", "prc_hicp_iw", fixture_bytes("eurostat_v1_gr_iw.tsv.gz"),
-                                               url=None, retrieved_at=NOW, ext=".tsv.gz")
+    Archive(setup.cfg.archive_dir).store_bytes(
+        "eurostat",
+        "prc_hicp_minr",
+        fixture_bytes("eurostat_v1_gr_minr.tsv.gz"),
+        url=None,
+        retrieved_at=NOW,
+        ext=".tsv.gz",
+    )
+    Archive(setup.cfg.archive_dir).store_bytes(
+        "eurostat", "prc_hicp_iw", fixture_bytes("eurostat_v1_gr_iw.tsv.gz"), url=None, retrieved_at=NOW, ext=".tsv.gz"
+    )
     code, out = run("check", "v1", "--geo", "GR")
     assert out.count("Using ") == 2 and "finest detail" in out
     assert (code, out.strip().splitlines()[-1]) == (0, "V1 passed.")
@@ -610,8 +668,12 @@ def test_check_v3_flags_years_that_need_an_explanation(run, monkeypatch, no_stor
     """
     from traceconomics.module1 import checks
 
-    rows = [SimpleNamespace(year=1990, official=2.0, l1=2.1, l2=2.2, weights_effect=0.1, timing_effect=0.1),
-            SimpleNamespace(year=1991, official=2.0, l1=4.0, l2=4.2, weights_effect=checks.REPORT_PP + 1, timing_effect=0.2)]
+    rows = [
+        SimpleNamespace(year=1990, official=2.0, l1=2.1, l2=2.2, weights_effect=0.1, timing_effect=0.1),
+        SimpleNamespace(
+            year=1991, official=2.0, l1=4.0, l2=4.2, weights_effect=checks.REPORT_PP + 1, timing_effect=0.2
+        ),
+    ]
     monkeypatch.setattr(checks, "v3", lambda con, archive, spending: rows)
     code, out = run("check", "v3")
     assert code == 0 and "purchases:" in out and "all:" in out
@@ -630,8 +692,11 @@ def test_check_v6_passes_within_rounding_only(run, monkeypatch, no_store, ours, 
     """
     from traceconomics.module1 import checks
 
-    monkeypatch.setattr(checks, "v6", lambda con, archive: SimpleNamespace(
-        worst=("2022-10", "CP01", ours, official), exact=10, compared=12))
+    monkeypatch.setattr(
+        checks,
+        "v6",
+        lambda con, archive: SimpleNamespace(worst=("2022-10", "CP01", ours, official), exact=10, compared=12),
+    )
     got, out = run("check", "v6")
     assert "10/12 equal" in out and "2022-10, division CP01" in out
     assert got == code and out.strip().endswith("V6 passed." if code == 0 else "V6 FAILED (more than rounding).")
@@ -649,14 +714,26 @@ def test_check_v4_fails_on_bruegel_and_reports_kepe(run, monkeypatch, no_store):
     """
     from traceconomics.module1 import benchmarks
 
-    monkeypatch.setattr(benchmarks, "v4_bruegel", lambda con, archive: [SimpleNamespace(
-        name="Bruegel EL", passed=False, months=36, worst_month=("2022-06", 10.0, 9.5),
-        annual={2022: (9.0, 8.8)}, provisional=["2023"])])
+    monkeypatch.setattr(
+        benchmarks,
+        "v4_bruegel",
+        lambda con, archive: [
+            SimpleNamespace(
+                name="Bruegel EL",
+                passed=False,
+                months=36,
+                worst_month=("2022-06", 10.0, 9.5),
+                annual={2022: (9.0, 8.8)},
+                provisional=["2023"],
+            )
+        ],
+    )
     pub = {k: {"2022": 9.9} for k in ("P20", "R20", "R10")}
     monkeypatch.setattr(benchmarks, "kepe_published", lambda: {"chart1": pub})
     rates = {k: {2022: 9.5} for k in ("P20", "R20", "R10")}
-    monkeypatch.setattr(benchmarks, "v4_kepe", lambda con: {("purchases", "income"): {
-        "rates": rates, "max_gap": 0.4, "mean_gap": 0.4}})
+    monkeypatch.setattr(
+        benchmarks, "v4_kepe", lambda con: {("purchases", "income"): {"rates": rates, "max_gap": 0.4, "mean_gap": 0.4}}
+    )
     code, out = run("check", "v4")
     assert "Bruegel EL: FAIL; 36 months, largest gap 0.50 pp (2022-06); annual averages 2022 9.00/8.80" in out
     assert "provisional data: 2023" in out
@@ -697,14 +774,42 @@ def test_check_combos_prints_the_identities_and_the_option_effects(run, monkeypa
     from traceconomics.module1 import combos_check as cc
 
     seen = []
-    monkeypatch.setattr(cc, "identities", lambda folder, base: seen.append((folder, base)) or [
-        ("weights sum to 1", True, "48 settings"), ("rates match the index", ok, "2 rows off" if not ok else "all")])
-    monkeypatch.setattr(cc, "source", lambda folder: {2022: {"all_cpi": 9.3, "all_hicp": 9.4, "gap_cpi": 1.0, "gap_hicp": 1.2},
-                                                      2023: {"all_cpi": 3.5, "all_hicp": 4.2, "gap_cpi": None, "gap_hicp": None}})
+    monkeypatch.setattr(
+        cc,
+        "identities",
+        lambda folder, base: (
+            seen.append((folder, base))
+            or [
+                ("weights sum to 1", True, "48 settings"),
+                ("rates match the index", ok, "2 rows off" if not ok else "all"),
+            ]
+        ),
+    )
+    monkeypatch.setattr(
+        cc,
+        "source",
+        lambda folder: {
+            2022: {"all_cpi": 9.3, "all_hicp": 9.4, "gap_cpi": 1.0, "gap_hicp": 1.2},
+            2023: {"all_cpi": 3.5, "all_hicp": 4.2, "gap_cpi": None, "gap_hicp": None},
+        },
+    )
     monkeypatch.setattr(cc, "timing", lambda folder: {2022: {"N": 1.0, "F": None, "U": 0.5}})
     monkeypatch.setattr(cc, "rent", lambda folder: {"Q1": {"weight_2025": 0.12, "change": {2010: 0.1, 2011: 0.2}}})
-    monkeypatch.setattr(cc, "tutoring", lambda folder: {"period": "2026-01", "groups": {"all": {
-        "priced": 2.5, "excluded": 2.25, "education_weight_priced": 0.03, "education_weight_excluded": 0.02}}})
+    monkeypatch.setattr(
+        cc,
+        "tutoring",
+        lambda folder: {
+            "period": "2026-01",
+            "groups": {
+                "all": {
+                    "priced": 2.5,
+                    "excluded": 2.25,
+                    "education_weight_priced": 0.03,
+                    "education_weight_excluded": 0.02,
+                }
+            },
+        },
+    )
     outputs, earlier = tmp_path / "out", tmp_path / "earlier"
     code, out = run("check", "combos", "--outputs", str(outputs), "--baseline", str(earlier))
     assert seen == [(outputs / "gr" / "m1", earlier / "gr" / "m1")]
@@ -729,7 +834,9 @@ def test_check_seam_and_prices_are_reports(run, monkeypatch, no_store):
     from traceconomics.module1 import checks
 
     monkeypatch.setattr(checks, "seam", lambda con, archive: {"all households": (4.75, 4.5)})
-    monkeypatch.setattr(checks, "v_prices", lambda con: {2020: {"pairs": 120, "median": 0.012, "within_0.1": 0.9, "max": 3.5}})
+    monkeypatch.setattr(
+        checks, "v_prices", lambda con: {2020: {"pairs": 120, "median": 0.012, "within_0.1": 0.9, "max": 3.5}}
+    )
     code, out = run("check", "seam")
     assert code == 0 and "original   4.75%   re-issued   4.50%   difference +0.25 pp" in out
     code, out = run("check", "prices")
@@ -737,6 +844,7 @@ def test_check_seam_and_prices_are_reports(run, monkeypatch, no_store):
 
 
 # -- exports and module 1 ----------------------------------------------------------------------------
+
 
 def test_export_skeleton_and_site(run, monkeypatch, no_store, tmp_path):
     """PY-CLI-035: export writes the skeleton or the site's data and lists what it wrote
@@ -758,6 +866,7 @@ def test_export_skeleton_and_site(run, monkeypatch, no_store, tmp_path):
         seen.update(outputs=outputs_dir, downloads=with_downloads)
         log("working")
         return ["a", "b", "c"]
+
     monkeypatch.setattr(site, "export", site_export)
     code, out = run("export", "skeleton", "--out", str(out_dir))
     assert code == 0 and out.strip() == f"Wrote {out_dir / 'hicp.json'}"
@@ -778,13 +887,15 @@ def test_module1_run_writes_the_default_setting(setup, run, monkeypatch, tmp_pat
     And it exits with code 0
     """
     import sitedata
+
     from traceconomics.module1 import combinations, index
 
     cpi, hicp = sitedata.blocks(), sitedata.blocks(hicp=True)
     sitedata.write_store(setup.cfg.store_dir, cpi, hicp)
     real = combinations.iterate
-    monkeypatch.setattr(combinations, "iterate", functools.partial(
-        real, blocks={"cpi": cpi, "hicp": hicp}, baskets=sitedata.baskets()))
+    monkeypatch.setattr(
+        combinations, "iterate", functools.partial(real, blocks={"cpi": cpi, "hicp": hicp}, baskets=sitedata.baskets())
+    )
     monkeypatch.setattr(index, "build_all", lambda con, archive, spending, groups: [])
     monkeypatch.setattr(index, "price_blocks", lambda con, archive: cpi)
     out_dir = tmp_path / "outputs"
@@ -810,13 +921,17 @@ def test_module5_run_prints_each_check_and_writes_its_files(setup, run, monkeypa
     And it writes the check's CSV and checks.json under gr/m5, and exits with code 0
     """
     import sitedata
+
     from traceconomics.module5 import run as m5
     from traceconomics.module5.record import Check, Comparison
 
     sitedata.write_store(setup.cfg.store_dir, sitedata.blocks(), sitedata.blocks(hicp=True))
     check = Check("gr-x", "gr", "percent", 0.0, {"source": "a"}, {"source": "b"})
-    check.comparisons = [Comparison("2024-01", 1.0, 1.0, True), Comparison("2024-02", 1.0, 1.1, False, "rounding"),
-                         Comparison("2024-03", 2.0, 2.0, True)]
+    check.comparisons = [
+        Comparison("2024-01", 1.0, 1.0, True),
+        Comparison("2024-02", 1.0, 1.1, False, "rounding"),
+        Comparison("2024-03", 2.0, 2.0, True),
+    ]
     monkeypatch.setattr(m5, "all_checks", lambda con, archive, archive_dir, duck: [check])
     monkeypatch.setattr(m5, "all_questions", lambda con: [])
     out_dir = tmp_path / "outputs"

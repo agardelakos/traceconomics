@@ -29,8 +29,18 @@ from traceconomics.sources.base import FetchError, RunContext
 SOURCE = "eurostat"
 API = "https://ec.europa.eu/eurostat/api/dissemination"
 
-LIVE = ("prc_hicp_minr", "prc_hicp_iw", "prc_hicp_fpd", "ilc_di01",
-        "nama_10_co3_p3", "nasa_10_nf_tr", "ilc_lvho02", "ilc_di03", "une_rt_m", "une_rt_a")
+LIVE = (
+    "prc_hicp_minr",
+    "prc_hicp_iw",
+    "prc_hicp_fpd",
+    "ilc_di01",
+    "nama_10_co3_p3",
+    "nasa_10_nf_tr",
+    "ilc_lvho02",
+    "ilc_di03",
+    "une_rt_m",
+    "une_rt_a",
+)
 FROZEN = ("prc_hicp_midx", "prc_hicp_inw", "prc_hicp_fp", "cens_11htts_r2", "cens_21hhct_r3")
 METADATA = {"esms-prc_hicp": "https://ec.europa.eu/eurostat/cache/metadata/en/prc_hicp_esms.htm"}
 
@@ -85,8 +95,7 @@ def calendar_content(calendar_json: bytes) -> str:
 def run(ctx: RunContext, state: dict) -> list[date]:
     """Fetch what changed. Returns HICP release dates from the calendar."""
     dates: list[date] = []
-    _, data = ctx.fetch_and_store(SOURCE, "calendar", calendar_url(ctx.today), ext=".json",
-                                  content_of=calendar_content)
+    _, data = ctx.fetch_and_store(SOURCE, "calendar", calendar_url(ctx.today), ext=".json", content_of=calendar_content)
     if data:
         try:
             dates = release_dates(data)
@@ -98,7 +107,11 @@ def run(ctx: RunContext, state: dict) -> list[date]:
 
     for dataset in FROZEN:
         if ctx.archive.latest(SOURCE, dataset) is None:
-            note = "a census table, fixed, copied once" if dataset.startswith("cens_") else "frozen ECOICOP v1 dataset, copied once"
+            note = (
+                "a census table, fixed, copied once"
+                if dataset.startswith("cens_")
+                else "frozen ECOICOP v1 dataset, copied once"
+            )
             ctx.fetch_and_store(SOURCE, dataset, bulk_url(dataset), ext=".tsv.gz", extra={"note": note})
 
     for name, url in METADATA.items():
@@ -106,8 +119,9 @@ def run(ctx: RunContext, state: dict) -> list[date]:
     return dates
 
 
-def check_and_fetch(ctx: RunContext, dataset: str, *, source: str = SOURCE, api: str = API,
-                    agency: str = "ESTAT") -> None:
+def check_and_fetch(
+    ctx: RunContext, dataset: str, *, source: str = SOURCE, api: str = API, agency: str = "ESTAT"
+) -> None:
     """Download `dataset` in full only if its "last data update" changed since our copy. The
     European Commission's other statistics sites (`ec_empl`) serve the same API, hence the
     parameters."""
@@ -130,6 +144,4 @@ def check_and_fetch(ctx: RunContext, dataset: str, *, source: str = SOURCE, api:
     if latest is not None and ctx.archive.manifest(latest).get("eurostat_updated") == updated:
         ctx.archive.log_unchanged_check(source, dataset, flow, f"last data update {updated}")
         return
-    ctx.fetch_and_store(source, dataset, bulk_url(dataset, api), ext=".tsv.gz",
-                        extra={"eurostat_updated": updated})
-
+    ctx.fetch_and_store(source, dataset, bulk_url(dataset, api), ext=".tsv.gz", extra={"eurostat_updated": updated})

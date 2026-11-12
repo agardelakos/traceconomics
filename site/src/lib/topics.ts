@@ -28,22 +28,28 @@ import { href, type Lang } from "./i18n";
 export type Status = "live" | "planned";
 
 export interface Topic {
-  slug: string;              // in the address, the same in every language
-  module: string;            // its folder in the published data: /data/v1/{country}/{module}/
+  slug: string; // in the address, the same in every language
+  module: string; // its folder in the published data: /data/v1/{country}/{module}/
   status: Status;
-  countries: string[];       // ISO 3166-1 alpha-2, lower case, with a page for this topic
-  sections: string[];        // the pages each country has, in menu order ("" is its overview)
-  shown?: boolean;           // a planned topic named on the site as "coming soon" (topic cards only)
+  countries: string[]; // ISO 3166-1 alpha-2, lower case, with a page for this topic
+  sections: string[]; // the pages each country has, in menu order ("" is its overview)
+  shown?: boolean; // a planned topic named on the site as "coming soon" (topic cards only)
 }
 
 export const TOPICS: Topic[] = [
   {
-    slug: "inflation-by-group", module: "m1", status: "live", countries: ["gr"],
+    slug: "inflation-by-group",
+    module: "m1",
+    status: "live",
+    countries: ["gr"],
     // In reading order: what it is, how it was measured, who the groups are, then the tools.
     sections: ["", "method", "groups", "explore", "calculator"],
   },
   {
-    slug: "official-figures-consistency", module: "m5", status: "live", countries: ["gr"],
+    slug: "official-figures-consistency",
+    module: "m5",
+    status: "live",
+    countries: ["gr"],
     // What the checks found, each check on its own, one question across sources, then the rules.
     sections: ["", "method", "checks", "same-question"],
   },
@@ -56,22 +62,39 @@ export const TOPICS: Topic[] = [
 // Each links to the publisher's own home page, in the reader's language where it has one.
 // `shown`: the address written out as the link's text, for a publisher whose reuse terms ask that
 // links to it name its website in full (ELSTAT: www.statistics.gr).
-export interface Office { key: string; href: Record<Lang, string>; shown?: string }
+export interface Office {
+  key: string;
+  href: Record<Lang, string>;
+  shown?: string;
+}
 export const OFFICES: Record<string, Office> = {
-  gr: { key: "elstat", href: { en: "https://www.statistics.gr/en/home", el: "https://www.statistics.gr/el/home" }, shown: "www.statistics.gr" },
+  gr: {
+    key: "elstat",
+    href: { en: "https://www.statistics.gr/en/home", el: "https://www.statistics.gr/el/home" },
+    shown: "www.statistics.gr",
+  },
 };
-export const EUROSTAT: Office = { key: "eurostat", href: { en: "https://ec.europa.eu/eurostat", el: "https://ec.europa.eu/eurostat" } };
+export const EUROSTAT: Office = {
+  key: "eurostat",
+  href: { en: "https://ec.europa.eu/eurostat", el: "https://ec.europa.eu/eurostat" },
+};
 
 /** Every source the site's live pages are built from: the covered countries' offices, then Eurostat. */
 export function officialSources(): Office[] {
-  return [...dataCountries().map((c) => {
-    if (!OFFICES[c]) throw new Error(`no statistics office listed for "${c}"`);
-    return OFFICES[c];
-  }), EUROSTAT];
+  return [
+    ...dataCountries().map((c) => {
+      if (!OFFICES[c]) throw new Error(`no statistics office listed for "${c}"`);
+      return OFFICES[c];
+    }),
+    EUROSTAT,
+  ];
 }
 
 /** The pages of one section of a topic, for the bar's third row: each by its short name, one current. */
-export interface Strip { label: string; items: { href: string; label: string; current: boolean }[] }
+export interface Strip {
+  label: string;
+  items: { href: string; label: string; current: boolean }[];
+}
 
 export function topic(slug: string): Topic {
   const found = TOPICS.find((x) => x.slug === slug);
@@ -84,8 +107,10 @@ export function topicHref(lang: Lang, slug: string, country?: string, section = 
   const tp = topic(slug);
   if (tp.status !== "live") throw new Error(`topic "${slug}" is planned: it has no page yet`);
   if (country === undefined) return href(lang, slug);
-  if (!tp.countries.includes(country)) throw new Error(`topic "${slug}" has no page for "${country}"`);
-  if (!tp.sections.includes(section.split("/")[0])) throw new Error(`topic "${slug}" has no section "${section}"`);
+  if (!tp.countries.includes(country))
+    throw new Error(`topic "${slug}" has no page for "${country}"`);
+  if (!tp.sections.includes(section.split("/")[0]))
+    throw new Error(`topic "${slug}" has no section "${section}"`);
   return href(lang, topicPath(slug, country, section));
 }
 
@@ -97,7 +122,8 @@ export function topicPath(slug: string, country?: string, section = ""): string 
 /** The countries with pages: every country a live topic covers, in the order first listed. */
 export function countries(): string[] {
   const found = [...new Set(TOPICS.filter((x) => x.status === "live").flatMap((x) => x.countries))];
-  for (const c of found) if (!/^[a-z]{2}$/.test(c)) throw new Error(`country "${c}" is not a two-letter code`);
+  for (const c of found)
+    if (!/^[a-z]{2}$/.test(c)) throw new Error(`country "${c}" is not a two-letter code`);
   return found;
 }
 
@@ -126,7 +152,9 @@ export function dataHref(lang: Lang, country?: string): string {
 
 /** getStaticPaths for a topic's per-country pages: every language × every country it covers. */
 export function countryPaths(slug: string, langs: readonly Lang[]) {
-  return langs.flatMap((lang) => topic(slug).countries.map((country) => ({ params: { lang, country } })));
+  return langs.flatMap((lang) =>
+    topic(slug).countries.map((country) => ({ params: { lang, country } })),
+  );
 }
 
 /**
@@ -135,7 +163,10 @@ export function countryPaths(slug: string, langs: readonly Lang[]) {
  * sources and figures, so another country brings its own, never borrows Greece's.
  */
 export function m5Text(country: string, lang: Lang, id: string): string {
-  if (country !== "gr") throw new Error(`no consistency texts for "${country}": write its own findings and method first`);
+  if (country !== "gr")
+    throw new Error(
+      `no consistency texts for "${country}": write its own findings and method first`,
+    );
   return `${lang}/${id}`;
 }
 
@@ -145,6 +176,9 @@ export function m5Text(country: string, lang: Lang, id: string): string {
  * options), so another country must bring its own before it is listed, never borrow Greece's.
  */
 export function m1Text(country: string, lang: Lang, id: string): string {
-  if (country !== "gr") throw new Error(`no inflation-by-group texts for "${country}": write its own method and data pages first`);
+  if (country !== "gr")
+    throw new Error(
+      `no inflation-by-group texts for "${country}": write its own method and data pages first`,
+    );
   return `${lang}/${id}`;
 }

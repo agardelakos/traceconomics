@@ -7,9 +7,8 @@ import urllib.request
 from urllib.parse import urlsplit
 
 import pytest
-from selenium.webdriver.common.keys import Keys
-
 from helpers import ROOT, t
+from selenium.webdriver.common.keys import Keys
 
 # The languages offered to readers, as the site's own list has them.
 OFFERED = json.loads((ROOT / "site/src/i18n/languages.json").read_text(encoding="utf-8"))["offered"]
@@ -25,7 +24,9 @@ def _arrow(site, lang, which):
 
 
 @pytest.mark.parametrize("lang", ["en", "el"])
-@pytest.mark.parametrize("which,menu,current", [("topics", "#topic-menu", "inflation-by-group"), ("countries", "#country-menu", "gr")])
+@pytest.mark.parametrize(
+    "which,menu,current", [("topics", "#topic-menu", "inflation-by-group"), ("countries", "#country-menu", "gr")]
+)
 def test_quick_list_opens_ticks_current_and_closes_with_escape(site, lang, which, menu, current):
     """SEL-NAV-001: a quick list opens, ticks the current entry and closes with Escape
 
@@ -100,7 +101,7 @@ def test_a_page_inside_a_section_marks_the_section(site):
     Then the Countries link is marked as the current section ("true")
     """
     site.open("/en/gr/inflation-by-group/")
-    countries = site.find(f'nav#site-menu a[href="/en/countries/"]')
+    countries = site.find('nav#site-menu a[href="/en/countries/"]')
     assert countries.get_attribute("aria-current") == "true"
 
 
@@ -178,7 +179,9 @@ def test_language_switch_on_english_pages(site, path):
             assert other.tag_name == "a", f"{lang} is offered but not linked"
             assert urlsplit(other.get_attribute("href")).path == path.replace("/en/", f"/{lang}/", 1)
         else:
-            assert other.tag_name == "span" and other.get_attribute("aria-disabled") == "true", f"{lang} is linked though not offered"
+            assert other.tag_name == "span" and other.get_attribute("aria-disabled") == "true", (
+                f"{lang} is linked though not offered"
+            )
 
 
 def test_language_switch_from_greek_page(site):
@@ -214,10 +217,13 @@ def test_skip_link_moves_to_the_content(site):
     site.wait(lambda _: site.driver.current_url.endswith("#content"))
 
 
-@pytest.mark.parametrize("path,trail", [
-    ("/en/glossary/", ["nav.home", "nav.glossary"]),
-    ("/en/data/gr/", ["nav.home", "nav.data", "country.gr"]),
-])
+@pytest.mark.parametrize(
+    "path,trail",
+    [
+        ("/en/glossary/", ["nav.home", "nav.glossary"]),
+        ("/en/data/gr/", ["nav.home", "nav.data", "country.gr"]),
+    ],
+)
 def test_breadcrumbs(site, path, trail):
     """SEL-NAV-011: the breadcrumbs show the trail and lead home
 
@@ -282,7 +288,9 @@ def test_root_sends_the_browser_to_its_language(site, locale):
         expected = wanted if wanted in OFFERED else "en"
         site.wait(lambda _: site.path == f"/{expected}/", f"the root did not send a {locale} browser to /{expected}/")
     finally:
-        site.driver.execute_cdp_cmd("Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"})
+        site.driver.execute_cdp_cmd(
+            "Emulation.setUserAgentOverride", {"userAgent": agent, "acceptLanguage": "en-GB,en"}
+        )
 
 
 @pytest.mark.phone
@@ -298,12 +306,16 @@ def test_topic_bar_rows_open_scrolled_to_their_current_item(phone):
     wide = 0
     for row in phone.all(".topic-bar nav ul"):
         box = phone.driver.execute_script(
-            "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};", row)
+            "const r = arguments[0].getBoundingClientRect(); return {scroll: arguments[0].scrollWidth, client: arguments[0].clientWidth, left: r.left};",
+            row,
+        )
         if box["scroll"] <= box["client"]:
             continue
         wide += 1
-        item = phone.driver.execute_script("const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
-                                           row.find_element("css selector", "[aria-current]"))
+        item = phone.driver.execute_script(
+            "const r = arguments[0].getBoundingClientRect(); return {x: r.left, w: r.width};",
+            row.find_element("css selector", "[aria-current]"),
+        )
         assert box["left"] - 1 <= item["x"] and item["x"] + item["w"] <= box["left"] + box["client"] + 1
     assert wide > 0
 
@@ -326,7 +338,7 @@ def test_method_option_strip_lists_every_option(site):
     assert [li.text.strip() for li in site.all("nav[data-strip] li")] == titles
     assert site.find('nav[data-strip] [aria-current="page"]').text.strip() == titles[1]
     links = {a.text.strip(): a.get_attribute("href") for a in site.all("nav[data-strip] a")}
-    assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs)) if i != 1}
+    assert links == {title: href for i, (title, href) in enumerate(zip(titles, hrefs, strict=True)) if i != 1}
     tab = next(a for a in site.all(".topic-nav.sub a") if a.text.strip() == t("en", "nav.method"))
     assert tab.get_attribute("aria-current") == "true"
 

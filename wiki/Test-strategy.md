@@ -16,17 +16,18 @@ in [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONT
 
 ## Layers
 
-| Layer | Tooling | Runs on | Proves |
-|---|---|---|---|
-| Unit and integration | pytest | every push and pull request | parsers, archive, store, engine, method code, export, release logic behave as specified |
-| Microdata code | pytest with the optional `local` extra (separate job) | every push and pull request | groups, income bands, bootstrap standard errors, code mapping and the survey reader, on synthetic surveys |
-| Fixture integrity | pytest (`tests/test_fixtures.py`) | every push and pull request | untouched publisher files are byte-identical to what was served |
-| Dependency integrity | pytest (`tests/test_lock_files.py`) | every push and pull request | every hashed lock file agrees with the pins in `pyproject.toml` |
-| Site unit tests | Vitest | every push and pull request; release builds | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series |
-| Site checks | `site/scripts/checks.mjs` | every push and pull request; release builds | translations complete, glossary terms kept in both languages, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses |
-| Browser (primary) | Playwright, Chromium | every push and pull request; release `ui-test` and `smoke` | every interactive part works in both languages; accessibility; CSP and headers; privacy |
-| Browser (second suite) | Selenium, Chrome for Testing | every push and pull request (not required); on demand for comparison | the same behaviour, independently written, as a cross-check of the primary suite and of the tools |
-| Validation against official figures | `traceconomics check …` | release builds; by hand | the engine and the method rebuild official figures within stated margins |
+| Layer                               | Tooling                                                               | Runs on                                                              | Proves                                                                                                                                                                                          |
+| ----------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit and integration                | pytest                                                                | every push and pull request                                          | parsers, archive, store, engine, method code, export, release logic behave as specified                                                                                                         |
+| Microdata code                      | pytest with the optional `local` extra (separate job)                 | every push and pull request                                          | groups, income bands, bootstrap standard errors, code mapping and the survey reader, on synthetic surveys                                                                                       |
+| Fixture integrity                   | pytest (`tests/test_fixtures.py`)                                     | every push and pull request                                          | untouched publisher files are byte-identical to what was served                                                                                                                                 |
+| Code style                          | Ruff (Python); Prettier and ESLint (the site, its Markdown, the wiki) | every push and pull request (`lint`, required)                       | one format everywhere; likely bugs the type checker misses (unused values, `zip` without `strict`, `any`); the formatters never reach fixtures or generated files (`tests/test_lint_config.py`) |
+| Dependency integrity                | pytest (`tests/test_lock_files.py`)                                   | every push and pull request                                          | every hashed lock file agrees with the pins in `pyproject.toml`                                                                                                                                 |
+| Site unit tests                     | Vitest                                                                | every push and pull request; release builds                          | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series                                                                                |
+| Site checks                         | `site/scripts/checks.mjs`                                             | every push and pull request; release builds                          | translations complete, glossary terms kept in both languages, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses     |
+| Browser (primary)                   | Playwright, Chromium                                                  | every push and pull request; release `ui-test` and `smoke`           | every interactive part works in both languages; accessibility; CSP and headers; privacy                                                                                                         |
+| Browser (second suite)              | Selenium, Chrome for Testing                                          | every push and pull request (not required); on demand for comparison | the same behaviour, independently written, as a cross-check of the primary suite and of the tools                                                                                               |
+| Validation against official figures | `traceconomics check …`                                               | release builds; by hand                                              | the engine and the method rebuild official figures within stated margins                                                                                                                        |
 
 ### pytest
 
@@ -124,9 +125,9 @@ deterministic. Release builds run the same suites on the real data.
 
 Two figures, one per codebase, each split by the layer of test that reaches the code:
 
-| Badge | Code | Layers | Measured by |
-|---|---|---|---|
-| back-end coverage | the Python package (`src/traceconomics`) | unit, integration | coverage.py, in both pytest jobs, combined |
+| Badge              | Code                                                                         | Layers                 | Measured by                                    |
+| ------------------ | ---------------------------------------------------------------------------- | ---------------------- | ---------------------------------------------- |
+| back-end coverage  | the Python package (`src/traceconomics`)                                     | unit, integration      | coverage.py, in both pytest jobs, combined     |
 | front-end coverage | the site's own code (`site/src/scripts`, `site/src/lib`, the pages' scripts) | unit, integration, e2e | V8 coverage from Vitest and Playwright, merged |
 
 Both count **lines**: of the lines that hold code, the share run by at least one test. A line run by
@@ -159,17 +160,17 @@ CI's `coverage` job writes the split on the run's page and keeps the Python HTML
 
 ## Quality gates
 
-| Gate | Where | Blocks |
-|---|---|---|
-| Required checks `python`, `site`, code scanning | pull requests to `main` | merging |
-| Coverage of the site's own code (Vitest and Playwright merged) | `site` job | fails below 90%, or if any file of the site's code is loaded by no test |
-| Coverage of the Python package | `coverage` job | fails below 90% (the ratchet, which rose from the first measurement's 73.9% to the site's floor); fails if a covered line has a wrong or missing layer |
-| Every test has a layer | pytest collection | the run |
-| Lock files agree with pins | `python` job | merging |
-| Release checks (`check-v1`, `check-v1-cpi`, `check-combos`, `site-check`) | release build | the build |
-| `ui-test`: the full Playwright suite on the built files, before upload | release build | the upload |
-| `smoke`: the `@smoke` set on the uploaded preview, with the host's real headers | release build | promotion |
-| Promote check: the target address serves the promoted build's own files | after every promote | reported |
+| Gate                                                                            | Where                   | Blocks                                                                                                                                                 |
+| ------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Required checks `python`, `site`, `catalog`, `lint`, code scanning              | pull requests to `main` | merging                                                                                                                                                |
+| Coverage of the site's own code (Vitest and Playwright merged)                  | `site` job              | fails below 90%, or if any file of the site's code is loaded by no test                                                                                |
+| Coverage of the Python package                                                  | `coverage` job          | fails below 90% (the ratchet, which rose from the first measurement's 73.9% to the site's floor); fails if a covered line has a wrong or missing layer |
+| Every test has a layer                                                          | pytest collection       | the run                                                                                                                                                |
+| Lock files agree with pins                                                      | `python` job            | merging                                                                                                                                                |
+| Release checks (`check-v1`, `check-v1-cpi`, `check-combos`, `site-check`)       | release build           | the build                                                                                                                                              |
+| `ui-test`: the full Playwright suite on the built files, before upload          | release build           | the upload                                                                                                                                             |
+| `smoke`: the `@smoke` set on the uploaded preview, with the host's real headers | release build           | promotion                                                                                                                                              |
+| Promote check: the target address serves the promoted build's own files         | after every promote     | reported                                                                                                                                               |
 
 A build held back by its browser tests can be retested on the same files (`release retest`), which
 refuses if the tests changed: a wrong test or page needs a new build. Promotion is always a
@@ -200,4 +201,4 @@ they inform, they don't gate.
 
 ---
 
-*This page is kept in the repository, in [`wiki/Test-strategy.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Test-strategy.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update.*
+_This page is kept in the repository, in [`wiki/Test-strategy.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/Test-strategy.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update._

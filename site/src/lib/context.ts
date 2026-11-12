@@ -5,7 +5,13 @@
 
 import { m1Dir, readJson } from "./data";
 
-export interface Rate { source: string; reference: string; period: string; annual_rate: number; annual_rate_full: number }
+export interface Rate {
+  source: string;
+  reference: string;
+  period: string;
+  annual_rate: number;
+  annual_rate_full: number;
+}
 export interface Official {
   computed: Rate;
   published: Rate;

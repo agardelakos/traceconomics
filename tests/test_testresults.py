@@ -8,9 +8,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from test_release import FakeSteps, config, host, no_email  # noqa: F401 (fixtures: a fake host, no email)
 
 from traceconomics import release, testresults
-from test_release import FakeSteps, config, host, no_email  # noqa: F401 (fixtures: a fake host, no email)
 
 pytestmark = pytest.mark.unit
 
@@ -40,9 +40,16 @@ def _detached(git):
     (git / "HEAD").write_text(SHA + "\n", encoding="utf-8")
 
 
-@pytest.mark.parametrize("layout, expected", [
-    (_no_ref, None), (_packed, SHA), (_loose_and_packed, OTHER), (_detached, SHA),
-], ids=["no ref", "packed only", "loose wins", "detached"])
+@pytest.mark.parametrize(
+    "layout, expected",
+    [
+        (_no_ref, None),
+        (_packed, SHA),
+        (_loose_and_packed, OTHER),
+        (_detached, SHA),
+    ],
+    ids=["no ref", "packed only", "loose wins", "detached"],
+)
 def test_the_commit_is_read_from_git_itself(tmp_path, layout, expected):
     """PY-TRES-001: the build's commit is read from git's own files
 
@@ -101,14 +108,29 @@ def test_results_then_meta_last(tmp_path):
     results = tmp_path / "results.json"
     results.write_text('{"suites": []}', encoding="utf-8")
     sent = []
-    out = testresults.send(build="20261110T110000Z", commit=SHA, step="ui-test", started=STARTED, result="passed",
-                           results=results, url=URL, put=lambda u, body, t: sent.append((u, body)))
+    out = testresults.send(
+        build="20261110T110000Z",
+        commit=SHA,
+        step="ui-test",
+        started=STARTED,
+        result="passed",
+        results=results,
+        url=URL,
+        put=lambda u, body, t: sent.append((u, body)),
+    )
     folder = "results/20261110T110000Z/ui-test-20261110T110500Z/"
     assert out == {"result": "ok", "folder": folder}
     assert [u.removeprefix(URL) for u, _ in sent] == [folder + "playwright.json", folder + "meta.json"]
     meta = json.loads(sent[1][1])
-    assert meta == {"schema": 1, "build": "20261110T110000Z", "commit": SHA, "step": "ui-test",
-                    "started": "2026-11-10T11:05:00Z", "environment": testresults.environment(), "result": "passed"}
+    assert meta == {
+        "schema": 1,
+        "build": "20261110T110000Z",
+        "commit": SHA,
+        "step": "ui-test",
+        "started": "2026-11-10T11:05:00Z",
+        "environment": testresults.environment(),
+        "result": "passed",
+    }
     assert meta["environment"]["data"] == "real"
 
 
@@ -121,8 +143,15 @@ def test_a_promote_check_sends_its_meta_alone():
     And only meta.json is sent
     """
     sent = []
-    out = testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="failed", url=URL,
-                           put=lambda u, body, t: sent.append(u))
+    out = testresults.send(
+        build="b",
+        commit=SHA,
+        step="promote",
+        started=STARTED,
+        result="failed",
+        url=URL,
+        put=lambda u, body, t: sent.append(u),
+    )
     assert out["result"] == "ok" and [u.rsplit("/", 1)[1] for u in sent] == ["meta.json"]
 
 
@@ -134,7 +163,9 @@ def test_off_without_a_link(monkeypatch):
     Then the result is "off"
     """
     monkeypatch.delenv(testresults.URL_ENV, raising=False)
-    assert testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed") == {"result": "off"}
+    assert testresults.send(build="b", commit=SHA, step="promote", started=STARTED, result="passed") == {
+        "result": "off"
+    }
 
 
 def _refused(u, body, t):
@@ -142,25 +173,29 @@ def _refused(u, body, t):
 
 
 def _torn(u, body, t):
-    raise http.client.IncompleteRead(b"x")                            # not an OSError
+    raise http.client.IncompleteRead(b"x")  # not an OSError
 
 
 def _quoting(u, body, t):
-    raise ValueError(f"unknown url type: {u}")                         # some errors quote the address
+    raise ValueError(f"unknown url type: {u}")  # some errors quote the address
 
 
 def _unused(u, body, t):
     pytest.fail("nothing is sent when the commit or the link is wrong")
 
 
-@pytest.mark.parametrize("commit, url, put, error", [
-    (SHA, URL, _refused, "401"),
-    (None, URL, _unused, "the build's commit is unknown"),
-    (SHA, URL + "results/", _unused, "should start with https://"),
-    (SHA, URL.replace("https://", ""), _unused, "should start with https://"),
-    (SHA, URL, _torn, "IncompleteRead: IncompleteRead"),
-    (SHA, URL, _quoting, "ValueError"),           # the type only: the message would quote the address
-], ids=["refused", "unknown commit", "not ending in /o/", "not https", "broken off", "error quotes the address"])
+@pytest.mark.parametrize(
+    "commit, url, put, error",
+    [
+        (SHA, URL, _refused, "401"),
+        (None, URL, _unused, "the build's commit is unknown"),
+        (SHA, URL + "results/", _unused, "should start with https://"),
+        (SHA, URL.replace("https://", ""), _unused, "should start with https://"),
+        (SHA, URL, _torn, "IncompleteRead: IncompleteRead"),
+        (SHA, URL, _quoting, "ValueError"),  # the type only: the message would quote the address
+    ],
+    ids=["refused", "unknown commit", "not ending in /o/", "not https", "broken off", "error quotes the address"],
+)
 def test_a_failed_send_is_returned_not_raised_and_never_repeats_the_secret(commit, url, put, error):
     """PY-TRES-009: a failed send is returned, not raised, and never repeats the link's secret
 
@@ -198,6 +233,7 @@ def uploads(monkeypatch):
     def send(**kw):
         calls.append(kw)
         return real(**kw, url=URL, put=lambda u, body, t: None)
+
     monkeypatch.setattr(testresults, "send", send)
     return calls
 
@@ -219,16 +255,19 @@ def test_a_build_and_its_promote_send_every_browser_step(tmp_path, uploads, monk
     monkeypatch.setattr(testresults, "source_commit", lambda repo: SHA)
     rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WithResults(cfg.release.site_dir))
     assert rec["commit"] == SHA
-    assert [(c["step"], c["result"], c["commit"]) for c in uploads] == [("ui-test", "passed", SHA), ("smoke", "passed", SHA)]
+    assert [(c["step"], c["result"], c["commit"]) for c in uploads] == [
+        ("ui-test", "passed", SHA),
+        ("smoke", "passed", SHA),
+    ]
     assert [x["result"] for x in rec["test_results"]] == ["ok", "ok"]
-    monkeypatch.setattr(testresults, "source_commit", lambda repo: "f" * 40)   # a later deploy
+    monkeypatch.setattr(testresults, "source_commit", lambda repo: "f" * 40)  # a later deploy
     done = release.promote(cfg, rec["id"], "staging", runner=FakeSteps(cfg.release.site_dir))
     assert uploads[-1]["step"] == "promote" and uploads[-1]["result"] == "passed"
-    assert uploads[-1]["commit"] == SHA                                        # the build's commit, not today's
+    assert uploads[-1]["commit"] == SHA  # the build's commit, not today's
     assert done["test_results"]["result"] == "ok"
 
 
-def test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported(tmp_path, monkeypatch, no_email):
+def test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported(tmp_path, monkeypatch, no_email):  # noqa: F811 - the fixture imported from test_release
     """PY-TRES-007: a failed browser step is sent too, and a failed upload is only reported
 
     Given uploads that always fail
@@ -247,12 +286,15 @@ def test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported(tmp
     def send(**kw):
         calls.append(kw)
         return {"result": "failed", "error": "results/x/: URLError: timed out"}
+
     monkeypatch.setattr(testresults, "send", send)
-    rec = release.build(cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WithResults(cfg.release.site_dir, fail="ui-test"))
+    rec = release.build(
+        cfg, now=datetime(2026, 11, 10, tzinfo=UTC), runner=WithResults(cfg.release.site_dir, fail="ui-test")
+    )
     assert [(c["step"], c["result"]) for c in calls] == [("ui-test", "failed")]
-    assert rec["result"] == "failed" and rec["failed_step"] == "ui-test"      # the test failed, not the upload
+    assert rec["result"] == "failed" and rec["failed_step"] == "ui-test"  # the test failed, not the upload
     body = no_email[-1][1]
     assert "Test results not sent to the run history" in body and "ui-test: results/x/: URLError: timed out" in body
 
     ok = release.build(cfg, now=datetime(2026, 11, 11, tzinfo=UTC), runner=WithResults(cfg.release.site_dir))
-    assert ok["result"] == "ok"                                                # a failed upload never fails a build
+    assert ok["result"] == "ok"  # a failed upload never fails a build

@@ -53,5 +53,9 @@ export default defineConfig({
   // moves it to the background when it thinks an AI coding agent started it.
   webServer: remote
     ? undefined
-    : { command: "npx astro preview --host 127.0.0.1 --port 4322 --ignore-lock", url: `${local}/en/`, reuseExistingServer: false },
+    : {
+        command: "npx astro preview --host 127.0.0.1 --port 4322 --ignore-lock",
+        url: `${local}/en/`,
+        reuseExistingServer: false,
+      },
 });

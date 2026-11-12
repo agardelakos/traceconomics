@@ -21,7 +21,12 @@ import { countryHref, topic as topicOf, topicHref, topicPath, type Strip } from 
 import { analyticsOn, BEACON, TOKEN } from "../lib/analytics";
 
 interface Props {
-  lang: Lang; title: string; description: string; path?: string; current?: string; country?: string;
+  lang: Lang;
+  title: string;
+  description: string;
+  path?: string;
+  current?: string;
+  country?: string;
   topic?: { slug: string; country?: string; section?: string };
   // A page inside a section (a check, a question): every page of that section, the current one marked.
   strip?: Strip;
@@ -31,8 +36,13 @@ const path = topic ? topicPath(topic.slug, topic.country, topic.section) : (Astr
 const current = topic ? topic.slug : Astro.props.current;
 const country = topic?.country ?? Astro.props.country;
 // Another country's version of this page, where it has the topic; its own page otherwise.
-const countryLink = topic?.country === undefined ? undefined : (c: string) =>
-  topicOf(topic.slug).countries.includes(c) ? topicHref(lang, topic.slug, c, topic.section?.split("/")[0]) : countryHref(lang, c);
+const countryLink =
+  topic?.country === undefined
+    ? undefined
+    : (c: string) =>
+        topicOf(topic.slug).countries.includes(c)
+          ? topicHref(lang, topic.slug, c, topic.section?.split("/")[0])
+          : countryHref(lang, c);
 const full = title === t(lang, "site.name") ? title : `${title} · ${t(lang, "site.name")}`;
 // The picture a shared link shows (made by scripts/og-image.mjs); services need its full address.
 const shareImage = new URL(`/og/${lang}.png`, Astro.site).href;
@@ -40,8 +50,11 @@ const shareAlt = `${t(lang, "site.name")}: ${t(lang, "hub.title").split("\n").jo
 // For search engines, full addresses: the page's own (canonical: the one address to list it under)
 // and its twin in the other language, named only once that language is offered.
 const absolute = (p: string) => new URL(p, Astro.site).href;
-const canonical = absolute(Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.url.pathname}/`);
+const canonical = absolute(
+  Astro.url.pathname.endsWith("/") ? Astro.url.pathname : `${Astro.url.pathname}/`,
+);
 ---
+
 <!doctype html>
 <html lang={lang}>
   <head>
@@ -61,14 +74,36 @@ const canonical = absolute(Astro.url.pathname.endsWith("/") ? Astro.url.pathname
     <meta property="og:image:alt" content={shareAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href={canonical} />
-    {isOffered(otherLang(lang)) && <link rel="alternate" hreflang={otherLang(lang)} href={absolute(href(otherLang(lang), path))} />}
+    {isOffered(otherLang(lang)) && (
+      <link
+        rel="alternate"
+        hreflang={otherLang(lang)}
+        href={absolute(href(otherLang(lang), path))}
+      />
+    )}
     <link rel="alternate" hreflang={lang} href={absolute(href(lang, path))} />
     <script is:inline src="/theme.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#content">{t(lang, "skip")}</a>
-    <SiteHeader lang={lang} path={path} current={current} country={country} countryLink={countryLink} />
-    {country !== undefined && <CountryBar lang={lang} country={country} slug={topic?.slug} section={topic?.section} strip={strip} />}
+    <a class="skip-link" href="#content">
+      {t(lang, "skip")}
+    </a>
+    <SiteHeader
+      lang={lang}
+      path={path}
+      current={current}
+      country={country}
+      countryLink={countryLink}
+    />
+    {country !== undefined && (
+      <CountryBar
+        lang={lang}
+        country={country}
+        slug={topic?.slug}
+        section={topic?.section}
+        strip={strip}
+      />
+    )}
     {topic && topic.country === undefined && <TopicBar lang={lang} slug={topic.slug} />}
     <main id="content">
       <slot name="band" />
@@ -77,7 +112,14 @@ const canonical = absolute(Astro.url.pathname.endsWith("/") ? Astro.url.pathname
       </div>
     </main>
     <SiteFooter lang={lang} />
-    {analyticsOn() && <script is:inline type="module" src={BEACON} data-cf-beacon={JSON.stringify({ token: TOKEN })}></script>}
+    {analyticsOn() && (
+      <script
+        is:inline
+        type="module"
+        src={BEACON}
+        data-cf-beacon={JSON.stringify({ token: TOKEN })}
+      ></script>
+    )}
   </body>
 </html>
 

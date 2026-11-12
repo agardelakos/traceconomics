@@ -6,11 +6,10 @@ everything the page sent."""
 from urllib.parse import unquote, urlsplit
 
 import pytest
-
 from selenium.webdriver.common.keys import Keys
 
 GR = "/en/gr/inflation-by-group/"
-INCOME = "23457"         # odd enough not to occur in any file name or number by chance
+INCOME = "23457"  # odd enough not to occur in any file name or number by chance
 EUROS = ["611", "389"]
 
 
@@ -26,8 +25,11 @@ def _leaks(site, secrets):
 
 def _foreign(site):
     base = urlsplit(site.base).netloc
-    return [r["url"] for r in site.requests()
-            if urlsplit(r["url"]).scheme in ("http", "https") and urlsplit(r["url"]).netloc != base]
+    return [
+        r["url"]
+        for r in site.requests()
+        if urlsplit(r["url"]).scheme in ("http", "https") and urlsplit(r["url"]).netloc != base
+    ]
 
 
 def _stored_and_cookies(site):
@@ -79,7 +81,7 @@ def test_calculator_keeps_the_euros_in_the_page(site):
     site.visible("[data-role=result]")
     site.find("[data-mode=euros]").click()
     site.visible("[data-role=pane-euros]")
-    for box, amount in zip(site.all("[data-role=euros] input")[:2], EUROS):
+    for box, amount in zip(site.all("[data-role=euros] input")[:2], EUROS, strict=True):
         box.send_keys(amount)
     site.wait(lambda _: "€1" in site.find("[data-role=euros-total]").text)
     assert not [k for k in site.query if k != "from"], "the address carries more than the starting group"
@@ -126,23 +128,35 @@ def test_theme_is_the_only_thing_stored(site):
     site.wait(lambda _: site.storage() == {"theme": "dark"})
     base = urlsplit(site.base).netloc
     # What each page shows once its own data requests are done, so they are in the log.
-    pages = {"about/": "main h1", "gr/inflation-by-group/explore/": "#explore [data-role=chart] svg",
-             "gr/inflation-by-group/calculator/": "[data-role=result]"}
+    pages = {
+        "about/": "main h1",
+        "gr/inflation-by-group/explore/": "#explore [data-role=chart] svg",
+        "gr/inflation-by-group/calculator/": "[data-role=result]",
+    }
     for page, ready in pages.items():
         before = len(site.requests())
         site.open(f"/en/{page}")
         site.visible(ready)
         mine = site.requests()[before:]
-        foreign = [r["url"] for r in mine
-                   if urlsplit(r["url"]).scheme in ("http", "https") and urlsplit(r["url"]).netloc != base]
+        foreign = [
+            r["url"]
+            for r in mine
+            if urlsplit(r["url"]).scheme in ("http", "https") and urlsplit(r["url"]).netloc != base
+        ]
         assert not foreign, f"/en/{page} talked to another site: {foreign}"
         assert site.storage() == {"theme": "dark"}, f"/en/{page} stored {site.storage()}"
         assert not site.driver.get_cookies(), f"/en/{page} set a cookie"
 
 
-@pytest.mark.parametrize("path, ready", [
-    (GR, "main h1"), ("/en/data/gr/", "main h1"), ("/en/glossary/", "#glossary-list"),
-], ids=["topic page", "data page", "glossary"])
+@pytest.mark.parametrize(
+    "path, ready",
+    [
+        (GR, "main h1"),
+        ("/en/data/gr/", "main h1"),
+        ("/en/glossary/", "#glossary-list"),
+    ],
+    ids=["topic page", "data page", "glossary"],
+)
 def test_the_topic_data_and_glossary_pages_ask_nothing_of_other_sites(site, path, ready):
     """SEL-PRIV-005: the topic page, the data page and the glossary ask nothing of other sites
 

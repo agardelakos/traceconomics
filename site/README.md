@@ -51,13 +51,13 @@ Coverage: with `TRACECONOMICS_COVERAGE=on`, `npm run check` and `npm run test:ui
 
 ## Where things are
 
-| Folder | What it holds |
-|---|---|
-| `src/pages/` | One file per kind of page; addresses are `/{lang}/{country}/{topic}/…` |
+| Folder         | What it holds                                                                                |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `src/pages/`   | One file per kind of page; addresses are `/{lang}/{country}/{topic}/…`                       |
 | `src/content/` | The written text: glossary, method pages, other pages, the topic's steps, in `en/` and `el/` |
-| `src/i18n/` | Interface text (`en.json`, `el.json`: the same keys in both) and which languages are offered |
-| `src/lib/` | Build-time code: reading the data, formatting, the calculator engine, the topic list |
-| `src/scripts/` | The little code that runs in the browser: charts, the explore page, the calculator |
-| `scripts/` | The site checks, coverage and the test summary |
-| `tests/ui/` | The browser tests; `helpers.ts` is what every test shares |
-| `public/` | Files served as they are, including `_headers` and, once written, `data/` |
+| `src/i18n/`    | Interface text (`en.json`, `el.json`: the same keys in both) and which languages are offered |
+| `src/lib/`     | Build-time code: reading the data, formatting, the calculator engine, the topic list         |
+| `src/scripts/` | The little code that runs in the browser: charts, the explore page, the calculator           |
+| `scripts/`     | The site checks, coverage and the test summary                                               |
+| `tests/ui/`    | The browser tests; `helpers.ts` is what every test shares                                    |
+| `public/`      | Files served as they are, including `_headers` and, once written, `data/`                    |

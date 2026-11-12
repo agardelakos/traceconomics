@@ -1,7 +1,15 @@
 ---
 title: "Πώς ελέγχουμε τους επίσημους αριθμούς"
 summary: "Τι σημαίνει «συμφωνούν» σε κάθε έλεγχο και τι μπορεί να μας πει ένας έλεγχος."
-sources: [elstat-cpi-rates, elstat-cpi-items, eurostat-prc-hicp-minr, elstat-hbs-t103, elstat-hbs-puf, eurostat-ilc-di01]
+sources:
+  [
+    elstat-cpi-rates,
+    elstat-cpi-items,
+    eurostat-prc-hicp-minr,
+    elstat-hbs-t103,
+    elstat-hbs-puf,
+    eurostat-ilc-di01,
+  ]
 ---
 
 ## Δύο δημοσιευμένοι αριθμοί, ένας κανόνας

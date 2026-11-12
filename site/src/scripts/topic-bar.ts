@@ -7,6 +7,9 @@ export function start(): void {
     const current = list.querySelector<HTMLElement>("[aria-current]");
     if (!current || list.scrollWidth <= list.clientWidth) continue;
     const item = current.closest("li") ?? current;
-    list.scrollLeft = Math.max(0, item.offsetLeft - list.offsetLeft - (list.clientWidth - item.offsetWidth) / 2);
+    list.scrollLeft = Math.max(
+      0,
+      item.offsetLeft - list.offsetLeft - (list.clientWidth - item.offsetWidth) / 2,
+    );
   }
 }

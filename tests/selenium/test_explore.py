@@ -4,7 +4,6 @@ are noted with the reason; the summary and the data table show the setting's pub
 files link and the citation follow the setting; the breakdown view; full screen."""
 
 import pytest
-
 from helpers import BLOCKED, data, default_slug, latest, month, months, num, t
 
 PAGE = "/{lang}/gr/inflation-by-group/explore/"
@@ -14,7 +13,10 @@ DEFAULT_GROUPS = ["Q1", "Q5", "all/all"]
 
 def _defaults():
     s = data("settings.json")
-    return {"grouping": "B", **{k: v for k, v in next(x for x in s["settings"] if x.get("default")).items() if k in s["options"]}}
+    return {
+        "grouping": "B",
+        **{k: v for k, v in next(x for x in s["settings"] if x.get("default")).items() if k in s["options"]},
+    }
 
 
 def _slug(options):
@@ -31,8 +33,15 @@ def _summary(lang, series, groups, grouping="B", measure="rch_a"):
     digits = 2 if measure == "index" else 1
     ends = [latest(series["groups"][_key(grouping, g)][measure]) for g in groups]
     last = max(i for i, _ in ends)
-    items = [t(lang, "summary.item", value=num(lang, v, digits) + ("" if measure == "index" else "%"), group=t(lang, f"group.in.{g}"))
-             for g, (_, v) in zip(groups, ends)]
+    items = [
+        t(
+            lang,
+            "summary.item",
+            value=num(lang, v, digits) + ("" if measure == "index" else "%"),
+            group=t(lang, f"group.in.{g}"),
+        )
+        for g, (_, v) in zip(groups, ends, strict=True)
+    ]
     joined = f"{', '.join(items[:-1])} {t(lang, 'summary.and')} {items[-1]}" if len(items) > 1 else items[0]
     if measure == "rch_a":
         return t(lang, "summary.annual", month=month(lang, axis[last], "acc" if lang == "el" else "nom"), list=joined)
@@ -53,7 +62,9 @@ def _open_options(site):
 
 def _pick(site, option, value):
     _open_options(site)
-    site.find(f'fieldset[data-option="{option}"] input[value="{value}"]').find_element("xpath", "./ancestor::label").click()
+    site.find(f'fieldset[data-option="{option}"] input[value="{value}"]').find_element(
+        "xpath", "./ancestor::label"
+    ).click()
 
 
 def _unfold(site, role):
@@ -71,10 +82,15 @@ def _chip(site, group):
 
 
 def _pressed(site):
-    return [b.get_attribute("data-group") for b in site.all("#explore button.chip[data-group]") if b.get_attribute("aria-pressed") == "true"]
+    return [
+        b.get_attribute("data-group")
+        for b in site.all("#explore button.chip[data-group]")
+        if b.get_attribute("aria-pressed") == "true"
+    ]
 
 
 # --- first load ---------------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("lang", ["en", "el"])
 def test_default_view_shows_the_published_series(site, lang):
@@ -127,11 +143,13 @@ def test_table_rows_match_the_series(site):
     def cells(i):
         values = [vals[i] for vals in lines] + [series["gaps"]["B"]["rch_a"][i]]
         return [axis[i], *["–" if v is None else num("en", v) for v in values]]
+
     for row, i in ((rows[0], len(axis) - 1), (rows[-1], first)):
         assert [c.text for c in row.find_elements("css selector", "th, td")] == cells(i)
 
 
 # --- the address --------------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("option", SETTING_KEYS + ["grouping"])
 def test_each_option_changes_the_address_and_back(site, option):
@@ -172,7 +190,11 @@ def test_option_loads_its_setting_and_follows_in_files_and_citation(site):
     slug = _slug(options)
     expected = _summary("en", data(f"series/{slug}.json"), DEFAULT_GROUPS)
     site.text("#explore [data-role=summary]", expected)
-    site.wait(lambda _: site.find("#explore [data-role=files-this]").get_attribute("href").endswith(f"/en/data/gr/#setting-{slug}"))
+    site.wait(
+        lambda _: (
+            site.find("#explore [data-role=files-this]").get_attribute("href").endswith(f"/en/data/gr/#setting-{slug}")
+        )
+    )
     cite = _unfold(site, "cite").text
     assert t("en", "option.spending.all") in cite and site.driver.current_url in cite
 
@@ -235,7 +257,10 @@ def test_the_measure_goes_into_the_address_and_the_summary(site):
     _ready(site)
     site.find('#explore select[data-role=measure] option[value="rch_m"]').click()
     site.url_has(m="rch_m")
-    site.text("#explore [data-role=summary]", _summary("en", data(f"series/{default_slug()}.json"), DEFAULT_GROUPS, measure="rch_m"))
+    site.text(
+        "#explore [data-role=summary]",
+        _summary("en", data(f"series/{default_slug()}.json"), DEFAULT_GROUPS, measure="rch_m"),
+    )
 
 
 def test_the_view_goes_into_the_address(site):
@@ -300,6 +325,7 @@ def test_unknown_values_fall_back_to_defaults(site):
 
 
 # --- limits and greyed options ------------------------------------------------------------------
+
 
 def test_at_most_six_groups(site):
     """SEL-EXPL-009: at most six groups
@@ -392,6 +418,7 @@ def test_months_an_option_leaves_out_are_noted_with_the_reason(site):
 
 # --- the breakdown view and full screen ---------------------------------------------------------
 
+
 def test_breakdown_view(site):
     """SEL-EXPL-012: the breakdown view
 
@@ -435,7 +462,10 @@ def test_full_screen(site):
     _ready(site)
     button = site.visible("#explore [data-role=fullscreen]")
     button.click()
-    site.wait(lambda _: site.js("return document.fullscreenElement?.dataset.role") == "chart-figure", "full screen did not start")
+    site.wait(
+        lambda _: site.js("return document.fullscreenElement?.dataset.role") == "chart-figure",
+        "full screen did not start",
+    )
     site.attr("#explore [data-role=fullscreen]", "aria-label", t("en", "chart.fullscreen_exit"))
     button.click()
     site.wait(lambda _: site.js("return document.fullscreenElement") is None, "full screen did not end")
@@ -479,11 +509,13 @@ def test_one_group_breakdown_title_is_the_sum_of_its_parts(site):
     Then the title gives the poorest fifth's latest annual rate: the sum of its categories' parts in the published contributions file
     """
     by_month = data(f"contributions/{default_slug()}.json")["groups"]["B/Q1"]
-    total = sum(by_month[max(by_month)].values())        # in the file's order, as the page adds them
+    total = sum(by_month[max(by_month)].values())  # in the file's order, as the page adds them
     site.open(PAGE.format(lang="en") + "?groups=Q1&view=parts")
     site.visible("#explore [data-role=view-parts]")
-    site.text("#explore [data-role=contrib-title]",
-              t("en", "explore.contrib_title", group=t("en", "group.in.Q1"), value=f"{num('en', total)}%"))
+    site.text(
+        "#explore [data-role=contrib-title]",
+        t("en", "explore.contrib_title", group=t("en", "group.in.Q1"), value=f"{num('en', total)}%"),
+    )
 
 
 @pytest.mark.console_errors
@@ -529,6 +561,6 @@ def test_a_price_source_that_publishes_later_says_which_month_it_doesnt_have_yet
         _pick(site, "price_source", "hicp")
         expected = t(lang, "reason.ends_earlier", month=month(lang, greyed[0]["index"][0], "acc"))
         note = 'fieldset[data-option="price_source"] [data-role=note]'
-        site.wait(lambda _: expected in site.find(note).text)
+        site.wait(lambda _, expected=expected, note=note: expected in site.find(note).text)
         last = month(lang, hicp["index"][1], "acc" if lang == "el" else "nom")
-        site.wait(lambda _: last in site.find("#explore [data-role=summary]").text)
+        site.wait(lambda _, last=last: last in site.find("#explore [data-role=summary]").text)

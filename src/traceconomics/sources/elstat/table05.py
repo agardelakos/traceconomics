@@ -31,22 +31,43 @@ from traceconomics.checks import FormatError, require
 PARSER_VERSION = "1"
 
 TITLE = re.compile(r"twelve-month rates of change of the Overall CPI.*?(\d{4})\s*-\s*(\d{4})\s*\((\w+)\)")
-MONTHS = {m: i for i, m in enumerate(("January", "February", "March", "April", "May", "June", "July",
-                                      "August", "September", "October", "November", "December"), start=1)}
+MONTHS = {
+    m: i
+    for i, m in enumerate(
+        (
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ),
+        start=1,
+    )
+}
 FIRST_YEAR = 1959
 
 
 @dataclass
 class Table05:
-    last: str                                                    # "YYYY-MM", the latest month
-    index: dict[str, float] = field(default_factory=dict)        # "YYYY-MM" -> index, 2020=100
-    rate: dict[str, float] = field(default_factory=dict)         # "YYYY-MM" -> rate, a fraction
+    last: str  # "YYYY-MM", the latest month
+    index: dict[str, float] = field(default_factory=dict)  # "YYYY-MM" -> index, 2020=100
+    rate: dict[str, float] = field(default_factory=dict)  # "YYYY-MM" -> rate, a fraction
     annual_index: dict[str, float] = field(default_factory=dict)  # "YYYY" -> annual average index
-    annual_rate: dict[str, float] = field(default_factory=dict)   # "YYYY" -> its rate, a fraction
+    annual_rate: dict[str, float] = field(default_factory=dict)  # "YYYY" -> its rate, a fraction
 
     def rows(self):
         """Long form: (freq, unit, ref_period, value). I20 = index 2020=100; RCH_A_FR = annual rate, a fraction."""
-        for unit, monthly, annual in (("I20", self.index, self.annual_index), ("RCH_A_FR", self.rate, self.annual_rate)):
+        for unit, monthly, annual in (
+            ("I20", self.index, self.annual_index),
+            ("RCH_A_FR", self.rate, self.annual_rate),
+        ):
             for period, v in monthly.items():
                 yield "M", unit, period, v
             for year, v in annual.items():
@@ -102,9 +123,11 @@ def parse(path: Path) -> Table05:
         header = [_text(v) for v in rows[i + 1]]
         require(header[0] == "Month", f"{path.name}: row {i + 2}: expected the Month header, got {header[0]!r}")
         for j in years:
-            require(header[j] == "Index" and header[j + 1] == "Rate of change",
-                    f"{path.name}: row {i + 2}: columns {j + 1}-{j + 2} aren't Index | Rate of change")
-        body = rows[i + 2:i + 16]
+            require(
+                header[j] == "Index" and header[j + 1] == "Rate of change",
+                f"{path.name}: row {i + 2}: columns {j + 1}-{j + 2} aren't Index | Rate of change",
+            )
+        body = rows[i + 2 : i + 16]
         require(len(body) == 14, f"{path.name}: block at row {i + 1} is cut short")
         require(all(v is None for v in body[0]), f"{path.name}: row {i + 3} should be blank")
         for k, r in enumerate(body[1:13], start=1):
@@ -125,13 +148,17 @@ def parse(path: Path) -> Table05:
         i += 16
 
     # The last block runs past the latest year (columns for 2027-2030 in 2026): those stay empty.
-    require(bool(years_seen) and years_seen == list(range(FIRST_YEAR, years_seen[-1] + 1)) and years_seen[-1] >= last_year,
-            f"{path.name}: years aren't {FIRST_YEAR}-{last_year} or later, in order, one each")
+    require(
+        bool(years_seen) and years_seen == list(range(FIRST_YEAR, years_seen[-1] + 1)) and years_seen[-1] >= last_year,
+        f"{path.name}: years aren't {FIRST_YEAR}-{last_year} or later, in order, one each",
+    )
     # Every month up to the latest has an index, none after it; every month from the second year on has a rate.
     expected = [f"{y}-{k:02d}" for y in years_seen for k in range(1, 13) if f"{y}-{k:02d}" <= t.last]
     require(sorted(t.index) == expected, f"{path.name}: index months don't run from {expected[0]} to {t.last}")
-    require(sorted(t.rate) == [p for p in expected if p >= f"{FIRST_YEAR + 1}-01"],
-            f"{path.name}: rate months don't run from {FIRST_YEAR + 1}-01 to {t.last}")
+    require(
+        sorted(t.rate) == [p for p in expected if p >= f"{FIRST_YEAR + 1}-01"],
+        f"{path.name}: rate months don't run from {FIRST_YEAR + 1}-01 to {t.last}",
+    )
     require(all(0 < v < 10_000 for v in t.index.values()), f"{path.name}: index values out of range")
     require(all(-1 < v < 10 for v in t.rate.values()), f"{path.name}: rates out of range (not fractions?)")
     return t

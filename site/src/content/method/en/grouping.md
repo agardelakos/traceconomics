@@ -3,8 +3,19 @@ title: "Income groups"
 summary: "How people are ranked into income fifths. Default: people ranked by equivalised income."
 order: 1
 option: "grouping"
-sources: [eurostat-equivalence-scale, kepe-2024, elstat-hbs-puf, elstat-hbs-2025-instructions, elstat-hbs-2025-questionnaire, elstat-hbs-2025-codes, eurostat-ilc-di01, eurostat-silc-guidelines-2024]
+sources:
+  [
+    eurostat-equivalence-scale,
+    kepe-2024,
+    elstat-hbs-puf,
+    elstat-hbs-2025-instructions,
+    elstat-hbs-2025-questionnaire,
+    elstat-hbs-2025-codes,
+    eurostat-ilc-di01,
+    eurostat-silc-guidelines-2024,
+  ]
 ---
+
 ## The default: people, by equivalised income
 
 People are ranked by their household's money income after taxes, divided by the modified OECD scale (1 for the first adult, 0.5 for each other person aged 14 or over, 0.3 for each child). Each fifth holds the same number of people. This is how Eurostat ranks income, and how KEPE's Greek study ranks it. ELSTAT's own equivalised size in the survey file comes out as if children were those under 16, not under 14; we keep Eurostat's rule, the one its income limits use, so the two compare like for like (with ELSTAT's, our 2024 limits would be up to 1.6% higher).

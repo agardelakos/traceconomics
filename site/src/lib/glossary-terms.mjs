@@ -14,7 +14,20 @@ import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 
 const LANGS = ["el", "en"];
-const SKIP = new Set(["a", "h1", "h2", "h3", "h4", "h5", "h6", "code", "pre", "button", "script", "style"]);
+const SKIP = new Set([
+  "a",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "code",
+  "pre",
+  "button",
+  "script",
+  "style",
+]);
 
 // Case and the Greek final sigma don't matter when comparing forms.
 export const norm = (s) => s.toLowerCase().replace(/ς/g, "σ");
@@ -29,7 +42,12 @@ export function loadTerms(dir, lang) {
     const front = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!front) throw new Error(`glossary ${lang}/${name}: no frontmatter`);
     const data = yaml.load(front[1]);
-    terms.push({ slug: name.slice(0, -3), term: data.term, short: data.short, forms: data.forms ?? [] });
+    terms.push({
+      slug: name.slice(0, -3),
+      term: data.term,
+      short: data.short,
+      forms: data.forms ?? [],
+    });
   }
   return terms;
 }
@@ -40,13 +58,17 @@ export function matcher(terms) {
   for (const t of terms) {
     for (const f of t.forms) {
       const k = norm(f);
-      if (owner.has(k) && owner.get(k).slug !== t.slug) throw new Error(`glossary form "${f}" belongs to both ${owner.get(k).slug} and ${t.slug}`);
+      if (owner.has(k) && owner.get(k).slug !== t.slug)
+        throw new Error(`glossary form "${f}" belongs to both ${owner.get(k).slug} and ${t.slug}`);
       owner.set(k, t);
     }
   }
   const forms = [...owner.keys()].sort((a, b) => b.length - a.length || a.localeCompare(b));
   // Unicode-aware word edges: \b knows only ASCII letters, so it fails on Greek.
-  const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:${forms.map(escape).join("|")})(?![\\p{L}\\p{N}])`, "giu");
+  const re = new RegExp(
+    `(?<![\\p{L}\\p{N}])(?:${forms.map(escape).join("|")})(?![\\p{L}\\p{N}])`,
+    "giu",
+  );
   return { re, owner };
 }
 
@@ -62,15 +84,34 @@ function popoverId(slug, label, doc) {
 
 function popover(t, label, lang, more, doc) {
   const id = popoverId(t.slug, label, doc);
-  const el = (tagName, properties, children) => ({ type: "element", tagName, properties, children });
+  const el = (tagName, properties, children) => ({
+    type: "element",
+    tagName,
+    properties,
+    children,
+  });
   const text = (value) => ({ type: "text", value });
   return el("span", { className: ["term-wrap"] }, [
-    el("button", { type: "button", className: ["term"], popovertarget: id, style: `anchor-name: --${id}` }, [text(label)]),
-    el("span", { popover: "", id, className: ["term-popover"], role: "note", style: `position-anchor: --${id}` }, [
-      el("strong", {}, [text(t.term)]),
-      el("span", {}, [text(t.short)]),
-      el("a", { href: `/${lang}/glossary/${t.slug}/` }, [text(more)]),
-    ]),
+    el(
+      "button",
+      { type: "button", className: ["term"], popovertarget: id, style: `anchor-name: --${id}` },
+      [text(label)],
+    ),
+    el(
+      "span",
+      {
+        popover: "",
+        id,
+        className: ["term-popover"],
+        role: "note",
+        style: `position-anchor: --${id}`,
+      },
+      [
+        el("strong", {}, [text(t.term)]),
+        el("span", {}, [text(t.short)]),
+        el("a", { href: `/${lang}/glossary/${t.slug}/` }, [text(more)]),
+      ],
+    ),
   ]);
 }
 
@@ -101,7 +142,9 @@ export function markText(value, state) {
   return out;
 }
 
-const skipped = (el) => el.type === "element" && (SKIP.has(el.tagName) || (el.properties?.className ?? []).includes("term-wrap"));
+const skipped = (el) =>
+  el.type === "element" &&
+  (SKIP.has(el.tagName) || (el.properties?.className ?? []).includes("term-wrap"));
 
 /** Marks a whole HAST tree in document order (the same rules as the plugin). Returns the slugs marked. */
 export function markTerms(tree, opts) {
@@ -109,7 +152,10 @@ export function markTerms(tree, opts) {
   const walk = (node) => {
     if (!node.children) return;
     node.children = node.children.flatMap((child) => {
-      if (child.type === "element") { if (!skipped(child)) walk(child); return [child]; }
+      if (child.type === "element") {
+        if (!skipped(child)) walk(child);
+        return [child];
+      }
       if (child.type !== "text") return [child];
       return markText(child.value, state) ?? [child];
     });
@@ -122,13 +168,18 @@ export function markTerms(tree, opts) {
  * The Sätteri hast plugin, as a factory: called once per document with its file address, so each
  * page starts with no term marked. Files under src/content/<collection>/<lang>/<slug>.md only.
  */
-export function glossaryTerms({ contentDir = path.resolve("src/content"), i18nDir = path.resolve("src/i18n") } = {}) {
+export function glossaryTerms({
+  contentDir = path.resolve("src/content"),
+  i18nDir = path.resolve("src/i18n"),
+} = {}) {
   const glossaryDir = path.join(contentDir, "glossary");
   const cache = new Map();
   const forLang = (lang) => {
     if (!cache.has(lang)) {
       // The link text, from the same strings as the GlossaryTerm component.
-      const more = JSON.parse(fs.readFileSync(path.join(i18nDir, `${lang}.json`), "utf-8"))["glossary.more"];
+      const more = JSON.parse(fs.readFileSync(path.join(i18nDir, `${lang}.json`), "utf-8"))[
+        "glossary.more"
+      ];
       cache.set(lang, { terms: loadTerms(glossaryDir, lang), more });
     }
     return cache.get(lang);
@@ -137,16 +188,27 @@ export function glossaryTerms({ contentDir = path.resolve("src/content"), i18nDi
     if (!fileURL) return null;
     const rel = path.relative(contentDir, fileURLToPath(fileURL));
     const parts = rel.split(path.sep);
-    if (rel.startsWith("..") || parts.length !== 3 || !LANGS.includes(parts[1]) || !parts[2].endsWith(".md")) return null;
+    if (
+      rel.startsWith("..") ||
+      parts.length !== 3 ||
+      !LANGS.includes(parts[1]) ||
+      !parts[2].endsWith(".md")
+    )
+      return null;
     const [collection, lang, name] = parts;
     // A topic's steps are several files on one page: each marks its own first mentions, with ids
     // of its own.
-    const state = pageState({ lang, ...forLang(lang), self: collection === "glossary" ? name.slice(0, -3) : null,
-      doc: collection === "steps" ? name.slice(0, -3) : null });
+    const state = pageState({
+      lang,
+      ...forLang(lang),
+      self: collection === "glossary" ? name.slice(0, -3) : null,
+      doc: collection === "steps" ? name.slice(0, -3) : null,
+    });
     return {
       name: "glossary-terms",
       text(node, ctx) {
-        for (let p = ctx.parent(node); p && p.type !== "root"; p = ctx.parent(p)) if (skipped(p)) return;
+        for (let p = ctx.parent(node); p && p.type !== "root"; p = ctx.parent(p))
+          if (skipped(p)) return;
         const out = markText(node.value, state);
         if (out) ctx.replaceNode(node, out);
       },

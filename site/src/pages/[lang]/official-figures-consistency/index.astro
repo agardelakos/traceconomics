@@ -15,7 +15,13 @@ const lang = Astro.params.lang as Lang;
 const SLUG = "official-figures-consistency";
 const countries = topic(SLUG).countries.map((c) => ({ code: c, n: results(c).checks.length }));
 ---
-<Base lang={lang} title={t(lang, `topic.${SLUG}`)} description={t(lang, `topic.${SLUG}.text`)} topic={{ slug: SLUG }}>
+
+<Base
+  lang={lang}
+  title={t(lang, `topic.${SLUG}`)}
+  description={t(lang, `topic.${SLUG}.text`)}
+  topic={{ slug: SLUG }}
+>
   <div class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
       <Breadcrumb lang={lang} trail={[[t(lang, `topic.${SLUG}`)]]} />

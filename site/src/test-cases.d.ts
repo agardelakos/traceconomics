@@ -11,7 +11,7 @@ import "vitest";
 declare module "vitest" {
   interface TaskMeta {
     id?: string;
-    title?: string;          // when the test's own title is a loop's value
+    title?: string; // when the test's own title is a loop's value
     given?: string | string[];
     when?: string | string[];
     then?: string | string[];

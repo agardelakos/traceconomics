@@ -4,15 +4,30 @@ euros (shares, the total, a wrong amount); the chart. Expected rates from the se
 series, which the calculator must reproduce exactly when nothing is changed."""
 
 import pytest
+from helpers import data, default_slug, latest, month, months, num, t
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
-from helpers import data, default_slug, latest, month, months, num, t
-
 PAGE = "/{lang}/gr/inflation-by-group/calculator/"
-PRESETS = ["all/all", "B/Q1", "B/Q2", "B/Q3", "B/Q4", "B/Q5", "tenure/renter", "tenure/owner", "tenure/rent_free",
-           "pensioners/pensioners", "pensioners/other",
-           "hhtype/A1", "hhtype/A1_DCH", "hhtype/A2", "hhtype/A2_DCH", "hhtype/A_GE3", "hhtype/A_GE3_DCH"]
+PRESETS = [
+    "all/all",
+    "B/Q1",
+    "B/Q2",
+    "B/Q3",
+    "B/Q4",
+    "B/Q5",
+    "tenure/renter",
+    "tenure/owner",
+    "tenure/rent_free",
+    "pensioners/pensioners",
+    "pensioners/other",
+    "hhtype/A1",
+    "hhtype/A1_DCH",
+    "hhtype/A2",
+    "hhtype/A2_DCH",
+    "hhtype/A_GE3",
+    "hhtype/A_GE3_DCH",
+]
 
 
 def _rate(preset):
@@ -66,7 +81,7 @@ def test_every_starting_group_gives_its_published_rate(site, preset):
     site.open(PAGE.format(lang="en"))
     _ready(site)
     Select(site.find("#calculator select[data-role=preset]")).select_by_value(preset)
-    if preset != "B/Q1":                              # picking the one already shown changes nothing
+    if preset != "B/Q1":  # picking the one already shown changes nothing
         site.url_has(**{"from": preset})
     site.text("#calculator [data-role=yours]", f"{num('en', _rate(preset)[1])}%")
     site.text("#calculator [data-role=preset-name]", _name("en", preset))
@@ -114,7 +129,7 @@ def test_slider_changes_the_result_and_reset_restores_it(site):
     before = [s.get_attribute("value") for s in sliders]
     period, rate = _rate("B/Q1")
     first = sliders[0]
-    first.send_keys(Keys.ARROW_RIGHT * 50)           # +5 points of spending
+    first.send_keys(Keys.ARROW_RIGHT * 50)  # +5 points of spending
     site.visible("#calculator [data-role=rescaled]")
     site.text("#calculator [data-role=rescaled]", t("en", "calc.rescaled"))
     site.wait(lambda _: "edited" in site.find("#calculator [data-role=result]").get_attribute("class"))
@@ -124,7 +139,9 @@ def test_slider_changes_the_result_and_reset_restores_it(site):
     # each shown value is off by at most 0.05 and their sum by at most 0.05 per slider: with 13
     # categories that is 0.65, more than a fixed 0.2 allows on some baskets (99.8 on real data).
     rounding = 0.05 * len(sliders) + 1e-9
-    assert sum(others) + float(first.get_attribute("value")) == pytest.approx(100, abs=rounding), "the shares no longer add up to 100%"
+    assert sum(others) + float(first.get_attribute("value")) == pytest.approx(100, abs=rounding), (
+        "the shares no longer add up to 100%"
+    )
     assert others != [float(v) for v in before[1:]], "the other categories were not rescaled"
     diff = site.visible("#calculator [data-role=diff]").text
     assert _name("en", "B/Q1") in diff
@@ -249,8 +266,11 @@ def test_chart_shows_the_starting_group_then_yours(site):
     site.scripts_ran("#calculator [data-role=chart]")
     site.attr("#calculator [data-role=chart]", "aria-label", f"{t('en', 'calc.over_time')}: {_name('en', 'B/Q1')}")
     site.find("#div-01").send_keys(Keys.ARROW_RIGHT * 20)
-    site.attr("#calculator [data-role=chart]", "aria-label",
-              f"{t('en', 'calc.over_time')}: {_name('en', 'B/Q1')}, {t('en', 'calc.title')}")
+    site.attr(
+        "#calculator [data-role=chart]",
+        "aria-label",
+        f"{t('en', 'calc.over_time')}: {_name('en', 'B/Q1')}, {t('en', 'calc.title')}",
+    )
 
 
 @pytest.mark.console_errors

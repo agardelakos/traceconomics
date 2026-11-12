@@ -21,9 +21,21 @@ from pathlib import Path
 
 import duckdb
 
-DIMS = ["geo", "grouping", "group", "spending", "imputed_rent", "price_source", "weights_timing", "tutoring",
-        "hh_weighting", "coicop18", "unit", "ref_period"]
-CONTRIBUTION_TOLERANCE = 0.05   # pp: contributions add up to the unrounded rate; the rate is from the rounded index
+DIMS = [
+    "geo",
+    "grouping",
+    "group",
+    "spending",
+    "imputed_rent",
+    "price_source",
+    "weights_timing",
+    "tutoring",
+    "hh_weighting",
+    "coicop18",
+    "unit",
+    "ref_period",
+]
+CONTRIBUTION_TOLERANCE = 0.05  # pp: contributions add up to the unrounded rate; the rate is from the rounded index
 
 
 def _con(folder: Path) -> duckdb.DuckDBPyConnection:
@@ -41,7 +53,7 @@ def tutoring_identity(con) -> tuple[bool, str]:
     bad = {}
     for t in ("m1_index", "m1_rates", "m1_weights_used", "m1_contributions"):
         cols = _dims(("tutoring",)) + ", value_text"
-        q = (f"SELECT {cols} FROM {t} WHERE tutoring = '{{}}' AND ref_period < '2026'")
+        q = f"SELECT {cols} FROM {t} WHERE tutoring = '{{}}' AND ref_period < '2026'"
         n = con.execute(f"SELECT count(*) FROM ({q.format('priced')} EXCEPT {q.format('excluded')})").fetchone()[0]
         m = con.execute(f"SELECT count(*) FROM ({q.format('excluded')} EXCEPT {q.format('priced')})").fetchone()[0]
         if n or m:
@@ -55,10 +67,12 @@ def baseline_identity(con, baseline: Path) -> tuple[bool, str]:
     for t in ("m1_index", "m1_rates", "m1_contributions"):
         old = (Path(baseline) / f"{t}.parquet").as_posix()
         cols = _dims() + ", value_text, quality"
-        default = ("spending = 'purchases' AND imputed_rent = 'excluded' AND price_source = 'cpi' "
-                   "AND weights_timing = 'N' AND tutoring = 'priced'")
+        default = (
+            "spending = 'purchases' AND imputed_rent = 'excluded' AND price_source = 'cpi' "
+            "AND weights_timing = 'N' AND tutoring = 'priced'"
+        )
         o = f"SELECT {cols} FROM '{old}' WHERE {default}"
-        n = f"SELECT {cols} FROM {t} WHERE {default} AND (grouping, \"group\") IN (SELECT DISTINCT grouping, \"group\" FROM '{old}')"
+        n = f'SELECT {cols} FROM {t} WHERE {default} AND (grouping, "group") IN (SELECT DISTINCT grouping, "group" FROM \'{old}\')'
         a = con.execute(f"SELECT count(*) FROM ({o} EXCEPT {n})").fetchone()[0]
         b = con.execute(f"SELECT count(*) FROM ({n} EXCEPT {o})").fetchone()[0]
         rows = con.execute(f"SELECT count(*) FROM ({o})").fetchone()[0]
@@ -81,37 +95,65 @@ def contribution_identity(con) -> tuple[bool, str]:
 
 def availability_identity(con, folder: Path) -> tuple[bool, str]:
     table = json.loads((Path(folder) / "availability.json").read_text(encoding="utf-8"))
-    listed = {(s["spending"], s["imputed_rent"], s["price_source"], s["weights_timing"], s["tutoring"],
-               s["grouping"], s["group"]) for s in table["series"]}
-    written = set(con.execute("""SELECT DISTINCT spending, imputed_rent, price_source, weights_timing, tutoring,
-                                 grouping, "group" FROM m1_index""").fetchall())
+    listed = {
+        (
+            s["spending"],
+            s["imputed_rent"],
+            s["price_source"],
+            s["weights_timing"],
+            s["tutoring"],
+            s["grouping"],
+            s["group"],
+        )
+        for s in table["series"]
+    }
+    written = set(
+        con.execute("""SELECT DISTINCT spending, imputed_rent, price_source, weights_timing, tutoring,
+                                 grouping, "group" FROM m1_index""").fetchall()
+    )
     ok = listed == written
-    return ok, (f"{len(written)} series, all listed" if ok else
-                f"written but not listed: {sorted(written - listed)[:3]}; listed but not written: {sorted(listed - written)[:3]}")
+    return ok, (
+        f"{len(written)} series, all listed"
+        if ok
+        else f"written but not listed: {sorted(written - listed)[:3]}; listed but not written: {sorted(listed - written)[:3]}"
+    )
 
 
 def identities(folder: Path, baseline: Path | None = None) -> list[tuple[str, bool, str]]:
     con = _con(folder)
-    out = [("tutoring options before 2026", *tutoring_identity(con)),
-           ("contributions add up", *contribution_identity(con)),
-           ("availability table", *availability_identity(con, folder))]
+    out = [
+        ("tutoring options before 2026", *tutoring_identity(con)),
+        ("contributions add up", *contribution_identity(con)),
+        ("availability table", *availability_identity(con, folder)),
+    ]
     if baseline is not None:
         out.append(("default against the earlier build", *baseline_identity(con, baseline)))
     return out
 
 
 def _avg(con, where: str) -> dict:
-    return {(g, int(p)): v for g, p, v in con.execute(f"""
-        SELECT "group", ref_period, CAST(value AS DOUBLE) FROM m1_rates WHERE unit = 'RCH_A_AVG' AND {where}""").fetchall()}
+    return {
+        (g, int(p)): v
+        for g, p, v in con.execute(f"""
+        SELECT "group", ref_period, CAST(value AS DOUBLE) FROM m1_rates WHERE unit = 'RCH_A_AVG' AND {where}""").fetchall()
+    }
 
 
 def _gap(con, where: str) -> dict[int, float]:
-    return {int(p): v for p, v in con.execute(f"""
-        SELECT ref_period, CAST(value AS DOUBLE) FROM m1_rates WHERE unit = 'RCH_A_AVG_GAP' AND {where}""").fetchall()}
+    return {
+        int(p): v
+        for p, v in con.execute(f"""
+        SELECT ref_period, CAST(value AS DOUBLE) FROM m1_rates WHERE unit = 'RCH_A_AVG_GAP' AND {where}""").fetchall()
+    }
 
 
-DEFAULT_WHERE = {"spending": "purchases", "imputed_rent": "excluded", "price_source": "cpi", "weights_timing": "N",
-                 "tutoring": "priced"}
+DEFAULT_WHERE = {
+    "spending": "purchases",
+    "imputed_rent": "excluded",
+    "price_source": "cpi",
+    "weights_timing": "N",
+    "tutoring": "priced",
+}
 
 
 def where(**changes) -> str:
@@ -121,11 +163,16 @@ def where(**changes) -> str:
 def source(folder: Path) -> dict:
     """All households and the B gap, annual averages: CPI against HICP prices, same weights."""
     con = _con(folder)
-    cpi, hicp = _avg(con, where() + " AND grouping = 'all'"), _avg(con, where(price_source="hicp") + " AND grouping = 'all'")
+    cpi, hicp = (
+        _avg(con, where() + " AND grouping = 'all'"),
+        _avg(con, where(price_source="hicp") + " AND grouping = 'all'"),
+    )
     gc, gh = _gap(con, where() + " AND grouping = 'B'"), _gap(con, where(price_source="hicp") + " AND grouping = 'B'")
     years = sorted({y for _, y in cpi} & {y for _, y in hicp})
-    return {y: {"all_cpi": cpi[("all", y)], "all_hicp": hicp[("all", y)], "gap_cpi": gc.get(y), "gap_hicp": gh.get(y)}
-            for y in years}
+    return {
+        y: {"all_cpi": cpi[("all", y)], "all_hicp": hicp[("all", y)], "gap_cpi": gc.get(y), "gap_hicp": gh.get(y)}
+        for y in years
+    }
 
 
 def timing(folder: Path, grouping: str = "B") -> dict:
@@ -138,18 +185,32 @@ def timing(folder: Path, grouping: str = "B") -> dict:
 def rent(folder: Path) -> dict:
     """Per group: the imputed-rent weight (2025, option kept) and the change in annual-average rates."""
     con = _con(folder)
-    w = dict(con.execute(f"""
+    w = dict(
+        con.execute(f"""
         SELECT grouping || '/' || "group", sum(CAST(value AS DOUBLE)) FROM m1_weights_used
-        WHERE {where(imputed_rent='included')} AND ref_period = '2025' AND coicop18 LIKE '042%'
-        GROUP BY 1""").fetchall())
-    keep = {(f"{g}", y): v for (g, y), v in _avg(con, where(imputed_rent="included") + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')").items()}
-    drop = {(f"{g}", y): v for (g, y), v in _avg(con, where() + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')").items()}
+        WHERE {where(imputed_rent="included")} AND ref_period = '2025' AND coicop18 LIKE '042%'
+        GROUP BY 1""").fetchall()
+    )
+    keep = {
+        (f"{g}", y): v
+        for (g, y), v in _avg(
+            con, where(imputed_rent="included") + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')"
+        ).items()
+    }
+    drop = {
+        (f"{g}", y): v
+        for (g, y), v in _avg(con, where() + " AND grouping IN ('B', 'all', 'tenure', 'pensioners', 'hhtype')").items()
+    }
     groups = sorted({g for g, _ in keep})
     years = sorted({y for _, y in keep})
     names = {g: next(k for k in w if k.endswith("/" + g)) for g in groups if any(k.endswith("/" + g) for k in w)}
-    return {g: {"weight_2025": w.get(names.get(g, ""), 0.0),
-                "change": {y: keep[(g, y)] - drop[(g, y)] for y in years if (g, y) in keep and (g, y) in drop}}
-            for g in groups}
+    return {
+        g: {
+            "weight_2025": w.get(names.get(g, ""), 0.0),
+            "change": {y: keep[(g, y)] - drop[(g, y)] for y in years if (g, y) in keep and (g, y) in drop},
+        }
+        for g in groups
+    }
 
 
 def tutoring(folder: Path, period: str | None = None) -> dict:
@@ -163,15 +224,18 @@ def tutoring(folder: Path, period: str | None = None) -> dict:
                 WHERE {where(tutoring=t)} AND unit = 'RCH_A' AND ref_period = '{period}'
                   AND grouping IN ('B', 'all')""").fetchall():
             out.setdefault(g, {})[t] = v
-    edu = dict(con.execute(f"""
+    edu = dict(
+        con.execute(f"""
         SELECT grouping || '/' || "group", sum(CAST(value AS DOUBLE)) FROM m1_weights_used
-        WHERE {where()} AND ref_period = '2026' AND coicop18 LIKE '10%' AND grouping IN ('B', 'all') GROUP BY 1""").fetchall())
-    edu_b = dict(con.execute(f"""
+        WHERE {where()} AND ref_period = '2026' AND coicop18 LIKE '10%' AND grouping IN ('B', 'all') GROUP BY 1""").fetchall()
+    )
+    edu_b = dict(
+        con.execute(f"""
         SELECT grouping || '/' || "group", sum(CAST(value AS DOUBLE)) FROM m1_weights_used
-        WHERE {where(tutoring='excluded')} AND ref_period = '2026' AND coicop18 LIKE '10%' AND grouping IN ('B', 'all')
-        GROUP BY 1""").fetchall())
+        WHERE {where(tutoring="excluded")} AND ref_period = '2026' AND coicop18 LIKE '10%' AND grouping IN ('B', 'all')
+        GROUP BY 1""").fetchall()
+    )
     for g in out:
         out[g]["education_weight_priced"] = edu.get(g)
         out[g]["education_weight_excluded"] = edu_b.get(g)
     return {"period": period, "groups": out}
-

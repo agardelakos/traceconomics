@@ -15,6 +15,7 @@ def flat(value, *periods):
 
 # -- the tree -----------------------------------------------------------------
 
+
 def test_ancestors_stop_at_the_division():
     """PY-ENG-001: a code's ancestors stop at the division
 
@@ -63,6 +64,7 @@ def test_at_level():
 
 # -- one link ---------------------------------------------------------------
 
+
 def test_two_item_basket():
     """PY-ENG-005: one link of a two-item basket
 
@@ -107,8 +109,10 @@ def test_missing_item_index_falls_back_to_its_parent():
     And the basket counts as fully covered
     And the fallback is reported once, from the subclass to its class
     """
-    prices = {"0111": {"2024-12": 100, "2025-01": 110},
-              "011": {"2024-12": 100, "2025-01": 104}}  # 0112 has no index of its own
+    prices = {
+        "0111": {"2024-12": 100, "2025-01": 110},
+        "011": {"2024-12": 100, "2025-01": 104},
+    }  # 0112 has no index of its own
     result = chain({2025: {"011": 100, "0111": 30, "0112": 70}}, prices, first_year=2025, last_year=2025)
     assert result.links["2025-01"] == pytest.approx(0.3 * 1.10 + 0.7 * 1.04)
     assert result.covered["2025-01"] == 1.0
@@ -144,6 +148,7 @@ def test_all_items_index_is_never_used_as_a_fallback():
 
 
 # -- chaining over years --------------------------------------------------------
+
 
 def test_chaining_with_a_weight_change():
     """PY-ENG-011: chain-linking at December across a weight change
@@ -195,8 +200,7 @@ def test_periods_limit_what_is_computed():
 
 # -- rates --------------------------------------------------------------------
 
-INDEX = {**{f"2024-{m:02d}": 100.0 for m in range(1, 13)},
-         **{f"2025-{m:02d}": 100.0 + m for m in range(1, 13)}}
+INDEX = {**{f"2024-{m:02d}": 100.0 for m in range(1, 13)}, **{f"2025-{m:02d}": 100.0 + m for m in range(1, 13)}}
 
 
 def test_rates():
@@ -226,13 +230,16 @@ def test_annual_average_rate_is_not_the_mean_of_annual_rates():
     assert annual_average_rate(INDEX, 2025) == pytest.approx(6.5)
     assert annual_average_rate(INDEX, 2026) is None
     # With a falling-then-rising year the two definitions part ways.
-    idx = {**{f"2024-{m:02d}": 100.0 for m in range(1, 13)},
-           **{f"2025-{m:02d}": v for m, v in enumerate([90, 90, 90, 90, 90, 90, 130, 130, 130, 130, 130, 130], 1)}}
+    idx = {
+        **{f"2024-{m:02d}": 100.0 for m in range(1, 13)},
+        **{f"2025-{m:02d}": v for m, v in enumerate([90, 90, 90, 90, 90, 90, 130, 130, 130, 130, 130, 130], 1)},
+    }
     mean_of_rates = sum(annual_rate(idx, f"2025-{m:02d}") for m in range(1, 13)) / 12
     assert annual_average_rate(idx, 2025) == pytest.approx(10.0) and mean_of_rates == pytest.approx(10.0)
     idx["2024-01"] = 50.0
     assert annual_average_rate(idx, 2025) != pytest.approx(
-        sum(annual_rate(idx, f"2025-{m:02d}") for m in range(1, 13)) / 12)
+        sum(annual_rate(idx, f"2025-{m:02d}") for m in range(1, 13)) / 12
+    )
 
 
 def test_rebase_keeps_rates():
@@ -250,6 +257,7 @@ def test_rebase_keeps_rates():
 
 # -- per-year prices and the pricing map ------------------------------------------
 
+
 def test_each_year_links_to_its_own_december():
     """PY-ENG-017: each year links to its own file's December
 
@@ -264,7 +272,7 @@ def test_each_year_links_to_its_own_december():
     w = {2024: {"01": 1}, 2025: {"01": 1}}
     r = chain(w, {2024: p24, 2025: p25}, first_year=2024, last_year=2025, by_year=True)
     assert r.index["2024-12"] == pytest.approx(100)
-    assert r.index["2025-12"] == pytest.approx(110)      # 100 * 55 / 50, not 100 * 55 / 100
+    assert r.index["2025-12"] == pytest.approx(110)  # 100 * 55 / 50, not 100 * 55 / 100
 
 
 def test_price_with_starts_the_search_elsewhere_and_is_reported():
@@ -275,12 +283,14 @@ def test_price_with_starts_the_search_elsewhere_and_is_reported():
     Then each item moves with the index the map names
     And both are reported as fallbacks
     """
-    prices = {"0111": {"2024-12": 100, "2025-01": 120}, "01111": {"2024-12": 100, "2025-01": 200},
-              "1020": {"2024-12": 100, "2025-01": 105}}
+    prices = {
+        "0111": {"2024-12": 100, "2025-01": 120},
+        "01111": {"2024-12": 100, "2025-01": 200},
+        "1020": {"2024-12": 100, "2025-01": 105},
+    }
     w = {2025: {"01111": 1, "10501": 1}}
-    r = chain(w, prices, first_year=2025, last_year=2025,
-              price_with={2025: {"01111": "0111", "10501": "1020"}})
-    assert r.links["2025-01"] == pytest.approx((1.2 + 1.05) / 2)   # parent's index, and secondary education's
+    r = chain(w, prices, first_year=2025, last_year=2025, price_with={2025: {"01111": "0111", "10501": "1020"}})
+    assert r.links["2025-01"] == pytest.approx((1.2 + 1.05) / 2)  # parent's index, and secondary education's
     assert {(f.code, f.used) for f in r.fallbacks} == {("01111", "0111"), ("10501", "1020")}
 
 
@@ -296,5 +306,5 @@ def test_drop_takes_an_item_out_and_rescales():
     w = {2025: {"01": 3, "0947": 1}}
     r = chain(w, prices, first_year=2025, last_year=2025, price_with={2025: {"0947": "drop"}})
     assert r.links["2025-01"] == pytest.approx(1.10) and r.covered["2025-01"] == 1.0
-    unmapped = chain(w, prices, first_year=2025, last_year=2025)      # without the rule: priced with 094
+    unmapped = chain(w, prices, first_year=2025, last_year=2025)  # without the rule: priced with 094
     assert unmapped.links["2025-01"] == pytest.approx((3 * 1.1 + 2.0) / 4)
