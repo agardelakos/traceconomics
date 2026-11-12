@@ -79,6 +79,12 @@ force-exclude = true
 # Python this project runs. Add rules one at a time, each in its own change.
 select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+# These files import shared pytest fixtures (from tests/clitools.py); a test takes a fixture by
+# naming it as an argument, which shadows the import on purpose.
+"tests/test_cli.py" = ["F811"]
+"tests/test_cli_local.py" = ["F811"]
+
 [tool.ruff.lint.isort]
 # Keep `from x import a, b as c` on one line, as the code writes it (one noqa covers the line).
 combine-as-imports = true

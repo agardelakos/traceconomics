@@ -267,7 +267,7 @@ def test_a_build_and_its_promote_send_every_browser_step(tmp_path, uploads, monk
     assert done["test_results"]["result"] == "ok"
 
 
-def test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported(tmp_path, monkeypatch, no_email):
+def test_a_failed_browser_step_is_sent_too_and_a_failed_upload_only_reported(tmp_path, monkeypatch, no_email):  # noqa: F811 - the fixture imported from test_release
     """PY-TRES-007: a failed browser step is sent too, and a failed upload is only reported
 
     Given uploads that always fail
