@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "43527e86e9f5f654e0cd7f108b4fc615602721f4",
- "generated": "2026-11-12T14:29:38Z",
+ "commit": "bb7078f456ad54413ec00a1d6d14d1693b24913f",
+ "generated": "2026-11-12T15:20:48Z",
  "missing": [],
  "cases": [
   {
@@ -6721,7 +6721,7 @@
    "suite": "pytest",
    "title": "every identity holds on outputs written by the real writer",
    "file": "tests/test_combos_check.py",
-   "line": 75,
+   "line": 76,
    "node": "tests/test_combos_check.py::test_the_identities_hold_on_outputs_written_by_the_real_code",
    "given": [
     "module 1 outputs for the default and its one-change settings, each with both tutoring options"
@@ -6749,7 +6749,7 @@
    "suite": "pytest",
    "title": "a difference between the tutoring options before 2026 breaks their identity",
    "file": "tests/test_combos_check.py",
-   "line": 96,
+   "line": 97,
    "node": "tests/test_combos_check.py::test_a_tutoring_difference_before_2026_breaks_its_identity",
    "given": [
     "module 1 outputs where one 2020 annual-average rate differs between the tutoring options"
@@ -6775,7 +6775,7 @@
    "suite": "pytest",
    "title": "contributions that don't add up to the annual rate break their identity",
    "file": "tests/test_combos_check.py",
-   "line": 120,
+   "line": 121,
    "node": "tests/test_combos_check.py::test_contributions_that_dont_add_up_break_their_identity",
    "given": [
     "module 1 outputs where one 2026 contribution of the default's all-households series is 1 pp too high"
@@ -6801,7 +6801,7 @@
    "suite": "pytest",
    "title": "a written series missing from the availability table breaks its identity",
    "file": "tests/test_combos_check.py",
-   "line": 141,
+   "line": 142,
    "node": "tests/test_combos_check.py::test_a_series_missing_from_the_availability_table_breaks_its_identity",
    "given": [
     "module 1 outputs whose availability table leaves out one series"
@@ -6826,7 +6826,7 @@
    "suite": "pytest",
    "title": "the default is compared with an earlier build, which may hold fewer groups",
    "file": "tests/test_combos_check.py",
-   "line": 157,
+   "line": 158,
    "node": "tests/test_combos_check.py::test_the_default_against_an_earlier_build",
    "given": [
     "an earlier build holding only the default's all-households series",
@@ -6855,7 +6855,7 @@
    "suite": "pytest",
    "title": "the price-source and timing reports read each setting's own annual averages",
    "file": "tests/test_combos_check.py",
-   "line": 206,
+   "line": 207,
    "node": "tests/test_combos_check.py::test_the_price_source_and_timing_reports",
    "given": [
     "module 1 outputs with CPI and HICP prices and the three timing rules"
@@ -6881,7 +6881,7 @@
    "suite": "pytest",
    "title": "the imputed-rent report gives each group's rent weight and what keeping it changes",
    "file": "tests/test_combos_check.py",
-   "line": 228,
+   "line": 229,
    "node": "tests/test_combos_check.py::test_the_imputed_rent_report",
    "given": [
     "module 1 outputs with imputed rent excluded and included"
@@ -6904,11 +6904,64 @@
    "named": false
   },
   {
+   "id": "PY-COMBO-020",
+   "suite": "pytest",
+   "title": "the imputed-rent report gives the income fifths grouping B's weight, not another grouping's",
+   "file": "tests/test_combos_check.py",
+   "line": 259,
+   "node": "tests/test_combos_check.py::test_the_imputed_rent_report_takes_each_groups_weight_from_its_own_grouping",
+   "given": [
+    "module 1 outputs where grouping A also has a fifth named Q1, with three times B's imputed-rent weight"
+   ],
+   "when": [
+    "the imputed-rent report is made",
+    "B's Q1 loses its imputed-rent rows",
+    "the report is made again"
+   ],
+   "then": [
+    "Q1's 2025 weight is grouping B's the first time",
+    "it is 0 the second time, not A's"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-COMBO-021",
+   "suite": "pytest",
+   "title": "the imputed-rent report refuses when one group name is in two of the groupings it shows",
+   "file": "tests/test_combos_check.py",
+   "line": 286,
+   "node": "tests/test_combos_check.py::test_the_imputed_rent_report_refuses_a_group_name_in_two_of_its_groupings",
+   "given": [
+    "module 1 outputs where the tenure grouping also has a group named Q1"
+   ],
+   "when": [
+    "the imputed-rent report is made"
+   ],
+   "then": [
+    "it stops with an error naming Q1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-COMBO-017",
    "suite": "pytest",
    "title": "the tutoring report gives the newest month's rate and the education weight under both options",
    "file": "tests/test_combos_check.py",
-   "line": 246,
+   "line": 298,
    "node": "tests/test_combos_check.py::test_the_tutoring_report",
    "given": [
     "module 1 outputs with tutoring priced and excluded"
