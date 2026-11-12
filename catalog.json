@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "bc74d8f77fdfc219f53583fb2e764e4abc954f3f",
- "generated": "2026-11-12T07:57:34Z",
+ "commit": "dcd5f4f4f713986ed97cf5d51f67b1920002f284",
+ "generated": "2026-11-12T12:03:36Z",
  "missing": [],
  "cases": [
   {
@@ -18812,7 +18812,7 @@
    "suite": "selenium",
    "title": "each slider says whether it moved",
    "file": "tests/selenium/test_calculator.py",
-   "line": 137,
+   "line": 141,
    "node": "tests/selenium/test_calculator.py::test_slider_notes_say_what_moved",
    "given": [
     "the calculator at a starting group's basket, every slider saying it is the group's"
@@ -18836,7 +18836,7 @@
    "suite": "selenium",
    "title": "a new starting group resets the sliders",
    "file": "tests/selenium/test_calculator.py",
-   "line": 154,
+   "line": 158,
    "node": "tests/selenium/test_calculator.py::test_a_new_starting_group_resets_the_sliders",
    "given": [
     "a slider moved away from the group's basket"
@@ -18860,7 +18860,7 @@
    "suite": "selenium",
    "title": "spending entered in euros",
    "file": "tests/selenium/test_calculator.py",
-   "line": 172,
+   "line": 176,
    "node": "tests/selenium/test_calculator.py::test_spending_in_euros",
    "given": [
     "the calculator switched to euros a month"
@@ -18886,7 +18886,7 @@
    "suite": "selenium",
    "title": "a wrong amount is marked and ignored",
    "file": "tests/selenium/test_calculator.py",
-   "line": 206,
+   "line": 210,
    "node": "tests/selenium/test_calculator.py::test_wrong_amount_is_marked_and_ignored",
    "given": [
     "the calculator in euros"
@@ -18912,7 +18912,7 @@
    "suite": "selenium",
    "title": "the chart shows the starting group, then yours",
    "file": "tests/selenium/test_calculator.py",
-   "line": 235,
+   "line": 239,
    "node": "tests/selenium/test_calculator.py::test_chart_shows_the_starting_group_then_yours",
    "given": [
     "the calculator drawn"
@@ -18936,7 +18936,7 @@
    "suite": "selenium",
    "title": "data that fails to load says so",
    "file": "tests/selenium/test_calculator.py",
-   "line": 252,
+   "line": 256,
    "node": "tests/selenium/test_calculator.py::test_data_that_fails_to_load_says_so",
    "given": [
     "the calculator's data file blocked"
