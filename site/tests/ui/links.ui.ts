@@ -109,12 +109,10 @@ test(
       }
     }
     // A parsing slip would otherwise pass by checking nothing.
-    test
-      .info()
-      .annotations.push({
-        type: "checked",
-        description: `${targets.size} addresses, ${spots.size} spots`,
-      });
+    test.info().annotations.push({
+      type: "checked",
+      description: `${targets.size} addresses, ${spots.size} spots`,
+    });
     expect(targets.size).toBeGreaterThan(offered.length);
     expect(spots.size).toBeGreaterThan(0);
     const broken: string[] = [];

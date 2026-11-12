@@ -84,6 +84,8 @@ for (const lang of ["el", "en"]) {
   const p = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   await p.setContent(page(lang, points));
   // Wait for every face, and refuse to write an image in a fallback font.
+  // The function below runs in the browser page, where `document` exists.
+  /* global document */
   const loaded = await p.evaluate(async () => {
     await Promise.all(
       ["600 76px OgSerif", "400 24px OgSans", "700 24px OgSans"].map((f) =>

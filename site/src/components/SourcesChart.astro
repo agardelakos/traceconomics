@@ -14,9 +14,8 @@ interface Props {
   label: string;
   series: Series[];
   divide?: number;
-  digits?: number;
 }
-const { lang, label, series, divide = 1, digits = 1 } = Astro.props;
+const { lang, label, series, divide = 1 } = Astro.props;
 if (series.length > 5) throw new Error(`a sources chart has at most 5 lines, got ${series.length}`);
 
 const W = 640,

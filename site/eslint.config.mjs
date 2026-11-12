@@ -20,6 +20,10 @@ export default [
     languageOptions: { globals: { console: "readonly", process: "readonly", URL: "readonly" } },
   },
   {
+    // `const { dropped: _, ...rest } = obj` is how a key is left out of a copy; the rest is used.
+    rules: { "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }] },
+  },
+  {
     // An exception that no longer silences anything is reported, so stale ones don't pile up.
     linterOptions: { reportUnusedDisableDirectives: "error" },
   },

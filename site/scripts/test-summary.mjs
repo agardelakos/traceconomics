@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { FLOOR, GOOD } from "./coverage-options.mjs";
 
 const folder = process.argv[2] ?? "test-reports";
+// eslint-disable-next-line no-control-regex -- matches the terminal's colour codes (ESC [ … m) to strip them
 const ANSI = /\u001b\[[0-9;]*m/g;
 
 function firstLine(text) {

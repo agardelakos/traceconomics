@@ -29,7 +29,7 @@
 //     there too.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative, dirname, resolve, extname } from "node:path";
+import { join, relative, dirname, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import yaml from "js-yaml";
 import { BEACON, TOKEN } from "../src/lib/analytics.ts";
@@ -101,7 +101,9 @@ else {
     const front = readFileSync(file, "utf-8").match(/^---\r?\n([\s\S]*?)\r?\n---/);
     const sources = (front && yaml.load(front[1])?.sources) ?? [];
     if (!Array.isArray(sources)) fail(`${relative(site, file)}: sources is not a list`);
-    else for (const key of sources) if (!refs[key]) fail(`${relative(site, file)}: unknown source ${key}`);
+    else
+      for (const key of sources)
+        if (!refs[key]) fail(`${relative(site, file)}: unknown source ${key}`);
   }
 }
 
@@ -154,7 +156,7 @@ else {
         fail(`${name}: a JSON-LD block that isn't valid JSON`);
       }
     }
-    for (const m of html.matchAll(/<style\b/gi)) fail(`${name}: inline style block`);
+    if (/<style\b/i.test(html)) fail(`${name}: inline style block`);
     // Resources only from this site (links to sources may point anywhere), but for the beacon.
     let beacons = 0;
     for (const m of html.matchAll(
