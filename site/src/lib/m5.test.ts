@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { t } from "./i18n";
-import { chips, findings, ordered, slugOf, status, yearRuns, type Check, type Question } from "./m5";
-import { bandLabel, periodLabel, spanLabel } from "./m5-labels";
+import { chips, findings, ordered, roundingOnly, slugOf, status, termOf, yearRuns, type Check, type Question } from "./m5";
+import { bandLabel, causes, checkedSpan, periodLabel, spanLabel } from "./m5-labels";
 import { m5Text, topic, topicHref } from "./topics";
 
 const check = (over: Partial<Check>): Check => ({
@@ -126,5 +126,53 @@ describe("consistency topic", () => {
     expect(chips(q(["eurostat:cens_21hhct_r3", "oet-local:hbs_rent", "oet-local:hbs_rent", "eurostat:ilc_lvho02", "aade:pit_stats"])))
       .toEqual(["census-eurostat", "hbs-elstat", "silc-eurostat", "tax-aade"]);
     expect(() => chips(q(["somewhere:else"]))).toThrow(/no chip for source "somewhere:else"/);
+  });
+
+  it("names a check's glossary term by its published source, and counts rounding-only figures", { meta: {
+    id: "VT-M5-007",
+    given: [
+      "checks whose published side comes from ELSTAT's CPI, Eurostat's HICP, ELSTAT's household budget survey and another source",
+      "a consistent check with 2 of 10 figures differing by rounding, one where all agree, and an explained check with a rounding and a revision difference",
+    ],
+    when: "each check's glossary term and its rounding-only count are worked out",
+    then: [
+      "the terms are the consumer price index, the HICP and the household budget survey; the other source has none",
+      "the rounding-only counts are 2 and 0, and 0 for the explained check, whose rounding sits beside another cause",
+    ],
+  } }, () => {
+    const from = (source: string) => termOf(check({ published: { source, reference: "r", label: "p" } }));
+    expect(from("elstat:cpi07")).toBe("consumer-price-index");
+    expect(from("eurostat:prc_hicp_midx")).toBe("hicp");
+    expect(from("elstat:hbs103")).toBe("household-budget-survey");
+    expect(from("ec-empl:x")).toBeUndefined();
+    expect(roundingOnly(check({ agree: 8, differ: { rounding: 2 } }))).toBe(2);
+    expect(roundingOnly(check({}))).toBe(0);
+    expect(roundingOnly(check({ agree: 8, differ: { rounding: 1, revision: 1 } }))).toBe(0);
+  });
+
+  it("states the years checked and lists the causes in their fixed order", { meta: {
+    id: "VT-M5-008",
+    given: [
+      "checks that compared no years (an empty list, and no list at all), one year, and three years given out of order",
+      "a check with differences from an unknown cause, a revision and rounding, given in that order",
+      "a survey period naming a group the site has no name for",
+    ],
+    when: "their checked span, their causes and the period's label are written in English and Greek",
+    then: [
+      "no years give no text, one year reads «checked 2020», three read «checked 2018–2020», and Greek uses its own words",
+      "the causes read rounding, then the revision, then the unknown cause, each with its count",
+      "the period reads as its year and the group's code",
+    ],
+  } }, () => {
+    expect(checkedSpan("en", check({ by_year: {} }))).toBe("");
+    expect(checkedSpan("en", {} as Pick<Check, "by_year">)).toBe("");
+    expect(checkedSpan("en", check({ by_year: { 2020: { compared: 1, agree: 1 } } }))).toBe("checked 2020");
+    const three = check({ by_year: { 2020: { compared: 1, agree: 1 }, 2018: { compared: 1, agree: 1 }, 2019: { compared: 1, agree: 0 } } });
+    expect(checkedSpan("en", three)).toBe("checked 2018–2020");
+    expect(checkedSpan("el", three)).toBe(t("el", "m5.checked", { from: "2018", to: "2020" }));
+    const mixed = check({ agree: 4, differ: { "not-known": 3, revision: 2, rounding: 1 } });
+    expect(causes("en", mixed)).toBe("1 rounding, 2 a revision not carried through, 3 reason not known yet");
+    expect(causes("el", mixed)).toBe(`1 ${t("el", "m5.cat.rounding")}, 2 ${t("el", "m5.cat.revision")}, 3 ${t("el", "m5.cat.not-known")}`);
+    expect(periodLabel("en", "2019/Z9")).toBe("2019 · Z9");
   });
 });

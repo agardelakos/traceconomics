@@ -1,7 +1,10 @@
 // The build step that marks glossary terms in the written pages.
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
-import { loadTerms, markTerms, matcher } from "./glossary-terms.mjs";
+import { glossaryTerms, loadTerms, markTerms, matcher } from "./glossary-terms.mjs";
 
 type Node = { type: string; tagName?: string; value?: string; properties?: Record<string, unknown>; children?: Node[] };
 const p = (...children: Node[]): Node => ({ type: "element", tagName: "p", properties: {}, children });
@@ -126,5 +129,91 @@ describe("marking glossary terms", () => {
       for (const t of terms) expect(t.forms.length, `${lang}/${t.slug}`).toBeGreaterThan(0);
       expect(() => matcher(terms)).not.toThrow();
     }
+  });
+});
+
+// A made-up site folder for the plugin: one glossary term in English and the link text. The
+// plugin is handed each Markdown file's address by the processor.
+function site(): { contentDir: string; i18nDir: string; url: (rel: string) => URL } {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "glossary-plugin-"));
+  const contentDir = path.join(root, "content");
+  const i18nDir = path.join(root, "i18n");
+  fs.mkdirSync(path.join(contentDir, "glossary", "en"), { recursive: true });
+  fs.mkdirSync(i18nDir);
+  fs.writeFileSync(path.join(contentDir, "glossary", "en", "inflation.md"),
+    '---\nterm: "Inflation"\nforms: ["inflation"]\nshort: "Prices rising."\n---\nBody.\n');
+  fs.writeFileSync(path.join(i18nDir, "en.json"), JSON.stringify({ "glossary.more": "Read more" }));
+  return { contentDir, i18nDir, url: (rel) => pathToFileURL(path.join(contentDir, rel)) };
+}
+
+type Plugin = { name: string; text: (node: Node, ctx: unknown) => void };
+type Factory = (file: { fileURL?: URL }) => Plugin | null;
+
+// A paragraph's text node as the processor hands it to the plugin: the node, a way up to its
+// parents (`inside` first, then the paragraph, then the root), and the call that swaps it for
+// the marked nodes. Returns what the plugin swapped in, or null if it left the node alone.
+function visit(plugin: Plugin, value: string, inside: Node[] = []): Node[] | null {
+  const node = text(value);
+  const chain = [node, ...inside, p(), root()];
+  const parents = new Map(chain.slice(0, -1).map((n, i) => [n, chain[i + 1]] as [Node, Node]));
+  let replaced: Node[] | null = null;
+  plugin.text(node, { parent: (n: Node) => parents.get(n), replaceNode: (_: Node, out: Node[]) => { replaced = out; } });
+  return replaced;
+}
+const buttonId = (out: Node[] | null) => out?.[0].children?.[0].properties?.popovertarget as string | undefined;
+
+describe("the glossary plugin", () => {
+  it("runs only on content pages in a site language and marks each term's first mention", { meta: {
+    id: "VT-GLOSS-008",
+    given: [
+      "a site folder with the term inflation in its English glossary",
+      "no file address, a file outside the content folder, a file one level too deep, a file in an unknown language, a file that isn't Markdown, and an English method page",
+    ],
+    when: "the plugin is asked for each file, and the method page's text nodes are passed through it",
+    then: [
+      "every file but the method page gets no plugin",
+      "a mention inside a link is left as it is",
+      "the method page's first mention of inflation becomes a popover with the term, its short text and a link to its page, named by the language's link text",
+      "a second mention on the same page is left as it is",
+    ],
+  } }, () => {
+    const s = site();
+    const factory = glossaryTerms({ contentDir: s.contentDir, i18nDir: s.i18nDir }) as Factory;
+    expect(factory({})).toBeNull();
+    expect(factory({ fileURL: pathToFileURL(path.join(s.contentDir, "..", "elsewhere", "en", "x.md")) })).toBeNull();
+    expect(factory({ fileURL: s.url("method/en/deeper/x.md") })).toBeNull();
+    expect(factory({ fileURL: s.url("method/de/x.md") })).toBeNull();
+    expect(factory({ fileURL: s.url("method/en/x.txt") })).toBeNull();
+
+    const plugin = factory({ fileURL: s.url("method/en/prices.md") })!;
+    expect(plugin.name).toBe("glossary-terms");
+    expect(visit(plugin, "Prices and inflation, again.", [a()])).toBeNull();
+    const out = visit(plugin, "Prices and inflation.");
+    expect(out?.map((n) => n.type)).toEqual(["text", "element", "text"]);
+    const popover = out![1].children![1];
+    expect(popover.children!.map((n) => n.children![0].value)).toEqual(["Inflation", "Prices rising.", "Read more"]);
+    expect(popover.children![2].properties).toEqual({ href: "/en/glossary/inflation/" });
+    expect(visit(plugin, "More inflation.")).toBeNull();
+  });
+
+  it("leaves a term's own page unmarked, names steps' popovers by their file and reads each language once", { meta: {
+    id: "VT-GLOSS-009",
+    given: "the same site folder, the term's own glossary page and two step files of one topic",
+    when: "each page's text naming the term is passed through the plugin, the link text file removed after the first page",
+    then: [
+      "the term's own page leaves its name unmarked",
+      "each step file marks the term, and their popover ids differ only by the step's file name",
+      "the pages after the first still mark the term, from the language's files as read the first time",
+    ],
+  } }, () => {
+    const s = site();
+    const factory = glossaryTerms({ contentDir: s.contentDir, i18nDir: s.i18nDir }) as Factory;
+    const own = factory({ fileURL: s.url("glossary/en/inflation.md") })!;
+    fs.rmSync(path.join(s.i18nDir, "en.json"));
+    expect(visit(own, "Inflation is the rise in prices.")).toBeNull();
+    const one = buttonId(visit(factory({ fileURL: s.url("steps/en/step-1.md") })!, "Inflation."));
+    const two = buttonId(visit(factory({ fileURL: s.url("steps/en/step-2.md") })!, "Inflation."));
+    expect(one).toMatch(/^term-inflation-[0-9a-z]+-md-step-1$/);
+    expect(two).toBe(one!.replace(/step-1$/, "step-2"));
   });
 });
