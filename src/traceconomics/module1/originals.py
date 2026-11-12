@@ -32,7 +32,7 @@ from __future__ import annotations
 from traceconomics.checks import require
 from traceconomics.engine.chain import Prices, link_month, months
 from traceconomics import mapping_tables
-from traceconomics.sources.elstat.original07 import TOTAL, Original07, parse
+from traceconomics.sources.elstat.original07 import Original07, parse
 
 YEARS = (2008, 2009, 2010)
 BASE_YEAR = "2009"

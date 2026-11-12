@@ -33,7 +33,7 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ElementTree
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -46,7 +46,7 @@ RANK = {"failed": 3, "flaky": 2, "passed": 1, "skipped": 0}
 
 
 def now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class Run:

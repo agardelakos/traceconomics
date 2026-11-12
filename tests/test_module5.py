@@ -237,7 +237,7 @@ def _store(rows):
     for ds, period, value, dims in rows:
         key = ",".join(f"{k}={dims[k]}" for k in sorted(dims))
         con.execute(
-            f"INSERT INTO observations VALUES (?, ?, ?, ?, ?, '2026-11-08', '2026-11-08', 'new', "
+            "INSERT INTO observations VALUES (?, ?, ?, ?, ?, '2026-11-08', '2026-11-08', 'new', "
             + ", ".join("?" * len(DIMS))
             + ")",
             [ds, key, period, value, repr(value), *[dims.get(d) for d in DIMS]],

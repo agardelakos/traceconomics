@@ -68,7 +68,7 @@ class Case:
         return asdict(self)
 
     @staticmethod
-    def from_json(d: dict) -> "Case":
+    def from_json(d: dict) -> Case:
         return Case(**d)
 
 

@@ -151,7 +151,7 @@ def badge(name: str, result: dict, level: str) -> str:
         f'aria-label="{escape(title)}">\n<title>{escape(title)}</title>\n'
         f'<clipPath id="r"><rect width="{x}" height="20" rx="3"/></clipPath>\n'
         f'<g clip-path="url(#r)">\n' + "\n".join(rects) + "\n</g>\n"
-        f'<g fill="#fff" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">\n'
+        '<g fill="#fff" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">\n'
         + "\n".join(texts)
         + "\n</g>\n</svg>\n"
     )

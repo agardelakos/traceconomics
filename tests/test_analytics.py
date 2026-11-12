@@ -11,11 +11,9 @@ import pytest
 from traceconomics.analytics import (
     AnalyticsError,
     Archive,
-    days_to_fetch,
     export,
     export_day,
     fetch_day,
-    payload,
 )
 
 pytestmark = pytest.mark.integration
@@ -259,7 +257,7 @@ def test_graphql_errors_returns_failed():
     result = export(a, state, today, token="tok", account="acc", post=post, now=_now(today))
 
     assert result["result"] == "failed"
-    assert "2026-10-27: " in result["error"]
+    assert f"{yesterday.isoformat()}: " in result["error"]
     # State untouched — nothing was stored.
     assert state.get("analytics_through") is None
     assert a.datasets() == []

@@ -102,7 +102,7 @@ def test_a_page_inside_a_section_marks_the_section(site):
     Then the Countries link is marked as the current section ("true")
     """
     site.open("/en/gr/inflation-by-group/")
-    countries = site.find(f'nav#site-menu a[href="/en/countries/"]')
+    countries = site.find('nav#site-menu a[href="/en/countries/"]')
     assert countries.get_attribute("aria-current") == "true"
 
 

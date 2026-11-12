@@ -11,7 +11,6 @@ approximately otherwise (2008, 2009 and 2014: monthly money income rounded to th
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 
 from traceconomics.archive.store import Archive

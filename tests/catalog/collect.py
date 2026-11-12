@@ -24,7 +24,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -221,7 +221,7 @@ def catalog(cases: list[Case], missing: list[str], commit: str | None) -> dict:
     return {
         "schema": 1,
         "commit": commit,
-        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "missing": missing,
         "cases": [c.to_json() for c in cases],
     }
