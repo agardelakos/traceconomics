@@ -1,0 +1,106 @@
+{
+ "schema": 1,
+ "run_id": "20261112T164132Z-smoke-20261112T185041Z",
+ "trigger": "smoke",
+ "commit": "bb7078f456ad54413ec00a1d6d14d1693b24913f",
+ "build": "20261112T164132Z",
+ "started": "2026-11-12T18:50:41Z",
+ "environment": {
+  "data": "real",
+  "platform": "linux-aarch64",
+  "runner": "release build"
+ },
+ "suites": {
+  "playwright": {
+   "passed": 34,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 0,
+   "duration": 241.314
+  }
+ },
+ "no_case": {},
+ "cases": {
+  "PW-HOST-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.23,
+   "retries": 0
+  },
+  "PW-HOST-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.31,
+   "retries": 0
+  },
+  "PW-HOST-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 196.713,
+   "retries": 0
+  },
+  "PW-HOST-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 5.293,
+   "retries": 0,
+   "examples": {
+    "Explore with its default view draws within the policy": "passed",
+    "Explore with other options draws within the policy": "passed",
+    "Explore with the parts view draws within the policy": "passed"
+   }
+  },
+  "PW-HOST-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.321,
+   "retries": 0
+  },
+  "PW-SMOKE-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 34.903,
+   "retries": 0,
+   "examples": {
+    "/en/ loads, shows its heading and logs no error": "passed",
+    "/el/ loads, shows its heading and logs no error": "passed",
+    "/en/countries/ loads, shows its heading and logs no error": "passed",
+    "/en/topics/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/ loads, shows its heading and logs no error": "passed",
+    "/en/inflation-by-group/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/groups/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/explore/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/calculator/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/weights-timing/ loads, shows its heading and logs no error": "passed",
+    "/el/gr/inflation-by-group/explore/ loads, shows its heading and logs no error": "passed",
+    "/en/data/ loads, shows its heading and logs no error": "passed",
+    "/en/data/gr/ loads, shows its heading and logs no error": "passed",
+    "/en/glossary/ loads, shows its heading and logs no error": "passed",
+    "/en/glossary/imputed-rent/ loads, shows its heading and logs no error": "passed",
+    "/en/about/ loads, shows its heading and logs no error": "passed",
+    "/en/official-figures-consistency/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/method/ loads, shows its heading and logs no error": "passed"
+   }
+  },
+  "PW-SMOKE-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.063,
+   "retries": 0
+  },
+  "PW-SMOKE-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.481,
+   "retries": 0
+  }
+ },
+ "report": null
+}

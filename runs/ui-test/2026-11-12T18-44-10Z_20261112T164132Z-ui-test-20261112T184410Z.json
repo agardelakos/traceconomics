@@ -1,0 +1,1299 @@
+{
+ "schema": 1,
+ "run_id": "20261112T164132Z-ui-test-20261112T184410Z",
+ "trigger": "ui-test",
+ "commit": "bb7078f456ad54413ec00a1d6d14d1693b24913f",
+ "build": "20261112T164132Z",
+ "started": "2026-11-12T18:44:10Z",
+ "environment": {
+  "data": "real",
+  "platform": "linux-aarch64",
+  "runner": "release build"
+ },
+ "suites": {
+  "playwright": {
+   "passed": 546,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 9,
+   "duration": 733.047
+  }
+ },
+ "no_case": {},
+ "cases": {
+  "PW-A11Y-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 427.828,
+   "retries": 0,
+   "examples": {
+    "light, phone › /el/": "passed",
+    "light, phone › /el/countries/": "passed",
+    "light, phone › /el/topics/": "passed",
+    "light, phone › /el/gr/": "passed",
+    "light, phone › /el/inflation-by-group/": "passed",
+    "light, phone › /el/gr/inflation-by-group/": "passed",
+    "light, phone › /el/gr/inflation-by-group/explore/": "passed",
+    "light, phone › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, phone › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, phone › /el/gr/inflation-by-group/calculator/": "passed",
+    "light, phone › /el/gr/inflation-by-group/method/": "passed",
+    "light, phone › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, phone › /el/gr/inflation-by-group/groups/": "passed",
+    "light, phone › /el/data/": "passed",
+    "light, phone › /el/data/gr/": "passed",
+    "light, phone › /el/glossary/": "passed",
+    "light, phone › /el/glossary/imputed-rent/": "passed",
+    "light, phone › /el/about/": "passed",
+    "light, phone › /el/official-figures-consistency/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/method/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/checks/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/same-question/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/same-question/renters/": "passed",
+    "light, phone › /el/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "light, phone › /en/": "passed",
+    "light, phone › /en/countries/": "passed",
+    "light, phone › /en/topics/": "passed",
+    "light, phone › /en/gr/": "passed",
+    "light, phone › /en/inflation-by-group/": "passed",
+    "light, phone › /en/gr/inflation-by-group/": "passed",
+    "light, phone › /en/gr/inflation-by-group/explore/": "passed",
+    "light, phone › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, phone › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, phone › /en/gr/inflation-by-group/calculator/": "passed",
+    "light, phone › /en/gr/inflation-by-group/method/": "passed",
+    "light, phone › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, phone › /en/gr/inflation-by-group/groups/": "passed",
+    "light, phone › /en/data/": "passed",
+    "light, phone › /en/data/gr/": "passed",
+    "light, phone › /en/glossary/": "passed",
+    "light, phone › /en/glossary/imputed-rent/": "passed",
+    "light, phone › /en/about/": "passed",
+    "light, phone › /en/official-figures-consistency/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/method/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/checks/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/same-question/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/same-question/renters/": "passed",
+    "light, phone › /en/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "light, desktop › /el/": "passed",
+    "light, desktop › /el/countries/": "passed",
+    "light, desktop › /el/topics/": "passed",
+    "light, desktop › /el/gr/": "passed",
+    "light, desktop › /el/inflation-by-group/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/explore/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, desktop › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, desktop › /el/gr/inflation-by-group/calculator/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/method/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, desktop › /el/gr/inflation-by-group/groups/": "passed",
+    "light, desktop › /el/data/": "passed",
+    "light, desktop › /el/data/gr/": "passed",
+    "light, desktop › /el/glossary/": "passed",
+    "light, desktop › /el/glossary/imputed-rent/": "passed",
+    "light, desktop › /el/about/": "passed",
+    "light, desktop › /el/official-figures-consistency/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/method/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/checks/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/same-question/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/same-question/renters/": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "light, desktop › /en/": "passed",
+    "light, desktop › /en/countries/": "passed",
+    "light, desktop › /en/topics/": "passed",
+    "light, desktop › /en/gr/": "passed",
+    "light, desktop › /en/inflation-by-group/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/explore/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "light, desktop › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "light, desktop › /en/gr/inflation-by-group/calculator/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/method/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "light, desktop › /en/gr/inflation-by-group/groups/": "passed",
+    "light, desktop › /en/data/": "passed",
+    "light, desktop › /en/data/gr/": "passed",
+    "light, desktop › /en/glossary/": "passed",
+    "light, desktop › /en/glossary/imputed-rent/": "passed",
+    "light, desktop › /en/about/": "passed",
+    "light, desktop › /en/official-figures-consistency/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/method/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/checks/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/same-question/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/same-question/renters/": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "dark, phone › /el/": "passed",
+    "dark, phone › /el/countries/": "passed",
+    "dark, phone › /el/topics/": "passed",
+    "dark, phone › /el/gr/": "passed",
+    "dark, phone › /el/inflation-by-group/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/explore/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, phone › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, phone › /el/gr/inflation-by-group/calculator/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/method/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, phone › /el/gr/inflation-by-group/groups/": "passed",
+    "dark, phone › /el/data/": "passed",
+    "dark, phone › /el/data/gr/": "passed",
+    "dark, phone › /el/glossary/": "passed",
+    "dark, phone › /el/glossary/imputed-rent/": "passed",
+    "dark, phone › /el/about/": "passed",
+    "dark, phone › /el/official-figures-consistency/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/method/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/checks/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/same-question/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/same-question/renters/": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "dark, phone › /en/": "passed",
+    "dark, phone › /en/countries/": "passed",
+    "dark, phone › /en/topics/": "passed",
+    "dark, phone › /en/gr/": "passed",
+    "dark, phone › /en/inflation-by-group/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/explore/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, phone › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, phone › /en/gr/inflation-by-group/calculator/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/method/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, phone › /en/gr/inflation-by-group/groups/": "passed",
+    "dark, phone › /en/data/": "passed",
+    "dark, phone › /en/data/gr/": "passed",
+    "dark, phone › /en/glossary/": "passed",
+    "dark, phone › /en/glossary/imputed-rent/": "passed",
+    "dark, phone › /en/about/": "passed",
+    "dark, phone › /en/official-figures-consistency/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/method/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/checks/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/same-question/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/same-question/renters/": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "dark, desktop › /el/": "passed",
+    "dark, desktop › /el/countries/": "passed",
+    "dark, desktop › /el/topics/": "passed",
+    "dark, desktop › /el/gr/": "passed",
+    "dark, desktop › /el/inflation-by-group/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/explore/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/calculator/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/method/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, desktop › /el/gr/inflation-by-group/groups/": "passed",
+    "dark, desktop › /el/data/": "passed",
+    "dark, desktop › /el/data/gr/": "passed",
+    "dark, desktop › /el/glossary/": "passed",
+    "dark, desktop › /el/glossary/imputed-rent/": "passed",
+    "dark, desktop › /el/about/": "passed",
+    "dark, desktop › /el/official-figures-consistency/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/method/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/checks/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/same-question/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/same-question/renters/": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/same-question/rent-paid/": "passed",
+    "dark, desktop › /en/": "passed",
+    "dark, desktop › /en/countries/": "passed",
+    "dark, desktop › /en/topics/": "passed",
+    "dark, desktop › /en/gr/": "passed",
+    "dark, desktop › /en/inflation-by-group/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/explore/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/explore/?weights_timing=U&price_source=hicp&groups=Q1,Q5,tenure/renter": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/explore/?groups=Q1,Q5&view=parts": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/calculator/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/method/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/method/weights-timing/": "passed",
+    "dark, desktop › /en/gr/inflation-by-group/groups/": "passed",
+    "dark, desktop › /en/data/": "passed",
+    "dark, desktop › /en/data/gr/": "passed",
+    "dark, desktop › /en/glossary/": "passed",
+    "dark, desktop › /en/glossary/imputed-rent/": "passed",
+    "dark, desktop › /en/about/": "passed",
+    "dark, desktop › /en/official-figures-consistency/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/method/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/checks/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/same-question/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/same-question/renters/": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/same-question/rent-paid/": "passed"
+   }
+  },
+  "PW-A11Y-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 18.913,
+   "retries": 0,
+   "examples": {
+    "light, phone › /el/ with each menu open": "passed",
+    "light, phone › /en/ with each menu open": "passed",
+    "light, desktop › /el/ with each menu open": "passed",
+    "light, desktop › /en/ with each menu open": "passed",
+    "dark, phone › /el/ with each menu open": "passed",
+    "dark, phone › /en/ with each menu open": "passed",
+    "dark, desktop › /el/ with each menu open": "passed",
+    "dark, desktop › /en/ with each menu open": "passed"
+   }
+  },
+  "PW-A11Y-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 47.649,
+   "retries": 0,
+   "examples": {
+    "light, phone › /el/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "light, phone › /en/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "light, desktop › /el/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "light, desktop › /en/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "dark, phone › /el/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "dark, phone › /en/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "dark, desktop › /el/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed",
+    "dark, desktop › /en/gr/official-figures-consistency/ with a status shown alone and a source's definition open": "passed"
+   }
+  },
+  "PW-CALC-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.808,
+   "retries": 0,
+   "examples": {
+    "el: untouched, it shows the published series' latest rate": "passed",
+    "en: untouched, it shows the published series' latest rate": "passed"
+   }
+  },
+  "PW-CALC-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.09,
+   "retries": 0
+  },
+  "PW-CALC-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.046,
+   "retries": 0
+  },
+  "PW-CALC-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.905,
+   "retries": 0
+  },
+  "PW-CALC-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.781,
+   "retries": 0
+  },
+  "PW-CALC-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.664,
+   "retries": 0
+  },
+  "PW-CALC-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.661,
+   "retries": 0
+  },
+  "PW-CALC-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.859,
+   "retries": 0
+  },
+  "PW-CALC-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.266,
+   "retries": 0
+  },
+  "PW-CALC-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.104,
+   "retries": 0
+  },
+  "PW-EXPL-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.488,
+   "retries": 0,
+   "examples": {
+    "el: the default view's summary is the default setting's latest values": "passed",
+    "en: the default view's summary is the default setting's latest values": "passed"
+   }
+  },
+  "PW-EXPL-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.56,
+   "retries": 0
+  },
+  "PW-EXPL-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.117,
+   "retries": 0
+  },
+  "PW-EXPL-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.705,
+   "retries": 0
+  },
+  "PW-EXPL-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.236,
+   "retries": 0
+  },
+  "PW-EXPL-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.055,
+   "retries": 0
+  },
+  "PW-EXPL-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.339,
+   "retries": 0,
+   "examples": {
+    "the rch_m measure changes the summary, and the gap is for the annual rate only": "passed",
+    "the index measure changes the summary, and the gap is for the annual rate only": "passed"
+   }
+  },
+  "PW-EXPL-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.042,
+   "retries": 0
+  },
+  "PW-EXPL-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.957,
+   "retries": 0
+  },
+  "PW-EXPL-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.493,
+   "retries": 0
+  },
+  "PW-EXPL-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.283,
+   "retries": 0
+  },
+  "PW-EXPL-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.543,
+   "retries": 0
+  },
+  "PW-EXPL-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.106,
+   "retries": 0
+  },
+  "PW-EXPL-014": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.525,
+   "retries": 0
+  },
+  "PW-EXPL-015": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.222,
+   "retries": 0
+  },
+  "PW-EXPL-016": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.044,
+   "retries": 0
+  },
+  "PW-EXPL-017": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.082,
+   "retries": 0
+  },
+  "PW-EXPL-018": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.144,
+   "retries": 0
+  },
+  "PW-EXPL-019": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.634,
+   "retries": 0
+  },
+  "PW-EXPL-020": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.69,
+   "retries": 0
+  },
+  "PW-EXPL-021": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.988,
+   "retries": 0
+  },
+  "PW-EXPL-022": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.191,
+   "retries": 0
+  },
+  "PW-EXPL-023": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.877,
+   "retries": 0
+  },
+  "PW-GRP-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.858,
+   "retries": 0
+  },
+  "PW-GRP-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 3.666,
+   "retries": 0,
+   "examples": {
+    "the group finder › 3 aged 14 or over (0 dependent), 0 children: A_GE3": "passed",
+    "the group finder › 3 aged 14 or over (1 dependent), 0 children: A2_DCH": "passed",
+    "the group finder › 1 aged 14 or over (0 dependent), 1 children: A1_DCH": "passed",
+    "the group finder › 1 aged 14 or over (1 dependent), 1 children: no type": "passed"
+   }
+  },
+  "PW-GRP-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.825,
+   "retries": 0
+  },
+  "PW-GRP-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.768,
+   "retries": 0
+  },
+  "PW-GRP-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.634,
+   "retries": 0
+  },
+  "PW-GRP-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.161,
+   "retries": 0
+  },
+  "PW-GRP-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.778,
+   "retries": 0
+  },
+  "PW-GRP-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.766,
+   "retries": 0
+  },
+  "PW-GRP-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.161,
+   "retries": 0
+  },
+  "PW-GRP-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.396,
+   "retries": 0
+  },
+  "PW-GRP-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.966,
+   "retries": 0
+  },
+  "PW-GRP-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.779,
+   "retries": 0
+  },
+  "PW-GRP-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.311,
+   "retries": 0
+  },
+  "PW-GRP-014": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.639,
+   "retries": 0
+  },
+  "PW-GRP-015": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.816,
+   "retries": 0
+  },
+  "PW-GRP-016": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.148,
+   "retries": 0
+  },
+  "PW-GRP-017": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.497,
+   "retries": 0
+  },
+  "PW-GRP-018": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.136,
+   "retries": 0
+  },
+  "PW-GRP-019": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 2.759,
+   "retries": 0,
+   "examples": {
+    "the group finder › \"abc\" is not an income, and is ignored": "passed",
+    "the group finder › \"1,50,0\" is not an income, and is ignored": "passed",
+    "the group finder › \"-5\" is not an income, and is ignored": "passed",
+    "the group finder › \"0\" is not an income, and is ignored": "passed"
+   }
+  },
+  "PW-HOST-001": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-HOST-002": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-HOST-003": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-HOST-004": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0,
+   "examples": {
+    "Explore with its default view draws within the policy": "skipped",
+    "Explore with other options draws within the policy": "skipped",
+    "Explore with the parts view draws within the policy": "skipped"
+   }
+  },
+  "PW-HOST-005": {
+   "suite": "playwright",
+   "result": "skipped",
+   "duration": 0.0,
+   "retries": 0
+  },
+  "PW-LINK-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.165,
+   "retries": 0
+  },
+  "PW-LINK-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 81.751,
+   "retries": 0,
+   "examples": {
+    "/el/ loads, with a heading, and logs no error": "passed",
+    "/el/about/ loads, with a heading, and logs no error": "passed",
+    "/el/countries/ loads, with a heading, and logs no error": "passed",
+    "/el/data/ loads, with a heading, and logs no error": "passed",
+    "/el/data/gr/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/actual-rent/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/annual-average/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/annual-rate/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/bootstrap/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/chain-linking/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/coicop/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/consumer-price-index/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/contribution/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/democratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/dependent-child/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/equivalence-scale/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/equivalised-income/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/gap/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/hicp/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/household-budget-survey/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/inflation/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/laspeyres-index/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/microdata/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/monthly-rate/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/pensioner-household/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/percentage-point/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/plutocratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/price-index/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/price-updating/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/purchasing-power-standard/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/quintile/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/reliability/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/spending-concept/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/standard-error/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/tenure/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/el/glossary/weights/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/calculator/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/explore/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/groups/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/grouping/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/price-source/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/spending/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/inflation-by-group/method/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-rebuilt/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/cpi-rates-rebuilt/coicop18-reissue/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/cpi-rebuilt-items/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/hbs-spending/survey-weights/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/checks/hicp-rebuilt-items/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/method/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/household-income/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/income-limits/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/rent-change/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/rent-paid/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/rent-weight/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/renters/ loads, with a heading, and logs no error": "passed",
+    "/el/gr/official-figures-consistency/same-question/unemployment/ loads, with a heading, and logs no error": "passed",
+    "/el/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/el/official-figures-consistency/ loads, with a heading, and logs no error": "passed",
+    "/el/topics/ loads, with a heading, and logs no error": "passed",
+    "/en/ loads, with a heading, and logs no error": "passed",
+    "/en/about/ loads, with a heading, and logs no error": "passed",
+    "/en/countries/ loads, with a heading, and logs no error": "passed",
+    "/en/data/ loads, with a heading, and logs no error": "passed",
+    "/en/data/gr/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/actual-rent/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/annual-average/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/annual-rate/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/bootstrap/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/chain-linking/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/coicop/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/consumer-price-index/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/contribution/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/democratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/dependent-child/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/equivalence-scale/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/equivalised-income/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/gap/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/hicp/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/household-budget-survey/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/inflation/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/laspeyres-index/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/microdata/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/monthly-rate/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/pensioner-household/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/percentage-point/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/plutocratic-weighting/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/price-index/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/price-updating/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/purchasing-power-standard/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/quintile/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/reliability/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/spending-concept/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/standard-error/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/tenure/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/en/glossary/weights/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/calculator/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/explore/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/groups/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/grouping/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/imputed-rent/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/price-source/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/spending/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/tutoring/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/weights-timing/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-rebuilt/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-rebuilt/coicop18-reissue/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rebuilt-items/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/hbs-household-types/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/hbs-household-types/household-type-rules/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/hbs-spending/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/hbs-spending/survey-weights/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/hicp-rebuilt-items/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/method/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/household-income/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/income-limits/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/rent-change/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/rent-paid/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/rent-weight/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/renters/ loads, with a heading, and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/unemployment/ loads, with a heading, and logs no error": "passed",
+    "/en/inflation-by-group/ loads, with a heading, and logs no error": "passed",
+    "/en/official-figures-consistency/ loads, with a heading, and logs no error": "passed",
+    "/en/topics/ loads, with a heading, and logs no error": "passed"
+   }
+  },
+  "PW-LINK-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 4.246,
+   "retries": 0
+  },
+  "PW-LINK-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.155,
+   "retries": 0
+  },
+  "PW-LINK-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.12,
+   "retries": 0
+  },
+  "PW-M5-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.316,
+   "retries": 0,
+   "examples": {
+    "the overview says why, gives three numbers and leads to each part of the topic (en)": "passed",
+    "the overview says why, gives three numbers and leads to each part of the topic (el)": "passed"
+   }
+  },
+  "PW-M5-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.332,
+   "retries": 0
+  },
+  "PW-M5-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.882,
+   "retries": 0
+  },
+  "PW-M5-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.089,
+   "retries": 0
+  },
+  "PW-M5-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.258,
+   "retries": 0
+  },
+  "PW-M5-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.886,
+   "retries": 0
+  },
+  "PW-M5-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.516,
+   "retries": 0
+  },
+  "PW-M5-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.076,
+   "retries": 0
+  },
+  "PW-M5-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.626,
+   "retries": 0
+  },
+  "PW-M5-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.046,
+   "retries": 0
+  },
+  "PW-M5-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.225,
+   "retries": 0
+  },
+  "PW-M5-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.598,
+   "retries": 0
+  },
+  "PW-M5-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.586,
+   "retries": 0
+  },
+  "PW-M5-014": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.945,
+   "retries": 0
+  },
+  "PW-M5-015": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.103,
+   "retries": 0
+  },
+  "PW-M5-016": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.477,
+   "retries": 0
+  },
+  "PW-M5-017": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.653,
+   "retries": 0
+  },
+  "PW-M5-018": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.512,
+   "retries": 0
+  },
+  "PW-M5-019": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.105,
+   "retries": 0
+  },
+  "PW-M5-020": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.662,
+   "retries": 0
+  },
+  "PW-NAV-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.706,
+   "retries": 0
+  },
+  "PW-NAV-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.052,
+   "retries": 0
+  },
+  "PW-NAV-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.679,
+   "retries": 0
+  },
+  "PW-NAV-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.985,
+   "retries": 0,
+   "examples": {
+    "Glossary is marked as the current page on /en/glossary/": "passed",
+    "Topics is marked as the current page on /en/topics/": "passed"
+   }
+  },
+  "PW-NAV-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.749,
+   "retries": 0
+  },
+  "PW-NAV-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.508,
+   "retries": 0
+  },
+  "PW-NAV-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.647,
+   "retries": 0,
+   "examples": {
+    "a browser in el-GR › is sent from the root to the right language": "passed",
+    "a browser in en-US › is sent from the root to the right language": "passed",
+    "a browser in de-DE › is sent from the root to the right language": "passed"
+   }
+  },
+  "PW-NAV-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.42,
+   "retries": 0
+  },
+  "PW-NAV-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.773,
+   "retries": 0
+  },
+  "PW-NAV-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.589,
+   "retries": 0
+  },
+  "PW-NAV-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.753,
+   "retries": 0
+  },
+  "PW-NAV-012": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.468,
+   "retries": 0
+  },
+  "PW-NAV-013": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.573,
+   "retries": 0
+  },
+  "PW-NAV-014": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.583,
+   "retries": 0
+  },
+  "PW-NAV-015": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.961,
+   "retries": 0
+  },
+  "PW-NAV-016": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.679,
+   "retries": 0
+  },
+  "PW-NOJS-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.453,
+   "retries": 0
+  },
+  "PW-NOJS-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.697,
+   "retries": 0
+  },
+  "PW-NOJS-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.559,
+   "retries": 0
+  },
+  "PW-NOJS-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.556,
+   "retries": 0
+  },
+  "PW-NOJS-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.041,
+   "retries": 0,
+   "examples": {
+    "explore says it needs a script and links to the data files": "passed",
+    "calculator says it needs a script and links to the data files": "passed"
+   }
+  },
+  "PW-NOJS-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.434,
+   "retries": 0
+  },
+  "PW-PRIV-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.94,
+   "retries": 0
+  },
+  "PW-PRIV-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.45,
+   "retries": 0
+  },
+  "PW-PRIV-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.095,
+   "retries": 0
+  },
+  "PW-PRIV-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 5.414,
+   "retries": 0
+  },
+  "PW-SMOKE-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 22.756,
+   "retries": 0,
+   "examples": {
+    "/en/ loads, shows its heading and logs no error": "passed",
+    "/el/ loads, shows its heading and logs no error": "passed",
+    "/en/countries/ loads, shows its heading and logs no error": "passed",
+    "/en/topics/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/ loads, shows its heading and logs no error": "passed",
+    "/en/inflation-by-group/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/groups/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/explore/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/calculator/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/inflation-by-group/method/weights-timing/ loads, shows its heading and logs no error": "passed",
+    "/el/gr/inflation-by-group/explore/ loads, shows its heading and logs no error": "passed",
+    "/en/data/ loads, shows its heading and logs no error": "passed",
+    "/en/data/gr/ loads, shows its heading and logs no error": "passed",
+    "/en/glossary/ loads, shows its heading and logs no error": "passed",
+    "/en/glossary/imputed-rent/ loads, shows its heading and logs no error": "passed",
+    "/en/about/ loads, shows its heading and logs no error": "passed",
+    "/en/official-figures-consistency/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/checks/cpi-rates-own-index/june-2001/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/same-question/ loads, shows its heading and logs no error": "passed",
+    "/en/gr/official-figures-consistency/method/ loads, shows its heading and logs no error": "passed"
+   }
+  },
+  "PW-SMOKE-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.316,
+   "retries": 0
+  },
+  "PW-SMOKE-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.127,
+   "retries": 0
+  },
+  "PW-TERM-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.913,
+   "retries": 0
+  },
+  "PW-TERM-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.711,
+   "retries": 0
+  },
+  "PW-TERM-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.868,
+   "retries": 0
+  },
+  "PW-TERM-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.791,
+   "retries": 0
+  },
+  "PW-TERM-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.985,
+   "retries": 0
+  },
+  "PW-TERM-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.614,
+   "retries": 0
+  },
+  "PW-TERM-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.5,
+   "retries": 0
+  },
+  "PW-TERM-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.73,
+   "retries": 0
+  },
+  "PW-TERM-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.606,
+   "retries": 0
+  },
+  "PW-THEME-001": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 1.386,
+   "retries": 0,
+   "examples": {
+    "choosing dark applies it and keeps it in this browser": "passed",
+    "choosing light applies it and keeps it in this browser": "passed"
+   }
+  },
+  "PW-THEME-002": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.551,
+   "retries": 0
+  },
+  "PW-THEME-003": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.988,
+   "retries": 0
+  },
+  "PW-THEME-004": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.853,
+   "retries": 0
+  },
+  "PW-THEME-005": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.453,
+   "retries": 0
+  },
+  "PW-THEME-006": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.59,
+   "retries": 0
+  },
+  "PW-THEME-007": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.7,
+   "retries": 0
+  },
+  "PW-THEME-008": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.64,
+   "retries": 0
+  },
+  "PW-THEME-009": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.566,
+   "retries": 0
+  },
+  "PW-THEME-010": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.597,
+   "retries": 0
+  },
+  "PW-THEME-011": {
+   "suite": "playwright",
+   "result": "passed",
+   "duration": 0.753,
+   "retries": 0
+  }
+ },
+ "report": null
+}

@@ -1,0 +1,25 @@
+{
+ "schema": 1,
+ "run_id": "20261112T164132Z-promote-20261112T185607Z",
+ "trigger": "promote",
+ "commit": "bb7078f456ad54413ec00a1d6d14d1693b24913f",
+ "build": "20261112T164132Z",
+ "started": "2026-11-12T18:56:07Z",
+ "environment": {
+  "data": "real",
+  "platform": "linux-aarch64",
+  "runner": "release build"
+ },
+ "suites": {
+  "promote-check": {
+   "passed": 1,
+   "failed": 0,
+   "flaky": 0,
+   "skipped": 0,
+   "duration": 0.0
+  }
+ },
+ "no_case": {},
+ "cases": {},
+ "report": null
+}
