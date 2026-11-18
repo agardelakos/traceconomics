@@ -147,7 +147,7 @@ def run(ctx: RunContext, state: dict) -> dict[str, list[date]]:
         cutoff = ctx.released_through or ctx.today
         released = [d for d in dates.get(topic, []) if d <= cutoff and (since is None or d > date.fromisoformat(since))]
         full = since is None or bool(released)
-        ok = True
+        ok, new = True, False
         for doc, title in docs:
             dataset = f"doc-{doc}"
             if not full and ctx.archive.latest(SOURCE, dataset):
@@ -156,7 +156,13 @@ def run(ctx: RunContext, state: dict) -> dict[str, list[date]]:
                 SOURCE, dataset, DOC_URL.format(doc=doc), extra={"title": title, "listed_on": url}
             )
             ok = ok and res is not None
-        if full and ok:
+            new = new or (res is not None and res.status == "stored")
+        if new:
+            ctx.brought.add(f"{SOURCE}-{topic}")
+        # A release day whose documents all came back unchanged leaves the page unread: the release
+        # is late, and ELSTAT updates some files in place under their old IDs (table 05 on
+        # 2026-11-10), so the next run must download every document again, not only new IDs.
+        if full and ok and (new or not released):
             last_full[topic] = cutoff.isoformat()
 
     # 3. The microdata catalogue: a new survey year means a manual download is due.

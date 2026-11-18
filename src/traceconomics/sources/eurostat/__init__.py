@@ -102,8 +102,12 @@ def run(ctx: RunContext, state: dict) -> list[date]:
         except (ValueError, KeyError) as exc:
             ctx.failures.append(f"{SOURCE}/calendar: unreadable ({exc}); the format may have changed")
 
+    before = len(ctx.results)
     for dataset in LIVE:
         check_and_fetch(ctx, dataset)
+    # The HICP's release: a new copy of any of its datasets (their "last data update" moved).
+    if any(r.status == "stored" and r.dataset.startswith("prc_hicp_") for r in ctx.results[before:]):
+        ctx.brought.add(f"{SOURCE}-hicp")
 
     for dataset in FROZEN:
         if ctx.archive.latest(SOURCE, dataset) is None:
