@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "f75836aabbaac926c401f1c5d057a5d9aef38e69",
- "generated": "2026-11-18T17:36:19Z",
+ "commit": "6f9a0f9f0d471a77f0ea1106ae367d6d900a6df6",
+ "generated": "2026-11-18T19:38:32Z",
  "missing": [],
  "cases": [
   {
@@ -10107,11 +10107,246 @@
    "named": false
   },
   {
+   "id": "PY-JOB-023",
+   "suite": "pytest",
+   "title": "a release day whose files haven't changed raises an alert and stays due",
+   "file": "tests/test_job.py",
+   "line": 247,
+   "node": "tests/test_job.py::test_a_release_day_without_its_files_alerts_and_stays_due",
+   "given": [
+    "a first run that archived ELSTAT's CPI documents",
+    "ELSTAT's CPI release day on 2026-11-10"
+   ],
+   "when": [
+    "the 13:00 run that day finds every CPI document unchanged (the release is late)"
+   ],
+   "then": [
+    "the run is ok, and its report alerts that the CPI release day brought no new file",
+    "the next day after 13:00 a run is due, waiting for the late release"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-024",
+   "suite": "pytest",
+   "title": "the late release arriving the next day ends the wait; every document is read again",
+   "file": "tests/test_job.py",
+   "line": 266,
+   "node": "tests/test_job.py::test_late_files_end_the_wait_and_every_document_is_read_again",
+   "given": [
+    "a CPI release day on 2026-11-10 that brought no new file"
+   ],
+   "when": [
+    "ELSTAT's documents change and the next day's run happens"
+   ],
+   "then": [
+    "that run downloads every document on the CPI page again, old IDs included (ELSTAT updates some in place)",
+    "its report has no late-release alert",
+    "the CPI's confirmed release day is 2026-11-10, and no run is due the day after"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-025",
+   "suite": "pytest",
+   "title": "a release day whose files arrive in time is confirmed, with no alert about it",
+   "file": "tests/test_job.py",
+   "line": 290,
+   "node": "tests/test_job.py::test_a_release_on_time_is_confirmed_without_an_alert",
+   "given": [
+    "a first run that archived ELSTAT's CPI documents"
+   ],
+   "when": [
+    "ELSTAT's documents change and the 13:00 run on the CPI release day 2026-11-10 happens"
+   ],
+   "then": [
+    "its report has no late-release alert",
+    "the CPI's confirmed release day is 2026-11-10, and no run is due the next day"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-026",
+   "suite": "pytest",
+   "title": "a changed publication page with unchanged documents doesn't count as the release",
+   "file": "tests/test_job.py",
+   "line": 309,
+   "node": "tests/test_job.py::test_a_page_edit_is_not_the_release",
+   "given": [
+    "a first run that archived ELSTAT's CPI page and documents"
+   ],
+   "when": [
+    "on the CPI release day a document's title changes on the page, but no document changes"
+   ],
+   "then": [
+    "the new page is stored",
+    "the report still alerts that the CPI release day brought no new file"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-027",
+   "suite": "pytest",
+   "title": "Eurostat's HICP release days alert while the datasets' last data update stays the same",
+   "file": "tests/test_job.py",
+   "line": 329,
+   "node": "tests/test_job.py::test_eurostat_hicp_release_days_without_new_files_alert",
+   "given": [
+    "a first run that archived Eurostat's HICP datasets",
+    "Eurostat's calendar with HICP release days on 2026-11-04 and 2026-11-18"
+   ],
+   "when": [
+    "the run on 2026-11-18 finds the datasets' \"last data update\" unchanged"
+   ],
+   "then": [
+    "its report alerts that both HICP release days brought no new file"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-031",
+   "suite": "pytest",
+   "title": "Eurostat's HICP release is confirmed once its last data update moves and its files change",
+   "file": "tests/test_job.py",
+   "line": 343,
+   "node": "tests/test_job.py::test_eurostat_hicp_release_is_confirmed_when_its_files_change",
+   "given": [
+    "HICP release days on 2026-11-04 and 2026-11-18 that brought no new file"
+   ],
+   "when": [
+    "the datasets' last data update moves, their files change, and the next day's run happens"
+   ],
+   "then": [
+    "the HICP's confirmed release day is 2026-11-18"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-028",
+   "suite": "pytest",
+   "title": "a job state written before this rule counts every past release day as arrived",
+   "file": "tests/test_job.py",
+   "line": 361,
+   "node": "tests/test_job.py::test_state_from_before_the_rule_raises_nothing_for_past_days",
+   "given": [
+    "a job state with a CPI release day on 2026-11-10, a last good run that day, and no confirmed days"
+   ],
+   "when": [
+    "a forced run happens the next day with nothing new"
+   ],
+   "then": [
+    "its report has no late-release alert",
+    "the CPI's confirmed release day starts at the last good run, 2026-11-10"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-029",
+   "suite": "pytest",
+   "title": "a run with failures on a release day reports the failure, not a late release",
+   "file": "tests/test_job.py",
+   "line": 381,
+   "node": "tests/test_job.py::test_a_failed_run_reports_its_failure_not_a_late_release",
+   "given": [
+    "a CPI release day on 2026-11-10"
+   ],
+   "when": [
+    "that day's run fails on one source and brings no new CPI file"
+   ],
+   "then": [
+    "the report names the failure but not a late release",
+    "the CPI release day is still awaited the next day"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-030",
+   "suite": "pytest",
+   "title": "the run's line in runs.jsonl names the release build it starts",
+   "file": "tests/test_job.py",
+   "line": 398,
+   "node": "tests/test_job.py::test_the_run_log_names_the_release_build_before_it_starts",
+   "given": [
+    "release builds turned on, and a stand-in release build that records its start time"
+   ],
+   "when": [
+    "the scheduled job runs and stores new files"
+   ],
+   "then": [
+    "the build is started with a start time",
+    "the run's line in runs.jsonl, written before the build starts, names the build by that time"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-JOB-022",
    "suite": "pytest",
    "title": "a change outside the terms block is stored and noted, without an alert",
    "file": "tests/test_job.py",
-   "line": 227,
+   "line": 422,
    "node": "tests/test_job.py::test_a_banner_on_the_terms_page_is_a_note_not_an_alert",
    "given": [
     "a first run that stored Eurostat's reuse terms page"
@@ -10138,7 +10373,7 @@
    "suite": "pytest",
    "title": "a new year in ELSTAT's microdata catalogue is reported",
    "file": "tests/test_job.py",
-   "line": 249,
+   "line": 444,
    "node": "tests/test_job.py::test_new_puf_year_raises_an_alert",
    "given": [
     "a first run that stored ELSTAT's microdata catalogue listing HBS 2008 - 2024"
@@ -10163,7 +10398,7 @@
    "suite": "pytest",
    "title": "a run with failures doesn't count as a good run",
    "file": "tests/test_job.py",
-   "line": 264,
+   "line": 459,
    "node": "tests/test_job.py::test_failures_keep_the_run_due",
    "given": [
     "fake publishers where the microdata catalogue page is missing"
@@ -10189,7 +10424,7 @@
    "suite": "pytest",
    "title": "a dry run plans but fetches and stores nothing",
    "file": "tests/test_job.py",
-   "line": 279,
+   "line": 474,
    "node": "tests/test_job.py::test_dry_run_stores_nothing",
    "given": [
     "fake publishers"
@@ -10216,7 +10451,7 @@
    "suite": "pytest",
    "title": "a morning run doesn't cover that day's release",
    "file": "tests/test_job.py",
-   "line": 295,
+   "line": 490,
    "node": "tests/test_job.py::test_morning_run_doesnt_cover_that_days_release",
    "given": [
     "fake publishers"
@@ -10241,7 +10476,7 @@
    "suite": "pytest",
    "title": "marking the backup done leaves nothing stored since the mark",
    "file": "tests/test_job.py",
-   "line": 307,
+   "line": 502,
    "node": "tests/test_job.py::test_backup_mark",
    "given": [
     "an archive filled by a run"
@@ -10266,7 +10501,7 @@
    "suite": "pytest",
    "title": "the heartbeat, backup and release build follow a run with new data",
    "file": "tests/test_job.py",
-   "line": 334,
+   "line": 529,
    "node": "tests/test_job.py::test_heartbeat_backup_and_release_follow_a_run_with_new_data",
    "given": [
     "release builds turned on, and stand-ins for the heartbeat, the backup and the release build"
@@ -10293,7 +10528,7 @@
    "suite": "pytest",
    "title": "a run with nothing new has no release and no backup",
    "file": "tests/test_job.py",
-   "line": 350,
+   "line": 545,
    "node": "tests/test_job.py::test_a_run_with_nothing_new_has_no_release_and_no_backup",
    "given": [
     "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
@@ -10320,7 +10555,7 @@
    "suite": "pytest",
    "title": "a day with no run due still sends its heartbeat",
    "file": "tests/test_job.py",
-   "line": 368,
+   "line": 563,
    "node": "tests/test_job.py::test_a_day_with_no_run_due_still_sends_its_heartbeat",
    "given": [
     "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
@@ -10346,7 +10581,7 @@
    "suite": "pytest",
    "title": "release builds are off by default",
    "file": "tests/test_job.py",
-   "line": 387,
+   "line": 582,
    "node": "tests/test_job.py::test_release_is_off_by_default",
    "given": [
     "a configuration with no release section"
@@ -10372,7 +10607,7 @@
    "suite": "pytest",
    "title": "a day with no run due still exports visit counts and backs them up",
    "file": "tests/test_job.py",
-   "line": 410,
+   "line": 605,
    "node": "tests/test_job.py::test_a_quiet_day_still_exports_visit_counts_and_backs_them_up",
    "given": [
     "a job state with no release due, an analytics stand-in that stores one day of visits and has downloads off, and stand-ins for the backup and heartbeat"
@@ -10400,7 +10635,7 @@
    "suite": "pytest",
    "title": "a lost analytics bookmark is rebuilt from the archive",
    "file": "tests/test_job.py",
-   "line": 449,
+   "line": 644,
    "node": "tests/test_job.py::test_the_bookmark_is_rebuilt_from_the_archive",
    "given": [
     "no bookmark in the job state, and stored visit days of which one was a later manual fill of an older day and one is today's"
@@ -10425,7 +10660,7 @@
    "suite": "pytest",
    "title": "a failing analytics export alerts only when days are running out",
    "file": "tests/test_job.py",
-   "line": 476,
+   "line": 671,
    "node": "tests/test_job.py::test_a_failing_export_alerts_only_when_days_are_running_out",
    "given": [
     "a visits bookmark that is recent, several days old, or missing",
@@ -10456,7 +10691,7 @@
    "suite": "pytest",
    "title": "each analytics feed has its own bookmark and alert",
    "file": "tests/test_job.py",
-   "line": 496,
+   "line": 691,
    "node": "tests/test_job.py::test_each_feed_has_its_own_bookmark_and_alert",
    "given": [
     "a visits bookmark, no downloads bookmark and a stored downloads day five days back",
@@ -24946,6 +25181,121 @@
     "no years give no text, one year reads «checked 2020», three read «checked 2018–2020», and Greek uses its own words",
     "the causes read rounding, then the revision, then the unknown cause, each with its count",
     "the period reads as its year and the group's code"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FIGS-001",
+   "suite": "vitest",
+   "title": "finds numbers with a unit in both languages' ways of writing them",
+   "file": "site/src/lib/quoted-figures.test.ts",
+   "line": 17,
+   "node": "site/src/lib/quoted-figures.test.ts › figures typed into the site's text › finds numbers with a unit in both languages' ways of writing them",
+   "given": [
+    "English and Greek sentences with percentages, points, euros, PPS, a range, a signed change and thousands grouped by a space"
+   ],
+   "when": [
+    "their figures are read"
+   ],
+   "then": [
+    "each figure is found once, as written, in order"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FIGS-002",
+   "suite": "vitest",
+   "title": "leaves out numbers without a unit and what a reader never sees",
+   "file": "site/src/lib/quoted-figures.test.ts",
+   "line": 41,
+   "node": "site/src/lib/quoted-figures.test.ts › figures typed into the site's text › leaves out numbers without a unit and what a reader never sees",
+   "given": [
+    "a text with years, a count of months, a ratio, a placeholder filled from the data and a link whose address holds a percentage"
+   ],
+   "when": [
+    "its figures are read"
+   ],
+   "then": [
+    "none is found"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FIGS-003",
+   "suite": "vitest",
+   "title": "accepts only the figures listed for each pair, exactly as written",
+   "file": "site/src/lib/quoted-figures.test.ts",
+   "line": 61,
+   "node": "site/src/lib/quoted-figures.test.ts › figures typed into the site's text › accepts only the figures listed for each pair, exactly as written",
+   "given": [
+    "an allow-list with one pair's figures, a pair that quotes them unchanged, a pair whose figure was edited and a pair not on the list"
+   ],
+   "when": [
+    "the pairs are compared with the list"
+   ],
+   "then": [
+    "the unchanged pair passes, the edited pair is reported as changed and the unlisted pair as fresh"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FIGS-004",
+   "suite": "vitest",
+   "title": "fails an entry that no longer matches any text and one without a known kind",
+   "file": "site/src/lib/quoted-figures.test.ts",
+   "line": 89,
+   "node": "site/src/lib/quoted-figures.test.ts › figures typed into the site's text › fails an entry that no longer matches any text and one without a known kind",
+   "given": [
+    "an allow-list with an entry whose text no longer quotes a figure and an entry of an unknown kind"
+   ],
+   "when": [
+    "today's figures are compared with the list"
+   ],
+   "then": [
+    "the first entry is reported as stale and the second as having no known kind"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-FIGS-005",
+   "suite": "vitest",
+   "title": "finds the site's own text matching its list",
+   "file": "site/src/lib/quoted-figures.test.ts",
+   "line": 112,
+   "node": "site/src/lib/quoted-figures.test.ts › figures typed into the site's text › finds the site's own text matching its list",
+   "given": [
+    "the site's interface strings, content pages and src/i18n/figures-allow.json"
+   ],
+   "when": [
+    "every figure typed into the text is compared with the list"
+   ],
+   "then": [
+    "nothing is fresh, changed, stale or without a known kind"
    ],
    "notes": "",
    "examples": [],
