@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "88febfb7781db47d4bf20fb1504c833ec17af11a",
- "generated": "2026-11-18T16:14:53Z",
+ "commit": "2212f1b358320523123fad634d0e4572f963fb9b",
+ "generated": "2026-11-18T17:00:08Z",
  "missing": [],
  "cases": [
   {
@@ -8570,7 +8570,7 @@
     "each listed file is hashed"
    ],
    "then": [
-    "exactly 10 files are listed",
+    "exactly 14 files are listed",
     "every file's SHA-256 matches the one listed"
    ],
    "notes": "",
@@ -9698,7 +9698,7 @@
    "suite": "pytest",
    "title": "a full run stores the sources, and a second run stores nothing new",
    "file": "tests/test_job.py",
-   "line": 164,
+   "line": 172,
    "node": "tests/test_job.py::test_full_run_then_second_run_stores_nothing",
    "given": [
     "fake publishers serving trimmed real pages and files"
@@ -9727,7 +9727,7 @@
    "suite": "pytest",
    "title": "the daily run never asks AADE, so its CDN's refusal can't stop a release",
    "file": "tests/test_job.py",
-   "line": 188,
+   "line": 196,
    "node": "tests/test_job.py::test_the_daily_run_never_asks_aade",
    "given": [
     "fake publishers that would serve AADE's statistics page, workbooks and terms page"
@@ -9753,7 +9753,7 @@
    "suite": "pytest",
    "title": "changed reuse terms raise an alert",
    "file": "tests/test_job.py",
-   "line": 202,
+   "line": 210,
    "node": "tests/test_job.py::test_changed_terms_raise_an_alert",
    "given": [
     "a first run that stored a publisher's reuse terms page"
@@ -9775,11 +9775,38 @@
    "named": false
   },
   {
+   "id": "PY-JOB-022",
+   "suite": "pytest",
+   "title": "a change outside the terms block is stored and noted, without an alert",
+   "file": "tests/test_job.py",
+   "line": 227,
+   "node": "tests/test_job.py::test_a_banner_on_the_terms_page_is_a_note_not_an_alert",
+   "given": [
+    "a first run that stored Eurostat's reuse terms page"
+   ],
+   "when": [
+    "a maintenance banner appears outside the terms block and a forced run follows"
+   ],
+   "then": [
+    "the new copy of the page is stored",
+    "no alert of the run is about the terms",
+    "the report has a note that the terms block is the same"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-JOB-008",
    "suite": "pytest",
    "title": "a new year in ELSTAT's microdata catalogue is reported",
    "file": "tests/test_job.py",
-   "line": 219,
+   "line": 249,
    "node": "tests/test_job.py::test_new_puf_year_raises_an_alert",
    "given": [
     "a first run that stored ELSTAT's microdata catalogue listing HBS 2008 - 2024"
@@ -9804,7 +9831,7 @@
    "suite": "pytest",
    "title": "a run with failures doesn't count as a good run",
    "file": "tests/test_job.py",
-   "line": 234,
+   "line": 264,
    "node": "tests/test_job.py::test_failures_keep_the_run_due",
    "given": [
     "fake publishers where the microdata catalogue page is missing"
@@ -9830,7 +9857,7 @@
    "suite": "pytest",
    "title": "a dry run plans but fetches and stores nothing",
    "file": "tests/test_job.py",
-   "line": 249,
+   "line": 279,
    "node": "tests/test_job.py::test_dry_run_stores_nothing",
    "given": [
     "fake publishers"
@@ -9857,7 +9884,7 @@
    "suite": "pytest",
    "title": "a morning run doesn't cover that day's release",
    "file": "tests/test_job.py",
-   "line": 265,
+   "line": 295,
    "node": "tests/test_job.py::test_morning_run_doesnt_cover_that_days_release",
    "given": [
     "fake publishers"
@@ -9882,7 +9909,7 @@
    "suite": "pytest",
    "title": "marking the backup done leaves nothing stored since the mark",
    "file": "tests/test_job.py",
-   "line": 277,
+   "line": 307,
    "node": "tests/test_job.py::test_backup_mark",
    "given": [
     "an archive filled by a run"
@@ -9907,7 +9934,7 @@
    "suite": "pytest",
    "title": "the heartbeat, backup and release build follow a run with new data",
    "file": "tests/test_job.py",
-   "line": 304,
+   "line": 334,
    "node": "tests/test_job.py::test_heartbeat_backup_and_release_follow_a_run_with_new_data",
    "given": [
     "release builds turned on, and stand-ins for the heartbeat, the backup and the release build"
@@ -9934,7 +9961,7 @@
    "suite": "pytest",
    "title": "a run with nothing new has no release and no backup",
    "file": "tests/test_job.py",
-   "line": 320,
+   "line": 350,
    "node": "tests/test_job.py::test_a_run_with_nothing_new_has_no_release_and_no_backup",
    "given": [
     "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
@@ -9961,7 +9988,7 @@
    "suite": "pytest",
    "title": "a day with no run due still sends its heartbeat",
    "file": "tests/test_job.py",
-   "line": 338,
+   "line": 368,
    "node": "tests/test_job.py::test_a_day_with_no_run_due_still_sends_its_heartbeat",
    "given": [
     "release builds turned on, stand-ins for the follow-ups, and an archive filled by a run"
@@ -9987,7 +10014,7 @@
    "suite": "pytest",
    "title": "release builds are off by default",
    "file": "tests/test_job.py",
-   "line": 357,
+   "line": 387,
    "node": "tests/test_job.py::test_release_is_off_by_default",
    "given": [
     "a configuration with no release section"
@@ -10013,7 +10040,7 @@
    "suite": "pytest",
    "title": "a day with no run due still exports visit counts and backs them up",
    "file": "tests/test_job.py",
-   "line": 380,
+   "line": 410,
    "node": "tests/test_job.py::test_a_quiet_day_still_exports_visit_counts_and_backs_them_up",
    "given": [
     "a job state with no release due, an analytics stand-in that stores one day of visits and has downloads off, and stand-ins for the backup and heartbeat"
@@ -10041,7 +10068,7 @@
    "suite": "pytest",
    "title": "a lost analytics bookmark is rebuilt from the archive",
    "file": "tests/test_job.py",
-   "line": 419,
+   "line": 449,
    "node": "tests/test_job.py::test_the_bookmark_is_rebuilt_from_the_archive",
    "given": [
     "no bookmark in the job state, and stored visit days of which one was a later manual fill of an older day and one is today's"
@@ -10066,7 +10093,7 @@
    "suite": "pytest",
    "title": "a failing analytics export alerts only when days are running out",
    "file": "tests/test_job.py",
-   "line": 446,
+   "line": 476,
    "node": "tests/test_job.py::test_a_failing_export_alerts_only_when_days_are_running_out",
    "given": [
     "a visits bookmark that is recent, several days old, or missing",
@@ -10097,7 +10124,7 @@
    "suite": "pytest",
    "title": "each analytics feed has its own bookmark and alert",
    "file": "tests/test_job.py",
-   "line": 466,
+   "line": 496,
    "node": "tests/test_job.py::test_each_feed_has_its_own_bookmark_and_alert",
    "given": [
     "a visits bookmark, no downloads bookmark and a stored downloads day five days back",
@@ -17989,6 +18016,223 @@
    "then": [
     "the first gives one",
     "the second gives none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-001",
+   "suite": "pytest",
+   "title": "a maintenance banner and a renamed menu label don't count as changed terms",
+   "file": "tests/test_terms.py",
+   "line": 23,
+   "node": "tests/test_terms.py::test_a_banner_and_a_menu_label_are_not_a_change_of_terms",
+   "given": [
+    "Eurostat's copyright notice as served on 2026-11-07, with a maintenance warning banner",
+    "the same page as served on 2026-11-18, without the banner and with a menu item renamed"
+   ],
+   "when": [
+    "the two copies are compared"
+   ],
+   "then": [
+    "the banner and the new label are in the visible text of only one copy each",
+    "the terms block reads the same in both, so the verdict is \"same\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-002",
+   "suite": "pytest",
+   "title": "one changed word inside the terms is a change",
+   "file": "tests/test_terms.py",
+   "line": 41,
+   "node": "tests/test_terms.py::test_a_changed_word_of_the_terms_is_a_change",
+   "given": [
+    "Eurostat's copyright notice as served on 2026-11-18",
+    "a copy in which \"non-commercial\" in the terms reads \"personal\""
+   ],
+   "when": [
+    "the two copies are compared"
+   ],
+   "then": [
+    "the verdict is \"changed\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-003",
+   "suite": "pytest",
+   "title": "a new copy without the terms block is \"missing\", never compared as a whole page",
+   "file": "tests/test_terms.py",
+   "line": 55,
+   "node": "tests/test_terms.py::test_a_page_without_its_terms_block_is_reported_as_missing",
+   "given": [
+    "Eurostat's copyright notice as served on 2026-11-18",
+    "a copy whose article element lost the class that marks the terms block"
+   ],
+   "when": [
+    "the two copies are compared"
+   ],
+   "then": [
+    "the verdict is \"missing\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-004",
+   "suite": "pytest",
+   "title": "when only the old copy lacks the terms block, the verdict is \"changed\"",
+   "file": "tests/test_terms.py",
+   "line": 70,
+   "node": "tests/test_terms.py::test_an_old_copy_without_the_block_cannot_vouch_for_the_new_one",
+   "given": [
+    "a copy of Eurostat's copyright notice whose article element lacks the block's class",
+    "the page as served on 2026-11-18, with the block"
+   ],
+   "when": [
+    "the old copy is compared with the new one"
+   ],
+   "then": [
+    "the verdict is \"changed\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-005",
+   "suite": "pytest",
+   "title": "a new link target inside the terms block is a change, even with the same words",
+   "file": "tests/test_terms.py",
+   "line": 83,
+   "node": "tests/test_terms.py::test_a_new_address_for_the_policy_document_is_a_change",
+   "given": [
+    "ELSTAT's reuse page, whose terms block links to the reuse policy PDF",
+    "a copy in which the PDF's address carries a new version stamp"
+   ],
+   "when": [
+    "the two copies are compared"
+   ],
+   "then": [
+    "the visible text is the same",
+    "the verdict is \"changed\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-006",
+   "suite": "pytest",
+   "title": "each watched page's saved copy has a terms block holding its terms",
+   "file": "tests/test_terms.py",
+   "line": 100,
+   "node": "tests/test_terms.py::test_each_watched_page_has_its_terms_block",
+   "given": [
+    "a saved copy of each watched HTML page (Eurostat, the Commission, ELSTAT)"
+   ],
+   "when": [
+    "the block named for that page in the watch list is read"
+   ],
+   "then": [
+    "it is found",
+    "it holds the page's licence or the address of its policy document",
+    "it leaves out the site's menus"
+   ],
+   "notes": "",
+   "examples": [
+    "page0-Creative Commons Attribution 4.0 International licence",
+    "page1-Creative Commons Attribution 4.0 International (CC BY 4.0) licence",
+    "page2-Copyright_Reuse_Policy_EN.pdf"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-007",
+   "suite": "pytest",
+   "title": "without a block (a PDF), or without the new bytes, every stored change counts",
+   "file": "tests/test_terms.py",
+   "line": 123,
+   "node": "tests/test_terms.py::test_a_file_without_a_block_counts_any_stored_change",
+   "given": [
+    "two different PDF files"
+   ],
+   "when": [
+    "they are compared without a block",
+    "an HTML page is compared with no new bytes to read"
+   ],
+   "then": [
+    "both verdicts are \"changed\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TERMS-008",
+   "suite": "pytest",
+   "title": "block text keeps the marked elements' text and links, and nothing else",
+   "file": "tests/test_terms.py",
+   "line": 135,
+   "node": "tests/test_terms.py::test_block_text_reads_only_the_marked_elements",
+   "given": [
+    "a page with text before, a marked element holding unclosed paragraphs, a script and a link,",
+    "a second marked element after unmarked text"
+   ],
+   "when": [
+    "the block text is read for that class"
+   ],
+   "then": [
+    "it holds the two blocks' text and the link target, one line each, in page order",
+    "neither the script nor the unmarked text",
+    "a class that no element carries gives None"
    ],
    "notes": "",
    "examples": [],
