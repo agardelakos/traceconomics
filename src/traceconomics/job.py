@@ -259,7 +259,7 @@ def render_report(config, now, due, force, stored, unchanged, ctx, to_back_up) -
         lines.append("Release days covered: " + ", ".join(d.isoformat() for d in due.release_days))
     if due.missed:
         lines.append("MISSED (no run on the day): " + ", ".join(d.isoformat() for d in due.missed))
-    for title, items in (("ALERTS", ctx.alerts), ("FAILURES", ctx.failures)):
+    for title, items in (("ALERTS", ctx.alerts), ("FAILURES", ctx.failures), ("NOTES", ctx.notes)):
         if items:
             lines += ["", f"{title}:"] + [f"- {x}" for x in items]
     lines += ["", f"New files stored: {len(stored)}. Checked and unchanged: {len(unchanged)}."]

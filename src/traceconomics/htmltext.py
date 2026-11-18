@@ -87,6 +87,73 @@ def visible_text(data: bytes | str) -> str:
     return "\n".join(line for line in lines if line)
 
 
+VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+
+
+class _Blocks(HTMLParser):
+    """Collects the markup inside every element carrying one class, as plain text and links."""
+
+    def __init__(self, cls: str):
+        super().__init__(convert_charrefs=True)
+        self.cls = cls
+        self.found = 0
+        self.open: list[str] = []  # tags open inside the current block; empty when outside one
+        self.skip = 0
+        self.parts: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if not self.open:
+            if tag not in VOID and self.cls in (a.get("class") or "").split():
+                self.found += 1
+                self.open.append(tag)
+                self.parts.append("\n")
+            return
+        # A link's target is part of the terms: a new address for a policy document
+        # is a change to read, even when the visible words stay the same.
+        target = a.get("href") if tag == "a" else a.get("src") if tag in ("iframe", "embed") else None
+        if target:
+            self.parts.append(f"\n[{tag}: {html.unescape(target)}]\n")
+        if tag in SKIP:
+            self.skip += 1
+        if tag in ("br", "p", "div", "li", "h1", "h2", "h3", "h4", "tr"):
+            self.parts.append("\n")
+        if tag not in VOID:
+            self.open.append(tag)
+
+    def handle_endtag(self, tag):
+        # Pages leave elements unclosed (<p>, <li>), so an end tag closes everything opened
+        # after its start tag, as browsers do; a stray end tag is ignored.
+        if tag not in self.open:
+            return
+        while self.open:
+            closed = self.open.pop()
+            if closed in SKIP:
+                self.skip = max(0, self.skip - 1)
+            if closed == tag:
+                break
+        self.parts.append("\n")
+
+    def handle_data(self, data):
+        if self.open and not self.skip:
+            self.parts.append(data)
+
+
+def block_text(data: bytes | str, cls: str) -> str | None:
+    """The visible text and link targets inside every element with the class ``cls``, in page order.
+
+    None if no such element exists: the page's layout has changed, and the caller must not
+    fall back to another part of the page.
+    """
+    r = _Blocks(cls)
+    r.feed(decode(data) if isinstance(data, bytes) else data)
+    r.close()
+    if not r.found:
+        return None
+    lines = (_squash(line) for line in "".join(r.parts).split("\n"))
+    return "\n".join(line for line in lines if line)
+
+
 def links(data: bytes | str) -> list[tuple[str, str]]:
     """(href, link text) pairs in page order."""
     return read(data).links

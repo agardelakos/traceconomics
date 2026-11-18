@@ -29,10 +29,14 @@ tests run without network access and fail if a parser stops understanding a form
 | `ec-empl_lmp_rjru.tsv.gz` | https://webgate.ec.europa.eu/empl/redisstat/api/dissemination/sdmx/2.1/data/LMP_RJRU/?format=TSV&compressed=true | 2026-11-08 | header kept whole (DG EMPL writes the key dimensions in capitals); rows for Greece and Cyprus; plus the first other row with a `z` (not applicable) cell |
 | `aade_annual_reports_natural_persons_en.html` | https://www.aade.gr/en/perfomance-reports-accountability/statistics/annual-statistical-reports-natural-persons | 2026-11-08 | not trimmed |
 | `aade_SD_FP_22F_3.xlsx` | https://www.aade.gr/sites/default/files/2024-05/SD_FP_22F_3.xlsx | 2026-11-08 | not trimmed (AADE's personal income tax statistics, tax year 2022) |
+| `eurostat_copyright_notice_2026-11-07.html` | https://ec.europa.eu/eurostat/help/copyright-notice | 2026-11-07 | not trimmed (the archive job's copy, with a maintenance warning banner) |
+| `eurostat_copyright_notice_2026-11-18.html` | https://ec.europa.eu/eurostat/help/copyright-notice | 2026-11-18 | not trimmed (the archive job's copy: no banner, a menu item renamed, the terms unchanged) |
+| `elstat_terms_reuse.html` | https://www.statistics.gr/en/pneumatika-diakaiomata-kai-epanachresimopoiese-stoicheion | 2026-10-18 | not trimmed (the archive job's copy) |
+| `ec_legal_notice.html` | https://commission.europa.eu/legal-notice_en | 2026-11-18 | not trimmed |
 | `eurostat_v1_gr_{minr,iw}.tsv.gz` | same Eurostat bulk files (`prc_hicp_minr`, `prc_hicp_iw`) | 2026-10-18 | Greece only. minr: unit I25 for every category, plus RCH_A for all items, periods from 2014-12. iw: every category, years from 2015 |
 
-Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, and Eurostat, reused under
-their reuse policies (see SOURCES.md). The files marked "not trimmed" are stored exactly as
+Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, Eurostat and the European
+Commission, reused under their reuse policies (see SOURCES.md). The files marked "not trimmed" are stored exactly as
 published. The others were modified by TracEconomics: shortened to the parts the tests read,
 with the content of the kept parts unchanged. ELSTAT and Eurostat bear no responsibility for
 the result of the modification.
@@ -55,3 +59,7 @@ and compare hashes. `tests/test_fixtures.py` checks that the stored files still 
 | `elstat_cpi05_2026_09.xlsx` | `28c992705281c33702a98d798b6a6aa28a017f4a4563306fe107a0c8f2f0fbf3` |
 | `aade_annual_reports_natural_persons_en.html` | `a125dd2e91d9837bf0783557dd5f6a62e43721bb59ddee4cea5dd09e1de374ad` |
 | `aade_SD_FP_22F_3.xlsx` | `777321bcbe3c652315e4eef0bb5e1bfe9a7e8a3c34e89fe0cf957aaeb9c34136` |
+| `eurostat_copyright_notice_2026-11-07.html` | `83f0ec245915182f6eb7d400c16f96f0ddc42d7710b7f815a4bb3cecf6a23fbe` |
+| `eurostat_copyright_notice_2026-11-18.html` | `9a2468f5eb1c7efa5cc4c86fbf039911574cdcd4b9103c57d607c0f374c6199b` |
+| `elstat_terms_reuse.html` | `29fbad03a13fb5c22d53f931b03b2df6a31b4994642f4531e2fc7a769dd57b88` |
+| `ec_legal_notice.html` | `82502bd4686fdd437beea1156fc9cb306bbdbd38304fd4ea3767aca8c7d1c1f9` |
