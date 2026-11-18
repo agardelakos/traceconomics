@@ -30,12 +30,10 @@ Anything else is refused, never guessed.
 
 from __future__ import annotations
 
-import hashlib
 import io
 import json
 import re
 from datetime import UTC, datetime
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -43,12 +41,13 @@ import py7zr
 
 from traceconomics.archive.store import Archive
 from traceconomics.checks import require
+from traceconomics.local.csv_table import to_csv
+from traceconomics.local.survey_tables import PUF_SOURCE, SILC, SILC_PUF, SOURCE as OUT_SOURCE, silc_fingerprint
 
-SOURCE = "elstat"
-DATASET = re.compile(r"^puf-.*silc-(\d{4})$")
+SOURCE = PUF_SOURCE
+DATASET = SILC_PUF
 WORKBOOK = re.compile(r"Public Use Files\.xls[xb]$")
-OUT_SOURCE = "oet-local"
-OUT = "silc-tenure-gr-{year}"
+OUT = SILC
 GEO = "GR"
 SMALL = 20  # counts under this are written as "<20", as in the HBS tables
 
@@ -171,14 +170,13 @@ def table(sheets: dict[str, pd.DataFrame], year: int, source_version: str) -> pd
 
 
 def code_fingerprint() -> str:
-    """This module's own hash: the provenance line names the code that built the table."""
-    return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    """The hash of the code that shapes the table (the list: `survey_tables`); the provenance line
+    names it."""
+    return silc_fingerprint()
 
 
 def run(archive: Archive, only: list[int] | None = None) -> list[dict]:
     """Build and archive each year's table (every archived SILC year unless `only`); one line of report each."""
-    from traceconomics.local.weights import to_csv
-
     found = years(archive)
     report = []
     for year in only or list(found):
