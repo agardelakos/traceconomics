@@ -46,10 +46,9 @@ import pandas as pd
 from traceconomics.archive.store import Archive
 from traceconomics.checks import FormatError, require
 from traceconomics.local.puf import Survey
+from traceconomics.local.survey_tables import SILC, SOURCE
 from traceconomics.sources import oet_local
 
-SOURCE = "oet-local"
-SILC = "silc-tenure-gr-{year}"
 TENURES = ("renter", "owner", "rent_free")
 SUM_TOLERANCE = 1e-9  # renters, owners and housed free make up all of EU-SILC's households
 CENSUS = 2011  # the census EU-SILC is fitted to until ...

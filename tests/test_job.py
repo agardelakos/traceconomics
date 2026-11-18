@@ -72,7 +72,7 @@ def test_missed_release_day_is_caught_up_and_reported(tmp_path):
     now = at(2026, 11, 12, 8)
     d = job.check_due(s, c, now)
     assert d.due and d.missed == [date(2026, 11, 10)]
-    ctx = SimpleNamespace(alerts=[], failures=[])
+    ctx = SimpleNamespace(alerts=[], failures=[], notes=[])
     report = job.render_report(c, now, d, False, [], [], ctx, [])
     assert "MISSED (no run on the day): 2026-11-10" in report.splitlines()
 
@@ -125,6 +125,14 @@ class FakeHttp:
         return None, data
 
 
+def eurostat_terms(terms=b"reuse allowed", banner=b""):
+    """Eurostat's terms page as the watch reads it: the terms in their article element, a banner outside."""
+    return (
+        b"<html><body><div class='banner'>" + banner + b"</div>"
+        b"<div class='journal-content-article '><p>" + terms + b"</p></div></body></html>"
+    )
+
+
 def fake_files():
     page = (FIX / "elstat_cpi_page.html").read_bytes()
     return {
@@ -138,14 +146,14 @@ def fake_files():
         "/dataflow/": (FIX / "eurostat_dataflow_prc_hicp_minr.xml").read_bytes(),
         "format=TSV": b"tsv.gz bytes",
         "prc_hicp_esms": b"<html><body><p>metadata</p></body></html>",
-        "copyright-notice": b"<html><body><p>reuse allowed</p></body></html>",
-        "legal-notice": b"<html><body><p>reuse allowed</p></body></html>",
+        "copyright-notice": eurostat_terms(),
+        "legal-notice": b"<html><body><div class='ecl-col-l-9'><p>reuse allowed</p></div></body></html>",
         "annual-statistical-reports-natural-persons": (
             FIX / "aade_annual_reports_natural_persons_en.html"
         ).read_bytes(),
         "/sites/default/files/": b"xlsx bytes",
         "terms-use-iaprs-website": b"<html><body><p>use allowed if accurately reproduced</p></body></html>",
-        "pneumatika": b"<html><body><p>reuse allowed</p></body></html>",
+        "pneumatika": b"<html><body><div class='journal-content-article'><p>reuse allowed</p></div></body></html>",
         "Copyright_Reuse_Policy": b"%PDF terms",
     }
 
@@ -209,7 +217,7 @@ def test_changed_terms_raise_an_alert(tmp_path, fake_http):
     """
     c = cfg(tmp_path)
     job.run(c, now=at(2026, 10, 18, 14))
-    fake_http.files["copyright-notice"] = b"<html><body><p>new terms</p></body></html>"
+    fake_http.files["copyright-notice"] = eurostat_terms(b"new terms")
     job.run(c, now=at(2026, 10, 18, 15), force=True)
     last = outbox(c)[-1]
     assert "alert" in last.name
@@ -409,6 +417,28 @@ def test_the_run_log_names_the_release_build_before_it_starts(tmp_path, fake_htt
     job.run(c, now=at(2026, 10, 18, 14))
     assert len(started) == 1
     assert Archive(c.archive_dir).runs()[-1]["release"] == stamp(started[0])
+
+
+def test_a_banner_on_the_terms_page_is_a_note_not_an_alert(tmp_path, fake_http):
+    """PY-JOB-022: a change outside the terms block is stored and noted, without an alert
+
+    Given a first run that stored Eurostat's reuse terms page
+    When a maintenance banner appears outside the terms block and a forced run follows
+    Then the new copy of the page is stored
+    And no alert of the run is about the terms
+    And the report has a note that the terms block is the same
+    """
+    c = cfg(tmp_path)
+    first = job.run(c, now=at(2026, 10, 18, 14))
+    fake_http.files["copyright-notice"] = eurostat_terms(banner=b"Warning: the website will be unavailable")
+    second = job.run(c, now=at(2026, 10, 18, 15), force=True)
+    assert second["stored"] == 1
+    # The fake calendar has no future release date, which raises its own alert on every run.
+    assert second["alerts"] == first["alerts"]
+    report = outbox(c)[-1].read_text(encoding="utf-8")
+    alerts = report.split("ALERTS:", 1)[-1].split("\n\n", 1)[0] if "ALERTS:" in report else ""
+    assert "terms" not in alerts.lower()
+    assert "NOTES:" in report and "Terms page changed outside the terms" in report
 
 
 def test_new_puf_year_raises_an_alert(tmp_path, fake_http):

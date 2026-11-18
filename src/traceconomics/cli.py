@@ -74,13 +74,15 @@ def main(argv: list[str] | None = None) -> int:
             "seam",
             "combos",
             "tenure",
+            "inputs",
         ],
         help="v1: all-items HICP from Eurostat sub-indices and weights; "
         "v1-cpi: Greek CPI from ELSTAT's table 07; "
         "v2: ELSTAT's household spending table from the survey microdata (needs the local extra); "
         "mapping: the surveys' old codes mapped to COICOP 2018, against the next year (needs the local extra); "
         "tenure: what calibrating the survey's weights to the census's tenure split changes in "
-        "the series (needs the local extra)",
+        "the series (needs the local extra); "
+        "inputs: our survey tables still match the code and the files they were built from",
     )
     ck.add_argument("--geo", default="GR", help="country (ISO code, default GR)")
     ck.add_argument(
@@ -386,6 +388,22 @@ def _check_v3(cfg) -> int:
     return 0
 
 
+def _check_inputs(cfg) -> int:
+    from traceconomics.local import inputs
+
+    r = inputs.check(Archive(cfg.archive_dir))
+    print("Inputs: our survey tables against the code and the files they were built from")
+    if not r.problems and not r.checked:
+        print("  no survey tables or survey files in this archive: nothing to check")
+    for line in r.checked:
+        print(f"  ok    {line}")
+    for line in r.problems:
+        print(f"  STALE {line}")
+    print()
+    print("Inputs match." if r.ok else f"Inputs STALE: {r.fix}.")
+    return 0 if r.ok else 1
+
+
 def _check_mapping(cfg) -> int:
     from traceconomics.local import mapping_check as mc
     from traceconomics.store.db import connect
@@ -641,6 +659,8 @@ def _dispatch(args, cfg) -> int:
         return 0
 
     if args.command == "check":
+        if args.which == "inputs":
+            return _check_inputs(cfg)
         if args.which == "v2":
             return _check_v2(cfg)
         if args.which == "mapping":

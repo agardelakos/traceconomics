@@ -26,7 +26,6 @@ import re
 import tomllib
 from dataclasses import dataclass, field
 from importlib import resources
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -37,6 +36,7 @@ from traceconomics.local import bootstrap, puf
 from traceconomics.local.groups import household_size
 from traceconomics.local.puf import Survey
 from traceconomics.local.shares import leaves
+from traceconomics.local.survey_tables import archived_tables
 from traceconomics.sources.elstat import hbs_tables
 from traceconomics.sources.elstat.hbs_tables import ALL, Table103
 
@@ -44,7 +44,6 @@ TOLERANCE = 0.015  # euros a month: the published figures are rounded to the cen
 # Years whose PUF weights differ from the published tables: compared and
 # reported, but not held to the cent.
 REPORT_ONLY = (2014, 2015, 2018)
-TABLE_103 = re.compile(r"SFA05_TB_AN_00_(\d{4})_103_F_EN\.xlsx?$")
 MAX_DIGITS = 5  # the microdata and the table share codes up to 5 digits
 # Years whose bands the microdata rebuild exactly (every band's household count, then its
 # spending to the cent): by monthly money income (HH095 / 12, rounded to the euro), or, in 2013,
@@ -243,19 +242,6 @@ def compare_all(survey: Survey, table: Table103, missing: dict[str, list] | None
         for label in table.groups[1:]:
             out.append(compare(survey, table, missing, group=label, members=band == label))
     return out
-
-
-def archived_tables(archive: Archive) -> dict[int, Path]:
-    """The newest archived English table 1.03 per survey year."""
-    found: dict[int, tuple[str, Path]] = {}
-    for source, dataset in archive.datasets():
-        if source != "elstat" or not dataset.startswith("doc-"):
-            continue
-        rec = archive.latest(source, dataset)
-        m = TABLE_103.search(archive.manifest(rec).get("original_name") or "")
-        if m and (int(m.group(1)) not in found or rec["retrieved_at"] > found[int(m.group(1))][0]):
-            found[int(m.group(1))] = (rec["retrieved_at"], archive.root / rec["path"])
-    return {y: p for y, (_, p) in sorted(found.items())}
 
 
 def run(archive: Archive, years: list[int]) -> list[V2Result]:

@@ -87,7 +87,7 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     Given a configuration with release builds on and steps that all succeed
     When a release build runs
     Then it is ok, with an id from the build's UTC time
-    And the steps run in order: store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke
+    And the steps run in order: inputs, store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke
     And the preview address is the build's alias address
     And the build folder's SHA256SUMS lists the site files and the outputs
     And its release.json records the result ok
@@ -98,6 +98,7 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     rec = release.build(cfg, now=datetime(2026, 11, 10, 11, 30, tzinfo=UTC), runner=fake)
     assert rec["result"] == "ok" and rec["id"] == "20261110T113000Z"
     assert fake.ran == [
+        "inputs",
         "store",
         "series",
         "bands",
@@ -139,6 +140,25 @@ def test_a_failed_step_stops_the_build_and_raises_an_alert(tmp_path, no_email):
     assert fake.ran[-1] == "check-v1" and "upload" not in fake.ran
     assert "boom" in rec["log_tail"]
     assert no_email[0][0].startswith("ALERT: release") and "check-v1" in no_email[0][0]
+
+
+def test_stale_survey_tables_stop_the_build_before_anything_reads_them(tmp_path, no_email):
+    """PY-REL-025: stale survey tables stop the build at its first step
+
+    Given steps where the inputs check fails (survey tables older than the code or their files)
+    When a release build runs
+    Then it fails at inputs, the first step, running `check inputs`
+    And no other step runs: nothing reads the tables, nothing is uploaded
+    And an alert email names the inputs step
+    And the build can't be retested: stale tables need a rebuild, then a new build
+    """
+    cfg = config(tmp_path)
+    fake = FakeSteps(cfg.release.site_dir, fail="inputs")
+    rec = release.build(cfg, now=datetime(2026, 11, 10, 11, 30, tzinfo=UTC), runner=fake)
+    assert rec["result"] == "failed" and rec["failed_step"] == "inputs"
+    assert fake.ran == ["inputs"] and fake.argvs[0][-2:] == ("check", "inputs")
+    assert no_email[0][0].startswith("ALERT: release") and "inputs" in no_email[0][0]
+    assert "inputs" not in release.RETESTABLE
 
 
 def test_upload_is_a_preview_version_named_from_the_config(tmp_path):

@@ -42,13 +42,10 @@ the archive keeps a single copy.
 
 from __future__ import annotations
 
-import csv
 import hashlib
-import io
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from importlib import resources
 
 import numpy as np
 import pandas as pd
@@ -57,17 +54,25 @@ from traceconomics import __version__
 from traceconomics.archive.store import Archive
 from traceconomics.checks import require
 from traceconomics.local import bootstrap, calibration, mapping, puf, v2
+from traceconomics.local.csv_table import to_csv
 from traceconomics.local.groups import ELSTAT_TYPES, RANKED, assign, cut_points, ranking
 from traceconomics.local.shares import PUBLISHED, SPENDING, memberships, shares
+from traceconomics.local.survey_tables import (
+    GROUPS,
+    LIMITS,
+    RENT,
+    SOURCE,
+    SPENDING_CHECK,
+    TYPES,
+    WEIGHTS,
+    mapping_hashes,
+    weights_fingerprint,
+)
 from traceconomics.module1.index import HOUSEHOLD_TYPES
 from traceconomics.module1.schedule import UNUSABLE_INCOMES, unusable
 from traceconomics.sources.elstat import hbs_tables
 
-SOURCE = "oet-local"
 GEO = "GR"
-WEIGHTS = "hbs-weights-gr-{year}"
-GROUPS = "hbs-groups-gr-{year}"
-LIMITS = "hbs-limits-gr-{year}"
 LIMITS_GROUPING = "B"  # the default grouping, the one the site describes in euros
 LIMIT_UNIT = "EUR_PER_ADULT_EQ_Y"  # money income after taxes, a year, divided by the modified OECD scale
 IMPUTED_RENT = {1: "excluded", 2: "included"}
@@ -109,7 +114,6 @@ GROUP_COLUMNS = [
     "se_note",
     "source_version",
 ]
-TYPES = "hbs-hhtypes-gr-{year}"
 TYPE_COLUMNS = [
     "geo",
     "ref_year",
@@ -127,7 +131,6 @@ TYPE_AGREEMENT = 0.90  # an assumption: the lowest seen in 2008-2024 (2023 aside
 ELSTAT_TYPE_UNUSABLE = {
     2023: "HB074 doesn't match the households' own sizes: 34% of its one-adult households have one member"
 }
-RENT = "hbs-rent-gr-{year}"
 RENT_COLUMNS = [
     "geo",
     "ref_year",
@@ -138,34 +141,19 @@ RENT_COLUMNS = [
     "rent_paid_eur",
     "source_version",
 ]
-SPENDING_CHECK = "hbs-spending-gr-{year}"
 SPENDING_COLUMNS = ["geo", "ref_year", "group", "coicop", "item", "published", "ours", "result", "source_version"]
 HOUSEHOLDS = "households"  # the `coicop` of each column's row of household totals
 RENT_CODE = "0411"  # actual rent for the main home, the code the tenure rule reads
 LIMIT_COLUMNS = ["geo", "ref_year", "grouping", "group", "unit", "limit", "se", "se_design", "source_version"]
-CODE_FILES = ("puf.py", "groups.py", "shares.py", "bootstrap.py", "calibration.py", "mapping.py", "weights.py", "v2.py")
-DATA_FILES = (mapping.V1_TO_2018, mapping.OLD_TO_V1, "hbs_puf_missing_items.toml")
 
 
 def code_fingerprint() -> str:
-    """sha256 over the code and data files that shape the result (there is no version control
-    history to point at yet)."""
-    # Line endings are normalised: a Windows checkout (CRLF) and a Linux one (LF) of the same code
-    # must give the same fingerprint.
-    h = hashlib.sha256()
-    for name in CODE_FILES:
-        h.update(resources.files("traceconomics.local").joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
-    for name in DATA_FILES:
-        h.update(resources.files("traceconomics.data").joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
-    return h.hexdigest()
+    """sha256 over the code and data files that shape the result (the list: `survey_tables`)."""
+    return weights_fingerprint()
 
 
 def _count(n: int) -> str:
     return f"<{SMALL}" if n < SMALL else str(n)
-
-
-def _num(x, digits: int = 10) -> str:
-    return "" if x is None or (isinstance(x, float) and np.isnan(x)) else f"{x:.{digits}g}"
 
 
 @dataclass(frozen=True)
@@ -282,10 +270,7 @@ def build(
     provenance = {
         "survey": source_version,
         "table_103": hashlib.sha256(tables[year].read_bytes()).hexdigest()[:12],
-        "mapping": {
-            name: hashlib.sha256(resources.files("traceconomics.data").joinpath(name).read_bytes()).hexdigest()[:12]
-            for name in (mapping.V1_TO_2018, mapping.OLD_TO_V1)
-        },
+        "mapping": mapping_hashes(),
         "code_version": __version__,
         "code_fingerprint": code_fingerprint()[:16],
         "replicates": replicates if design.status != "unavailable" else 0,
@@ -440,19 +425,6 @@ def limits_table(
             "source_version": source_version,
         }
     )[LIMIT_COLUMNS]
-
-
-def to_csv(table: pd.DataFrame, header: list[str]) -> bytes:
-    out = io.StringIO()
-    for line in header:
-        out.write(f"# {line}\n")
-    w = csv.writer(out, lineterminator="\n")
-    w.writerow(table.columns)
-    for row in table.itertuples(index=False):
-        w.writerow(
-            [_num(v) if isinstance(v, (float, np.floating)) else ("" if v is pd.NA or v is None else v) for v in row]
-        )
-    return out.getvalue().encode("utf-8")
 
 
 def run(archive: Archive, years: list[int], replicates: int = bootstrap.REPLICATES) -> list[dict]:
