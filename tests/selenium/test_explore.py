@@ -546,21 +546,34 @@ def test_data_that_fails_to_load_says_so_and_retry_tries_again(site):
 def test_a_price_source_that_publishes_later_says_which_month_it_doesnt_have_yet(site):
     """SEL-EXPL-023: a price source that publishes later says which month it doesn't have yet
 
-    Given Explore in each language, and data whose HICP ends a month before the CPI, as for about a week every month
+    Given Explore in each language, and data whose HICP ends either a month before the CPI (for about a week every month) or with it
     When the HICP is chosen as the price source
-    Then the option's note says the HICP isn't published yet for the CPI's last month, named in that language
+    Then if the HICP ends earlier, the option's note says it isn't published yet for the CPI's last month, named in that language
+    And if it ends with the CPI, the note says no month isn't published yet
     And the chart's summary is written, for the HICP's own last month
     And the page logs no error
     """
-    hicp = data("availability.json")["options"]["price_source"]["hicp"]
+    sources = data("availability.json")["options"]["price_source"]
+    hicp = sources["hicp"]
     greyed = [g for g in hicp["greyed"] if g["reason"] == "ends_earlier"]
-    assert len(greyed) == 1, "the data's HICP doesn't end earlier than the CPI: nothing to check"
+    # Real data have the HICP a month behind only in the week or so between ELSTAT's CPI and
+    # Eurostat's HICP for the same month; the rest of the month it ends with the CPI. Both are
+    # correct states, so the test checks whichever one the data are in.
+    assert len(greyed) <= 1, "the HICP has more than one span it doesn't have yet"
+    if not greyed:
+        assert hicp["index"][1] == sources["cpi"]["index"][1], "the HICP names no month it lacks, yet ends earlier"
+    note = 'fieldset[data-option="price_source"] [data-role=note]'
     for lang in ("en", "el"):
         site.open(PAGE.format(lang=lang))
         _ready(site)
         _pick(site, "price_source", "hicp")
-        expected = t(lang, "reason.ends_earlier", month=month(lang, greyed[0]["index"][0], "acc"))
-        note = 'fieldset[data-option="price_source"] [data-role=note]'
-        site.wait(lambda _, expected=expected, note=note: expected in site.find(note).text)
+        if greyed:
+            expected = t(lang, "reason.ends_earlier", month=month(lang, greyed[0]["index"][0], "acc"))
+            site.wait(lambda _, expected=expected: expected in site.find(note).text)
+        else:
+            # The reason's words before its month: no month at all may be named as not published yet.
+            not_yet = t(lang, "reason.ends_earlier", month="\0").split("\0")[0]
+            site.wait(lambda _: site.find(note).text != "", "the option's note was never drawn")
+            assert not_yet not in site.find(note).text
         last = month(lang, hicp["index"][1], "acc" if lang == "el" else "nom")
         site.wait(lambda _, last=last: last in site.find("#explore [data-role=summary]").text)

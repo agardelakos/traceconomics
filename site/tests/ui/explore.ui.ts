@@ -730,10 +730,11 @@ test(
     const hicp = (await json<Availability>(request, `${DATA}/availability.json`)).options
       .price_source.hicp;
     const greyed = hicp.greyed.filter((g: { reason: string }) => g.reason === "ends_earlier");
-    expect(
-      greyed.length,
-      "the data's HICP doesn't end earlier than the CPI: nothing to check",
-    ).toBe(1);
+    // Real data are in this state only in the week or so between ELSTAT's CPI and Eurostat's HICP
+    // for the same month; the next test covers the rest of the month. The made-up data always end
+    // the HICP a month early, so CI runs this one every time.
+    test.skip(!greyed.length, "in these data the HICP ends with the CPI (the next test's case)");
+    expect(greyed.length, "the HICP has one span it doesn't have yet, not several").toBe(1);
     for (const lang of LANGS) {
       await page.goto(m1(lang, "explore/"));
       await openOptions(page, lang);
@@ -745,6 +746,46 @@ test(
       await expect(summary(page)).toContainText(
         month(lang, hicp.index[1], lang === "el" ? "acc" : "nom"),
       );
+    }
+  },
+);
+
+test(
+  "a price source that has caught up names no missing month",
+  gwt({
+    id: "PW-EXPL-024",
+    given:
+      "Explore in each language, and data whose HICP ends in the same month as the CPI, as for most of every month",
+    when: "the HICP is chosen as the price source",
+    then: [
+      "the option's note doesn't say the HICP isn't published yet for any month",
+      "the chart's summary is written, for the CPI's last month",
+      "the page logs no error",
+    ],
+  }),
+  async ({ page, request }) => {
+    const sources = (await json<Availability>(request, `${DATA}/availability.json`)).options
+      .price_source;
+    const { cpi, hicp } = sources;
+    // The other state of the test before: real data are in this one for most of every month. The
+    // made-up data never are, so outside release builds this one skips.
+    test.skip(
+      hicp.greyed.some((g: { reason: string }) => g.reason === "ends_earlier"),
+      "in these data the HICP ends a month before the CPI (the test before's case)",
+    );
+    expect(hicp.index[1], "the HICP names no month it lacks, so it ends with the CPI").toBe(
+      cpi.index[1],
+    );
+    const last = cpi.index[1];
+    for (const lang of LANGS) {
+      await page.goto(m1(lang, "explore/"));
+      await openOptions(page, lang);
+      await radio(page, "price_source", "hicp").check();
+      const note = root(page).locator('fieldset[data-option="price_source"] [data-role="note"]');
+      // The reason's words before its month: no month at all may be named as not published yet.
+      const notYet = t(lang, "reason.ends_earlier", { month: "\u0000" }).split("\u0000")[0];
+      await expect(note).not.toContainText(notYet);
+      await expect(summary(page)).toContainText(month(lang, last, lang === "el" ? "acc" : "nom"));
     }
   },
 );
