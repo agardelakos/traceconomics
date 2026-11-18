@@ -14,7 +14,7 @@ Owners don't pay rent, but the survey records what their home would rent for, so
 
 Imputed rent is kept and priced with ELSTAT's index of actual rents, the closest price measure available. This is our choice.
 
-It changes inflation a lot, because imputed rent is about a fifth of the basket (more for pensioners and owners, little for renters). Rents rose 8.4% in 2025 but only 3.7% in 2022, so keeping imputed rent adds about 1.5 points to all households' inflation in 2025 and takes about 1.8 points off 2022.
+It changes inflation a lot, because imputed rent is about a fifth of the basket (more for pensioners and owners, little for renters). Rents rose 8.4% in 2025 but only 3.7% in 2022, so keeping imputed rent adds about 1.4 points to all households' inflation in 2025 and takes about 1.6 points off 2022.
 
 ## Not available
 
