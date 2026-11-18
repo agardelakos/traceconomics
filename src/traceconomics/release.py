@@ -94,6 +94,9 @@ def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> l
     r = cfg.release
     site, outputs, ui = r.site_dir, folder / "outputs", ui or folder / "ui"
     return [
+        # Our survey tables must match the code and the files they were built from: a build on
+        # stale tables is wrong, not just unreviewed, so it stops here (refuse, don't guess).
+        Step("inputs", _py("check", "inputs")),
         Step("store", _py("store", "update")),
         Step("series", _py("module1", "run", "--out", str(outputs), "--combinations", "all")),
         Step("bands", _py("bands", "run", "--combinations", "all", "--replicates", str(r.replicates))),
