@@ -1,0 +1,377 @@
+{
+  "about": "Every figure with a unit (%, points, euros, PPS) typed into the interface strings or the content pages, pair by pair, with its kind (src/lib/quoted-figures.mjs, KINDS: illustrative, rule, past, finding). Typed figures do not follow the data, so the site check (scripts/checks.mjs, section 11) fails on a pair whose figures are not listed here exactly, and on an entry that no longer matches any text: writing or changing a figure means looking at it, and the list only shrinks. A figure about the latest month has no kind: show it in a chart, not in a sentence. Add or change an entry only with a maintainer agreeing. npm run figures:report shows each pair with its figures and text.",
+  "entries": [
+    {
+      "id": "i18n:calc.adjusted",
+      "kind": "rule",
+      "en": ["100%"],
+      "el": ["100%"]
+    },
+    {
+      "id": "i18n:calc.rescaled",
+      "kind": "rule",
+      "en": ["100%"],
+      "el": ["100%"]
+    },
+    {
+      "id": "i18n:calc.total",
+      "kind": "rule",
+      "en": ["100%"],
+      "el": ["100%"]
+    },
+    {
+      "id": "i18n:explore.gap_not_drawn",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:explore.gap_toggle",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:explore.how.1",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.Q1",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.Q2",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.Q3",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.Q4",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.Q5",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.in.Q1",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.in.Q2",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.in.Q3",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.in.Q4",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:group.in.Q5",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:home.peak.text",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%", "20%"]
+    },
+    {
+      "id": "i18n:income.source.compare",
+      "kind": "rule",
+      "en": ["20%"],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:m1.baskets.lead",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:m1.landing.country_text",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:m5.def.gr-rent-paid.aade",
+      "kind": "rule",
+      "en": ["5%"],
+      "el": ["5%"]
+    },
+    {
+      "id": "i18n:m5.question.fifth",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:m5.question.gr-income-limits.teaser",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:m5.question.gr-income-limits.text",
+      "kind": "past",
+      "en": ["€6 680", "€17 800", "€14 000"],
+      "el": ["€6 680", "€17 800", "€14 000"]
+    },
+    {
+      "id": "i18n:m5.question.gr-income-limits.title",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "i18n:m5.question.gr-rent-change.teaser",
+      "kind": "past",
+      "en": ["3%", "23%", "34%"],
+      "el": ["3%", "23%", "34%"]
+    },
+    {
+      "id": "i18n:m5.question.gr-rent-change.text",
+      "kind": "past",
+      "en": ["8%", "19%", "9%", "3%", "34%", "23%"],
+      "el": ["8%", "19%", "9%", "3%", "34%", "23%"]
+    },
+    {
+      "id": "i18n:m5.question.gr-rent-paid.text",
+      "kind": "past",
+      "en": ["45%"],
+      "el": ["45%"]
+    },
+    {
+      "id": "i18n:reason.hospital",
+      "kind": "past",
+      "en": ["0.15 points", "0.06 points"],
+      "el": ["0,15 μονάδες", "0,06 μονάδες"]
+    },
+    {
+      "id": "findings/coicop18-reissue.md#summary",
+      "kind": "finding",
+      "en": ["0.005 points"],
+      "el": ["0,005 μονάδες"]
+    },
+    {
+      "id": "findings/coicop18-reissue.md#what-happened",
+      "kind": "finding",
+      "en": ["0.0034 index points"],
+      "el": ["0,0034 μονάδες"]
+    },
+    {
+      "id": "findings/coicop18-reissue.md#september-2015",
+      "kind": "finding",
+      "en": ["0.13 points", "50%", "22%"],
+      "el": ["0,13 μονάδες", "50%", "22%"]
+    },
+    {
+      "id": "findings/coicop18-reissue.md#how-common-this-is",
+      "kind": "finding",
+      "en": ["0.005 points"],
+      "el": ["0,005 μονάδες"]
+    },
+    {
+      "id": "findings/household-type-rules.md#summary",
+      "kind": "finding",
+      "en": ["95–99%", "2.9 points"],
+      "el": ["95–99%", "2,9 μονάδες"]
+    },
+    {
+      "id": "findings/household-type-rules.md#what-we-found",
+      "kind": "finding",
+      "en": ["95.2%", "99.4%", "0.1 points", "1.4 points", "2.9 points", "34.4%", "100%", "26.9%"],
+      "el": ["95,2%", "99,4%", "0,1 μονάδα", "1,4 μονάδες", "2,9 μονάδες", "34,4%", "100%", "26,9%"]
+    },
+    {
+      "id": "findings/household-type-rules.md#what-we-tried",
+      "kind": "finding",
+      "en": ["96.0%", "96.9%", "97.5%", "89.4%", "100%"],
+      "el": ["96,0%", "96,9%", "97,5%", "89,4%", "100%"]
+    },
+    {
+      "id": "findings/june-2001.md#intro",
+      "kind": "finding",
+      "en": ["3.9332%", "3.9239%", "0.009 percentage points", "3.9%"],
+      "el": ["3,9332%", "3,9239%", "0,009 ποσοστιαίες μονάδες", "3,9%"]
+    },
+    {
+      "id": "findings/june-2001.md#what-happened",
+      "kind": "finding",
+      "en": ["3.9%", "0.009%", "2.5184%", "2.5276%"],
+      "el": ["3,9%", "0,009%", "2,5184%", "2,5276%"]
+    },
+    {
+      "id": "findings/survey-weights.md#what-happened",
+      "kind": "finding",
+      "en": ["−0.4%", "+0.3%", "−0.9%", "1%", "2%"],
+      "el": ["−0,4%", "+0,3%", "−0,9%", "1%", "2%"]
+    },
+    {
+      "id": "glossary/gap.md#short",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%", "20%"]
+    },
+    {
+      "id": "glossary/gap.md#intro",
+      "kind": "past",
+      "en": ["2.5 points"],
+      "el": ["20%", "2,5 μονάδες"]
+    },
+    {
+      "id": "glossary/imputed-rent.md#intro",
+      "kind": "past",
+      "en": ["+1.4 points", "8.4%", "−1.6 points", "3.7%"],
+      "el": ["+1,4 μονάδες", "8,4%", "−1,6 μονάδες", "3,7%"]
+    },
+    {
+      "id": "glossary/percentage-point.md#short",
+      "kind": "illustrative",
+      "en": ["9.0%", "10.8%", "1.8 percentage points"],
+      "el": ["9,0%", "10,8%", "1,8 ποσοστιαίες μονάδες"]
+    },
+    {
+      "id": "glossary/price-index.md#intro",
+      "kind": "illustrative",
+      "en": ["5%"],
+      "el": ["5%"]
+    },
+    {
+      "id": "glossary/quintile.md#short",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%", "20%"]
+    },
+    {
+      "id": "glossary/spending-concept.md#intro",
+      "kind": "past",
+      "en": ["4.6–10.3%", "1.3–2.4%"],
+      "el": ["4,6–10,3%", "20%", "1,3–2,4%"]
+    },
+    {
+      "id": "glossary/weights.md#intro",
+      "kind": "illustrative",
+      "en": ["27%", "10%", "2.7 points"],
+      "el": ["27%", "10%", "2,7 μονάδες"]
+    },
+    {
+      "id": "method/grouping.md#the-default-people-by-equivalised-income",
+      "kind": "past",
+      "en": ["1.6%"],
+      "el": ["1,6%"]
+    },
+    {
+      "id": "method/grouping.md#which-income-and-how-it-differs-from-eurostat-s",
+      "kind": "past",
+      "en": ["1.8%", "4%", "€7 110", "€7 389"],
+      "el": ["20%", "1,8%", "4%", "20%", "€7 110", "€7 389"]
+    },
+    {
+      "id": "method/grouping.md#how-much-it-matters",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "method/imputed-rent.md#the-alternative-priced-with-actual-rents",
+      "kind": "past",
+      "en": ["8.4%", "3.7%", "1.4 points", "1.6 points"],
+      "el": ["8,4%", "3,7%", "1,4 μονάδες", "1,6 μονάδες"]
+    },
+    {
+      "id": "method/overview.md#in-one-paragraph",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "method/overview.md#weights",
+      "kind": "past",
+      "en": ["16.8%", "24.5%", "1.2–6.4%", "0.15 points"],
+      "el": ["16,8%", "24,5%", "1,2–6,4%", "0,15 μονάδες"]
+    },
+    {
+      "id": "method/overview.md#from-index-to-rates",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "method/overview.md#checks",
+      "kind": "rule",
+      "en": ["0.1 points", "0.1 points", "0.1 points"],
+      "el": ["0,1 μονάδα", "0,1 μονάδα", "0,1 μονάδα"]
+    },
+    {
+      "id": "method/price-source.md#how-much-it-matters",
+      "kind": "past",
+      "en": ["0.07 points", "0.1 points", "0.04 points"],
+      "el": ["0,07 μονάδες", "20%", "0,1 μονάδα", "0,04 μονάδες"]
+    },
+    {
+      "id": "method/spending.md#how-much-it-matters",
+      "kind": "past",
+      "en": ["4.6–10.3%", "1.3–2.4%", "2.1 points"],
+      "el": ["4,6–10,3%", "20%", "1,3–2,4%", "20%", "2,1 μονάδες"]
+    },
+    {
+      "id": "method/weights-timing.md#how-much-it-matters",
+      "kind": "past",
+      "en": ["1.7 points", "0.9 points"],
+      "el": ["20%", "1,7 μονάδες", "0,9 μονάδες"]
+    },
+    {
+      "id": "pages/data.md#what-there-is",
+      "kind": "rule",
+      "en": [],
+      "el": ["20%"]
+    },
+    {
+      "id": "steps/m1-1.md#intro",
+      "kind": "illustrative",
+      "en": ["€100", "€105", "5%"],
+      "el": ["€100", "€105", "5%"]
+    },
+    {
+      "id": "steps/m1-3.md#intro",
+      "kind": "illustrative",
+      "en": [],
+      "el": ["20%", "20%", "20%"]
+    },
+    {
+      "id": "steps/m1-4.md#intro",
+      "kind": "illustrative",
+      "en": ["5%", "5%", "€100", "€105", "5%", "3%", "2 points"],
+      "el": ["5%", "5%", "€100", "€105", "20%", "20%", "5%", "3%", "2 μονάδων"]
+    }
+  ]
+}

@@ -27,6 +27,11 @@
 // 10. The final ν in the Greek (src/lib/final-n.mjs): «δεν», «την», «στην» keep it before a vowel
 //     or κ, π, τ, ξ, ψ, μπ, ντ, γκ and drop it before other consonants; «μην» and «αυτήν» drop it
 //     there too.
+// 11. Figures typed into the text (src/lib/quoted-figures.mjs): every number with a unit (%,
+//     points, euros, PPS) in the interface strings and the content pages is on
+//     src/i18n/figures-allow.json, pair by pair and exactly as written, with its kind; typed
+//     figures don't follow the data, so a new or changed one fails until it is looked at and
+//     listed, and an entry that no longer matches fails too. `npm run figures:report`.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve } from "node:path";
@@ -42,6 +47,12 @@ import {
   visible,
 } from "../src/lib/twin-terms.mjs";
 import { finalN } from "../src/lib/final-n.mjs";
+import {
+  compare as compareFigures,
+  KINDS,
+  loadAllowList as loadFigures,
+  siteFigures,
+} from "../src/lib/quoted-figures.mjs";
 
 // The one address a page may show (see 3. above).
 const PUBLIC_EMAIL = "support@traceconomics.com";
@@ -320,6 +331,30 @@ else {
 for (const p of loadPairs(join(site, "src"))) {
   for (const f of finalN(visible(p.el)))
     fail(`${p.id}: «${f.found}» should be «${f.want}» (the final ν)`);
+}
+
+// 11. Figures typed into the text (source only).
+{
+  const src = join(site, "src");
+  const { fresh, changed, stale, unkinded } = compareFigures(
+    siteFigures(src),
+    loadFigures(join(src, "i18n", "figures-allow.json")),
+  );
+  const shown = (f) => `English ${JSON.stringify(f.en)}, Greek ${JSON.stringify(f.el)}`;
+  for (const f of fresh)
+    fail(
+      `${f.id}: typed figures that don't follow the data (${shown(f)}): show the figure in a chart, or list it in src/i18n/figures-allow.json with its kind (npm run figures:report)`,
+    );
+  for (const f of changed)
+    fail(
+      `${f.id}: its typed figures changed (now ${shown(f)}): check them against the data, then update their entry in src/i18n/figures-allow.json`,
+    );
+  for (const e of stale)
+    fail(`src/i18n/figures-allow.json: ${e.id} quotes no figure now: delete its entry`);
+  for (const e of unkinded)
+    fail(
+      `src/i18n/figures-allow.json: ${e.id} has kind "${e.kind}", not one of ${Object.keys(KINDS).join(", ")}`,
+    );
 }
 
 if (failures.length) {

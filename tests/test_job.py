@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from traceconomics import job
-from traceconomics.archive.store import Archive
+from traceconomics.archive.store import Archive, stamp
 from traceconomics.config import Config
 from traceconomics.sources import base, ec_empl, eurostat
 
@@ -224,6 +224,201 @@ def test_changed_terms_raise_an_alert(tmp_path, fake_http):
     assert "Reuse terms changed" in last.read_text(encoding="utf-8")
 
 
+# -- a release day must bring its release ------------------------------------
+
+
+CPI_ROW = b'contentDay">12/02/26</td> <td class="contentIndicator"><a href="https://www.statistics.gr/documents/20181/daeaf450'
+
+
+def cpi_release_on_nov_10(fake_http):
+    """ELSTAT's calendar (the saved page, changed in memory) with its CPI row moved to 2026-11-10."""
+    page = fake_http.files["/en/calendar"]
+    assert page.count(CPI_ROW) == 1
+    fake_http.files["/en/calendar"] = page.replace(CPI_ROW, CPI_ROW.replace(b"12/02/26", b"10/11/26"))
+
+
+def report_of(c):
+    return outbox(c)[-1].read_text(encoding="utf-8")
+
+
+LATE_CPI = "ELSTAT's CPI: release day 2026-11-10, but no new file by 14:00"
+
+
+def test_a_release_day_without_its_files_alerts_and_stays_due(tmp_path, fake_http):
+    """PY-JOB-023: a release day whose files haven't changed raises an alert and stays due
+
+    Given a first run that archived ELSTAT's CPI documents
+    And ELSTAT's CPI release day on 2026-11-10
+    When the 13:00 run that day finds every CPI document unchanged (the release is late)
+    Then the run is ok, and its report alerts that the CPI release day brought no new file
+    And the next day after 13:00 a run is due, waiting for the late release
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    r = job.run(c, now=at(2026, 11, 10, 14))
+    assert r["result"] == "ok" and r["reason"] == "release day"
+    assert LATE_CPI in report_of(c) and outbox(c)[-1].name.find("alert") >= 0
+    d = job.check_due(job.load_state(c.archive_dir), c, at(2026, 11, 11, 14))
+    assert d.due and d.reason == "waiting for a late release" and date(2026, 11, 10) in d.release_days
+
+
+def test_late_files_end_the_wait_and_every_document_is_read_again(tmp_path, fake_http):
+    """PY-JOB-024: the late release arriving the next day ends the wait; every document is read again
+
+    Given a CPI release day on 2026-11-10 that brought no new file
+    When ELSTAT's documents change and the next day's run happens
+    Then that run downloads every document on the CPI page again, old IDs included (ELSTAT updates some in place)
+    And its report has no late-release alert
+    And the CPI's confirmed release day is 2026-11-10, and no run is due the day after
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    job.run(c, now=at(2026, 11, 10, 14))
+    fake_http.files["documentID="] = b"xlsx bytes, the October release"
+    asked = len(fake_http.requested)
+    r = job.run(c, now=at(2026, 11, 11, 14))
+    docs = {u.split("documentID=")[1].split("&")[0] for u in fake_http.requested[asked:] if "documentID=" in u}
+    assert {"114858", "114862", "585410", "588584", "591429", "594835"} <= docs
+    assert r["reason"] == "waiting for a late release" and "ELSTAT's CPI" not in report_of(c)
+    state = job.load_state(c.archive_dir)
+    assert state["release_confirmed"]["elstat-cpi"] == "2026-11-10"
+    assert "elstat-cpi" not in job.awaited(state, date(2026, 11, 12))
+
+
+def test_a_release_on_time_is_confirmed_without_an_alert(tmp_path, fake_http):
+    """PY-JOB-025: a release day whose files arrive in time is confirmed, with no alert about it
+
+    Given a first run that archived ELSTAT's CPI documents
+    When ELSTAT's documents change and the 13:00 run on the CPI release day 2026-11-10 happens
+    Then its report has no late-release alert
+    And the CPI's confirmed release day is 2026-11-10, and no run is due the next day
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    fake_http.files["documentID="] = b"xlsx bytes, the October release"
+    job.run(c, now=at(2026, 11, 10, 14))
+    assert "ELSTAT's CPI" not in report_of(c)
+    state = job.load_state(c.archive_dir)
+    assert state["release_confirmed"]["elstat-cpi"] == "2026-11-10"
+    assert "elstat-cpi" not in job.awaited(state, date(2026, 11, 11))
+
+
+def test_a_page_edit_is_not_the_release(tmp_path, fake_http):
+    """PY-JOB-026: a changed publication page with unchanged documents doesn't count as the release
+
+    Given a first run that archived ELSTAT's CPI page and documents
+    When on the CPI release day a document's title changes on the page, but no document changes
+    Then the new page is stored
+    And the report still alerts that the CPI release day brought no new file
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    page = fake_http.files["DKT87"]
+    fake_http.files["DKT87"] = page.replace(b"User oriented quality report", b"User-oriented quality report")
+    assert fake_http.files["DKT87"] != page
+    job.run(c, now=at(2026, 11, 10, 14))
+    stored = Archive(c.archive_dir).snapshots("elstat", "page-cpi")
+    assert len(stored) == 2
+    assert LATE_CPI in report_of(c)
+
+
+def test_eurostat_hicp_release_days_without_new_files_alert(tmp_path, fake_http):
+    """PY-JOB-027: Eurostat's HICP release days alert while the datasets' last data update stays the same
+
+    Given a first run that archived Eurostat's HICP datasets
+    And Eurostat's calendar with HICP release days on 2026-11-04 and 2026-11-18
+    When the run on 2026-11-18 finds the datasets' "last data update" unchanged
+    Then its report alerts that both HICP release days brought no new file
+    """
+    c = cfg(tmp_path)
+    job.run(c, now=at(2026, 10, 18, 14))
+    job.run(c, now=at(2026, 11, 18, 14))
+    assert "Eurostat's HICP: release day 2026-11-04, 2026-11-18, but no new file" in report_of(c)
+
+
+def test_eurostat_hicp_release_is_confirmed_when_its_files_change(tmp_path, fake_http):
+    """PY-JOB-031: Eurostat's HICP release is confirmed once its last data update moves and its files change
+
+    Given HICP release days on 2026-11-04 and 2026-11-18 that brought no new file
+    When the datasets' last data update moves, their files change, and the next day's run happens
+    Then the HICP's confirmed release day is 2026-11-18
+    """
+    c = cfg(tmp_path)
+    job.run(c, now=at(2026, 10, 18, 14))
+    job.run(c, now=at(2026, 11, 18, 14))
+    flow = fake_http.files["/dataflow/"]
+    fake_http.files["/dataflow/"] = flow.replace(b"2026-10-16T23:00:00+0200", b"2026-11-18T11:00:00+0100")
+    assert fake_http.files["/dataflow/"] != flow
+    fake_http.files["format=TSV"] = b"tsv.gz bytes, the October release"
+    job.run(c, now=at(2026, 11, 19, 14))
+    assert job.load_state(c.archive_dir)["release_confirmed"]["eurostat-hicp"] == "2026-11-18"
+
+
+def test_state_from_before_the_rule_raises_nothing_for_past_days(tmp_path, fake_http):
+    """PY-JOB-028: a job state written before this rule counts every past release day as arrived
+
+    Given a job state with a CPI release day on 2026-11-10, a last good run that day, and no confirmed days
+    When a forced run happens the next day with nothing new
+    Then its report has no late-release alert
+    And the CPI's confirmed release day starts at the last good run, 2026-11-10
+    """
+    c = cfg(tmp_path)
+    job.run(c, now=at(2026, 10, 18, 14))
+    s = job.load_state(c.archive_dir)
+    s.pop("release_confirmed")
+    s["release_dates"]["elstat-cpi"].append("2026-11-10")
+    s["last_good_run"] = "2026-11-10"
+    job.save_state(c.archive_dir, s)
+    job.run(c, now=at(2026, 11, 11, 14), force=True)
+    assert "but no new file" not in report_of(c)
+    assert job.load_state(c.archive_dir)["release_confirmed"]["elstat-cpi"] == "2026-11-10"
+
+
+def test_a_failed_run_reports_its_failure_not_a_late_release(tmp_path, fake_http):
+    """PY-JOB-029: a run with failures on a release day reports the failure, not a late release
+
+    Given a CPI release day on 2026-11-10
+    When that day's run fails on one source and brings no new CPI file
+    Then the report names the failure but not a late release
+    And the CPI release day is still awaited the next day
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    del fake_http.files["puf_en.jsp"]
+    r = job.run(c, now=at(2026, 11, 10, 14))
+    assert r["result"] == "failures" and "but no new file" not in report_of(c)
+    assert job.awaited(job.load_state(c.archive_dir), date(2026, 11, 11))["elstat-cpi"] == [date(2026, 11, 10)]
+
+
+def test_the_run_log_names_the_release_build_before_it_starts(tmp_path, fake_http, monkeypatch):
+    """PY-JOB-030: the run's line in runs.jsonl names the release build it starts
+
+    Given release builds turned on, and a stand-in release build that records its start time
+    When the scheduled job runs and stores new files
+    Then the build is started with a start time
+    And the run's line in runs.jsonl, written before the build starts, names the build by that time
+    """
+    c, _, _ = _follow_ups(tmp_path, monkeypatch)
+    from traceconomics import release
+
+    started = []
+
+    def build(config, reason, now):
+        started.append(now)
+        assert Archive(c.archive_dir).runs()[-1]["release"] == stamp(now)  # logged already
+        return {"id": stamp(now)}
+
+    monkeypatch.setattr(release, "build", build)
+    job.run(c, now=at(2026, 10, 18, 14))
+    assert len(started) == 1
+    assert Archive(c.archive_dir).runs()[-1]["release"] == stamp(started[0])
+
+
 def test_a_banner_on_the_terms_page_is_a_note_not_an_alert(tmp_path, fake_http):
     """PY-JOB-022: a change outside the terms block is stored and noted, without an alert
 
@@ -326,7 +521,7 @@ def _follow_ups(tmp_path, monkeypatch):
     beats, builds = [], []
     monkeypatch.setattr(job.heartbeat, "send", lambda record: beats.append(record["result"]) or "sent")
     monkeypatch.setattr(job.backup, "sync", lambda root: {"result": "ok", "sent": 1})
-    monkeypatch.setattr(release, "build", lambda config, reason: builds.append(reason) or {"id": "R1"})
+    monkeypatch.setattr(release, "build", lambda config, reason, now: builds.append(reason) or {"id": "R1"})
     on = ReleaseConfig(enabled=True, releases_dir=tmp_path / "rel", site_dir=tmp_path / "site")
     return cfg(tmp_path, release=on), beats, builds
 

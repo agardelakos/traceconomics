@@ -8,4 +8,4 @@ sources: [elstat-cpi-sims-2026, eurostat-hbs-qr-2020]
 related: [weights]
 ---
 
-Price indices measure the prices of what is bought, so their weights are shares of money spending. Own production (for example vegetables from one's own garden) and goods received in kind are 5–10% of the poorest fifth's spending but under 2% of the richest fifth's.
+Price indices measure the prices of what is bought, so their weights are shares of money spending. In the 2008–2024 household budget surveys (all but 2010's), own production (for example vegetables from one's own garden) and goods received in kind were 4.6–10.3% of the poorest fifth's spending, but 1.3–2.4% of the richest fifth's.

@@ -137,6 +137,9 @@ class RunContext:
     results: list[StoreResult] = field(default_factory=list)
     failures: list[str] = field(default_factory=list)
     alerts: list[str] = field(default_factory=list)
+    # Release topics ("elstat-cpi", "eurostat-hicp", ...) whose files came with new content in
+    # this run: the evidence that a release day's release has arrived (job.awaited).
+    brought: set[str] = field(default_factory=set)
     # Worth knowing, nothing to act on: reported without marking the run's email as an alert.
     notes: list[str] = field(default_factory=list)
     planned: list[str] = field(default_factory=list)

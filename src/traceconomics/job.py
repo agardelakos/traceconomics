@@ -6,6 +6,14 @@ run: ELSTAT and Eurostat both publish at 12:00 Greek time, and the job runs
 from 13:00. A day the computer was off is caught up at the next trigger and
 reported as missed. A run with failures doesn't count as good, so the next
 trigger tries again.
+
+A release day must bring its release. Each topic (ELSTAT's CPI, Eurostat's
+HICP, ...) keeps the last release day whose files arrived with new content
+(`release_confirmed` in the state). A later release day of that topic is
+awaited until they do: every run after it is due, and every run that brings
+nothing for it raises an alert. Without this, a release published after the
+13:00 run passed as a quiet "0 new" day and the site kept last month's data
+until someone noticed.
 """
 
 from __future__ import annotations
@@ -18,7 +26,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from traceconomics import analytics, backup, heartbeat
-from traceconomics.archive.store import Archive, iso, utc_now
+from traceconomics.archive.store import Archive, iso, stamp, utc_now
 from traceconomics.config import Config
 from traceconomics.notify import notify
 from traceconomics.sources import ec_empl, elstat, eurostat, terms
@@ -92,6 +100,32 @@ def all_release_dates(state: dict, config: Config) -> set[date]:
     return days | set(config.extra_release_dates)
 
 
+TOPIC_NAMES = {
+    "elstat-cpi": "ELSTAT's CPI",
+    "elstat-hicp": "ELSTAT's HICP",
+    "elstat-hbs": "ELSTAT's household budget survey",
+    "eurostat-hicp": "Eurostat's HICP",
+}
+
+
+def awaited(state: dict, through: date) -> dict[str, list[date]]:
+    """Per topic, its release days up to `through` whose files haven't arrived yet.
+
+    A topic with no confirmed day yet (state from before this rule, or a topic new to the
+    calendar) counts from the last good run: what came before it is taken as arrived."""
+    confirmed = state.get("release_confirmed", {})
+    floor = state.get("last_good_run")
+    out = {}
+    for topic, days in state.get("release_dates", {}).items():
+        since = confirmed.get(topic, floor)
+        if since is None:
+            continue
+        waiting = sorted(d for d in map(date.fromisoformat, days) if date.fromisoformat(since) < d <= through)
+        if waiting:
+            out[topic] = waiting
+    return out
+
+
 def check_due(state: dict, config: Config, now: datetime) -> Due:
     """Whether a run is due at `now` (timezone-aware, in the job's timezone)."""
     today, after_hour = now.date(), now.time() >= config.run_after
@@ -99,14 +133,40 @@ def check_due(state: dict, config: Config, now: datetime) -> Due:
     if last is None:
         return Due(True, [], [], "first run")
     last_day = date.fromisoformat(last)
-    pending = sorted(
-        d for d in all_release_dates(state, config) if d > last_day and (d < today or (d == today and after_hour))
-    )
+    through = today if after_hour else today - timedelta(days=1)
+    late = {d for days in awaited(state, through).values() for d in days}
+    pending = sorted({d for d in all_release_dates(state, config) if last_day < d <= through} | late)
     if not pending:
         return Due(False, [], [], "no release since the last good run")
     ran_on = {date.fromisoformat(r) for r in state.get("run_days", [])}
     missed = [d for d in pending if d < today and d not in ran_on]
-    return Due(True, pending, missed, "release day" if pending[-1] == today else "catching up")
+    if pending[-1] == today:
+        reason = "release day"
+    elif all(d <= last_day for d in pending):
+        reason = "waiting for a late release"
+    else:
+        reason = "catching up"
+    return Due(True, pending, missed, reason)
+
+
+def confirm_releases(state: dict, ctx: RunContext, through: date, now: datetime, floor: str | None) -> None:
+    """Move each topic's confirmed day to its awaited release days if this run brought its files;
+    otherwise alert, and the days stay awaited, so the next run is due again.
+
+    `floor` is the last good run before this one: topics without a confirmed day start there."""
+    confirmed = state.setdefault("release_confirmed", {})
+    for topic in state.get("release_dates", {}):
+        confirmed.setdefault(topic, floor or through.isoformat())
+    for topic, days in awaited(state, through).items():
+        if topic in ctx.brought:
+            confirmed[topic] = days[-1].isoformat()
+        elif not ctx.failures:  # a failed fetch is reported as such; the days stay awaited
+            name = TOPIC_NAMES.get(topic, topic)
+            ctx.alerts.append(
+                f"{name}: release day {', '.join(d.isoformat() for d in days)}, but no new file by "
+                f"{now:%H:%M}. It stays due: every daily run tries again until the files arrive "
+                "(or run `traceconomics archive --force` once they're out)."
+            )
 
 
 # -- one run ----------------------------------------------------------------
@@ -149,7 +209,9 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
 
     with RunLock(root):
         archive.clean_tmp()
+        floor = state.get("last_good_run")
         _run_sources(ctx, state)
+        confirm_releases(state, ctx, released_through, now, floor)
         visits = export_analytics(config, archive, state, now)
         downloads = export_analytics(config, archive, state, now, analytics.DOWNLOADS)
         good = not ctx.failures
@@ -185,12 +247,20 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     if stored or visits.get("stored") or downloads.get("stored"):
         record["backup"] = backup.sync(root)
     record["heartbeat"] = heartbeat.send(record)
-    archive.append_run(record)
+    build = None
     if config.release.enabled and good:
         from traceconomics import release  # imports this module; loaded only when needed
 
         if new_inputs := release.feeds_store(archive, stored):
-            record["release"] = release.build(config, reason="new data: " + ", ".join(sorted(set(new_inputs))))["id"]
+            # The build's id is its start time: named in the run's record before the build starts,
+            # so the log matches a run to its build even if the build never finishes.
+            build_at = utc_now()
+            record["release"] = stamp(build_at)
+            build = (release, "new data: " + ", ".join(sorted(set(new_inputs))), build_at)
+    archive.append_run(record)
+    if build:
+        release, reason, build_at = build
+        record["release"] = release.build(config, reason=reason, now=build_at)["id"]
     return record
 
 
