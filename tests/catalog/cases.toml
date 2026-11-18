@@ -129,8 +129,8 @@ playwright = ["PW-EXPL-020"]
 selenium = ["SEL-EXPL-015"]
 
 [TC-EXPL-016]
-title = "a price source that publishes later says, on its option, which month it doesn't have yet"
-playwright = ["PW-EXPL-023"]
+title = "a price source that publishes later says, on its option, which month it doesn't have yet, and names none once it has caught up"
+playwright = ["PW-EXPL-023", "PW-EXPL-024"]
 selenium = ["SEL-EXPL-023"]
 
 [TC-GRP-001]
