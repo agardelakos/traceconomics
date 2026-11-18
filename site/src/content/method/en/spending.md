@@ -16,4 +16,4 @@ All spending adds what households produce themselves (vegetables, eggs, oil) and
 
 ## How much it matters
 
-Non-money spending is 5–10% of the poorest fifth's spending but under 2% of the richest fifth's. Counting it raises the poorest fifth's food share by up to 2.1 points. Imputed rent is a separate option and isn't affected by this one.
+In the 2008–2024 household budget surveys (all but 2010's), non-money spending was 4.6–10.3% of the poorest fifth's spending but 1.3–2.4% of the richest fifth's. Counting it raises the poorest fifth's food share by up to 2.1 points. Imputed rent is a separate option and isn't affected by this one.

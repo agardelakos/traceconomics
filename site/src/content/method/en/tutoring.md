@@ -20,4 +20,4 @@ Tutoring gets no weight from 2026, as in ELSTAT's 2026 CPI. This is also our cho
 
 ## How much it matters
 
-Before 2026 the two options are the same series. In September 2026 leaving tutoring out raises the groups' annual rates by 0.01–0.03 points.
+Before 2026 the two options are the same series; from 2026 they differ. Switch this option in Explore to compare them month by month.
