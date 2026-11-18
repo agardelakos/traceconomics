@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "277a82155634da222f4e196d89fb4347b18c2da6",
- "generated": "2026-11-18T15:53:38Z",
+ "commit": "454fba783d987e3ccac0ed170b3bbc809ab00cda",
+ "generated": "2026-11-18T16:01:50Z",
  "missing": [],
  "cases": [
   {
@@ -1642,6 +1642,31 @@
    "then": [
     "the option's note says the HICP isn't published yet for the CPI's last month, named in that language",
     "the chart's summary is written, for the HICP's own last month",
+    "the page logs no error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PW-EXPL-024",
+   "suite": "playwright",
+   "title": "a price source that has caught up names no missing month",
+   "file": "site/tests/ui/explore.ui.ts",
+   "line": 753,
+   "node": "site/tests/ui/explore.ui.ts › a price source that has caught up names no missing month",
+   "given": [
+    "Explore in each language, and data whose HICP ends in the same month as the CPI, as for most of every month"
+   ],
+   "when": [
+    "the HICP is chosen as the price source"
+   ],
+   "then": [
+    "the option's note doesn't say the HICP isn't published yet for any month",
+    "the chart's summary is written, for the CPI's last month",
     "the page logs no error"
    ],
    "notes": "",
@@ -20185,13 +20210,14 @@
    "line": 546,
    "node": "tests/selenium/test_explore.py::test_a_price_source_that_publishes_later_says_which_month_it_doesnt_have_yet",
    "given": [
-    "Explore in each language, and data whose HICP ends a month before the CPI, as for about a week every month"
+    "Explore in each language, and data whose HICP ends either a month before the CPI (for about a week every month) or with it"
    ],
    "when": [
     "the HICP is chosen as the price source"
    ],
    "then": [
-    "the option's note says the HICP isn't published yet for the CPI's last month, named in that language",
+    "if the HICP ends earlier, the option's note says it isn't published yet for the CPI's last month, named in that language",
+    "if it ends with the CPI, the note says no month isn't published yet",
     "the chart's summary is written, for the HICP's own last month",
     "the page logs no error"
    ],
