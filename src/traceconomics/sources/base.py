@@ -137,6 +137,8 @@ class RunContext:
     results: list[StoreResult] = field(default_factory=list)
     failures: list[str] = field(default_factory=list)
     alerts: list[str] = field(default_factory=list)
+    # Worth knowing, nothing to act on: reported without marking the run's email as an alert.
+    notes: list[str] = field(default_factory=list)
     planned: list[str] = field(default_factory=list)
 
     def fetch_and_store(
