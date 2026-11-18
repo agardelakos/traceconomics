@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "2212f1b358320523123fad634d0e4572f963fb9b",
- "generated": "2026-11-18T17:00:08Z",
+ "commit": "f75836aabbaac926c401f1c5d057a5d9aef38e69",
+ "generated": "2026-11-18T17:36:19Z",
  "missing": [],
  "cases": [
   {
@@ -9562,6 +9562,338 @@
    "named": false
   },
   {
+   "id": "PY-INPUTS-001",
+   "suite": "pytest",
+   "title": "tables built by this code from the archive's newest inputs pass",
+   "file": "tests/test_inputs.py",
+   "line": 79,
+   "node": "tests/test_inputs.py::test_tables_built_from_the_newest_inputs_match",
+   "given": [
+    "a synthetic archive with one year's survey files, table 1.03, EU-SILC table and six survey tables",
+    "every table names the current code and the archive's newest inputs"
+   ],
+   "when": [
+    "the inputs are checked"
+   ],
+   "then": [
+    "the check passes with no problems and no fix to suggest",
+    "it reports the EU-SILC year and the survey year as matching"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-002",
+   "suite": "pytest",
+   "title": "a change to the code that shapes the survey tables makes them stale",
+   "file": "tests/test_inputs.py",
+   "line": 93,
+   "node": "tests/test_inputs.py::test_a_code_change_makes_the_survey_tables_stale",
+   "given": [
+    "tables built by the code as it was"
+   ],
+   "when": [
+    "the code's fingerprint changes (a deploy) and the inputs are checked"
+   ],
+   "then": [
+    "the check fails, naming the year and both fingerprints",
+    "the fix is to run `weights run`"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-003",
+   "suite": "pytest",
+   "title": "rebuilding the EU-SILC table makes the weights calibrated to it stale",
+   "file": "tests/test_inputs.py",
+   "line": 111,
+   "node": "tests/test_inputs.py::test_a_silc_run_alone_makes_the_survey_tables_stale",
+   "given": [
+    "tables whose weights are calibrated to the year's EU-SILC table"
+   ],
+   "when": [
+    "the EU-SILC table is rebuilt (new content, same code) and the inputs are checked"
+   ],
+   "then": [
+    "the EU-SILC table itself matches",
+    "the survey's tables are stale, naming the EU-SILC table they were built from",
+    "the fix is `weights run` only"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-004",
+   "suite": "pytest",
+   "title": "stale EU-SILC tables are named first, with the fix that rebuilds both",
+   "file": "tests/test_inputs.py",
+   "line": 131,
+   "node": "tests/test_inputs.py::test_stale_silc_tables_come_first_and_ask_for_silc_run",
+   "given": [
+    "tables built by the EU-SILC code as it was"
+   ],
+   "when": [
+    "that code's fingerprint changes and the household budget survey's code also changes"
+   ],
+   "then": [
+    "the first problem is the EU-SILC table's",
+    "the fix is `silc run`, then `weights run`"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-005",
+   "suite": "pytest",
+   "title": "a newer copy of a survey file makes the tables built from it stale",
+   "file": "tests/test_inputs.py",
+   "line": 147,
+   "node": "tests/test_inputs.py::test_a_reissued_survey_file_makes_its_tables_stale",
+   "given": [
+    "tables built from the archived survey files"
+   ],
+   "when": [
+    "ELSTAT's files are archived again with new content and the inputs are checked"
+   ],
+   "then": [
+    "both the EU-SILC table and the survey's tables are stale, each naming the copy it was built from"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-006",
+   "suite": "pytest",
+   "title": "a newer ELSTAT table 1.03 for the year makes the survey's tables stale",
+   "file": "tests/test_inputs.py",
+   "line": 162,
+   "node": "tests/test_inputs.py::test_a_newer_table_103_makes_the_survey_tables_stale",
+   "given": [
+    "tables checked against the archived table 1.03"
+   ],
+   "when": [
+    "a newer table 1.03 for the same year is archived and the inputs are checked"
+   ],
+   "then": [
+    "the survey's tables are stale: checked against an older table 1.03"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-007",
+   "suite": "pytest",
+   "title": "a year whose six tables come from different runs fails",
+   "file": "tests/test_inputs.py",
+   "line": 178,
+   "node": "tests/test_inputs.py::test_tables_from_two_runs_are_stale",
+   "given": [
+    "a year's six tables from one run"
+   ],
+   "when": [
+    "one of them is written again with another run's provenance (as a build would see during a `weights run`)"
+   ],
+   "then": [
+    "the check fails, saying the tables come from different runs"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-008",
+   "suite": "pytest",
+   "title": "changed mapping tables make the survey's tables stale",
+   "file": "tests/test_inputs.py",
+   "line": 193,
+   "node": "tests/test_inputs.py::test_changed_mapping_tables_make_the_survey_tables_stale",
+   "given": [
+    "tables built with the mapping tables as they were"
+   ],
+   "when": [
+    "the mapping tables' hashes change and the inputs are checked"
+   ],
+   "then": [
+    "the survey's tables are stale: built with other mapping tables"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-009",
+   "suite": "pytest",
+   "title": "an archive with no survey files and no tables passes, with nothing checked",
+   "file": "tests/test_inputs.py",
+   "line": 205,
+   "node": "tests/test_inputs.py::test_an_archive_without_survey_files_or_tables_passes_with_nothing_checked",
+   "given": [
+    "an empty archive, as on a machine without microdata"
+   ],
+   "when": [
+    "the inputs are checked"
+   ],
+   "then": [
+    "the check passes with no problems and nothing reported as checked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-010",
+   "suite": "pytest",
+   "title": "an archived survey file with no tables built from it fails",
+   "file": "tests/test_inputs.py",
+   "line": 216,
+   "node": "tests/test_inputs.py::test_a_survey_file_without_tables_is_stale",
+   "given": [
+    "an archive holding a survey file and an EU-SILC file but no tables"
+   ],
+   "when": [
+    "the inputs are checked"
+   ],
+   "then": [
+    "the EU-SILC year and the survey year are both stale, each for a missing table",
+    "the fix is `silc run`, then `weights run`"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-011",
+   "suite": "pytest",
+   "title": "tables whose provenance names no EU-SILC table are stale",
+   "file": "tests/test_inputs.py",
+   "line": 235,
+   "node": "tests/test_inputs.py::test_tables_from_before_the_tenure_calibration_are_stale",
+   "given": [
+    "a year's six tables written by code from before the weights were calibrated to EU-SILC"
+   ],
+   "when": [
+    "the inputs are checked"
+   ],
+   "then": [
+    "the survey's tables are stale: built before the calibration"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-012",
+   "suite": "pytest",
+   "title": "`check inputs` exits 0 and says so when the tables match",
+   "file": "tests/test_inputs.py",
+   "line": 249,
+   "node": "tests/test_inputs.py::test_check_inputs_passes_on_the_command_line",
+   "given": [
+    "the command line's configured archive holding tables that match their inputs"
+   ],
+   "when": [
+    "`check inputs` runs"
+   ],
+   "then": [
+    "it exits 0, lists the year as ok and says the inputs match"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-INPUTS-013",
+   "suite": "pytest",
+   "title": "`check inputs` exits 1 and prints the fix when the tables are stale",
+   "file": "tests/test_inputs.py",
+   "line": 261,
+   "node": "tests/test_inputs.py::test_check_inputs_fails_on_the_command_line_with_the_fix",
+   "given": [
+    "the command line's configured archive holding tables built by the code as it was"
+   ],
+   "when": [
+    "the code's fingerprint changes and `check inputs` runs"
+   ],
+   "then": [
+    "it exits 1, marks the year STALE and prints the command that rebuilds the tables"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-JOB-001",
    "suite": "pytest",
    "title": "the first run is always due",
@@ -16835,7 +17167,7 @@
    ],
    "then": [
     "it is ok, with an id from the build's UTC time",
-    "the steps run in order: store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke",
+    "the steps run in order: inputs, store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke",
     "the preview address is the build's alias address",
     "the build folder's SHA256SUMS lists the site files and the outputs",
     "its release.json records the result ok",
@@ -16855,7 +17187,7 @@
    "suite": "pytest",
    "title": "a failed step stops the release build and raises an alert",
    "file": "tests/test_release.py",
-   "line": 125,
+   "line": 126,
    "node": "tests/test_release.py::test_a_failed_step_stops_the_build_and_raises_an_alert",
    "given": [
     "steps where check-v1 fails"
@@ -16879,11 +17211,39 @@
    "named": false
   },
   {
+   "id": "PY-REL-025",
+   "suite": "pytest",
+   "title": "stale survey tables stop the build at its first step",
+   "file": "tests/test_release.py",
+   "line": 145,
+   "node": "tests/test_release.py::test_stale_survey_tables_stop_the_build_before_anything_reads_them",
+   "given": [
+    "steps where the inputs check fails (survey tables older than the code or their files)"
+   ],
+   "when": [
+    "a release build runs"
+   ],
+   "then": [
+    "it fails at inputs, the first step, running `check inputs`",
+    "no other step runs: nothing reads the tables, nothing is uploaded",
+    "an alert email names the inputs step",
+    "the build can't be retested: stale tables need a rebuild, then a new build"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-REL-003",
    "suite": "pytest",
    "title": "the upload is a preview version named from the configuration",
    "file": "tests/test_release.py",
-   "line": 144,
+   "line": 164,
    "node": "tests/test_release.py::test_upload_is_a_preview_version_named_from_the_config",
    "given": [
     "a release configuration"
@@ -16911,7 +17271,7 @@
    "suite": "pytest",
    "title": "release builds turn on the visit-count beacon",
    "file": "tests/test_release.py",
-   "line": 162,
+   "line": 182,
    "node": "tests/test_release.py::test_release_builds_carry_the_visit_count_beacon",
    "given": [
     "no analytics setting in the environment"
@@ -16936,7 +17296,7 @@
    "suite": "pytest",
    "title": "a failed build can't be promoted",
    "file": "tests/test_release.py",
-   "line": 174,
+   "line": 194,
    "node": "tests/test_release.py::test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline",
    "given": [
     "a build that failed at the series step"
@@ -16962,7 +17322,7 @@
    "suite": "pytest",
    "title": "a promoted good build uploads its own files and becomes the baseline",
    "file": "tests/test_release.py",
-   "line": 191,
+   "line": 211,
    "node": "tests/test_release.py::test_a_promoted_good_build_becomes_the_baseline",
    "given": [
     "a build that failed at the series step, then a good build"
@@ -16989,7 +17349,7 @@
    "suite": "pytest",
    "title": "pruning keeps the newest builds and the promoted one",
    "file": "tests/test_release.py",
-   "line": 210,
+   "line": 230,
    "node": "tests/test_release.py::test_pruning_keeps_the_newest_and_the_promoted_build",
    "given": [
     "a configuration that keeps two builds",
@@ -17015,7 +17375,7 @@
    "suite": "pytest",
    "title": "the changes since the last release are counted",
    "file": "tests/test_release.py",
-   "line": 230,
+   "line": 250,
    "node": "tests/test_release.py::test_changes_since_the_last_release",
    "given": [
     "an old and a new set of rate outputs, where the new one revises one month by 0.1 points and adds a month"
@@ -17041,7 +17401,7 @@
    "suite": "pytest",
    "title": "only newly stored files that feed the store trigger a release",
    "file": "tests/test_release.py",
-   "line": 258,
+   "line": 278,
    "node": "tests/test_release.py::test_only_files_that_feed_the_store_trigger_a_release",
    "given": [
     "a run that stored a HICP file and a calendar page, and found another HICP file unchanged"
@@ -17066,7 +17426,7 @@
    "suite": "pytest",
    "title": "a promote to production deploys the build and checks it on the public address",
    "file": "tests/test_release.py",
-   "line": 280,
+   "line": 300,
    "node": "tests/test_release.py::test_promoting_to_production_publishes_on_the_public_address",
    "given": [
     "a good build, and a configuration whose public address is https://example.org"
@@ -17092,7 +17452,7 @@
    "suite": "pytest",
    "title": "a promote to an unknown target is refused",
    "file": "tests/test_release.py",
-   "line": 299,
+   "line": 319,
    "node": "tests/test_release.py::test_a_promote_to_an_unknown_target_is_refused",
    "given": [
     "a good build"
@@ -17118,7 +17478,7 @@
    "suite": "pytest",
    "title": "staging and production serve their own builds",
    "file": "tests/test_release.py",
-   "line": 314,
+   "line": 334,
    "node": "tests/test_release.py::test_staging_and_production_serve_their_own_builds",
    "given": [
     "two good builds, the first promoted to production and the second to staging"
@@ -17146,7 +17506,7 @@
    "suite": "pytest",
    "title": "a promote record from before targets reads as staging",
    "file": "tests/test_release.py",
-   "line": 342,
+   "line": 362,
    "node": "tests/test_release.py::test_a_promote_record_from_before_targets_reads_as_staging",
    "given": [
     "an old single promote record"
@@ -17172,7 +17532,7 @@
    "suite": "pytest",
    "title": "the browser tests run before the upload and again on the preview",
    "file": "tests/test_release.py",
-   "line": 357,
+   "line": 377,
    "node": "tests/test_release.py::test_the_browser_tests_run_before_upload_and_again_on_the_preview",
    "given": [
     "steps that all succeed"
@@ -17201,7 +17561,7 @@
    "suite": "pytest",
    "title": "a build held back by its browser tests publishes nothing and keeps its files",
    "file": "tests/test_release.py",
-   "line": 380,
+   "line": 400,
    "node": "tests/test_release.py::test_a_build_held_back_by_its_browser_tests_publishes_nothing_and_keeps_its_files",
    "given": [
     "steps where ui-test fails"
@@ -17229,7 +17589,7 @@
    "suite": "pytest",
    "title": "a retest runs the remaining steps on the build's own files",
    "file": "tests/test_release.py",
-   "line": 401,
+   "line": 421,
    "node": "tests/test_release.py::test_a_retest_runs_the_rest_on_the_files_the_build_made",
    "given": [
     "a build held back at ui-test",
@@ -17259,7 +17619,7 @@
    "suite": "pytest",
    "title": "a retest after the upload tests the version already uploaded",
    "file": "tests/test_release.py",
-   "line": 433,
+   "line": 453,
    "node": "tests/test_release.py::test_a_retest_after_the_upload_tests_the_version_already_uploaded",
    "given": [
     "a build that failed at smoke, after its upload"
@@ -17284,7 +17644,7 @@
    "suite": "pytest",
    "title": "a retest refuses what a retest can't fix",
    "file": "tests/test_release.py",
-   "line": 449,
+   "line": 469,
    "node": "tests/test_release.py::test_a_retest_refuses_what_a_retest_cant_fix",
    "given": [
     "a good build, a build that failed at check-v1, an unknown build id",
@@ -17313,7 +17673,7 @@
    "suite": "pytest",
    "title": "a promote is confirmed when the target serves the build",
    "file": "tests/test_release.py",
-   "line": 479,
+   "line": 499,
    "node": "tests/test_release.py::test_a_promote_is_confirmed_only_when_the_target_serves_the_build",
    "given": [
     "a good build and a host that serves each promoted build's files"
@@ -17339,7 +17699,7 @@
    "suite": "pytest",
    "title": "a promote is refused while the target serves another build",
    "file": "tests/test_release.py",
-   "line": 494,
+   "line": 514,
    "node": "tests/test_release.py::test_a_promote_is_refused_while_the_target_serves_another_build",
    "given": [
     "a good build, already promoted to production and confirmed there"
@@ -17366,7 +17726,7 @@
    "suite": "pytest",
    "title": "a promote to production needs the public address",
    "file": "tests/test_release.py",
-   "line": 521,
+   "line": 541,
    "node": "tests/test_release.py::test_a_promote_to_production_needs_the_public_address",
    "given": [
     "a good build and a release configuration with no production address"
@@ -17392,7 +17752,7 @@
    "suite": "pytest",
    "title": "the public address is read from the configuration without a trailing slash",
    "file": "tests/test_release.py",
-   "line": 542,
+   "line": 562,
    "node": "tests/test_release.py::test_the_public_address_is_read_from_the_config_without_a_trailing_slash",
    "given": [
     "a configuration whose production address ends in a slash"
@@ -17418,7 +17778,7 @@
    "suite": "pytest",
    "title": "the failing browser tests are named from their results file",
    "file": "tests/test_release.py",
-   "line": 596,
+   "line": 616,
    "node": "tests/test_release.py::test_the_failing_browser_tests_are_named_from_their_results_file",
    "given": [
     "a Playwright results file with a passing test, a failing nested test and an error outside the tests"
@@ -17445,7 +17805,7 @@
    "suite": "pytest",
    "title": "a browser-test failure email names the tests and the report",
    "file": "tests/test_release.py",
-   "line": 614,
+   "line": 634,
    "node": "tests/test_release.py::test_a_browser_test_failure_email_names_the_tests_and_the_report",
    "given": [
     "steps where ui-test fails and writes a results file"
@@ -18016,6 +18376,91 @@
    "then": [
     "the first gives one",
     "the second gives none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TABLES-001",
+   "suite": "pytest",
+   "title": "every module the table-building code imports is in its fingerprint or exempted with a reason",
+   "file": "tests/test_survey_tables.py",
+   "line": 98,
+   "node": "tests/test_survey_tables.py::test_every_file_the_table_code_reaches_is_fingerprinted_or_exempted",
+   "given": [
+    "the module that builds a kind of survey table (weights.py, silc.py)"
+   ],
+   "when": [
+    "its imports are followed through our package, including those inside functions"
+   ],
+   "then": [
+    "every module reached is in that table's fingerprint list or in its exemptions",
+    "every listed or exempted module is one the imports reach, so neither list holds dead entries",
+    "no module is both listed and exempted"
+   ],
+   "notes": "",
+   "examples": [
+    "weights",
+    "silc"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TABLES-002",
+   "suite": "pytest",
+   "title": "every data file named in the fingerprinted code is in the fingerprint",
+   "file": "tests/test_survey_tables.py",
+   "line": 122,
+   "node": "tests/test_survey_tables.py::test_every_data_file_the_covered_code_names_is_fingerprinted",
+   "given": [
+    "the files in the package's data folder",
+    "the code a fingerprint covers"
+   ],
+   "when": [
+    "the code's string constants are searched for those file names"
+   ],
+   "then": [
+    "every data file named there is in the fingerprint's data list"
+   ],
+   "notes": "",
+   "examples": [
+    "weights",
+    "silc"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-TABLES-003",
+   "suite": "pytest",
+   "title": "a file checked out with Windows line endings gives the same fingerprint",
+   "file": "tests/test_survey_tables.py",
+   "line": 143,
+   "node": "tests/test_survey_tables.py::test_the_fingerprints_ignore_line_endings",
+   "given": [
+    "a code file and a data file with Unix line endings",
+    "the same two files with Windows line endings"
+   ],
+   "when": [
+    "each set is fingerprinted"
+   ],
+   "then": [
+    "both give the same hash"
    ],
    "notes": "",
    "examples": [],
