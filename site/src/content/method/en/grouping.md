@@ -44,6 +44,6 @@ Its incomes can't be used to rank households: the incomes of households living o
 
 ## How much it matters
 
-In September 2026 the poorest fifth's annual rate was 4.9% by default, 5.4% with households ranked by total income and 5.6% with people ranked by spending. The groupings sort different people into the "poorest" fifth, so their baskets differ.
+The groupings sort different people into the "poorest" fifth, so their baskets differ, and so do their inflation rates. Switch this option in Explore to compare them month by month.
 
 The tenure, pensioner and all-households groups don't depend on this option.

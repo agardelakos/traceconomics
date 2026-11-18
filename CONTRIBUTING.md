@@ -78,6 +78,12 @@ These protect what the project promises: every number traceable, reproducible an
 - **Every English text on the site is also changed in Greek, in the same pull request**
   (`site/src/i18n/`, `site/src/content/`). The build fails on a missing translation. If you can't
   write the Greek, say so in the pull request.
+- **The site's text never quotes the latest data.** Charts and tables follow every release; a figure
+  typed into a sentence doesn't, and a release goes on with nobody rewriting it. Don't write "now",
+  "today" or "currently" about the data, and name the month or year of any measured figure you
+  quote. Every figure with a unit in the text is listed, with its kind, in
+  `site/src/i18n/figures-allow.json`; the site checks fail on one that isn't, or that changed
+  (`npm run figures:report` lists them all).
 - **The site loads nothing from other sites and runs no inline scripts.** The Content Security
   Policy and the site checks enforce this; the only exception is the cookieless visit counter in
   release builds.
