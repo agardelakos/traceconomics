@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "82f6cbcd27ebf26957f2afde706f1c64c1f6c7b9",
- "generated": "2026-11-19T14:15:48Z",
+ "commit": "d5a36d45d0f9d12c87ea713140ebb419107ed75e",
+ "generated": "2026-11-19T16:01:03Z",
  "missing": [],
  "cases": [
   {
@@ -7415,6 +7415,324 @@
    "named": false
   },
   {
+   "id": "PY-CAL-001",
+   "suite": "pytest",
+   "title": "the 2027 calendar PDF gives every CPI, HICP and HBS release day of 2027",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 50,
+   "node": "tests/test_elstat_calendar.py::test_pdf_2027_release_days",
+   "given": [
+    "ELSTAT's releases calendar for 2027, as published"
+   ],
+   "when": [
+    "its release days are read for 2027"
+   ],
+   "then": [
+    "the CPI's and the HICP's are the twelve days printed in it, from 2027-01-13 to 2027-12-10",
+    "the household budget survey's is 2027-09-30"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-002",
+   "suite": "pytest",
+   "title": "the 2026 calendar PDF and the 2026 calendar page give the same release days",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 64,
+   "node": "tests/test_elstat_calendar.py::test_pdf_2026_agrees_with_the_page",
+   "given": [
+    "ELSTAT's releases calendar PDF for 2026 and the calendar page as archived on 2026-11-10"
+   ],
+   "when": [
+    "both are read"
+   ],
+   "then": [
+    "their CPI and HBS release days are the same",
+    "their HICP days are the same except 2026-11-10, whose date the page mistyped as \"10/11/2 6\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-003",
+   "suite": "pytest",
+   "title": "the 2024 calendar PDF, with its older capitalised wording, is read too",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 80,
+   "node": "tests/test_elstat_calendar.py::test_pdf_2024_older_wording",
+   "given": [
+    "ELSTAT's releases calendar for 2024 (\"Consumer Price Index\", \"Harmonised Index of Consumer Prices\")"
+   ],
+   "when": [
+    "its release days are read for 2024"
+   ],
+   "then": [
+    "the CPI and the HICP each have twelve, the first on 2024-01-12",
+    "the household budget survey's is 2024-09-27"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-004",
+   "suite": "pytest",
+   "title": "a calendar PDF read for the wrong year is refused",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 94,
+   "node": "tests/test_elstat_calendar.py::test_pdf_read_for_the_wrong_year_is_refused",
+   "given": [
+    "ELSTAT's releases calendar for 2027"
+   ],
+   "when": [
+    "its release days are read as if it were 2028's"
+   ],
+   "then": [
+    "a format error names CPI rows whose reference month isn't the month before their release"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-005",
+   "suite": "pytest",
+   "title": "a file that isn't a PDF is refused",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 105,
+   "node": "tests/test_elstat_calendar.py::test_a_file_that_is_not_a_pdf_is_refused",
+   "given": [
+    "bytes that are an HTML error page, not a PDF"
+   ],
+   "when": [
+    "they are read as a calendar PDF"
+   ],
+   "then": [
+    "a format error says it isn't a readable PDF"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-006",
+   "suite": "pytest",
+   "title": "calendar PDF rows that don't add up to one release a month are refused",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 116,
+   "node": "tests/test_elstat_calendar.py::test_pdf_rows_that_dont_add_up_are_refused",
+   "given": [
+    "the text lines of a 2027 calendar with one CPI and one HICP release in each month"
+   ],
+   "when": [
+    "one CPI month is missing, or appears twice, or names the wrong reference month, or a row has an impossible date"
+   ],
+   "then": [
+    "a format error says which, instead of release days that may be wrong"
+   ],
+   "notes": "",
+   "examples": [
+    "a month missing",
+    "a month twice",
+    "wrong reference month",
+    "impossible date"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-007",
+   "suite": "pytest",
+   "title": "calendar PDF rows of other releases, and lines that aren't rows, are ignored",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 138,
+   "node": "tests/test_elstat_calendar.py::test_pdf_rows_of_other_releases_are_ignored",
+   "given": [
+    "a 2027 calendar's text lines for the CPI and the HICP, plus other releases and page text"
+   ],
+   "when": [
+    "its release days are read"
+   ],
+   "then": [
+    "the CPI and the HICP have their twelve days and the HBS none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-008",
+   "suite": "pytest",
+   "title": "the calendar page's rows with an unreadable date are kept, not dropped",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 152,
+   "node": "tests/test_elstat_calendar.py::test_page_keeps_unreadable_rows",
+   "given": [
+    "the calendar page as archived on 2026-11-10, whose HICP row for 2026-11-10 has the date \"10/11/2 6\""
+   ],
+   "when": [
+    "the page is read"
+   ],
+   "then": [
+    "that row is listed as unreadable, with its date as written and its indicator",
+    "it is the only one"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-009",
+   "suite": "pytest",
+   "title": "a calendar page that writes dates as 4/1/2024 is read",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 165,
+   "node": "tests/test_elstat_calendar.py::test_page_with_four_digit_years",
+   "given": [
+    "the Wayback Machine's copy of the calendar page of 2024-12-14 (dates like \"4/1/2024\")"
+   ],
+   "when": [
+    "its release days are read"
+   ],
+   "then": [
+    "no row is unreadable",
+    "the CPI's first two are 2024-01-12 and 2024-02-15, as in the 2024 PDF"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-010",
+   "suite": "pytest",
+   "title": "the page's past date formats are read, and anything else is unreadable",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 178,
+   "node": "tests/test_elstat_calendar.py::test_page_date_formats",
+   "given": [
+    "a calendar page with one CPI row whose date is written as \"13/01/27\", \"13/1/2027\", \"10/11/2 6\" or \"31/02/27\""
+   ],
+   "when": [
+    "the page's rows are read"
+   ],
+   "then": [
+    "the first two give 2027-01-13",
+    "the typo and the impossible date are listed as unreadable rather than guessed"
+   ],
+   "notes": "",
+   "examples": [
+    "dd/mm/yy",
+    "d/m/yyyy",
+    "typo",
+    "impossible"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-011",
+   "suite": "pytest",
+   "title": "a calendar page with no readable date is refused",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 199,
+   "node": "tests/test_elstat_calendar.py::test_page_without_readable_rows_is_refused",
+   "given": [
+    "a calendar page whose every row has a date in an unknown format"
+   ],
+   "when": [
+    "it is read"
+   ],
+   "then": [
+    "a format error says no release row has a readable date",
+    "reading it for change detection still works and gives nothing"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CAL-012",
+   "suite": "pytest",
+   "title": "the yearly calendar PDFs are found on the page by their link text",
+   "file": "tests/test_elstat_calendar.py",
+   "line": 213,
+   "node": "tests/test_elstat_calendar.py::test_page_links_the_yearly_pdfs",
+   "given": [
+    "the calendar page as archived on 2026-11-10"
+   ],
+   "when": [
+    "its calendar PDF links are read"
+   ],
+   "then": [
+    "2027's and 2026's point to their PDFs on statistics.gr, whatever their file names",
+    "older years (\"Press Releases Calendar, 2024\") are found too"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-ORIG-007",
    "suite": "pytest",
    "title": "a published Greek table VII is read item by item",
@@ -8570,7 +8888,7 @@
     "each listed file is hashed"
    ],
    "then": [
-    "exactly 14 files are listed",
+    "exactly 19 files are listed",
     "every file's SHA-256 matches the one listed"
    ],
    "notes": "",
@@ -10704,6 +11022,164 @@
     "it is given the visits bookmark untouched plus a downloads bookmark rebuilt from the archive",
     "one alert is sent, titled \"ALERT: analytics export (downloads) failing, 4 days not copied\"",
     "its body says how many days Cloudflare keeps (31) and gives the command with \"--feed downloads\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-032",
+   "suite": "pytest",
+   "title": "in December the job knows next year's release days from ELSTAT's calendar PDF",
+   "file": "tests/test_job.py",
+   "line": 746,
+   "node": "tests/test_job.py::test_december_knows_next_years_release_days_from_the_pdf",
+   "given": [
+    "ELSTAT's calendar page showing 2026 only, linking the 2026 and 2027 calendar PDFs"
+   ],
+   "when": [
+    "the job runs on 2026-12-15, after the last CPI release of 2026"
+   ],
+   "then": [
+    "the CPI's release days include all of 2027's, from 2027-01-13 to 2027-12-10, and the HBS's 2027-09-30",
+    "the report has no \"no future CPI release date\" alert",
+    "it alerts the page's HICP row whose date can't be read (\"10/11/2 6\")",
+    "it notes that the page and the 2026 PDF differ on the HICP of 2026-11-10 (the page's dates are used)",
+    "both PDFs are archived, each as its year's calendar"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-033",
+   "suite": "pytest",
+   "title": "each calendar PDF is downloaded once; later runs read the archived copy",
+   "file": "tests/test_job.py",
+   "line": 771,
+   "node": "tests/test_job.py::test_each_calendar_pdf_is_downloaded_once",
+   "given": [
+    "a first run that archived the 2026 and 2027 calendar PDFs"
+   ],
+   "when": [
+    "a forced run follows the same day, and another run the next day"
+   ],
+   "then": [
+    "neither PDF is asked for again",
+    "2027's release days are still known"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-034",
+   "suite": "pytest",
+   "title": "in early January, before the page shows the new year, the year's PDF gives its release days",
+   "file": "tests/test_job.py",
+   "line": 789,
+   "node": "tests/test_job.py::test_january_before_the_page_switches",
+   "given": [
+    "ELSTAT's calendar page still showing 2026, linking the 2027 calendar PDF"
+   ],
+   "when": [
+    "the job runs on 2027-01-05"
+   ],
+   "then": [
+    "the CPI's release days include 2027-01-13",
+    "the report has no \"no future CPI release date\" alert"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-035",
+   "suite": "pytest",
+   "title": "a future release day ELSTAT moved is dropped; past release days stay",
+   "file": "tests/test_job.py",
+   "line": 805,
+   "node": "tests/test_job.py::test_a_moved_release_day_is_dropped_and_past_ones_kept",
+   "given": [
+    "a first run on 2026-11-20 whose calendar page had the November CPI release on 2026-12-11"
+   ],
+   "when": [
+    "the page moves it back to 2026-12-09 and the job runs on 2026-11-21"
+   ],
+   "then": [
+    "the CPI's release days include 2026-12-09 and no longer 2026-12-11",
+    "the past ones, such as 2026-01-13, are still there"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-036",
+   "suite": "pytest",
+   "title": "a calendar PDF that can't be read raises an alert, and its dates aren't used",
+   "file": "tests/test_job.py",
+   "line": 826,
+   "node": "tests/test_job.py::test_an_unreadable_calendar_pdf_alerts",
+   "given": [
+    "ELSTAT's calendar page linking a 2027 calendar \"PDF\" that is an HTML error page"
+   ],
+   "when": [
+    "the job runs on 2026-12-15"
+   ],
+   "then": [
+    "the report alerts that the 2027 calendar isn't a readable PDF",
+    "no 2027 release day is known, so the \"no future CPI release date\" alert is raised too"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-037",
+   "suite": "pytest",
+   "title": "a calendar PDF linked at a new address is downloaded once more, then not again",
+   "file": "tests/test_job.py",
+   "line": 843,
+   "node": "tests/test_job.py::test_a_reuploaded_pdf_is_downloaded_once_more",
+   "given": [
+    "a first run that archived the 2027 calendar PDF"
+   ],
+   "when": [
+    "the page links the same file at a new address, and the job runs on two more days"
+   ],
+   "then": [
+    "the PDF is asked for once at the new address, not on every run"
    ],
    "notes": "",
    "examples": [],
@@ -18678,7 +19154,7 @@
    "suite": "pytest",
    "title": "every module the table-building code imports is in its fingerprint or exempted with a reason",
    "file": "tests/test_survey_tables.py",
-   "line": 98,
+   "line": 100,
    "node": "tests/test_survey_tables.py::test_every_file_the_table_code_reaches_is_fingerprinted_or_exempted",
    "given": [
     "the module that builds a kind of survey table (weights.py, silc.py)"
@@ -18708,7 +19184,7 @@
    "suite": "pytest",
    "title": "every data file named in the fingerprinted code is in the fingerprint",
    "file": "tests/test_survey_tables.py",
-   "line": 122,
+   "line": 124,
    "node": "tests/test_survey_tables.py::test_every_data_file_the_covered_code_names_is_fingerprinted",
    "given": [
     "the files in the package's data folder",
@@ -18737,7 +19213,7 @@
    "suite": "pytest",
    "title": "a file checked out with Windows line endings gives the same fingerprint",
    "file": "tests/test_survey_tables.py",
-   "line": 143,
+   "line": 145,
    "node": "tests/test_survey_tables.py::test_the_fingerprints_ignore_line_endings",
    "given": [
     "a code file and a data file with Unix line endings",
