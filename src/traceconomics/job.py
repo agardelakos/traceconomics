@@ -310,9 +310,20 @@ def _run_sources(ctx: RunContext, state: dict) -> None:
     are downloaded by hand and added with `import --source aade`.
     """
     dates = state.setdefault("release_dates", {})
-    for topic, days in elstat.run(ctx, state).items():
-        if days:
-            dates[f"elstat-{topic}"] = sorted({*dates.get(f"elstat-{topic}", []), *(d.isoformat() for d in days)})
+    found = elstat.run(ctx, state)
+    for topic, days in found.dates.items():
+        key = f"elstat-{topic}"
+        # For a year the calendar covers in full, its future days replace the ones known before,
+        # so a release ELSTAT moved isn't kept as a release day that never comes. Past days stay:
+        # the late-release check reads them.
+        kept = [
+            d
+            for d in dates.get(key, [])
+            if date.fromisoformat(d) <= ctx.today or date.fromisoformat(d).year not in found.years
+        ]
+        merged = sorted({*kept, *(d.isoformat() for d in days)})
+        if merged:
+            dates[key] = merged
     euro_dates = eurostat.run(ctx, state)
     if euro_dates:
         dates["eurostat-hicp"] = sorted({*dates.get("eurostat-hicp", []), *(d.isoformat() for d in euro_dates)})

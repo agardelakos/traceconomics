@@ -33,6 +33,11 @@ tests run without network access and fail if a parser stops understanding a form
 | `eurostat_copyright_notice_2026-11-18.html` | https://ec.europa.eu/eurostat/help/copyright-notice | 2026-11-18 | not trimmed (the archive job's copy: no banner, a menu item renamed, the terms unchanged) |
 | `elstat_terms_reuse.html` | https://www.statistics.gr/en/pneumatika-diakaiomata-kai-epanachresimopoiese-stoicheion | 2026-10-18 | not trimmed (the archive job's copy) |
 | `ec_legal_notice.html` | https://commission.europa.eu/legal-notice_en | 2026-11-18 | not trimmed |
+| `elstat_calendar_2026-11-10.html` | https://www.statistics.gr/en/calendar | 2026-11-10 | not trimmed (the archive job's copy: 2026's rows, one of them with a mistyped date, and the links to the yearly PDFs) |
+| `elstat_calendar_2024-12-14.html` | https://web.archive.org/web/20241214173822id_/https://www.statistics.gr/en/calendar | 2026-11-19 | not trimmed (the Wayback Machine's copy of 2024-12-14, as captured: 2024's rows, dates written `4/1/2024`) |
+| `elstat_calendar_2024_en.pdf` | https://www.statistics.gr/documents/20181/18165299/HMEROLOGIO_ANAKOINOSEON_2024_EN.pdf/37e658d2-e9c3-af47-f34b-d97ed7ca6706 | 2026-11-19 | not trimmed (ELSTAT's releases calendar 2024) |
+| `elstat_calendar_2026_en.pdf` | https://www.statistics.gr/documents/20181/16784295/CALENDAR_2026_ENG.pdf/a575145b-6a6b-403e-2a00-579ab0e568bd | 2026-11-19 | not trimmed (ELSTAT's releases calendar 2026) |
+| `elstat_calendar_2027_en.pdf` | https://www.statistics.gr/documents/20181/16784295/RELEASES_CALENDAR_2027_EN.pdf/c9f54e57-dae5-33f1-0722-122b00116ff8 | 2026-11-19 | not trimmed (ELSTAT's releases calendar 2027) |
 | `eurostat_v1_gr_{minr,iw}.tsv.gz` | same Eurostat bulk files (`prc_hicp_minr`, `prc_hicp_iw`) | 2026-10-18 | Greece only. minr: unit I25 for every category, plus RCH_A for all items, periods from 2014-12. iw: every category, years from 2015 |
 
 Source: ELSTAT (Hellenic Statistical Authority), www.statistics.gr, Eurostat and the European
@@ -63,3 +68,8 @@ and compare hashes. `tests/test_fixtures.py` checks that the stored files still 
 | `eurostat_copyright_notice_2026-11-18.html` | `9a2468f5eb1c7efa5cc4c86fbf039911574cdcd4b9103c57d607c0f374c6199b` |
 | `elstat_terms_reuse.html` | `29fbad03a13fb5c22d53f931b03b2df6a31b4994642f4531e2fc7a769dd57b88` |
 | `ec_legal_notice.html` | `82502bd4686fdd437beea1156fc9cb306bbdbd38304fd4ea3767aca8c7d1c1f9` |
+| `elstat_calendar_2026-11-10.html` | `55311736c9eab0da4426abce2e0677f335a319575b0f0866bda6ac1d55f83aa4` |
+| `elstat_calendar_2024-12-14.html` | `9bb09ea94428479c53b7c5dbfa08ba2d83737a90a5db28cffb13a082eaea6717` |
+| `elstat_calendar_2024_en.pdf` | `bdd8288cd1afc078ec20d8b7b4dfd903196c03aae8a59c392b54497a99eb9459` |
+| `elstat_calendar_2026_en.pdf` | `f6def361a0456cbcd9eedaedb9f33f0b9f613d3fb8c6ea777ab22cd320401798` |
+| `elstat_calendar_2027_en.pdf` | `f6a48cc5ca05a1a198983f524b4ffb142c4df8ee54f65c7c5b7731102e0f556d` |

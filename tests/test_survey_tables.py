@@ -42,6 +42,8 @@ EXEMPT_WEIGHTS = {
     "traceconomics.sources.base": "the HTTP client, reached through sources.elstat",
     "traceconomics.htmltext": "web page text, reached through sources.elstat",
     "traceconomics.sources.elstat.original07": "reached through module1.originals",
+    "traceconomics.sources.elstat.calendar_pdf": "ELSTAT's release calendar PDF, reached through sources.elstat; "
+    "release dates, no figures",
     "traceconomics.store": "an empty package",
     "traceconomics.store.query": "reached only by `mapping build`, which writes the mapping tables (covered as data)",
 }
