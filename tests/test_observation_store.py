@@ -317,3 +317,47 @@ def test_label_files_come_only_from_the_datasets_the_store_reads(tmp_path):
         )
     found = label_files(archive, catalog.dataset("elstat:cpi07"))
     assert [p.parts[-3] for p in found] == ["doc-457128-el"]
+
+
+TRICKY = [
+    ("plain", "", 0.1 + 0.2, None),  # an empty string, a float that isn't its short form, a missing value
+    ('a "quote", a comma', "line\nbreak", -0.0, "p"),
+    ("Ελληνικά", "\\N", 1e-300, ""),  # a field that reads like a null marker, the smallest floats
+    (None, "NULL", 123456789.123456789, None),
+    ("x", "y", float("inf"), "e"),
+]
+COLUMNS = [("a", "VARCHAR"), ("b", "VARCHAR"), ("value", "DOUBLE"), ("flags", "VARCHAR")]
+
+
+def test_bulk_load_stores_what_a_row_by_row_insert_stores():
+    """PY-OBS-011: the store's bulk load keeps every value exactly as a row-by-row insert does
+
+    Given rows with empty strings, missing values, quotes, commas, line breaks and Greek text
+    And fields reading "\\N" or "NULL", negative zero, a tiny float, infinity and a float not in its short form
+    When they are loaded in bulk and, separately, inserted one row at a time
+    Then both tables hold the same rows, in the same order, with the same types
+    And an empty string stays an empty string while a missing value is NULL
+    """
+    con = duckdb.connect()
+    build._load(con, "bulk", COLUMNS, iter(TRICKY))
+    con.execute("CREATE TABLE one (a VARCHAR, b VARCHAR, value DOUBLE, flags VARCHAR)")
+    con.executemany("INSERT INTO one VALUES (?, ?, ?, ?)", TRICKY)
+    bulk = con.execute("SELECT * FROM bulk").fetchall()
+    assert bulk == con.execute("SELECT * FROM one").fetchall()
+    assert [str(v) for _, _, v, _ in bulk] == [str(v) for _, _, v, _ in TRICKY]  # -0.0 keeps its sign
+    assert con.execute("SELECT count(*) FROM bulk WHERE b = ''").fetchone()[0] == 1
+    assert con.execute("SELECT count(*) FROM bulk WHERE flags IS NULL").fetchone()[0] == 2
+    assert con.execute("DESCRIBE bulk").fetchall() == con.execute("DESCRIBE one").fetchall()
+
+
+def test_bulk_load_of_no_rows_leaves_an_empty_table():
+    """PY-OBS-012: a bulk load of no rows still makes the table, empty
+
+    Given no rows (a survey table that can't be built for its year)
+    When they are loaded in bulk
+    Then the table exists with its columns and holds nothing
+    """
+    con = duckdb.connect()
+    build._load(con, "empty", COLUMNS, iter([]))
+    assert con.execute("SELECT count(*) FROM empty").fetchone()[0] == 0
+    assert [r[0] for r in con.execute("DESCRIBE empty").fetchall()] == ["a", "b", "value", "flags"]
