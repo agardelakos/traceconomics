@@ -19,8 +19,10 @@ published or retrieved by X (see `query.py`), and nothing is ever lost.
 
 from __future__ import annotations
 
+import csv
 import json
 import os
+import tempfile
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -192,50 +194,75 @@ def _update_dataset(archive: Archive, store: Store, con, spec: DatasetSpec, full
     return report
 
 
+def _load(con, table: str, columns: list[tuple[str, str]], rows) -> None:
+    """Create `table` with `columns` ([(name, SQL type)]) and fill it with `rows`, in order.
+
+    In bulk, through a temporary CSV file that DuckDB reads itself: `executemany` inserts one row
+    at a time (about 4,000 rows a second), so a survey table of 370,000 rows took a minute and a
+    half instead of half a second. The values come out exactly as `executemany` would store them:
+    every field is written as text and cast in SQL; floats as `repr` (which reads back to the same
+    double); None unquoted and every other value quoted, so an empty string stays an empty string
+    and only a missing value becomes NULL.
+    """
+    cols = ", ".join(f'"{name}" {kind}' for name, kind in columns)
+    con.execute(f"CREATE OR REPLACE TABLE {table} ({cols})")
+    with tempfile.TemporaryDirectory(prefix="traceconomics-store-") as tmp:
+        path = Path(tmp) / "rows.csv"
+        n = 0
+        with path.open("w", encoding="utf-8", newline="") as f:
+            out = csv.writer(f, quoting=csv.QUOTE_NOTNULL, lineterminator="\n")
+            for row in rows:
+                out.writerow(None if v is None else repr(v) if isinstance(v, float) else v for v in row)
+                n += 1
+        if not n:
+            return
+        text = ", ".join(f"'{name}': 'VARCHAR'" for name, _ in columns)
+        cast = ", ".join(f'CAST("{name}" AS {kind})' for name, kind in columns)
+        con.execute(
+            f"INSERT INTO {table} SELECT {cast} FROM read_csv(?, header = false, auto_detect = false, "
+            f"delim = ',', quote = '\"', escape = '\"', columns = {{{text}}}, allow_quoted_nulls = false)",
+            [path.as_posix()],
+        )
+
+
 def _parse_into(con, spec: DatasetSpec, snap: Snapshot, table: str) -> None:
+    text, double = "VARCHAR", "DOUBLE"
+    tail = [("ref_period", text), ("value_text", text), ("value", double), ("flags", text)]
     if spec.format == "eurostat-tsv":
         eurostat_parse.parse(con, snap.path, spec, table=table)
     elif spec.format == "elstat-cpi07":
         t = elstat_parse.parse(snap.path)
-        con.execute(
-            f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, coicop18 VARCHAR, geo VARCHAR, "
-            "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)"
-        )
-        con.executemany(
-            f"INSERT INTO {table} VALUES (?, ?, ?, 'GR', ?, ?, ?, NULL)",
-            [(f, u, c, p, repr(v), v) for f, u, c, p, v in t.rows()],
+        _load(
+            con,
+            table,
+            [("freq", text), ("unit", text), ("coicop18", text), ("geo", text), *tail],
+            ((f, u, c, "GR", p, repr(v), v, None) for f, u, c, p, v in t.rows()),
         )
     elif spec.format == "elstat-cpi05":
         t5 = elstat_table05.parse(snap.path)
-        con.execute(
-            f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, geo VARCHAR, "
-            "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)"
-        )
-        con.executemany(
-            f"INSERT INTO {table} VALUES (?, ?, 'GR', ?, ?, ?, NULL)",
-            [(f, u, p, repr(v), v) for f, u, p, v in t5.rows()],
+        _load(
+            con,
+            table,
+            [("freq", text), ("unit", text), ("geo", text), *tail],
+            ((f, u, "GR", p, repr(v), v, None) for f, u, p, v in t5.rows()),
         )
     elif spec.format == "aade-pit":
-        con.execute(
-            f"CREATE OR REPLACE TABLE {table} (freq VARCHAR, unit VARCHAR, measure VARCHAR, geo VARCHAR, "
-            "ref_period VARCHAR, value_text VARCHAR, value DOUBLE, flags VARCHAR)"
-        )
-        con.executemany(
-            f"INSERT INTO {table} VALUES ('A', ?, ?, 'GR', ?, ?, ?, NULL)",
-            [(u, m, p, text, v) for m, u, p, text, v in aade_parse.rows(snap.path)],
+        _load(
+            con,
+            table,
+            [("freq", text), ("unit", text), ("measure", text), ("geo", text), *tail],
+            (("A", u, m, "GR", p, txt, v, None) for m, u, p, txt, v in aade_parse.rows(snap.path)),
         )
     elif spec.format in oet_local.FORMATS:
         dims = oet_local.FORMATS[spec.format]["dims"]
-        cols = ", ".join(f'"{d}" VARCHAR' for d in (*dims, "measure"))
-        con.execute(
-            f"CREATE OR REPLACE TABLE {table} ({cols}, ref_period VARCHAR, value_text VARCHAR, "
-            "value DOUBLE, flags VARCHAR)"
-        )
-        rows = list(oet_local.rows(snap.path, spec.format))
         # A table with no rows is valid (the 2010 survey's income limits, which can't be built):
-        # it withdraws the dataset's earlier rows. DuckDB's executemany refuses an empty list.
-        if rows:
-            con.executemany(f"INSERT INTO {table} VALUES ({', '.join('?' * (len(dims) + 4))}, NULL)", rows)
+        # it withdraws the dataset's earlier rows.
+        _load(
+            con,
+            table,
+            [*((d, text) for d in (*dims, "measure")), *tail],
+            ((*row, None) for row in oet_local.rows(snap.path, spec.format)),
+        )
     else:
         raise ValueError(f"no parser for {spec.format}")
 
@@ -320,9 +347,11 @@ def _write_labels(con, archive: Archive, store: Store, spec: DatasetSpec) -> Non
         t = elstat_parse.parse(path)
         for code, label in t.labels.items():
             labels.setdefault(code, {})[t.language] = label
-    con.execute("CREATE OR REPLACE TEMP TABLE lab (code VARCHAR, label_en VARCHAR, label_el VARCHAR)")
-    con.executemany(
-        "INSERT INTO lab VALUES (?, ?, ?)", [(c, v.get("en"), v.get("el")) for c, v in sorted(labels.items())]
+    _load(
+        con,
+        "lab",
+        [("code", "VARCHAR"), ("label_en", "VARCHAR"), ("label_el", "VARCHAR")],
+        ((c, v.get("en"), v.get("el")) for c, v in sorted(labels.items())),
     )
     path = store.labels / f"{folder_name(spec)}.parquet"
     tmp = path.with_name(path.name + ".part")
