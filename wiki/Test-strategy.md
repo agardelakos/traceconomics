@@ -121,6 +121,23 @@ code**: fixed made-up prices and baskets go through the real series code, output
 export, so the files have exactly the production format. The numbers mean nothing, and are
 deterministic. Release builds run the same suites on the real data.
 
+Real data pass through a few **states** every month and year, and the site must work in each: the
+HICP a month behind the CPI (about a week every month, the default), the HICP caught up, a new
+year's January (a new chain link, first-estimate weights) and a new survey year (weights going from
+first estimate to final). `tests/sitedata.py --state <name>` writes each; CI's `data-states` job
+builds the site and runs both browser suites on every one besides the default. A test asserts what
+holds in every valid state, never one state's particulars: a test written for one state fails there,
+in the pull request, rather than on a release day.
+
+A second **value set** (`tests/sitedata.py --values b`) has the same pages and other numbers. CI's
+`same-in-both` job builds the site on each and compares every page's figures place by place
+(`site/src/lib/same-in-both.mjs`): a figure that reads the same in both, and isn't typed in the
+text (which site check 11 already lists), was typed into a page or component instead of taken from
+the data. Measured figures typed in the text are checked the other way round: each `past` entry in
+`site/src/i18n/figures-allow.json` says, figure by figure, which exported series gives it (release
+step `check-figures` recomputes it from the real data) or which archived datasets it rests on (a
+change to one holds an automatic release for a person to read it again).
+
 ## Coverage
 
 Two figures, one per codebase, each split by the layer of test that reaches the code:

@@ -52,12 +52,17 @@ def t(lang: str, key: str, **values) -> str:
 
 
 def num(lang: str, value: float, digits: int = 1) -> str:
-    """5.1 or 5,1; thousands split by a narrow no-break space; never "-0.0"."""
-    text = f"{abs(value):,.{digits}f}".replace(",", NNBSP)
+    """5.1 or 5,1; thousands split by a narrow no-break space; never "-0.0".
+
+    Rounded as the site's Intl.NumberFormat rounds: the number's shortest decimal form (what
+    repr() and JavaScript print), ties away from zero. Python's format() rounds the binary value
+    instead, so on a tie the two differ: 2.15 is "2.2" on the site and "2.1" from format().
+    """
+    rounded = Decimal(repr(value)).quantize(Decimal(1).scaleb(-digits), rounding=ROUND_HALF_UP)
+    text = f"{abs(rounded):,.{digits}f}".replace(",", NNBSP)
     if lang == "el":
         text = text.replace(".", ",")
-    negative = value < 0 and float(f"{value:.{digits}f}") != 0
-    return ("-" if negative else "") + text
+    return ("-" if rounded < 0 else "") + text
 
 
 # JavaScript's rounding, not Python's: round() goes to the even number on a tie (592.5 -> 592),

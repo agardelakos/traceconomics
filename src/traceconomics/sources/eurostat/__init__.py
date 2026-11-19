@@ -123,6 +123,25 @@ def run(ctx: RunContext, state: dict) -> list[date]:
     return dates
 
 
+# The HICP's datasets, checked in this order by the poll: the monthly rates first.
+HICP = tuple(d for d in LIVE if d.startswith("prc_hicp_"))
+
+
+def hicp_updated(archive, http) -> list[str]:
+    """The first HICP dataset whose "last data update" moved since our copy, as a one-item list
+    (else empty): the poll's sign that a release is out. One small request per dataset checked,
+    and none after the first that moved."""
+    for dataset in HICP:
+        _, xml = http.get_bytes(dataflow_url(dataset), archive.new_tmp())
+        updated = last_update(xml)
+        if updated is None:
+            raise FetchError(f"{dataset}: no UPDATE_DATA in the dataflow; the format may have changed")
+        latest = archive.latest(SOURCE, dataset)
+        if latest is None or archive.manifest(latest).get("eurostat_updated") != updated:
+            return [f"{dataset} updated {updated}"]
+    return []
+
+
 def check_and_fetch(
     ctx: RunContext, dataset: str, *, source: str = SOURCE, api: str = API, agency: str = "ESTAT"
 ) -> None:

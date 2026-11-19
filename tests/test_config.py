@@ -19,7 +19,7 @@ def test_every_setting_is_read_from_the_file(tmp_path):
     Then relative paths are taken from the file's folder and "~" from the home folder
     And the run time, pause, extra release dates, image, store limits and thread count are read
     And the email settings default the sender to the user name
-    And the release settings strip a trailing slash from the public address
+    And the release settings strip a trailing slash from the public address, and read the automatic promote mode
     """
     (tmp_path / "config.toml").write_text(
         MINIMAL.replace(
@@ -29,7 +29,7 @@ def test_every_setting_is_read_from_the_file(tmp_path):
         '[email]\nsmtp_host = "smtp.example"\nsmtp_port = "465"\nusername = "bot"\n'
         'recipients = ["a@example"]\nsecurity = "ssl"\n'
         '[release]\nenabled = true\nsite_dir = "site"\nproduction_url = "https://x.example/"\n'
-        "keep = 3\nreplicates = 10\n",
+        'keep = 3\nreplicates = 10\nauto_promote = "shadow"\n',
         encoding="utf-8",
     )
     c = load(tmp_path / "config.toml")
@@ -45,7 +45,7 @@ def test_every_setting_is_read_from_the_file(tmp_path):
     )
     r = c.release
     assert r.enabled and r.site_dir == tmp_path / "site" and r.production_url == "https://x.example"
-    assert (r.keep, r.replicates) == (3, 10)
+    assert (r.keep, r.replicates, r.auto_promote) == (3, 10, "shadow")
 
 
 @pytest.mark.parametrize(
@@ -57,12 +57,14 @@ def test_every_setting_is_read_from_the_file(tmp_path):
         ),
         ("[release]\nenabled = true\n", "release.site_dir is required"),
         ('[email]\nsmtp_host = "h"\n', "Missing config field: 'smtp_port'"),
+        ('[release]\nauto_promote = "yes"\n', "release.auto_promote must be off, shadow or on"),
+        ('[release]\nauto_promote = "on"\n', "release.auto_promote needs release.production_url"),
     ],
 )
 def test_a_setting_that_cant_work_is_refused(extra, message):
     """PY-CONF-002: a settings file that can't work is refused with the reason
 
-    Given a settings file with unencrypted email, or releases on without a site folder, or email without a port
+    Given a settings file with unencrypted email, or releases on without a site folder, or email without a port, or an unknown automatic promote mode, or automatic promotes without the public address to check
     When it is parsed
     Then a ConfigError names the setting at fault
     """

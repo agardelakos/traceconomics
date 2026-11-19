@@ -57,8 +57,14 @@ class Basket:
     reliability: dict[str, str]
 
     def leaves(self) -> dict[str, float]:
+        """The codes with a positive share and no positive-share code below them, in basket order.
+
+        A code has one below it exactly when it is a proper prefix of another code, so the
+        prefixes are collected once: comparing every code with every other was quadratic, and
+        this runs for every group, setting and year of a build."""
         codes = [c for c, s in self.shares.items() if s > 0]
-        return {c: self.shares[c] for c in codes if not any(o != c and o.startswith(c) for o in codes)}
+        parents = {o[:n] for o in codes for n in range(1, len(o))}
+        return {c: self.shares[c] for c in codes if c not in parents}
 
 
 def has_index(block: Prices, code: str) -> bool:

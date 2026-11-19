@@ -1,5 +1,5 @@
 {
-  "about": "Every figure with a unit (%, points, euros, PPS) typed into the interface strings or the content pages, pair by pair, with its kind (src/lib/quoted-figures.mjs, KINDS: illustrative, rule, past, finding). Typed figures do not follow the data, so the site check (scripts/checks.mjs, section 11) fails on a pair whose figures are not listed here exactly, and on an entry that no longer matches any text: writing or changing a figure means looking at it, and the list only shrinks. A figure about the latest month has no kind: show it in a chart, not in a sentence. Add or change an entry only with a maintainer agreeing. npm run figures:report shows each pair with its figures and text.",
+  "about": "Every figure with a unit (%, points, euros, PPS) typed into the interface strings or the content pages, pair by pair, with its kind (src/lib/quoted-figures.mjs, KINDS: illustrative, rule, past, finding). Typed figures do not follow the data, so the site check (scripts/checks.mjs, section 11) fails on a pair whose figures are not listed here exactly, and on an entry that no longer matches any text: writing or changing a figure means looking at it, and the list only shrinks. A figure about the latest month has no kind: show it in a chart, not in a sentence. Add or change an entry only with a maintainer agreeing. npm run figures:report shows each pair with its figures and text. A past entry also says, figure by figure (its English figures, in order), where each comes from under checks: a series the build exports, which the release step check-figures recomputes from the data (src/traceconomics/quoted_figures.py), or the archived datasets it rests on (sources, with a reason), whose change holds an automatic release for a person to read the sentence again.",
   "entries": [
     {
       "id": "i18n:calc.adjusted",
@@ -143,7 +143,36 @@
       "id": "i18n:m5.question.gr-income-limits.text",
       "kind": "past",
       "en": ["€6 680", "€17 800", "€14 000"],
-      "el": ["€6 680", "€17 800", "€14 000"]
+      "el": ["€6 680", "€17 800", "€14 000"],
+      "checks": [
+        {
+          "figure": "€6 680",
+          "sources": [
+            "oet-local/hbs-weights-gr-2009",
+            "oet-local/hbs-weights-gr-2010",
+            "oet-local/hbs-weights-gr-2011"
+          ],
+          "reason": "renting households' median money income in the 2009–2011 surveys, measured once on the microdata (also in ELSTAT's published income table); no output carries it"
+        },
+        {
+          "figure": "€17 800",
+          "sources": [
+            "oet-local/hbs-weights-gr-2009",
+            "oet-local/hbs-weights-gr-2010",
+            "oet-local/hbs-weights-gr-2011"
+          ],
+          "reason": "renting households' median money income in the 2009–2011 surveys, measured once on the microdata (also in ELSTAT's published income table); no output carries it"
+        },
+        {
+          "figure": "€14 000",
+          "sources": [
+            "oet-local/hbs-weights-gr-2009",
+            "oet-local/hbs-weights-gr-2010",
+            "oet-local/hbs-weights-gr-2011"
+          ],
+          "reason": "renting households' median money income in the 2009–2011 surveys, measured once on the microdata (also in ELSTAT's published income table); no output carries it"
+        }
+      ]
     },
     {
       "id": "i18n:m5.question.gr-income-limits.title",
@@ -155,25 +184,130 @@
       "id": "i18n:m5.question.gr-rent-change.teaser",
       "kind": "past",
       "en": ["3%", "23%", "34%"],
-      "el": ["3%", "23%", "34%"]
+      "el": ["3%", "23%", "34%"],
+      "checks": [
+        {
+          "figure": "3%",
+          "m5": "gr-rent-change",
+          "source": "cpi",
+          "period": "2024",
+          "change_from": "2015"
+        },
+        {
+          "figure": "23%",
+          "m5": "gr-rent-change",
+          "source": "silc",
+          "period": "2024",
+          "change_from": "2015"
+        },
+        {
+          "figure": "34%",
+          "m5": "gr-rent-change",
+          "source": "hbs",
+          "period": "2024",
+          "change_from": "2015"
+        }
+      ]
     },
     {
       "id": "i18n:m5.question.gr-rent-change.text",
       "kind": "past",
       "en": ["8%", "19%", "9%", "3%", "34%", "23%"],
-      "el": ["8%", "19%", "9%", "3%", "34%", "23%"]
+      "el": ["8%", "19%", "9%", "3%", "34%", "23%"],
+      "checks": [
+        {
+          "figure": "8%",
+          "m5": "gr-rent-change",
+          "source": "cpi",
+          "period": "2021",
+          "change_from": "2015",
+          "abs": true
+        },
+        {
+          "figure": "19%",
+          "m5": "gr-rent-change",
+          "source": "hbs",
+          "period": "2021",
+          "change_from": "2015"
+        },
+        {
+          "figure": "9%",
+          "m5": "gr-rent-change",
+          "source": "silc",
+          "period": "2021",
+          "change_from": "2015"
+        },
+        {
+          "figure": "3%",
+          "m5": "gr-rent-change",
+          "source": "cpi",
+          "period": "2024",
+          "change_from": "2015"
+        },
+        {
+          "figure": "34%",
+          "m5": "gr-rent-change",
+          "source": "hbs",
+          "period": "2024",
+          "change_from": "2015"
+        },
+        {
+          "figure": "23%",
+          "m5": "gr-rent-change",
+          "source": "silc",
+          "period": "2024",
+          "change_from": "2015"
+        }
+      ]
     },
     {
       "id": "i18n:m5.question.gr-rent-paid.text",
       "kind": "past",
       "en": ["45%"],
-      "el": ["45%"]
+      "el": ["45%"],
+      "checks": [
+        {
+          "figure": "45%",
+          "m5": "gr-rent-paid",
+          "source": "national_accounts",
+          "period": "2021",
+          "change_from": "2020"
+        }
+      ]
     },
     {
       "id": "i18n:reason.hospital",
       "kind": "past",
       "en": ["0.15 points", "0.06 points"],
-      "el": ["0,15 μονάδες", "0,06 μονάδες"]
+      "el": ["0,15 μονάδες", "0,06 μονάδες"],
+      "checks": [
+        {
+          "figure": "0.15 points",
+          "sources": [
+            "oet-local/hbs-weights-gr-2008",
+            "oet-local/hbs-weights-gr-2009",
+            "oet-local/hbs-weights-gr-2010",
+            "oet-local/hbs-weights-gr-2011",
+            "oet-local/hbs-weights-gr-2012",
+            "oet-local/hbs-weights-gr-2013",
+            "oet-local/hbs-weights-gr-2014"
+          ],
+          "reason": "the hospital check (check hospital) on the 2008–2014 surveys' microdata; no output carries hospital services"
+        },
+        {
+          "figure": "0.06 points",
+          "sources": [
+            "oet-local/hbs-weights-gr-2008",
+            "oet-local/hbs-weights-gr-2009",
+            "oet-local/hbs-weights-gr-2010",
+            "oet-local/hbs-weights-gr-2011",
+            "oet-local/hbs-weights-gr-2012",
+            "oet-local/hbs-weights-gr-2013",
+            "oet-local/hbs-weights-gr-2014"
+          ],
+          "reason": "the hospital check (check hospital) on the 2008–2014 surveys' microdata; no output carries hospital services"
+        }
+      ]
     },
     {
       "id": "findings/coicop18-reissue.md#summary",
@@ -245,13 +379,64 @@
       "id": "glossary/gap.md#intro",
       "kind": "past",
       "en": ["2.5 points"],
-      "el": ["20%", "2,5 μονάδες"]
+      "el": ["20%", "2,5 μονάδες"],
+      "checks": [
+        {
+          "figure": "2.5 points",
+          "m1": {
+            "setting": "default",
+            "grouping": "B",
+            "group": "Q1-Q5",
+            "unit": "RCH_A_GAP",
+            "period": "2022-04"
+          },
+          "peak": true
+        }
+      ]
     },
     {
       "id": "glossary/imputed-rent.md#intro",
       "kind": "past",
       "en": ["+1.4 points", "8.4%", "−1.6 points", "3.7%"],
-      "el": ["+1,4 μονάδες", "8,4%", "−1,6 μονάδες", "3,7%"]
+      "el": ["+1,4 μονάδες", "8,4%", "−1,6 μονάδες", "3,7%"],
+      "checks": [
+        {
+          "figure": "+1.4 points",
+          "m1": {
+            "setting": "purchases_included_cpi_N_priced",
+            "grouping": "all",
+            "group": "all",
+            "unit": "RCH_A_AVG",
+            "period": "2025"
+          },
+          "minus": {
+            "setting": "default"
+          }
+        },
+        {
+          "figure": "8.4%",
+          "sources": ["elstat/doc-554284"],
+          "reason": "actual rents (04.1), December on December, from ELSTAT's CPI table 07 for 2025; item indices aren't exported"
+        },
+        {
+          "figure": "−1.6 points",
+          "m1": {
+            "setting": "purchases_included_cpi_N_priced",
+            "grouping": "all",
+            "group": "all",
+            "unit": "RCH_A_AVG",
+            "period": "2022"
+          },
+          "minus": {
+            "setting": "default"
+          }
+        },
+        {
+          "figure": "3.7%",
+          "sources": ["elstat/doc-457128"],
+          "reason": "actual rents (04.1), December on December, from ELSTAT's CPI table 07 for 2022; item indices aren't exported"
+        }
+      ]
     },
     {
       "id": "glossary/percentage-point.md#short",
@@ -275,7 +460,19 @@
       "id": "glossary/spending-concept.md#intro",
       "kind": "past",
       "en": ["4.6–10.3%", "1.3–2.4%"],
-      "el": ["4,6–10,3%", "20%", "1,3–2,4%"]
+      "el": ["4,6–10,3%", "20%", "1,3–2,4%"],
+      "checks": [
+        {
+          "figure": "4.6–10.3%",
+          "sources": ["oet-local/hbs-weights-gr-*"],
+          "reason": "measured on every survey's microdata (own production and goods in kind against money spending); no output carries it"
+        },
+        {
+          "figure": "1.3–2.4%",
+          "sources": ["oet-local/hbs-weights-gr-*"],
+          "reason": "measured on every survey's microdata (own production and goods in kind against money spending); no output carries it"
+        }
+      ]
     },
     {
       "id": "glossary/weights.md#intro",
@@ -287,13 +484,42 @@
       "id": "method/grouping.md#the-default-people-by-equivalised-income",
       "kind": "past",
       "en": ["1.6%"],
-      "el": ["1,6%"]
+      "el": ["1,6%"],
+      "checks": [
+        {
+          "figure": "1.6%",
+          "sources": ["oet-local/hbs-limits-gr-2024"],
+          "reason": "our 2024 limits recomputed once with ELSTAT's equivalence scale, on the survey microdata; no output carries it"
+        }
+      ]
     },
     {
       "id": "method/grouping.md#which-income-and-how-it-differs-from-eurostat-s",
       "kind": "past",
       "en": ["1.8%", "4%", "€7 110", "€7 389"],
-      "el": ["20%", "1,8%", "4%", "20%", "€7 110", "€7 389"]
+      "el": ["20%", "1,8%", "4%", "20%", "€7 110", "€7 389"],
+      "checks": [
+        {
+          "figure": "1.8%",
+          "sources": ["eurostat/ilc_di01"],
+          "reason": "measured once on EU-SILC 2025's public file (transfers paid left in); no output carries it"
+        },
+        {
+          "figure": "4%",
+          "sources": ["eurostat/ilc_di01"],
+          "reason": "measured once on EU-SILC 2025's public file (wealth taxes and transfers paid left in); no output carries it"
+        },
+        {
+          "figure": "€7 110",
+          "sources": ["eurostat/ilc_di01"],
+          "reason": "Eurostat's published limit for survey 2025; the export shows only the newest survey's, which moves on"
+        },
+        {
+          "figure": "€7 389",
+          "sources": ["eurostat/ilc_di01"],
+          "reason": "measured once on EU-SILC 2025's public file; no output carries it"
+        }
+      ]
     },
     {
       "id": "method/grouping.md#how-much-it-matters",
@@ -305,7 +531,46 @@
       "id": "method/imputed-rent.md#the-alternative-priced-with-actual-rents",
       "kind": "past",
       "en": ["8.4%", "3.7%", "1.4 points", "1.6 points"],
-      "el": ["8,4%", "3,7%", "1,4 μονάδες", "1,6 μονάδες"]
+      "el": ["8,4%", "3,7%", "1,4 μονάδες", "1,6 μονάδες"],
+      "checks": [
+        {
+          "figure": "8.4%",
+          "sources": ["elstat/doc-554284"],
+          "reason": "actual rents (04.1), December on December, from ELSTAT's CPI table 07 for 2025; item indices aren't exported"
+        },
+        {
+          "figure": "3.7%",
+          "sources": ["elstat/doc-457128"],
+          "reason": "actual rents (04.1), December on December, from ELSTAT's CPI table 07 for 2022; item indices aren't exported"
+        },
+        {
+          "figure": "1.4 points",
+          "m1": {
+            "setting": "purchases_included_cpi_N_priced",
+            "grouping": "all",
+            "group": "all",
+            "unit": "RCH_A_AVG",
+            "period": "2025"
+          },
+          "minus": {
+            "setting": "default"
+          }
+        },
+        {
+          "figure": "1.6 points",
+          "m1": {
+            "setting": "purchases_included_cpi_N_priced",
+            "grouping": "all",
+            "group": "all",
+            "unit": "RCH_A_AVG",
+            "period": "2022"
+          },
+          "minus": {
+            "setting": "default"
+          },
+          "abs": true
+        }
+      ]
     },
     {
       "id": "method/overview.md#in-one-paragraph",
@@ -317,7 +582,39 @@
       "id": "method/overview.md#weights",
       "kind": "past",
       "en": ["16.8%", "24.5%", "1.2–6.4%", "0.15 points"],
-      "el": ["16,8%", "24,5%", "1,2–6,4%", "0,15 μονάδες"]
+      "el": ["16,8%", "24,5%", "1,2–6,4%", "0,15 μονάδες"],
+      "checks": [
+        {
+          "figure": "16.8%",
+          "m5": "gr-renters",
+          "source": "hbs",
+          "period": "2021"
+        },
+        {
+          "figure": "24.5%",
+          "m5": "gr-renters",
+          "source": "census",
+          "period": "2021"
+        },
+        {
+          "figure": "1.2–6.4%",
+          "sources": ["oet-local/hbs-weights-gr-*"],
+          "reason": "the share of purchases the public files don't record, per survey year, measured on the microdata; no output carries it"
+        },
+        {
+          "figure": "0.15 points",
+          "sources": [
+            "oet-local/hbs-weights-gr-2008",
+            "oet-local/hbs-weights-gr-2009",
+            "oet-local/hbs-weights-gr-2010",
+            "oet-local/hbs-weights-gr-2011",
+            "oet-local/hbs-weights-gr-2012",
+            "oet-local/hbs-weights-gr-2013",
+            "oet-local/hbs-weights-gr-2014"
+          ],
+          "reason": "the hospital check (check hospital) on the 2008–2014 surveys' microdata; no output carries hospital services"
+        }
+      ]
     },
     {
       "id": "method/overview.md#from-index-to-rates",
@@ -335,19 +632,128 @@
       "id": "method/price-source.md#how-much-it-matters",
       "kind": "past",
       "en": ["0.07 points", "0.1 points", "0.04 points"],
-      "el": ["0,07 μονάδες", "20%", "0,1 μονάδα", "0,04 μονάδες"]
+      "el": ["0,07 μονάδες", "20%", "0,1 μονάδα", "0,04 μονάδες"],
+      "checks": [
+        {
+          "figure": "0.07 points",
+          "m1": {
+            "setting": "default",
+            "grouping": "all",
+            "group": "all",
+            "unit": "RCH_A_AVG"
+          },
+          "minus": {
+            "setting": "purchases_excluded_hicp_N_priced"
+          },
+          "most": true
+        },
+        {
+          "figure": "0.1 points",
+          "m1": {
+            "setting": "default",
+            "grouping": "B",
+            "group": "Q1-Q5",
+            "unit": "RCH_A_AVG_GAP"
+          },
+          "minus": {
+            "setting": "purchases_excluded_hicp_N_priced"
+          },
+          "most": true
+        },
+        {
+          "figure": "0.04 points",
+          "sources": [
+            "elstat/doc-114865",
+            "elstat/doc-161251",
+            "elstat/doc-234746",
+            "elstat/doc-303515",
+            "elstat/doc-357288"
+          ],
+          "reason": "a one-off test: the CPI path priced at the HICP's coarser pre-2015 level, on 2015–2019; no output carries it"
+        }
+      ]
     },
     {
       "id": "method/spending.md#how-much-it-matters",
       "kind": "past",
       "en": ["4.6–10.3%", "1.3–2.4%", "2.1 points"],
-      "el": ["4,6–10,3%", "20%", "1,3–2,4%", "20%", "2,1 μονάδες"]
+      "el": ["4,6–10,3%", "20%", "1,3–2,4%", "20%", "2,1 μονάδες"],
+      "checks": [
+        {
+          "figure": "4.6–10.3%",
+          "sources": ["oet-local/hbs-weights-gr-*"],
+          "reason": "measured on every survey's microdata (own production and goods in kind against money spending); no output carries it"
+        },
+        {
+          "figure": "1.3–2.4%",
+          "sources": ["oet-local/hbs-weights-gr-*"],
+          "reason": "measured on every survey's microdata (own production and goods in kind against money spending); no output carries it"
+        },
+        {
+          "figure": "2.1 points",
+          "sources": ["oet-local/hbs-weights-gr-*"],
+          "reason": "the poorest fifth's food share with and without non-money spending, the largest over the survey years: a sum over the exported weights, not one exported value"
+        }
+      ]
     },
     {
       "id": "method/weights-timing.md#how-much-it-matters",
       "kind": "past",
       "en": ["1.7 points", "0.9 points"],
-      "el": ["20%", "1,7 μονάδες", "0,9 μονάδες"]
+      "el": ["20%", "1,7 μονάδες", "0,9 μονάδες"],
+      "checks": [
+        {
+          "figure": "1.7 points",
+          "m1": {
+            "setting": "default",
+            "grouping": "B",
+            "group": "Q1-Q5",
+            "unit": "RCH_A_AVG_GAP",
+            "period": "2022"
+          }
+        },
+        {
+          "figure": "0.9 points",
+          "largest_of": [
+            {
+              "m1": {
+                "setting": "default",
+                "grouping": "B",
+                "group": "Q1-Q5",
+                "unit": "RCH_A_AVG_GAP"
+              },
+              "minus": {
+                "setting": "purchases_excluded_cpi_F_priced"
+              },
+              "most": true
+            },
+            {
+              "m1": {
+                "setting": "default",
+                "grouping": "B",
+                "group": "Q1-Q5",
+                "unit": "RCH_A_AVG_GAP"
+              },
+              "minus": {
+                "setting": "purchases_excluded_cpi_U_priced"
+              },
+              "most": true
+            },
+            {
+              "m1": {
+                "setting": "purchases_excluded_cpi_F_priced",
+                "grouping": "B",
+                "group": "Q1-Q5",
+                "unit": "RCH_A_AVG_GAP"
+              },
+              "minus": {
+                "setting": "purchases_excluded_cpi_U_priced"
+              },
+              "most": true
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "pages/data.md#what-there-is",

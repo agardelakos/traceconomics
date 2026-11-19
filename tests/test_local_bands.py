@@ -113,3 +113,47 @@ def test_bands_for_same_year_weights_and_tutoring_left_out_match_a_plain_loop():
     for period in ("2012-06", "2025-12", "2026-09"):
         rates = [annual_rate(x.chained.index, period) for x in one_by_one]
         assert got[period] == pytest.approx(np.std(rates, ddof=1), rel=1e-9)
+
+
+def test_each_survey_is_prepared_once_for_every_spending_and_rent_option(monkeypatch):
+    """PY-BANDS-006: a bands run prepares each survey once, and every option's replicates get that survey's calibration
+
+    Given every setting of the options, whose series use surveys 2023 and 2024
+    When the bands are run (the survey reading, the replicates and the band arithmetic faked)
+    Then each survey is prepared once, not once per spending concept and rent option
+    And the replicates for each of the four spending and rent pairs get the same prepared survey
+    And their calibration rescales the weights by that survey's own tenure target
+    """
+    from types import SimpleNamespace
+
+    import pandas as pd
+
+    from traceconomics.local import bands as b
+    from traceconomics.module1 import combinations
+
+    prepared, seen = [], []
+
+    def prepare(archive, year):
+        prepared.append(year)
+        groups = pd.DataFrame({"tenure": ["owner", "renter"]})
+        share = 0.25 if year == 2023 else 0.5  # the owners'; renters the rest, nobody housed free
+        target = SimpleNamespace(shares={"owner": share, "renter": 1 - share, "rent_free": 0.0})
+        return SimpleNamespace(mapped=f"survey {year}", groups=groups, target=target)
+
+    def replicate_leaf_shares(mapped, groups, wanted, spending, replicates, option, calibrate):
+        seen.append((mapped, spending, option, tuple(calibrate(np.array([1.0, 1.0]))[:].round(6))))
+        return SimpleNamespace(status="full"), [], None
+
+    def iterate(con, archive, only):
+        schedule = [SimpleNamespace(survey=2023), SimpleNamespace(survey=2024)]
+        return [(s, [SimpleNamespace(schedule=schedule)], {"cpi": {}, "hicp": {}}) for s in only]
+
+    monkeypatch.setattr(b, "prepare", prepare)
+    monkeypatch.setattr(b, "replicate_leaf_shares", replicate_leaf_shares)
+    monkeypatch.setattr(combinations, "iterate", iterate)
+    monkeypatch.setattr(b, "bands", lambda series, blocks, sets, replicates: b.Bands())
+    archive = SimpleNamespace(store_bytes=lambda *a, **k: SimpleNamespace(status="stored"))
+    b.run(archive, None, replicates=2, log=lambda line: None)
+    assert sorted(prepared) == [2023, 2024]
+    assert len(seen) == 8  # 2 surveys x 4 spending and rent pairs
+    assert {(m, w) for m, _, _, w in seen} == {("survey 2023", (0.5, 1.5)), ("survey 2024", (1.0, 1.0))}

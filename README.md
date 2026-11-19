@@ -157,9 +157,10 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$HOME:$HOME" -e "HOME=$HOME" -w "
 systemctl --user daemon-reload
 loginctl enable-linger "$USER"                                   # timers run without a login
 systemctl --user enable --now traceconomics-archive.timer        # daily at 13:00 Greek time
+systemctl --user enable --now traceconomics-poll.timer           # release days: every 5 min from 12:00
 ```
 
-`schedule units` writes the daily timer and a `traceconomics` command in `~/.local/bin`, which runs the same container as the timer. After that:
+`schedule units` writes the daily timer, the release-day poll's timer and a `traceconomics` command in `~/.local/bin`, which runs the same container as the timer. After that:
 
 ```sh
 traceconomics status                       # last runs, next release days

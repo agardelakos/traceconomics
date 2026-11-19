@@ -52,6 +52,10 @@ class ReleaseConfig:
     # Builds kept on disk, newest first; those on staging or production are always kept.
     keep: int = 12
     replicates: int = 1000
+    # Whether a passing build goes to production by itself (release_decision.py): "off" (the owner
+    # promotes every build), "shadow" (the email says what it would have done, nothing is promoted),
+    # "on" (a data-only build within its limits is promoted; anything else waits for the owner).
+    auto_promote: str = "off"
 
 
 @dataclass(frozen=True)
@@ -124,7 +128,12 @@ def parse(raw: dict, base_dir: Path) -> Config:
             production_url=str(rel["production_url"]).rstrip("/") if "production_url" in rel else None,
             keep=int(rel.get("keep", 12)),
             replicates=int(rel.get("replicates", 1000)),
+            auto_promote=str(rel.get("auto_promote", "off")),
         )
+        if release.auto_promote not in ("off", "shadow", "on"):
+            raise ConfigError(f"release.auto_promote must be off, shadow or on, not {release.auto_promote!r}")
+        if release.auto_promote != "off" and not release.production_url:
+            raise ConfigError("release.auto_promote needs release.production_url: production is checked first")
         if release.enabled and release.site_dir is None:
             raise ConfigError("release.site_dir is required when release.enabled is true")
         run_after = schedule.get("run_after", "13:00")

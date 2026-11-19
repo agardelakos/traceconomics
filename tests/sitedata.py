@@ -11,7 +11,13 @@ holding made-up rows and label files.
 The numbers mean nothing. They are fixed (no randomness), so two runs write the same files, except
 the generation time in `metadata.json`, as with real builds.
 
-    python tests/sitedata.py <out>     # e.g. site/public/data (its made-up inputs go in a temporary folder)
+    python tests/sitedata.py <out> [--state NAME] [--values a|b]   # e.g. site/public/data (its made-up inputs go in a temporary folder)
+
+Real data pass through a few states every month and year (the HICP a month behind the CPI, then
+caught up; a new year's January; a new survey year), and the site must work in each. `--state`
+writes the data in one of them (`STATES`); the default is the HICP a month behind. The site's
+browser tests run on every state in CI, so a test or a page that assumes one state fails there,
+not on a release day.
 """
 
 from __future__ import annotations
@@ -38,9 +44,61 @@ FIRST, LAST = 2008, 2026
 LAST_MONTH = 9  # the made-up data end in September of the last year
 # The HICP ends a month earlier, as the real data do for about a week every month: Eurostat
 # publishes its item indices after ELSTAT's CPI. The site must say why those months are missing.
-HICP_LAST_MONTH = LAST_MONTH - 1
+HICP_LAST = (LAST, LAST_MONTH - 1)  # (year, month)
+HICP_LAST_MONTH = HICP_LAST[1]
 SURVEYS = range(2008, 2025)
 PUBLISHED = datetime(2026, 10, 1)
+
+# The states real data pass through, each a full data set. The values above are the default's.
+STATES = {
+    # ELSTAT's CPI is out, Eurostat's HICP for the same month not yet: about a week every month.
+    "hicp-behind": {
+        "last": (2026, 9),
+        "hicp_last": (2026, 8),
+        "surveys": range(2008, 2025),
+        "published": (2026, 10, 1),
+    },
+    # Eurostat's HICP has caught up: the rest of every month.
+    "hicp-caught-up": {
+        "last": (2026, 9),
+        "hicp_last": (2026, 9),
+        "surveys": range(2008, 2025),
+        "published": (2026, 10, 20),
+    },
+    # A new year's first month (January's CPI, out in February): a new chain link at December and,
+    # for the new year, weights from a first estimate; the HICP still ends in December.
+    "january": {"last": (2027, 1), "hicp_last": (2026, 12), "surveys": range(2008, 2025), "published": (2027, 2, 13)},
+    # A new survey year has come in: the last year's weights go from a first estimate to final.
+    "new-survey": {"last": (2026, 9), "hicp_last": (2026, 8), "surveys": range(2008, 2026), "published": (2026, 10, 1)},
+}
+DEFAULT_STATE = "hicp-behind"
+
+# A second set of values for the same state (`--values b`): every price trend, basket share,
+# income limit, count and consistency figure differs from the first. The site built on each set
+# shows the same pages with other numbers, so a figure that reads the same in both builds was
+# typed into a page or component, not taken from the data (`site/scripts/same-in-both.mjs`).
+# Each set: (a salt for the per-code numbers, a factor for the rest). "a" is the usual data.
+VALUE_SETS = {"a": ("", 1.0), "b": ("b", 1.0731)}
+DEFAULT_VALUES = "a"
+SALT, SCALE = VALUE_SETS[DEFAULT_VALUES]
+
+
+def use_values(name: str) -> None:
+    """Make the module's numbers one of `VALUE_SETS` (module-wide, like `use_state`)."""
+    global SALT, SCALE
+    SALT, SCALE = VALUE_SETS[name]
+
+
+def use_state(name: str) -> None:
+    """Make the module's data describe one of `STATES` (module-wide, as the generator reads these names)."""
+    global LAST, LAST_MONTH, HICP_LAST, HICP_LAST_MONTH, SURVEYS, PUBLISHED
+    state = STATES[name]
+    LAST, LAST_MONTH = state["last"]
+    HICP_LAST = state["hicp_last"]
+    HICP_LAST_MONTH = HICP_LAST[1]
+    SURVEYS = state["surveys"]
+    PUBLISHED = datetime(*state["published"])
+
 
 # A small COICOP 2018 tree (compact codes, as the store holds them): division -> group -> leaves.
 TREE = {
@@ -88,7 +146,7 @@ def codes() -> list[str]:
 
 
 def _seed(code: str) -> int:
-    return int(hashlib.sha256(code.encode()).hexdigest()[:8], 16)
+    return int(hashlib.sha256((SALT + code).encode()).hexdigest()[:8], 16)
 
 
 def level(code: str, year: int, month: int, *, hicp: bool = False) -> float:
@@ -103,10 +161,10 @@ def level(code: str, year: int, month: int, *, hicp: bool = False) -> float:
 def blocks(*, hicp: bool = False) -> dict[int, dict]:
     """{year: {code: {"YYYY-MM": index}}}: each year's months and the December before it."""
     priced = [c for c in codes() if not c.startswith(tuple(u[:3] for u in UNPRICED))] + ([] if hicp else [TOTAL])
+    end = HICP_LAST if hicp else (LAST, LAST_MONTH)
     out = {}
-    for y in range(FIRST, LAST + 1):
-        last = HICP_LAST_MONTH if hicp else LAST_MONTH
-        months = [(y - 1, 12)] + [(y, m) for m in range(1, (last if y == LAST else 12) + 1)]
+    for y in range(FIRST, end[0] + 1):
+        months = [(y - 1, 12)] + [(y, m) for m in range(1, (end[1] if y == end[0] else 12) + 1)]
         out[y] = {c: {f"{yy}-{mm:02d}": level(c, yy, mm, hicp=hicp) for yy, mm in months} for c in priced}
     return out
 
@@ -247,8 +305,8 @@ BAND_DIMS = [
 def _band_rows():
     gaps = [(g, site.GAP) for g in combinations.GROUPINGS]
     for s in combinations.settings():
-        last = HICP_LAST_MONTH if s["price_source"] == "hicp" else LAST_MONTH
-        months = [f"{y}-{m:02d}" for y in range(2010, LAST + 1) for m in range(1, 13) if (y, m) <= (LAST, last)]
+        end = HICP_LAST if s["price_source"] == "hicp" else (LAST, LAST_MONTH)
+        months = [f"{y}-{m:02d}" for y in range(2010, LAST + 1) for m in range(1, 13) if (y, m) <= end]
         for g, q in combinations.GROUPS + gaps:
             gap = q == site.GAP
             for unit, periods in (
@@ -262,7 +320,7 @@ def _band_rows():
                         "oet-local/hbs-bands-gr",
                         d,
                         p,
-                        round(0.08 + 0.04 * math.sin(n / 9) ** 2 + (0.05 if gap else 0), 4),
+                        round((0.08 + 0.04 * math.sin(n / 9) ** 2 + (0.05 if gap else 0)) * SCALE, 4),
                     )
 
 
@@ -273,7 +331,7 @@ PPS_PER_EUR = 1 / 0.86  # a made-up purchasing power factor, the same every year
 
 def _limit(year: int, k: int) -> float:
     """A made-up upper limit of fifth k (1-4) in euros a year, rising by about 2% a year."""
-    return (4000 + 3200 * k + 60 * k * k) * 1.02 ** (year - 2008)
+    return (4000 + 3200 * k + 60 * k * k) * 1.02 ** (year - 2008) * SCALE
 
 
 def _limit_rows():
@@ -281,7 +339,12 @@ def _limit_rows():
         for k in range(1, 5):
             d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "unit": "EUR_PER_ADULT_EQ_Y"}
             yield "oet-local/hbs-limits-gr", {**d, "measure": "limit"}, str(year), round(_limit(year, k))
-            yield "oet-local/hbs-limits-gr", {**d, "measure": "se"}, str(year), round(40 + 9 * k + (year % 5), 1)
+            yield (
+                "oet-local/hbs-limits-gr",
+                {**d, "measure": "se"},
+                str(year),
+                round((40 + 9 * k + (year % 5)) * SCALE, 1),
+            )
 
 
 def _group_count_rows():
@@ -289,17 +352,17 @@ def _group_count_rows():
     for year in SURVEYS:
         for k in range(1, 6):
             d = {"geo": "GR", "grouping": "B", "group": f"Q{k}", "measure": "n_households"}
-            yield "oet-local/hbs-groups-gr", d, str(year), 900 + 37 * k + (year % 7)
-        weights = [26, 2, 28, 24, 14, 6]  # made-up shares of households, in %
+            yield "oet-local/hbs-groups-gr", d, str(year), round((900 + 37 * k + (year % 7)) * SCALE)
+        weights = [26, 2, 28, 24, 14, 6] if not SALT else [23, 3, 30, 22, 15, 7]  # made-up shares of households, in %
         for t, w in zip(types, weights, strict=True):
-            for measure, v in (("n_households", 60 * w), ("households_weighted", 41000 * w)):
+            for measure, v in (("n_households", round(60 * w * SCALE)), ("households_weighted", 41000 * w)):
                 yield (
                     "oet-local/hbs-groups-gr",
                     {"geo": "GR", "grouping": "hhtype", "group": t, "measure": measure},
                     str(year),
                     v,
                 )
-        for measure, v in (("n_households", 6000), ("households_weighted", 4100000)):
+        for measure, v in (("n_households", round(6000 * SCALE)), ("households_weighted", 4100000)):
             yield (
                 "oet-local/hbs-groups-gr",
                 {"geo": "GR", "grouping": "all", "group": "all", "measure": measure},
@@ -310,10 +373,11 @@ def _group_count_rows():
 
 def _silc_rows():
     """Eurostat's limits (EU-SILC survey y describes incomes of y - 1): about 4% under ours, as in
-    the real data, for the survey years after each made-up household survey."""
+    the real data (a little more in the second value set), for the survey years after each made-up
+    household survey."""
     for survey in range(SURVEYS[0] + 1, SURVEYS[-1] + 2):
         for k in range(1, 5):
-            eur = round(_limit(survey - 1, k) * 0.96)
+            eur = round(_limit(survey - 1, k) * (0.96 if not SALT else 0.947))
             for unit, v in (("EUR", eur), ("PPS", round(eur * PPS_PER_EUR))):
                 yield (
                     "eurostat/ilc_di01",
@@ -451,7 +515,8 @@ def module5_outputs(outputs: Path, store_con) -> None:
         c.comparisons = rows
         return c
 
-    months = [f"{2000 + (6 + i) // 12}-{(6 + i) % 12 + 1:02d}" for i in range(24)]  # 2000-07 to 2002-06
+    # 2000-07 to 2002-06; the second value set runs on to 2002-12, so the share that agrees differs.
+    months = [f"{2000 + (6 + i) // 12}-{(6 + i) % 12 + 1:02d}" for i in range(24 if not SALT else 30)]
     own = [Comparison(p, 3.0 + i / 100, 3.0 + i / 100, True) for i, p in enumerate(months)]
     own[7] = Comparison(months[7], 3.1, 3.07, False, "rounding")  # 2001-02
     own[11] = Comparison(months[11], 3.9332, 3.9239, False, "revision", "june-2001")  # 2001-06
@@ -563,32 +628,54 @@ def module5_outputs(outputs: Path, store_con) -> None:
 
     extra = []
     for qid, unit, values in made_up:
+        # The other value set scales every figure, but not an index's base year (100).
+        values = {k: {p: v if v == 100.0 else v * SCALE for p, v in by.items()} for k, by in values.items()}
         q = hbs.Question(qid, "gr", unit, [{"label": k, **SOURCES[qid][k]} for k in values])
         q.values = values
         extra.append(q)
     run.write(checks, outputs, run.all_questions(store_con) + extra)
 
 
-def generate(out: Path, work: Path, *, log=print) -> list[Path]:
+def generate(
+    out: Path, work: Path, *, log=print, state: str = DEFAULT_STATE, values: str = DEFAULT_VALUES
+) -> list[Path]:
     """Write the made-up site data into `out` (e.g. site/public/data); `work` holds the store,
     the archive and module 1's outputs."""
     from traceconomics.store.query import open_views
 
-    cpi, hicp, kept = blocks(), blocks(hicp=True), baskets()
-    write_store(work / "store", cpi, hicp)
-    archive = write_archive(work / "archive")
-    con = duckdb.connect()
-    open_views(con, work / "store")
-    module1_outputs(work / "outputs", con, cpi, hicp, kept)
-    module5_outputs(work / "outputs", con)
-    return site.export(con, archive, work / "outputs", out, log=log, blocks={"cpi": cpi, "hicp": hicp}, baskets=kept)
+    use_state(state)
+    use_values(values)
+    try:
+        cpi, hicp, kept = blocks(), blocks(hicp=True), baskets()
+        write_store(work / "store", cpi, hicp)
+        archive = write_archive(work / "archive")
+        con = duckdb.connect()
+        open_views(con, work / "store")
+        module1_outputs(work / "outputs", con, cpi, hicp, kept)
+        module5_outputs(work / "outputs", con)
+        return site.export(
+            con, archive, work / "outputs", out, log=log, blocks={"cpi": cpi, "hicp": hicp}, baskets=kept
+        )
+    finally:
+        # Back to the default, so later callers in the same process (tests) see the usual data.
+        use_state(DEFAULT_STATE)
+        use_values(DEFAULT_VALUES)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        sys.exit(__doc__)
-    target = Path(sys.argv[1])
+    args = sys.argv[1:]
+    chosen, numbers = DEFAULT_STATE, DEFAULT_VALUES
+    for flag, allowed in (("--state", STATES), ("--values", VALUE_SETS)):
+        if flag in args[1:]:
+            i = args.index(flag)
+            if i + 1 >= len(args) or args[i + 1] not in allowed:
+                sys.exit(f"{__doc__}\nStates: {', '.join(STATES)}; value sets: {', '.join(VALUE_SETS)}")
+            chosen, numbers = (args[i + 1], numbers) if flag == "--state" else (chosen, args[i + 1])
+            del args[i : i + 2]
+    if len(args) != 1:
+        sys.exit(f"{__doc__}\nStates: {', '.join(STATES)}; value sets: {', '.join(VALUE_SETS)}")
+    target = Path(args[0])
     # Not next to the target: everything under site/public is published with the site.
     with tempfile.TemporaryDirectory() as scratch:
-        files = generate(target, Path(scratch))
-    print(f"Wrote {len(files)} files to {target}")
+        files = generate(target, Path(scratch), state=chosen, values=numbers)
+    print(f"Wrote {len(files)} files to {target} (state {chosen}, values {numbers})")

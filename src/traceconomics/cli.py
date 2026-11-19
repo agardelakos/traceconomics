@@ -26,6 +26,11 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--force", action="store_true", help="run even if no release is due")
     a.add_argument("--dry-run", action="store_true", help="list what would be fetched; store nothing")
 
+    sub.add_parser(
+        "poll",
+        help="on a release day before the run time: check whether the release is out, and if so run the job now",
+    )
+
     i = sub.add_parser("import", help="add a file downloaded by hand (e.g. microdata)")
     i.add_argument("file", type=Path)
     i.add_argument("--source", default="elstat")
@@ -75,6 +80,8 @@ def main(argv: list[str] | None = None) -> int:
             "combos",
             "tenure",
             "inputs",
+            "weights",
+            "figures",
         ],
         help="v1: all-items HICP from Eurostat sub-indices and weights; "
         "v1-cpi: Greek CPI from ELSTAT's table 07; "
@@ -82,18 +89,22 @@ def main(argv: list[str] | None = None) -> int:
         "mapping: the surveys' old codes mapped to COICOP 2018, against the next year (needs the local extra); "
         "tenure: what calibrating the survey's weights to the census's tenure split changes in "
         "the series (needs the local extra); "
-        "inputs: our survey tables still match the code and the files they were built from",
+        "inputs: our survey tables still match the code and the files they were built from; "
+        "weights: the newest year's weights in the module 1 outputs follow rule N; "
+        "figures: the past figures typed into the site's text still read true in the site's data",
     )
     ck.add_argument("--geo", default="GR", help="country (ISO code, default GR)")
     ck.add_argument(
         "--outputs",
         type=Path,
         default=Path.home() / "traceconomics-outputs",
-        help="combos: the module 1 outputs folder (default ~/traceconomics-outputs)",
+        help="combos, weights: the module 1 outputs folder (default ~/traceconomics-outputs)",
     )
     ck.add_argument(
         "--baseline", type=Path, help="combos: an earlier build's outputs folder to compare the default with"
     )
+    ck.add_argument("--data", type=Path, help="figures: the site's data folder (what `export site` wrote)")
+    ck.add_argument("--allow", type=Path, help="figures: the site's src/i18n/figures-allow.json")
 
     st = sub.add_parser("store", help="the observation store, built from the archive")
     st.add_argument(
@@ -188,10 +199,11 @@ def main(argv: list[str] | None = None) -> int:
     rl = sub.add_parser("release", help="build a release as a private preview, or promote one to the site")
     rl.add_argument(
         "action",
-        choices=["build", "promote", "retest", "status"],
-        help="retest: run a held-back build's browser tests again, on the files it built",
+        choices=["build", "promote", "retest", "status", "decide"],
+        help="retest: run a held-back build's browser tests again, on the files it built; "
+        "decide: whether a passing build would go live by itself, and why (changes nothing)",
     )
-    rl.add_argument("id", nargs="?", help="promote, retest: the build (from `release status`)")
+    rl.add_argument("id", nargs="?", help="promote, retest, decide: the build (from `release status`)")
     rl.add_argument(
         "--to",
         choices=["staging", "production"],
@@ -342,6 +354,43 @@ def _check_v2(cfg) -> int:
     return 0 if ok else 1
 
 
+def _check_weights(cfg, outputs: Path) -> int:
+    from traceconomics.module1 import weights_check
+    from traceconomics.store.db import connect
+    from traceconomics.store.query import open_views
+
+    con = connect(cfg.store_memory_limit, cfg.store_threads)
+    open_views(con, cfg.store_dir)
+    held = weights_check.held_surveys(con)
+    problems = weights_check.check(outputs / "gr" / "m1", held)
+    print(f"Newest year's weights against rule N (surveys held: {min(held, default='-')}-{max(held, default='-')})")
+    for p in problems:
+        print(f"  FAIL {p}")
+    print("  ok: every series follows rule N" if not problems else f"{len(problems)} problem(s)")
+    return 1 if problems else 0
+
+
+def _check_figures(data: Path | None, allow: Path | None) -> int:
+    from traceconomics import quoted_figures
+
+    if data is None or allow is None:
+        raise SystemExit("check figures needs --data (the site's data folder) and --allow (figures-allow.json)")
+    entries = quoted_figures.load(allow)
+    problems = quoted_figures.problems_in_list(entries) + quoted_figures.check(data, entries)
+    checks = [c for e in entries if e.get("kind") == quoted_figures.PAST for c in e.get("checks", [])]
+    named = sum(1 for c in checks if "sources" in c)
+    print(
+        f"Past figures in the site's text: {len(checks) - named} recomputed from the data, "
+        f"{named} resting on named datasets (reviewed when those change)"
+    )
+    for p in problems:
+        print(f"  FAIL {p}")
+    print(
+        "  ok: every figure the data can recompute still reads true" if not problems else f"{len(problems)} problem(s)"
+    )
+    return 1 if problems else 0
+
+
 def _check_v6(cfg) -> int:
     from traceconomics.module1 import checks
     from traceconomics.store.db import connect
@@ -472,6 +521,11 @@ def _dispatch(args, cfg) -> int:
         result = job.run(cfg, force=args.force, dry_run=args.dry_run)
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0 if result.get("result") in ("ok", "not-due", "dry-run") else 1
+
+    if args.command == "poll":
+        result = job.poll(cfg)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0 if result.get("run", "ok") in ("ok", "not-due") else 1
 
     if args.command == "import":
         r = backfill.import_file(
@@ -661,6 +715,10 @@ def _dispatch(args, cfg) -> int:
     if args.command == "check":
         if args.which == "inputs":
             return _check_inputs(cfg)
+        if args.which == "figures":
+            return _check_figures(args.data, args.allow)
+        if args.which == "weights":
+            return _check_weights(cfg, args.outputs)
         if args.which == "v2":
             return _check_v2(cfg)
         if args.which == "mapping":
@@ -909,9 +967,20 @@ def _dispatch(args, cfg) -> int:
             result = release.build(cfg, args.config)
             print(release.render(result))
             return 0 if result["result"] == "ok" else 1
-        if args.action in ("promote", "retest") and not args.id:
+        if args.action in ("promote", "retest", "decide") and not args.id:
             print("Which build? See `traceconomics release status`.")
             return 2
+        if args.action == "decide":
+            folder = cfg.release.releases_dir / args.id
+            record = json.loads((folder / "release.json").read_text(encoding="utf-8"))
+            if record.get("result") != "ok":
+                print(f"Release {args.id} did not pass its checks: it would never go live by itself.")
+                return 1
+            d = release.decide_build(cfg, folder, record)
+            print(f"Release {args.id}, against production's build {d.production or 'none'}: {d.verdict.upper()}")
+            for reason in d.reasons:
+                print(f"  - {reason}")
+            return 0
         if args.action == "retest":
             result = release.retest(cfg, args.id, args.config)
             print(release.render(result))

@@ -165,6 +165,33 @@ def test_systemd_units_run_daily_in_athens_time_inside_the_pinned_image():
     assert service.rstrip().endswith("/home/u/traceconomics-venv/bin/python -I -m traceconomics archive")
 
 
+def test_the_poll_timer_fires_every_5_minutes_from_the_release_to_the_run():
+    """PY-HBEAT-010: the release-day poll fires every 5 minutes from 12:00 to 12:55 Athens time, in the same image
+
+    Given a configuration with the run at 13:00, or at 14:30
+    When the systemd units are written
+    Then the poll timer fires every 5 minutes in the hours from 12:00 up to the run, Europe/Athens, without catching up
+    And the poll service runs the same container as the archive job, with the command poll
+    """
+    where = dict(
+        uid=1001,
+        gid=1001,
+        home=Path("/home/u"),
+        repo=Path("/home/u/traceconomics"),
+        venv=Path("/home/u/traceconomics-venv"),
+        node=Path("/home/u/traceconomics-node"),
+        env_file=Path("/home/u/.config/traceconomics/env"),
+    )
+    units = schedule.systemd_units(Config(archive_dir=Path("/a"), user_agent="t", run_after=time(13, 0)), **where)
+    timer = units["traceconomics-poll.timer"]
+    assert "OnCalendar=*-*-* 12:00/5:00 Europe/Athens" in timer and "Persistent=false" in timer
+    poll, archive = units["traceconomics-poll.service"], units["traceconomics-archive.service"]
+    assert poll.rstrip().endswith("-m traceconomics poll")
+    assert poll.split("ExecStart=")[1].rsplit(" ", 1)[0] == archive.split("ExecStart=")[1].rsplit(" ", 1)[0]
+    later = schedule.systemd_units(Config(archive_dir=Path("/a"), user_agent="t", run_after=time(14, 30)), **where)
+    assert "OnCalendar=*-*-* 12..14:00/5:00 Europe/Athens" in later["traceconomics-poll.timer"]
+
+
 def load_watchdog():
     import importlib.util
 

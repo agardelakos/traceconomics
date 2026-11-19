@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
@@ -408,7 +408,7 @@ def test_the_run_log_names_the_release_build_before_it_starts(tmp_path, fake_htt
 
     started = []
 
-    def build(config, reason, now):
+    def build(config, reason, now, released):
         started.append(now)
         assert Archive(c.archive_dir).runs()[-1]["release"] == stamp(now)  # logged already
         return {"id": stamp(now)}
@@ -521,7 +521,7 @@ def _follow_ups(tmp_path, monkeypatch):
     beats, builds = [], []
     monkeypatch.setattr(job.heartbeat, "send", lambda record: beats.append(record["result"]) or "sent")
     monkeypatch.setattr(job.backup, "sync", lambda root: {"result": "ok", "sent": 1})
-    monkeypatch.setattr(release, "build", lambda config, reason, now: builds.append(reason) or {"id": "R1"})
+    monkeypatch.setattr(release, "build", lambda config, reason, now, released: builds.append(reason) or {"id": "R1"})
     on = ReleaseConfig(enabled=True, releases_dir=tmp_path / "rel", site_dir=tmp_path / "site")
     return cfg(tmp_path, release=on), beats, builds
 
@@ -856,3 +856,145 @@ def test_a_reuploaded_pdf_is_downloaded_once_more(tmp_path, fake_http):
     job.run(c, now=at(2026, 12, 17, 14), force=True)
     asked = [u for u in fake_http.requested if PDF_2027 in u]
     assert len(asked) == 2 and asked[1].endswith("0f0f0f0f-new-upload")
+
+
+def test_a_release_build_counts_from_the_publishers_release_time():
+    """PY-JOB-038: a release build's time to go live counts from 12:00 Greek time on the newest release day it covers
+
+    Given runs covering the release days 2026-10-14 and 2026-11-10, or no release day
+    When the release time handed to the build is worked out
+    Then it is 12:00 Greek time on the newest day: 10:00 UTC in November, 09:00 UTC in October (summer time)
+    And a run on no release day hands none
+    """
+
+    def due(*days):
+        return job.Due(bool(days), list(days), [], "release day")
+
+    assert job.released_at(due(date(2026, 10, 14), date(2026, 11, 10)), ATH) == datetime(2026, 11, 10, 10, tzinfo=UTC)
+    assert job.released_at(due(date(2026, 10, 14)), ATH) == datetime(2026, 10, 14, 9, tzinfo=UTC)
+    assert job.released_at(due(), ATH) is None
+
+
+# -- the release-day poll -----------------------------------------------------
+
+CPI_PAGE = "DKT87"
+
+
+def page_requests(fake_http, since=0):
+    return [u for u in fake_http.requested[since:] if "/publication/" in u]
+
+
+def test_the_poll_asks_nothing_outside_its_window_or_on_other_days(tmp_path, fake_http):
+    """PY-JOB-039: the poll sends no request before 12:00, from the run time on, or on a day without a release
+
+    Given a first run that archived ELSTAT's CPI documents, and ELSTAT's CPI release day on 2026-11-10
+    When the poll fires at 11:55 and 13:00 that day, and at 12:30 the day before
+    Then it sends no request and starts no run
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    asked, runs = len(fake_http.requested), len(Archive(c.archive_dir).runs())
+    assert job.poll(c, now=at(2026, 11, 10, 11, 55))["result"] == "outside the poll window"
+    assert job.poll(c, now=at(2026, 11, 10, 13))["result"] == "outside the poll window"
+    assert job.poll(c, now=at(2026, 11, 9, 12, 30))["result"] == "no release awaited today"
+    assert len(fake_http.requested) == asked and len(Archive(c.archive_dir).runs()) == runs
+
+
+def test_a_release_seen_by_the_poll_is_archived_at_once(tmp_path, fake_http):
+    """PY-JOB-040: a release on time: the poll sees a new document on the CPI page and runs the job at once
+
+    Given a first run that archived ELSTAT's CPI documents, and ELSTAT's CPI release day on 2026-11-10
+    When the poll fires at 12:00 with the page unchanged, and at 12:05 with a document ID never archived on it
+    Then the 12:00 poll asks for the CPI page only, once, and starts no run
+    And the 12:05 poll starts a run, which archives the new document and confirms the CPI's release day
+    And both checks are logged with their time
+    And the CPI is no longer awaited, so the run at 13:00 has nothing to wait for from it
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    asked = len(fake_http.requested)
+    first = job.poll(c, now=at(2026, 11, 10, 12))
+    assert first == {"result": "not out yet", "checked": {"elstat-cpi": []}}
+    assert fake_http.requested[asked:] == [u for u in fake_http.requested[asked:] if CPI_PAGE in u] != []
+    assert len(fake_http.requested) == asked + 1
+    fake_http.files[CPI_PAGE] = fake_http.files[CPI_PAGE].replace(b"documentID=594835", b"documentID=604757")
+    second = job.poll(c, now=at(2026, 11, 10, 12, 5))
+    assert second["result"] == "out" and second["checked"] == {"elstat-cpi": ["604757"]} and second["run"] == "ok"
+    assert Archive(c.archive_dir).latest("elstat", "doc-604757") is not None
+    state = job.load_state(c.archive_dir)
+    assert state["release_confirmed"]["elstat-cpi"] == "2026-11-10"
+    assert [p["at"] for p in state["polls"]["2026-11-10"]] == ["12:00", "12:05"]
+    assert "elstat-cpi" not in job.awaited(state, date(2026, 11, 10))
+
+
+def test_a_release_the_poll_never_sees_is_left_to_the_run_time(tmp_path, fake_http):
+    """PY-JOB-041: a late release: the poll asks at most 12 times an hour, ignores a page change without a new document, and the 13:00 run still alerts
+
+    Given ELSTAT's CPI release day on 2026-11-10, and a CPI page whose titles changed but whose documents didn't
+    When the poll fires every 5 minutes from 12:00 to 12:55
+    Then it asks for the CPI page 12 times and starts no run
+    And the run after the run time alerts that the CPI release day brought no new file
+    """
+    c = cfg(tmp_path)
+    cpi_release_on_nov_10(fake_http)
+    job.run(c, now=at(2026, 10, 18, 14))
+    fake_http.files[CPI_PAGE] = fake_http.files[CPI_PAGE].replace(
+        b"Consumer Price Index", b"Consumer Price Index (CPI)"
+    )
+    asked, runs = len(fake_http.requested), len(Archive(c.archive_dir).runs())
+    results = [job.poll(c, now=at(2026, 11, 10, 12, m))["result"] for m in range(0, 60, 5)]
+    assert results == ["not out yet"] * 12
+    assert len(page_requests(fake_http, asked)) == 12 and len(Archive(c.archive_dir).runs()) == runs
+    job.run(c, now=at(2026, 11, 10, 14))
+    assert LATE_CPI in report_of(c)
+
+
+def test_a_run_the_poll_starts_doesnt_call_todays_other_releases_late(tmp_path, fake_http):
+    """PY-JOB-042: Eurostat's HICP seen by the poll; ELSTAT's CPI, due the same day, isn't called late before the run time
+
+    Given Eurostat's HICP release day and ELSTAT's CPI release day both on 2026-11-04
+    When the poll fires at 12:05 and Eurostat's dataflow shows a new last data update, but no new CPI document is listed
+    Then the poll starts a run, which confirms the HICP's release day
+    And its report doesn't call the CPI late
+    And the CPI is still awaited, so the run after the run time is due and alerts that it is late
+    """
+    c = cfg(tmp_path)
+    page = fake_http.files["/en/calendar"]
+    fake_http.files["/en/calendar"] = page.replace(CPI_ROW, CPI_ROW.replace(b"12/02/26", b"04/11/26"))
+    job.run(c, now=at(2026, 10, 18, 14))
+    flow = fake_http.files["/dataflow/"]
+    fake_http.files["/dataflow/"] = flow.replace(b"2026-10-16T23:00:00+0200", b"2026-11-04T11:00:00+0100")
+    fake_http.files["format=TSV"] = b"tsv.gz bytes, the October flash"
+    r = job.poll(c, now=at(2026, 11, 4, 12, 5))
+    assert r["result"] == "out" and r["checked"]["elstat-cpi"] == [] and r["checked"]["eurostat-hicp"]
+    state = job.load_state(c.archive_dir)
+    assert state["release_confirmed"]["eurostat-hicp"] == "2026-11-04"
+    assert "ELSTAT's CPI" not in report_of(c)
+    assert job.awaited(state, date(2026, 11, 4)) == {"elstat-cpi": [date(2026, 11, 4)]}
+    assert job.check_due(state, c, at(2026, 11, 4, 13)).due
+    job.run(c, now=at(2026, 11, 4, 14))
+    assert "ELSTAT's CPI: release day 2026-11-04, but no new file by 14:00" in report_of(c)
+
+
+def test_a_build_asked_for_while_another_runs_is_queued(tmp_path, fake_http, monkeypatch):
+    """PY-JOB-043: the 13:00 run during a poll's build: its build is queued, not lost
+
+    Given release builds turned on, and a build already running (the release builds' lock held)
+    When the scheduled job runs and stores new files
+    Then the run records its release build as queued
+    And the queued build names the run's new data, for the running build to start when it ends
+    """
+    from traceconomics import release
+    from traceconomics.config import ReleaseConfig
+
+    monkeypatch.setattr(job.heartbeat, "send", lambda record: "sent")
+    monkeypatch.setattr(job.backup, "sync", lambda root: {"result": "ok"})
+    on = ReleaseConfig(enabled=True, releases_dir=tmp_path / "rel", site_dir=tmp_path / "site")
+    c = cfg(tmp_path, release=on)
+    with job.RunLock(on.releases_dir):  # the running build
+        r = job.run(c, now=at(2026, 10, 18, 14))
+    assert r["release"] == "queued"
+    wanted = release.take_wanted(on.releases_dir)
+    assert "eurostat/prc_hicp_minr" in wanted["reason"] and wanted["released"] is None
