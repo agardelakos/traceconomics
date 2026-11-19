@@ -16,6 +16,7 @@ dependencies = [
     "duckdb==1.5.6",
     "keyring==25.7.0",
     "openpyxl==3.1.5",
+    "pypdf==6.21.4",
     "tzdata==2026.5",
     "xlrd==2.0.2",
 ]

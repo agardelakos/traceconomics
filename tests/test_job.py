@@ -721,3 +721,138 @@ def test_each_feed_has_its_own_bookmark_and_alert(tmp_path, monkeypatch):
     ((subject, body),) = sent
     assert subject == "ALERT: analytics export (downloads) failing, 4 days not copied"
     assert "31 days" in body and "--feed downloads" in body
+
+
+# -- next year's release days from the calendar PDF ------------------------
+
+PDF_2027 = "RELEASES_CALENDAR_2027_EN"
+PDF_2026 = "CALENDAR_2026_ENG"
+DEC_CPI_ROW = b'contentDay">09/12/26</td> <td class="contentIndicator">Consumer price index</td>'
+TYPO_ALERT = 'the row "Harmonized index of consumer prices" has a date that can\'t be read ("10/11/2 6")'
+NO_FUTURE_CPI = "no future CPI release date found"
+
+
+def calendar_with_pdfs(fake_http):
+    """ELSTAT's calendar page as archived on 2026-11-10 (it links the 2026 and 2027 PDFs), and both PDFs."""
+    fake_http.files["/en/calendar"] = (FIX / "elstat_calendar_2026-11-10.html").read_bytes()
+    fake_http.files[PDF_2027] = (FIX / "elstat_calendar_2027_en.pdf").read_bytes()
+    fake_http.files[PDF_2026] = (FIX / "elstat_calendar_2026_en.pdf").read_bytes()
+
+
+def elstat_days(c, topic="cpi"):
+    return job.load_state(c.archive_dir)["release_dates"][f"elstat-{topic}"]
+
+
+def test_december_knows_next_years_release_days_from_the_pdf(tmp_path, fake_http):
+    """PY-JOB-032: in December the job knows next year's release days from ELSTAT's calendar PDF
+
+    Given ELSTAT's calendar page showing 2026 only, linking the 2026 and 2027 calendar PDFs
+    When the job runs on 2026-12-15, after the last CPI release of 2026
+    Then the CPI's release days include all of 2027's, from 2027-01-13 to 2027-12-10, and the HBS's 2027-09-30
+    And the report has no "no future CPI release date" alert
+    And it alerts the page's HICP row whose date can't be read ("10/11/2 6")
+    And it notes that the page and the 2026 PDF differ on the HICP of 2026-11-10 (the page's dates are used)
+    And both PDFs are archived, each as its year's calendar
+    """
+    c = cfg(tmp_path)
+    calendar_with_pdfs(fake_http)
+    r = job.run(c, now=at(2026, 12, 15, 14))
+    assert r["result"] == "ok", r
+    cpi = elstat_days(c)
+    assert {"2027-01-13", "2027-12-10"} <= set(cpi) and len([d for d in cpi if d.startswith("2027")]) == 12
+    assert "2027-09-30" in elstat_days(c, "hbs")
+    report = report_of(c)
+    assert NO_FUTURE_CPI not in report and TYPO_ALERT in report
+    assert "the page and the PDF differ on HICP 2026-11-10; the page's dates are used" in report
+    archive = Archive(c.archive_dir)
+    assert archive.latest("elstat", "calendar-pdf-2027") and archive.latest("elstat", "calendar-pdf-2026")
+
+
+def test_each_calendar_pdf_is_downloaded_once(tmp_path, fake_http):
+    """PY-JOB-033: each calendar PDF is downloaded once; later runs read the archived copy
+
+    Given a first run that archived the 2026 and 2027 calendar PDFs
+    When a forced run follows the same day, and another run the next day
+    Then neither PDF is asked for again
+    And 2027's release days are still known
+    """
+    c = cfg(tmp_path)
+    calendar_with_pdfs(fake_http)
+    job.run(c, now=at(2026, 12, 15, 14))
+    job.run(c, now=at(2026, 12, 15, 15), force=True)
+    job.run(c, now=at(2026, 12, 16, 14), force=True)
+    assert len([u for u in fake_http.requested if PDF_2027 in u]) == 1
+    assert len([u for u in fake_http.requested if PDF_2026 in u]) == 1
+    assert "2027-01-13" in elstat_days(c)
+
+
+def test_january_before_the_page_switches(tmp_path, fake_http):
+    """PY-JOB-034: in early January, before the page shows the new year, the year's PDF gives its release days
+
+    Given ELSTAT's calendar page still showing 2026, linking the 2027 calendar PDF
+    When the job runs on 2027-01-05
+    Then the CPI's release days include 2027-01-13
+    And the report has no "no future CPI release date" alert
+    """
+    c = cfg(tmp_path)
+    calendar_with_pdfs(fake_http)
+    job.run(c, now=at(2027, 1, 5, 14))
+    assert "2027-01-13" in elstat_days(c)
+    assert NO_FUTURE_CPI not in report_of(c)
+    assert job.check_due(job.load_state(c.archive_dir), c, at(2027, 1, 13, 14)).due
+
+
+def test_a_moved_release_day_is_dropped_and_past_ones_kept(tmp_path, fake_http):
+    """PY-JOB-035: a future release day ELSTAT moved is dropped; past release days stay
+
+    Given a first run on 2026-11-20 whose calendar page had the November CPI release on 2026-12-11
+    When the page moves it back to 2026-12-09 and the job runs on 2026-11-21
+    Then the CPI's release days include 2026-12-09 and no longer 2026-12-11
+    And the past ones, such as 2026-01-13, are still there
+    """
+    c = cfg(tmp_path)
+    calendar_with_pdfs(fake_http)
+    page = fake_http.files["/en/calendar"]
+    assert page.count(DEC_CPI_ROW) == 1
+    fake_http.files["/en/calendar"] = page.replace(DEC_CPI_ROW, DEC_CPI_ROW.replace(b"09/12/26", b"11/12/26"))
+    job.run(c, now=at(2026, 11, 20, 14))
+    assert "2026-12-11" in elstat_days(c)
+    fake_http.files["/en/calendar"] = page
+    job.run(c, now=at(2026, 11, 21, 14), force=True)
+    cpi = elstat_days(c)
+    assert "2026-12-09" in cpi and "2026-12-11" not in cpi and "2026-01-13" in cpi
+
+
+def test_an_unreadable_calendar_pdf_alerts(tmp_path, fake_http):
+    """PY-JOB-036: a calendar PDF that can't be read raises an alert, and its dates aren't used
+
+    Given ELSTAT's calendar page linking a 2027 calendar "PDF" that is an HTML error page
+    When the job runs on 2026-12-15
+    Then the report alerts that the 2027 calendar isn't a readable PDF
+    And no 2027 release day is known, so the "no future CPI release date" alert is raised too
+    """
+    c = cfg(tmp_path)
+    calendar_with_pdfs(fake_http)
+    fake_http.files[PDF_2027] = b"<html><body>Service unavailable</body></html>"
+    job.run(c, now=at(2026, 12, 15, 14))
+    report = report_of(c)
+    assert "ELSTAT calendar 2027 (pdf): not a readable PDF" in report and NO_FUTURE_CPI in report
+    assert not [d for d in elstat_days(c) if d.startswith("2027")]
+
+
+def test_a_reuploaded_pdf_is_downloaded_once_more(tmp_path, fake_http):
+    """PY-JOB-037: a calendar PDF linked at a new address is downloaded once more, then not again
+
+    Given a first run that archived the 2027 calendar PDF
+    When the page links the same file at a new address, and the job runs on two more days
+    Then the PDF is asked for once at the new address, not on every run
+    """
+    c = cfg(tmp_path)
+    calendar_with_pdfs(fake_http)
+    job.run(c, now=at(2026, 12, 15, 14))
+    page = fake_http.files["/en/calendar"]
+    fake_http.files["/en/calendar"] = page.replace(b"c9f54e57-dae5-33f1-0722-122b00116ff8", b"0f0f0f0f-new-upload")
+    job.run(c, now=at(2026, 12, 16, 14), force=True)
+    job.run(c, now=at(2026, 12, 17, 14), force=True)
+    asked = [u for u in fake_http.requested if PDF_2027 in u]
+    assert len(asked) == 2 and asked[1].endswith("0f0f0f0f-new-upload")

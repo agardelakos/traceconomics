@@ -723,6 +723,10 @@ pycryptodomex==3.24.1 \
     --hash=sha256:fd487cc20730dc9d294e000126be86a02079485fa6cb723d8f01eddf86e96f5a \
     --hash=sha256:fe19e03b81aefdeaa579afc6262fc03504fce93455129d6ef0da79ddb48ca47d
     # via py7zr
+pypdf==6.21.4 \
+    --hash=sha256:33e4fb41ca352810eb4e9838aa0d82d6888a5f8bf682f43e99cce5faa666255c \
+    --hash=sha256:c8817e3f888d47a087872ded69812c1ef30cacb871d6e053e0c00bbaf0bc2163
+    # via traceconomics (pyproject.toml)
 pyppmd==1.3.1 \
     --hash=sha256:011f845de195d60fe973a635a1f4be981b7d80f357a8acb1b2d83bdf5087c808 \
     --hash=sha256:017a1e2903f1c3147a1046db486990d401e8a25eb52c320b1fc2fb3e7b83cbeb \
