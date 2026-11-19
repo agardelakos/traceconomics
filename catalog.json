@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "6f9a0f9f0d471a77f0ea1106ae367d6d900a6df6",
- "generated": "2026-11-18T19:38:32Z",
+ "commit": "82f6cbcd27ebf26957f2afde706f1c64c1f6c7b9",
+ "generated": "2026-11-19T14:15:48Z",
  "missing": [],
  "cases": [
   {
@@ -16171,6 +16171,58 @@
     "only the Greek table 07 document is listed"
    ],
    "notes": "An old table kept elsewhere in the archive for another purpose has a name the label\npattern matches, but another format: it must not be read for labels.",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OBS-011",
+   "suite": "pytest",
+   "title": "the store's bulk load keeps every value exactly as a row-by-row insert does",
+   "file": "tests/test_observation_store.py",
+   "line": 332,
+   "node": "tests/test_observation_store.py::test_bulk_load_stores_what_a_row_by_row_insert_stores",
+   "given": [
+    "rows with empty strings, missing values, quotes, commas, line breaks and Greek text",
+    "fields reading \"\\N\" or \"NULL\", negative zero, a tiny float, infinity and a float not in its short form"
+   ],
+   "when": [
+    "they are loaded in bulk and, separately, inserted one row at a time"
+   ],
+   "then": [
+    "both tables hold the same rows, in the same order, with the same types",
+    "an empty string stays an empty string while a missing value is NULL"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-OBS-012",
+   "suite": "pytest",
+   "title": "a bulk load of no rows still makes the table, empty",
+   "file": "tests/test_observation_store.py",
+   "line": 353,
+   "node": "tests/test_observation_store.py::test_bulk_load_of_no_rows_leaves_an_empty_table",
+   "given": [
+    "no rows (a survey table that can't be built for its year)"
+   ],
+   "when": [
+    "they are loaded in bulk"
+   ],
+   "then": [
+    "the table exists with its columns and holds nothing"
+   ],
+   "notes": "",
    "examples": [],
    "defects": [],
    "tags": [
