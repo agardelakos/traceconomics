@@ -135,7 +135,6 @@ def test_the_list_says_where_every_past_figure_comes_from():
     assert len(problems) == 3
 
 
-@pytest.mark.repository
 def test_every_past_figure_on_the_site_says_where_it_comes_from():
     """PY-QFIG-005: every past figure in the site's allow-list has a data check or named datasets with a reason
 
