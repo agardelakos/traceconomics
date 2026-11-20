@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "d5a36d45d0f9d12c87ea713140ebb419107ed75e",
- "generated": "2026-11-19T16:01:03Z",
+ "commit": "00389751343deeae264a23627b17872319663545",
+ "generated": "2026-11-20T14:57:17Z",
  "missing": [],
  "cases": [
   {
@@ -5674,11 +5674,42 @@
    "named": false
   },
   {
+   "id": "PY-CLI-047",
+   "suite": "pytest",
+   "title": "poll prints what the release-day poll saw, and fails only when the run it started failed",
+   "file": "tests/test_cli.py",
+   "line": 174,
+   "node": "tests/test_cli.py::test_poll_prints_what_it_saw_and_fails_only_if_its_run_did",
+   "given": [
+    "a poll that found nothing awaited, found nothing out yet, or started a run that went well or failed"
+   ],
+   "when": [
+    "the poll command is run"
+   ],
+   "then": [
+    "it prints the result as JSON",
+    "it exits with code 1 only when the run it started had failures"
+   ],
+   "notes": "",
+   "examples": [
+    "nothing awaited",
+    "not out yet",
+    "out, run ok",
+    "out, run failed"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-CLI-008",
    "suite": "pytest",
    "title": "fetch-history reads the years and the pause, and fails unless the fetch went well",
    "file": "tests/test_cli.py",
-   "line": 174,
+   "line": 197,
    "node": "tests/test_cli.py::test_fetch_history_passes_the_years_and_pause",
    "given": [
     "a history fetch that ends with a given result"
@@ -5709,7 +5740,7 @@
    "suite": "pytest",
    "title": "import stores a file downloaded by hand, once",
    "file": "tests/test_cli.py",
-   "line": 196,
+   "line": 219,
    "node": "tests/test_cli.py::test_import_stores_a_file_downloaded_by_hand",
    "given": [
     "a file \"hbs-2025.zip\" downloaded by hand on 2026-01-02"
@@ -5737,7 +5768,7 @@
    "suite": "pytest",
    "title": "seed reports what it stored, and fails on a bad checksum",
    "file": "tests/test_cli.py",
-   "line": 216,
+   "line": 239,
    "node": "tests/test_cli.py::test_seed_reports_each_file_and_fails_on_a_bad_checksum",
    "given": [
     "a research folder whose manifest lists one matching file and one changed file"
@@ -5765,7 +5796,7 @@
    "suite": "pytest",
    "title": "seed as a dry run lists what it would store and stores nothing",
    "file": "tests/test_cli.py",
-   "line": 234,
+   "line": 257,
    "node": "tests/test_cli.py::test_seed_dry_run_lists_without_storing",
    "given": [
     "a research folder whose manifest lists one matching file"
@@ -5792,7 +5823,7 @@
    "suite": "pytest",
    "title": "status shows the last runs, the next release days and the files waiting for backup",
    "file": "tests/test_cli.py",
-   "line": 267,
+   "line": 290,
    "node": "tests/test_cli.py::test_status_shows_runs_release_days_and_files_waiting_for_backup",
    "given": [
     "an archive with one stored file, one recorded run, a last good run and a release day tomorrow"
@@ -5821,7 +5852,7 @@
    "suite": "pytest",
    "title": "status on a new archive says what isn't known yet",
    "file": "tests/test_cli.py",
-   "line": 302,
+   "line": 325,
    "node": "tests/test_cli.py::test_status_says_when_nothing_is_known",
    "given": [
     "an empty archive with no saved state"
@@ -5847,7 +5878,7 @@
    "suite": "pytest",
    "title": "notify-test sends a test message through the configured channel",
    "file": "tests/test_cli.py",
-   "line": 315,
+   "line": 338,
    "node": "tests/test_cli.py::test_notify_test_writes_a_test_message",
    "given": [
     "a configuration without email settings"
@@ -5874,7 +5905,7 @@
    "suite": "pytest",
    "title": "backup plan counts every file to send and lists the first fifty",
    "file": "tests/test_cli.py",
-   "line": 333,
+   "line": 356,
    "node": "tests/test_cli.py::test_backup_plan_lists_at_most_fifty_files",
    "given": [
     "60 archive files not yet backed up"
@@ -5900,7 +5931,7 @@
    "suite": "pytest",
    "title": "backup sync prints its result and fails unless it sent the files or is switched off",
    "file": "tests/test_cli.py",
-   "line": 348,
+   "line": 371,
    "node": "tests/test_cli.py::test_backup_sync_fails_unless_it_sent_or_is_off",
    "given": [
     "a backup upload that ends with a given result"
@@ -5930,7 +5961,7 @@
    "suite": "pytest",
    "title": "analytics export for one day runs each feed and reports a feed's failure",
    "file": "tests/test_cli.py",
-   "line": 362,
+   "line": 385,
    "node": "tests/test_cli.py::test_analytics_for_one_day_runs_each_feed_and_reports_a_failure",
    "given": [
     "a visits feed that copies its day and a downloads feed whose request fails"
@@ -5957,7 +5988,7 @@
    "suite": "pytest",
    "title": "analytics export without a day copies from the bookmark and saves the moved bookmark",
    "file": "tests/test_cli.py",
-   "line": 386,
+   "line": 409,
    "node": "tests/test_cli.py::test_analytics_without_a_day_follows_the_bookmark_and_saves_it",
    "given": [
     "a visits feed whose export moves its bookmark"
@@ -5984,7 +6015,7 @@
    "suite": "pytest",
    "title": "release build prints the build's report and fails if the build failed",
    "file": "tests/test_cli.py",
-   "line": 423,
+   "line": 446,
    "node": "tests/test_cli.py::test_release_build_prints_its_report",
    "given": [
     "a release build that ends with a given result"
@@ -6014,7 +6045,7 @@
    "suite": "pytest",
    "title": "release promote and retest refuse to guess the build or the target",
    "file": "tests/test_cli.py",
-   "line": 440,
+   "line": 463,
    "node": "tests/test_cli.py::test_release_promote_and_retest_need_a_build_and_a_target",
    "given": [
     "no build is named, or a promote names no target"
@@ -6045,7 +6076,7 @@
    "suite": "pytest",
    "title": "release promote, retest and status print what they did",
    "file": "tests/test_cli.py",
-   "line": 469,
+   "line": 492,
    "node": "tests/test_cli.py::test_release_promote_retest_and_status",
    "given": [
     "a build that promotes and retests cleanly, and two builds on disk"
@@ -6074,7 +6105,7 @@
    "suite": "pytest",
    "title": "schedule units needs a folder, then writes the units and the shell command there",
    "file": "tests/test_cli.py",
-   "line": 508,
+   "line": 531,
    "node": "tests/test_cli.py::test_schedule_units_needs_a_folder_and_writes_the_units_there",
    "given": [
     "a Linux machine"
@@ -6085,7 +6116,7 @@
    ],
    "then": [
     "the first run says where to point it and exits with code 2",
-    "the second writes the archive timer and service into --out and the traceconomics command into --bin",
+    "the second writes the archive and poll timers and services into --out and the traceconomics command into --bin",
     "it prints each file written"
    ],
    "notes": "",
@@ -6102,7 +6133,7 @@
    "suite": "pytest",
    "title": "schedule install, remove and show report on the Windows task",
    "file": "tests/test_cli.py",
-   "line": 528,
+   "line": 552,
    "node": "tests/test_cli.py::test_schedule_install_remove_and_show_on_windows",
    "given": [
     "a Windows task scheduler that installs, removes and shows the task"
@@ -6129,7 +6160,7 @@
    "suite": "pytest",
    "title": "schedule install on Linux stops and points to the systemd units",
    "file": "tests/test_cli.py",
-   "line": 545,
+   "line": 569,
    "node": "tests/test_cli.py::test_schedule_install_on_linux_points_to_the_units",
    "given": [
     "a Linux machine"
@@ -6154,7 +6185,7 @@
    "suite": "pytest",
    "title": "store refuses a dataset it doesn't know",
    "file": "tests/test_cli.py",
-   "line": 560,
+   "line": 584,
    "node": "tests/test_cli.py::test_store_refuses_an_unknown_dataset",
    "given": [
     "a dataset name that isn't in the catalog"
@@ -6180,7 +6211,7 @@
    "suite": "pytest",
    "title": "store update reads the chosen dataset's archived snapshot into the store",
    "file": "tests/test_cli.py",
-   "line": 573,
+   "line": 597,
    "node": "tests/test_cli.py::test_store_update_reads_an_archived_dataset",
    "given": [
     "an archive holding one snapshot of Eurostat's HICP monthly indices"
@@ -6207,7 +6238,7 @@
    "suite": "pytest",
    "title": "check v1 says which file to archive first",
    "file": "tests/test_cli.py",
-   "line": 597,
+   "line": 621,
    "node": "tests/test_cli.py::test_check_v1_needs_the_archived_files",
    "given": [
     "an empty archive"
@@ -6233,7 +6264,7 @@
    "suite": "pytest",
    "title": "check v1 rebuilds Greece's HICP from the archived Eurostat files",
    "file": "tests/test_cli.py",
-   "line": 609,
+   "line": 633,
    "node": "tests/test_cli.py::test_check_v1_rebuilds_the_archived_hicp",
    "given": [
     "an archive holding the committed Greek extracts of the HICP indices and item weights"
@@ -6262,7 +6293,7 @@
    "suite": "pytest",
    "title": "check v1-cpi reports missing years, the strict check and the earlier report-only years",
    "file": "tests/test_cli.py",
-   "line": 639,
+   "line": 663,
    "node": "tests/test_cli.py::test_check_v1_cpi_reports_missing_years_and_the_earlier_period",
    "given": [
     "archived table 07 files for 2011, 2012 and 2014, and a strict check that passes or fails"
@@ -6292,7 +6323,7 @@
    "suite": "pytest",
    "title": "check v3 prints each year and flags a large weights effect that has no explanation",
    "file": "tests/test_cli.py",
-   "line": 660,
+   "line": 684,
    "node": "tests/test_cli.py::test_check_v3_flags_years_that_need_an_explanation",
    "given": [
     "V3 rows for a year with a small weights effect and a year with a large unexplained one"
@@ -6319,7 +6350,7 @@
    "suite": "pytest",
    "title": "check v6 passes when the largest difference is within rounding",
    "file": "tests/test_cli.py",
-   "line": 684,
+   "line": 708,
    "node": "tests/test_cli.py::test_check_v6_passes_within_rounding_only",
    "given": [
     "a V6 result whose worst contribution, rounded to two decimals, is 0.00 or 0.02 pp off Eurostat's"
@@ -6348,7 +6379,7 @@
    "suite": "pytest",
    "title": "check v4 fails on a Bruegel gap and reports KEPE without a verdict",
    "file": "tests/test_cli.py",
-   "line": 705,
+   "line": 729,
    "node": "tests/test_cli.py::test_check_v4_fails_on_bruegel_and_reports_kepe",
    "given": [
     "a Bruegel rebuild that fails, with one provisional year, and a KEPE rebuild"
@@ -6376,7 +6407,7 @@
    "suite": "pytest",
    "title": "check v5 prints each setting's gap for Bruegel and KEPE",
    "file": "tests/test_cli.py",
-   "line": 744,
+   "line": 768,
    "node": "tests/test_cli.py::test_check_v5_prints_each_setting_gap",
    "given": [
     "attribution rows for Bruegel and KEPE over two years"
@@ -6402,7 +6433,7 @@
    "suite": "pytest",
    "title": "check combos prints the identities and each option's effect, and fails on a broken identity",
    "file": "tests/test_cli.py",
-   "line": 763,
+   "line": 787,
    "node": "tests/test_cli.py::test_check_combos_prints_the_identities_and_the_option_effects",
    "given": [
     "module 1 outputs whose identities hold, or break once",
@@ -6433,7 +6464,7 @@
    "suite": "pytest",
    "title": "check seam and check prices print their reports",
    "file": "tests/test_cli.py",
-   "line": 825,
+   "line": 849,
    "node": "tests/test_cli.py::test_check_seam_and_prices_are_reports",
    "given": [
     "a seam result for one group and a price comparison for one year"
@@ -6460,7 +6491,7 @@
    "suite": "pytest",
    "title": "export writes the skeleton or the site's data and lists what it wrote",
    "file": "tests/test_cli.py",
-   "line": 849,
+   "line": 873,
    "node": "tests/test_cli.py::test_export_skeleton_and_site",
    "given": [
     "a skeleton export that writes one file and a site export that writes three"
@@ -6488,7 +6519,7 @@
    "suite": "pytest",
    "title": "module1 run computes the chosen settings and writes their files",
    "file": "tests/test_cli.py",
-   "line": 878,
+   "line": 902,
    "node": "tests/test_cli.py::test_module1_run_writes_the_default_setting",
    "given": [
     "the made-up store and prices of the site's browser tests"
@@ -6516,7 +6547,7 @@
    "suite": "pytest",
    "title": "module5 run prints each check's count and writes the results",
    "file": "tests/test_cli.py",
-   "line": 912,
+   "line": 936,
    "node": "tests/test_cli.py::test_module5_run_prints_each_check_and_writes_its_files",
    "given": [
     "the made-up store of the site's browser tests, and one check of three months with one difference to rounding",
@@ -6535,6 +6566,60 @@
    "defects": [],
    "tags": [
     "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-046",
+   "suite": "pytest",
+   "title": "release decide prints whether a passing build would go live by itself, and why not",
+   "file": "tests/test_cli.py",
+   "line": 970,
+   "node": "tests/test_cli.py::test_release_decide_prints_the_verdict_and_its_reasons",
+   "given": [
+    "a passing build on disk whose decision is to hold for two reasons",
+    "a build on disk that failed"
+   ],
+   "when": [
+    "release decide is run for each"
+   ],
+   "then": [
+    "the first prints the verdict against production's build and each reason, and exits with code 0",
+    "the second says a failed build would never go live by itself, and exits with code 1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-048",
+   "suite": "pytest",
+   "title": "check figures says how many figures it recomputes and names each problem, failing on any",
+   "file": "tests/test_cli.py",
+   "line": 998,
+   "node": "tests/test_cli.py::test_check_figures_prints_each_problem_and_fails_on_any",
+   "given": [
+    "an allow-list with one past figure the data recompute and one resting on a named dataset"
+   ],
+   "when": [
+    "check figures runs with data that still give the figure, then with data that don't"
+   ],
+   "then": [
+    "the first prints the counts and ok, and exits with code 0",
+    "the second prints the problem and exits with code 1",
+    "without --data or --allow it stops with a message"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
    ],
    "problems": [],
    "named": false
@@ -7027,7 +7112,7 @@
     "relative paths are taken from the file's folder and \"~\" from the home folder",
     "the run time, pause, extra release dates, image, store limits and thread count are read",
     "the email settings default the sender to the user name",
-    "the release settings strip a trailing slash from the public address"
+    "the release settings strip a trailing slash from the public address, and read the automatic promote mode"
    ],
    "notes": "",
    "examples": [],
@@ -7046,7 +7131,7 @@
    "line": 51,
    "node": "tests/test_config.py::test_a_setting_that_cant_work_is_refused",
    "given": [
-    "a settings file with unencrypted email, or releases on without a site folder, or email without a port"
+    "a settings file with unencrypted email, or releases on without a site folder, or email without a port, or an unknown automatic promote mode, or automatic promotes without the public address to check"
    ],
    "when": [
     "it is parsed"
@@ -7058,7 +7143,9 @@
    "examples": [
     "[email]\\nsmtp_host = \"h\"\\nsmtp_port = 25\\nusername = \"u\"\\nrecipients = []\\nsecurity = \"plain\"\\n-email.security must be 'starttls' or 'ssl'",
     "[release]\\nenabled = true\\n-release.site_dir is required",
-    "[email]\\nsmtp_host = \"h\"\\n-Missing config field: 'smtp_port'"
+    "[email]\\nsmtp_host = \"h\"\\n-Missing config field: 'smtp_port'",
+    "[release]\\nauto_promote = \"yes\"\\n-release.auto_promote must be off, shadow or on",
+    "[release]\\nauto_promote = \"on\"\\n-release.auto_promote needs release.production_url"
    ],
    "defects": [],
    "tags": [
@@ -7072,7 +7159,7 @@
    "suite": "pytest",
    "title": "without a path, the settings file is the one TRACECONOMICS_CONFIG names",
    "file": "tests/test_config.py",
-   "line": 76,
+   "line": 78,
    "node": "tests/test_config.py::test_the_file_is_found_through_the_environment",
    "given": [
     "a settings file whose path is in TRACECONOMICS_CONFIG"
@@ -7099,7 +7186,7 @@
    "suite": "pytest",
    "title": "the default settings file is in the platform's own config folder",
    "file": "tests/test_config.py",
-   "line": 93,
+   "line": 95,
    "node": "tests/test_config.py::test_the_default_settings_file_is_in_the_platforms_config_folder",
    "given": [
     "Linux with XDG_CONFIG_HOME set, or Windows with APPDATA set"
@@ -7127,7 +7214,7 @@
    "suite": "pytest",
    "title": "every store connection is capped in memory, and in threads when asked",
    "file": "tests/test_config.py",
-   "line": 108,
+   "line": 110,
    "node": "tests/test_config.py::test_store_connections_are_capped",
    "given": [
     "a memory limit of 1 GB, with and without a thread count of 2"
@@ -9195,11 +9282,37 @@
    "named": false
   },
   {
+   "id": "PY-HBEAT-010",
+   "suite": "pytest",
+   "title": "the release-day poll fires every 5 minutes from 12:00 to 12:55 Athens time, in the same image",
+   "file": "tests/test_heartbeat_backup.py",
+   "line": 168,
+   "node": "tests/test_heartbeat_backup.py::test_the_poll_timer_fires_every_5_minutes_from_the_release_to_the_run",
+   "given": [
+    "a configuration with the run at 13:00, or at 14:30"
+   ],
+   "when": [
+    "the systemd units are written"
+   ],
+   "then": [
+    "the poll timer fires every 5 minutes in the hours from 12:00 up to the run, Europe/Athens, without catching up",
+    "the poll service runs the same container as the archive job, with the command poll"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-HBEAT-006",
    "suite": "pytest",
    "title": "the watchdog's verdict on a heartbeat",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 178,
+   "line": 205,
    "node": "tests/test_heartbeat_backup.py::test_watchdog_rule",
    "given": [
     "the watchdog at 13:00 UTC"
@@ -9228,7 +9341,7 @@
    "suite": "pytest",
    "title": "the VM's shell command runs the same container as the timer",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 201,
+   "line": 228,
    "node": "tests/test_heartbeat_backup.py::test_the_shell_command_runs_the_same_container_as_the_timer",
    "given": [
     "the VM's user, folders and env file"
@@ -9255,7 +9368,7 @@
    "suite": "pytest",
    "title": "the units and the shell command run the configured image, else the pinned one",
    "file": "tests/test_heartbeat_backup.py",
-   "line": 231,
+   "line": 258,
    "node": "tests/test_heartbeat_backup.py::test_units_and_shell_command_run_the_configured_image_else_the_pinned_one",
    "given": [
     "a configuration with a browser image, and one with no image"
@@ -10201,6 +10314,84 @@
    ],
    "then": [
     "it exits 1, marks the year STALE and prints the command that rebuilds the tables"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JAN-001",
+   "suite": "pytest",
+   "title": "a correct year change passes the build's CPI check, January included",
+   "file": "tests/test_january.py",
+   "line": 58,
+   "node": "tests/test_january.py::test_a_correct_year_change_passes_the_cpi_check",
+   "given": [
+    "made-up tables 07 for 2024-2026, the 2026 basket changed (an item out, an item in, shares moved)",
+    "the overall index chained at December with each year's weights"
+   ],
+   "when": [
+    "the CPI check (V1-CPI) runs on them"
+   ],
+   "then": [
+    "it passes, with every link from 2025-01 to 2026-12 checked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JAN-002",
+   "suite": "pytest",
+   "title": "linking at the wrong month fails the build's CPI check from January on",
+   "file": "tests/test_january.py",
+   "line": 72,
+   "node": "tests/test_january.py::test_a_link_at_the_wrong_month_fails_the_cpi_check",
+   "given": [
+    "the same made-up tables 07"
+   ],
+   "when": [
+    "the engine links each year at November instead of December"
+   ],
+   "then": [
+    "the CPI check fails",
+    "its failures include January 2026, the first month of the new basket"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JAN-003",
+   "suite": "pytest",
+   "title": "keeping last year's basket in the new year fails the build's CPI check in January",
+   "file": "tests/test_january.py",
+   "line": 86,
+   "node": "tests/test_january.py::test_last_years_basket_kept_fails_the_cpi_check",
+   "given": [
+    "the same made-up tables 07"
+   ],
+   "when": [
+    "2026 is chained with 2025's weights, as if the switch to the new basket were missed"
+   ],
+   "then": [
+    "the CPI check fails",
+    "its first failure is January 2026"
    ],
    "notes": "",
    "examples": [],
@@ -11191,6 +11382,164 @@
    "named": false
   },
   {
+   "id": "PY-JOB-038",
+   "suite": "pytest",
+   "title": "a release build's time to go live counts from 12:00 Greek time on the newest release day it covers",
+   "file": "tests/test_job.py",
+   "line": 861,
+   "node": "tests/test_job.py::test_a_release_build_counts_from_the_publishers_release_time",
+   "given": [
+    "runs covering the release days 2026-10-14 and 2026-11-10, or no release day"
+   ],
+   "when": [
+    "the release time handed to the build is worked out"
+   ],
+   "then": [
+    "it is 12:00 Greek time on the newest day: 10:00 UTC in November, 09:00 UTC in October (summer time)",
+    "a run on no release day hands none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-039",
+   "suite": "pytest",
+   "title": "the poll sends no request before 12:00, from the run time on, or on a day without a release",
+   "file": "tests/test_job.py",
+   "line": 887,
+   "node": "tests/test_job.py::test_the_poll_asks_nothing_outside_its_window_or_on_other_days",
+   "given": [
+    "a first run that archived ELSTAT's CPI documents, and ELSTAT's CPI release day on 2026-11-10"
+   ],
+   "when": [
+    "the poll fires at 11:55 and 13:00 that day, and at 12:30 the day before"
+   ],
+   "then": [
+    "it sends no request and starts no run"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-040",
+   "suite": "pytest",
+   "title": "a release on time: the poll sees a new document on the CPI page and runs the job at once",
+   "file": "tests/test_job.py",
+   "line": 904,
+   "node": "tests/test_job.py::test_a_release_seen_by_the_poll_is_archived_at_once",
+   "given": [
+    "a first run that archived ELSTAT's CPI documents, and ELSTAT's CPI release day on 2026-11-10"
+   ],
+   "when": [
+    "the poll fires at 12:00 with the page unchanged, and at 12:05 with a document ID never archived on it"
+   ],
+   "then": [
+    "the 12:00 poll asks for the CPI page only, once, and starts no run",
+    "the 12:05 poll starts a run, which archives the new document and confirms the CPI's release day",
+    "both checks are logged with their time",
+    "the CPI is no longer awaited, so the run at 13:00 has nothing to wait for from it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-041",
+   "suite": "pytest",
+   "title": "a late release: the poll asks at most 12 times an hour, ignores a page change without a new document, and the 13:00 run still alerts",
+   "file": "tests/test_job.py",
+   "line": 932,
+   "node": "tests/test_job.py::test_a_release_the_poll_never_sees_is_left_to_the_run_time",
+   "given": [
+    "ELSTAT's CPI release day on 2026-11-10, and a CPI page whose titles changed but whose documents didn't"
+   ],
+   "when": [
+    "the poll fires every 5 minutes from 12:00 to 12:55"
+   ],
+   "then": [
+    "it asks for the CPI page 12 times and starts no run",
+    "the run after the run time alerts that the CPI release day brought no new file"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-042",
+   "suite": "pytest",
+   "title": "Eurostat's HICP seen by the poll; ELSTAT's CPI, due the same day, isn't called late before the run time",
+   "file": "tests/test_job.py",
+   "line": 954,
+   "node": "tests/test_job.py::test_a_run_the_poll_starts_doesnt_call_todays_other_releases_late",
+   "given": [
+    "Eurostat's HICP release day and ELSTAT's CPI release day both on 2026-11-04"
+   ],
+   "when": [
+    "the poll fires at 12:05 and Eurostat's dataflow shows a new last data update, but no new CPI document is listed"
+   ],
+   "then": [
+    "the poll starts a run, which confirms the HICP's release day",
+    "its report doesn't call the CPI late",
+    "the CPI is still awaited, so the run after the run time is due and alerts that it is late"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JOB-043",
+   "suite": "pytest",
+   "title": "the 13:00 run during a poll's build: its build is queued, not lost",
+   "file": "tests/test_job.py",
+   "line": 981,
+   "node": "tests/test_job.py::test_a_build_asked_for_while_another_runs_is_queued",
+   "given": [
+    "release builds turned on, and a build already running (the release builds' lock held)"
+   ],
+   "when": [
+    "the scheduled job runs and stores new files"
+   ],
+   "then": [
+    "the run records its release build as queued",
+    "the queued build names the run's new data, for the running build to start when it ends"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-STYLE-001",
    "suite": "pytest",
    "title": "Ruff formats and lints only the project's own Python, never the fixtures",
@@ -11366,6 +11715,33 @@
    "then": [
     "the series' last link year is 2026 and its 2026 weights leave out 10501",
     "at 2012-06, 2025-12 and 2026-09 the standard error equals the sample standard deviation of the annual rates of the series built one replicate at a time with the same options"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-BANDS-006",
+   "suite": "pytest",
+   "title": "a bands run prepares each survey once, and every option's replicates get that survey's calibration",
+   "file": "tests/test_local_bands.py",
+   "line": 118,
+   "node": "tests/test_local_bands.py::test_each_survey_is_prepared_once_for_every_spending_and_rent_option",
+   "given": [
+    "every setting of the options, whose series use surveys 2023 and 2024"
+   ],
+   "when": [
+    "the bands are run (the survey reading, the replicates and the band arithmetic faked)"
+   ],
+   "then": [
+    "each survey is prepared once, not once per spending concept and rent option",
+    "the replicates for each of the four spending and rent pairs get the same prepared survey",
+    "their calibration rescales the weights by that survey's own tenure target"
    ],
    "notes": "",
    "examples": [],
@@ -15448,6 +15824,37 @@
    "named": false
   },
   {
+   "id": "PY-PRICES-017",
+   "suite": "pytest",
+   "title": "a basket's leaves are exactly the definition's, in the same order",
+   "file": "tests/test_module1_prices.py",
+   "line": 348,
+   "node": "tests/test_module1_prices.py::test_basket_leaves_match_the_definition",
+   "given": [
+    "a basket with nested codes, children with zero shares, codes that aren't COICOP (TOTAL, one character), children listed before their parents, or no codes"
+   ],
+   "when": [
+    "its leaves are taken"
+   ],
+   "then": [
+    "they equal those found by comparing every code with every other, in the same order"
+   ],
+   "notes": "",
+   "examples": [
+    "nested",
+    "zero shares below",
+    "odd codes",
+    "children listed first",
+    "empty"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-SCHED-001",
    "suite": "pytest",
    "title": "final weights where the year before is held, else the newest out in January",
@@ -17813,6 +18220,199 @@
    "named": false
   },
   {
+   "id": "PY-QFIG-001",
+   "suite": "pytest",
+   "title": "a figure's number and decimals are read as the English text writes it",
+   "file": "tests/test_quoted_figures.py",
+   "line": 49,
+   "node": "tests/test_quoted_figures.py::test_a_figure_is_read_as_written",
+   "given": [
+    "figures with a typographic minus, a plus sign, no decimals, or a space as thousands separator"
+   ],
+   "when": [
+    "the number is read"
+   ],
+   "then": [
+    "the sign, the digits and the number of decimals are kept"
+   ],
+   "notes": "",
+   "examples": [
+    "2.5 points-2.5-1",
+    "\\u22121.6 points--1.6-1",
+    "+1.4 points-1.4-1",
+    "8%-8-0",
+    "\\u20ac7 110-7110-0"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-QFIG-002",
+   "suite": "pytest",
+   "title": "a past figure passes while the data, rounded as written, give it, and fails once they don't",
+   "file": "tests/test_quoted_figures.py",
+   "line": 70,
+   "node": "tests/test_quoted_figures.py::test_a_figure_the_data_still_give_passes_and_a_revised_one_fails",
+   "given": [
+    "the text's \"2.5 points\", the default setting's gap in April 2022, its peak"
+   ],
+   "when": [
+    "the data give 2.46 (2.5 as written), then 2.44, then 2.46 with May higher"
+   ],
+   "then": [
+    "the first passes",
+    "the second fails, naming the text's figure and the data's",
+    "the third fails, saying where the series now peaks"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-QFIG-003",
+   "suite": "pytest",
+   "title": "differences between settings, the largest over periods, percent changes and sizes are recomputed",
+   "file": "tests/test_quoted_figures.py",
+   "line": 88,
+   "node": "tests/test_quoted_figures.py::test_differences_largest_values_and_changes_are_recomputed",
+   "given": [
+    "the default setting's gap and another setting's, differing by 0.3, 0.06 and -0.07",
+    "a rent index at 100 in 2015, 92.27 in 2021 and 102.92 in 2024"
+   ],
+   "when": [
+    "figures for \"at most 0.07 points\" (largest of the two settings' difference), \"the largest of two such differences\", \"fell by about 8%\" and \"3% above 2015\" are checked"
+   ],
+   "then": [
+    "each passes, and \"at most 0.06 points\" fails because the largest is 0.07",
+    "a period missing from the data fails as not recomputable"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-QFIG-004",
+   "suite": "pytest",
+   "title": "a past entry must name, figure by figure, a data check or its datasets with a reason",
+   "file": "tests/test_quoted_figures.py",
+   "line": 116,
+   "node": "tests/test_quoted_figures.py::test_the_list_says_where_every_past_figure_comes_from",
+   "given": [
+    "past entries whose checks miss a figure, name sources without a reason, or check a range against one value",
+    "entries of other kinds without checks"
+   ],
+   "when": [
+    "the list is checked"
+   ],
+   "then": [
+    "each problem is named with its entry",
+    "the other kinds are left alone"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-QFIG-005",
+   "suite": "pytest",
+   "title": "every past figure in the site's allow-list has a data check or named datasets with a reason",
+   "file": "tests/test_quoted_figures.py",
+   "line": 138,
+   "node": "tests/test_quoted_figures.py::test_every_past_figure_on_the_site_says_where_it_comes_from",
+   "given": [
+    "the site's figures-allow.json"
+   ],
+   "when": [
+    "the list is checked"
+   ],
+   "then": [
+    "it has no problem",
+    "it has both kinds: figures the data recompute, and figures resting on named datasets"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-QFIG-006",
+   "suite": "pytest",
+   "title": "a changed dataset names each entry whose figures rest on it, by name or by prefix",
+   "file": "tests/test_quoted_figures.py",
+   "line": 152,
+   "node": "tests/test_quoted_figures.py::test_a_changed_dataset_names_the_figures_resting_on_it",
+   "given": [
+    "an entry resting on ELSTAT's 2025 table 07 and one on every survey weights table (a prefix)"
+   ],
+   "when": [
+    "the 2025 table 07 changes, then the 2024 weights table, then only an unrelated dataset"
+   ],
+   "then": [
+    "the first names the first entry, the second the second, and the third nothing"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-QFIG-007",
+   "suite": "pytest",
+   "title": "a recomputed value is rounded half away from zero, as the site writes figures, not half to even",
+   "file": "tests/test_quoted_figures.py",
+   "line": 167,
+   "node": "tests/test_quoted_figures.py::test_values_are_rounded_half_up_as_the_site_writes_them",
+   "given": [
+    "values exactly halfway between two written figures, and one that isn't"
+   ],
+   "when": [
+    "they are rounded to the figure's decimals"
+   ],
+   "then": [
+    "halves go away from zero (0.125 to 0.13, 2.5 to 3, -1.25 to -1.3), where Python's round() would go to the even digit"
+   ],
+   "notes": "",
+   "examples": [
+    "0.125-2-0.13",
+    "2.5-0-3",
+    "-1.25-1--1.3",
+    "2.44-1-2.4"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-REFS-001",
    "suite": "pytest",
    "title": "the bibliography's keys are many and tidy",
@@ -17920,7 +18520,7 @@
    "suite": "pytest",
    "title": "a good release build keeps its files and reports the preview",
    "file": "tests/test_release.py",
-   "line": 84,
+   "line": 85,
    "node": "tests/test_release.py::test_a_good_build_keeps_everything_and_reports_the_preview",
    "given": [
     "a configuration with release builds on and steps that all succeed"
@@ -17930,7 +18530,7 @@
    ],
    "then": [
     "it is ok, with an id from the build's UTC time",
-    "the steps run in order: inputs, store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke",
+    "the steps run in order: inputs, store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, check-weights, consistency, export, check-figures, npm-ci, site-check, ui-test, upload, smoke",
     "the preview address is the build's alias address",
     "the build folder's SHA256SUMS lists the site files and the outputs",
     "its release.json records the result ok",
@@ -17950,7 +18550,7 @@
    "suite": "pytest",
    "title": "a failed step stops the release build and raises an alert",
    "file": "tests/test_release.py",
-   "line": 126,
+   "line": 129,
    "node": "tests/test_release.py::test_a_failed_step_stops_the_build_and_raises_an_alert",
    "given": [
     "steps where check-v1 fails"
@@ -17978,7 +18578,7 @@
    "suite": "pytest",
    "title": "stale survey tables stop the build at its first step",
    "file": "tests/test_release.py",
-   "line": 145,
+   "line": 148,
    "node": "tests/test_release.py::test_stale_survey_tables_stop_the_build_before_anything_reads_them",
    "given": [
     "steps where the inputs check fails (survey tables older than the code or their files)"
@@ -18006,7 +18606,7 @@
    "suite": "pytest",
    "title": "the upload is a preview version named from the configuration",
    "file": "tests/test_release.py",
-   "line": 164,
+   "line": 167,
    "node": "tests/test_release.py::test_upload_is_a_preview_version_named_from_the_config",
    "given": [
     "a release configuration"
@@ -18034,7 +18634,7 @@
    "suite": "pytest",
    "title": "release builds turn on the visit-count beacon",
    "file": "tests/test_release.py",
-   "line": 182,
+   "line": 185,
    "node": "tests/test_release.py::test_release_builds_carry_the_visit_count_beacon",
    "given": [
     "no analytics setting in the environment"
@@ -18059,7 +18659,7 @@
    "suite": "pytest",
    "title": "a failed build can't be promoted",
    "file": "tests/test_release.py",
-   "line": 194,
+   "line": 197,
    "node": "tests/test_release.py::test_only_a_good_build_can_be_promoted_and_it_becomes_the_baseline",
    "given": [
     "a build that failed at the series step"
@@ -18085,7 +18685,7 @@
    "suite": "pytest",
    "title": "a promoted good build uploads its own files and becomes the baseline",
    "file": "tests/test_release.py",
-   "line": 211,
+   "line": 214,
    "node": "tests/test_release.py::test_a_promoted_good_build_becomes_the_baseline",
    "given": [
     "a build that failed at the series step, then a good build"
@@ -18112,7 +18712,7 @@
    "suite": "pytest",
    "title": "pruning keeps the newest builds and the promoted one",
    "file": "tests/test_release.py",
-   "line": 230,
+   "line": 233,
    "node": "tests/test_release.py::test_pruning_keeps_the_newest_and_the_promoted_build",
    "given": [
     "a configuration that keeps two builds",
@@ -18138,7 +18738,7 @@
    "suite": "pytest",
    "title": "the changes since the last release are counted",
    "file": "tests/test_release.py",
-   "line": 250,
+   "line": 253,
    "node": "tests/test_release.py::test_changes_since_the_last_release",
    "given": [
     "an old and a new set of rate outputs, where the new one revises one month by 0.1 points and adds a month"
@@ -18164,7 +18764,7 @@
    "suite": "pytest",
    "title": "only newly stored files that feed the store trigger a release",
    "file": "tests/test_release.py",
-   "line": 278,
+   "line": 281,
    "node": "tests/test_release.py::test_only_files_that_feed_the_store_trigger_a_release",
    "given": [
     "a run that stored a HICP file and a calendar page, and found another HICP file unchanged"
@@ -18189,7 +18789,7 @@
    "suite": "pytest",
    "title": "a promote to production deploys the build and checks it on the public address",
    "file": "tests/test_release.py",
-   "line": 300,
+   "line": 303,
    "node": "tests/test_release.py::test_promoting_to_production_publishes_on_the_public_address",
    "given": [
     "a good build, and a configuration whose public address is https://example.org"
@@ -18215,7 +18815,7 @@
    "suite": "pytest",
    "title": "a promote to an unknown target is refused",
    "file": "tests/test_release.py",
-   "line": 319,
+   "line": 322,
    "node": "tests/test_release.py::test_a_promote_to_an_unknown_target_is_refused",
    "given": [
     "a good build"
@@ -18241,7 +18841,7 @@
    "suite": "pytest",
    "title": "staging and production serve their own builds",
    "file": "tests/test_release.py",
-   "line": 334,
+   "line": 337,
    "node": "tests/test_release.py::test_staging_and_production_serve_their_own_builds",
    "given": [
     "two good builds, the first promoted to production and the second to staging"
@@ -18269,7 +18869,7 @@
    "suite": "pytest",
    "title": "a promote record from before targets reads as staging",
    "file": "tests/test_release.py",
-   "line": 362,
+   "line": 365,
    "node": "tests/test_release.py::test_a_promote_record_from_before_targets_reads_as_staging",
    "given": [
     "an old single promote record"
@@ -18295,7 +18895,7 @@
    "suite": "pytest",
    "title": "the browser tests run before the upload and again on the preview",
    "file": "tests/test_release.py",
-   "line": 377,
+   "line": 380,
    "node": "tests/test_release.py::test_the_browser_tests_run_before_upload_and_again_on_the_preview",
    "given": [
     "steps that all succeed"
@@ -18324,7 +18924,7 @@
    "suite": "pytest",
    "title": "a build held back by its browser tests publishes nothing and keeps its files",
    "file": "tests/test_release.py",
-   "line": 400,
+   "line": 403,
    "node": "tests/test_release.py::test_a_build_held_back_by_its_browser_tests_publishes_nothing_and_keeps_its_files",
    "given": [
     "steps where ui-test fails"
@@ -18352,7 +18952,7 @@
    "suite": "pytest",
    "title": "a retest runs the remaining steps on the build's own files",
    "file": "tests/test_release.py",
-   "line": 421,
+   "line": 424,
    "node": "tests/test_release.py::test_a_retest_runs_the_rest_on_the_files_the_build_made",
    "given": [
     "a build held back at ui-test",
@@ -18382,7 +18982,7 @@
    "suite": "pytest",
    "title": "a retest after the upload tests the version already uploaded",
    "file": "tests/test_release.py",
-   "line": 453,
+   "line": 456,
    "node": "tests/test_release.py::test_a_retest_after_the_upload_tests_the_version_already_uploaded",
    "given": [
     "a build that failed at smoke, after its upload"
@@ -18407,7 +19007,7 @@
    "suite": "pytest",
    "title": "a retest refuses what a retest can't fix",
    "file": "tests/test_release.py",
-   "line": 469,
+   "line": 472,
    "node": "tests/test_release.py::test_a_retest_refuses_what_a_retest_cant_fix",
    "given": [
     "a good build, a build that failed at check-v1, an unknown build id",
@@ -18436,7 +19036,7 @@
    "suite": "pytest",
    "title": "a promote is confirmed when the target serves the build",
    "file": "tests/test_release.py",
-   "line": 499,
+   "line": 502,
    "node": "tests/test_release.py::test_a_promote_is_confirmed_only_when_the_target_serves_the_build",
    "given": [
     "a good build and a host that serves each promoted build's files"
@@ -18462,7 +19062,7 @@
    "suite": "pytest",
    "title": "a promote is refused while the target serves another build",
    "file": "tests/test_release.py",
-   "line": 514,
+   "line": 517,
    "node": "tests/test_release.py::test_a_promote_is_refused_while_the_target_serves_another_build",
    "given": [
     "a good build, already promoted to production and confirmed there"
@@ -18489,7 +19089,7 @@
    "suite": "pytest",
    "title": "a promote to production needs the public address",
    "file": "tests/test_release.py",
-   "line": 541,
+   "line": 544,
    "node": "tests/test_release.py::test_a_promote_to_production_needs_the_public_address",
    "given": [
     "a good build and a release configuration with no production address"
@@ -18515,7 +19115,7 @@
    "suite": "pytest",
    "title": "the public address is read from the configuration without a trailing slash",
    "file": "tests/test_release.py",
-   "line": 562,
+   "line": 565,
    "node": "tests/test_release.py::test_the_public_address_is_read_from_the_config_without_a_trailing_slash",
    "given": [
     "a configuration whose production address ends in a slash"
@@ -18541,7 +19141,7 @@
    "suite": "pytest",
    "title": "the failing browser tests are named from their results file",
    "file": "tests/test_release.py",
-   "line": 616,
+   "line": 619,
    "node": "tests/test_release.py::test_the_failing_browser_tests_are_named_from_their_results_file",
    "given": [
     "a Playwright results file with a passing test, a failing nested test and an error outside the tests"
@@ -18568,7 +19168,7 @@
    "suite": "pytest",
    "title": "a browser-test failure email names the tests and the report",
    "file": "tests/test_release.py",
-   "line": 634,
+   "line": 637,
    "node": "tests/test_release.py::test_a_browser_test_failure_email_names_the_tests_and_the_report",
    "given": [
     "steps where ui-test fails and writes a results file"
@@ -18580,6 +19180,508 @@
     "the record points to the HTML report in the build's folder",
     "the alert email lists the failing browser tests and the report's path",
     "after a retest that passes, the record no longer has failures or a report"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-026",
+   "suite": "pytest",
+   "title": "in shadow mode a data-only build's email says it would promote, and nothing is promoted",
+   "file": "tests/test_release.py",
+   "line": 757,
+   "node": "tests/test_release.py::test_shadow_mode_says_it_would_promote_and_promotes_nothing",
+   "given": [
+    "September's build on production, and the same code"
+   ],
+   "when": [
+    "October's build runs in shadow mode with ELSTAT's new file and a new month, nothing revised"
+   ],
+   "then": [
+    "its email's subject says it would promote, and production still serves September's build",
+    "the report shows the decision against production's build",
+    "the build records its decision and the archived files its store held"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-027",
+   "suite": "pytest",
+   "title": "with automatic promotes on, a data-only build goes to production and the email names the way back",
+   "file": "tests/test_release.py",
+   "line": 776,
+   "node": "tests/test_release.py::test_a_data_only_build_goes_live_by_itself_and_names_the_way_back",
+   "given": [
+    "September's build on production, and the same code"
+   ],
+   "when": [
+    "October's build runs with automatic promotes on, with ELSTAT's new file and a new month"
+   ],
+   "then": [
+    "it is promoted to production, which serves it, and records September's build as the one it replaced",
+    "the email's subject says it is live",
+    "the email names September's build and the command that puts it back"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-028",
+   "suite": "pytest",
+   "title": "with automatic promotes on, any other build waits for the owner, and the email's subject says why",
+   "file": "tests/test_release.py",
+   "line": 795,
+   "node": "tests/test_release.py::test_anything_else_holds_the_build_and_says_why",
+   "given": [
+    "September's build on production, and the same code"
+   ],
+   "when": [
+    "October's build runs with a rebuilt own table, or nothing new, or September's value revised, or a group beyond its record"
+   ],
+   "then": [
+    "production still serves September's build",
+    "the email's subject starts with HOLD and names the reason",
+    "the report keeps the command to promote it by hand"
+   ],
+   "notes": "",
+   "examples": [
+    "own table rebuilt",
+    "nothing new",
+    "a value revised",
+    "beyond a record"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-029",
+   "suite": "pytest",
+   "title": "when production doesn't serve the build its record names, the build holds",
+   "file": "tests/test_release.py",
+   "line": 829,
+   "node": "tests/test_release.py::test_a_production_that_serves_another_build_holds",
+   "given": [
+    "September's build on record as production's, but the public address serving other files"
+   ],
+   "when": [
+    "October's build runs with automatic promotes on"
+   ],
+   "then": [
+    "it holds, saying production doesn't serve its recorded build"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-030",
+   "suite": "pytest",
+   "title": "an automatic promote whose upload fails raises an alert, and production is unchanged",
+   "file": "tests/test_release.py",
+   "line": 842,
+   "node": "tests/test_release.py::test_a_failed_automatic_promote_raises_an_alert",
+   "given": [
+    "September's build on production"
+   ],
+   "when": [
+    "October's data-only build is to go live by itself, and the promote's upload fails"
+   ],
+   "then": [
+    "production still serves September's build",
+    "the email's subject is an ALERT saying the promote failed"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-031",
+   "suite": "pytest",
+   "title": "the build production replaced is kept on disk, whatever the number of builds kept",
+   "file": "tests/test_release.py",
+   "line": 857,
+   "node": "tests/test_release.py::test_the_build_production_replaced_is_kept_for_a_revert",
+   "given": [
+    "production replaced by a newer build, which records the build it replaced",
+    "more newer builds than the number kept"
+   ],
+   "when": [
+    "old builds are pruned"
+   ],
+   "then": [
+    "the build on production and the one it replaced are both still on disk"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-032",
+   "suite": "pytest",
+   "title": "a build that goes live by itself records and reports its time from the publisher's release to ready and to live",
+   "file": "tests/test_release.py",
+   "line": 880,
+   "node": "tests/test_release.py::test_a_build_that_goes_live_by_itself_records_its_time_from_the_release",
+   "given": [
+    "September's build on production, and ELSTAT's October release at 12:00 Greek time"
+   ],
+   "when": [
+    "October's data-only build goes live by itself"
+   ],
+   "then": [
+    "its record holds the release time, when it was ready, and when production served it, with the seconds since the release",
+    "its email gives both times from the release",
+    "a build started for no release (by hand) records and reports none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-033",
+   "suite": "pytest",
+   "title": "a release build promoted by hand records its time to live on production, not on staging",
+   "file": "tests/test_release.py",
+   "line": 906,
+   "node": "tests/test_release.py::test_a_build_promoted_by_hand_records_its_time_to_live",
+   "given": [
+    "a passing build started for a release at 12:00 Greek time, held for the owner"
+   ],
+   "when": [
+    "the owner promotes it to staging, then to production"
+   ],
+   "then": [
+    "the staging promote records no time to live",
+    "the production promote records it, in the promote record and the build's own record"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-034",
+   "suite": "pytest",
+   "title": "a time from the release reads in minutes, with hours from the first hour on",
+   "file": "tests/test_release.py",
+   "line": 926,
+   "node": "tests/test_release.py::test_a_time_to_live_reads_in_hours_and_minutes",
+   "given": [
+    "a time from the release in seconds"
+   ],
+   "when": [
+    "it is written for the email"
+   ],
+   "then": [
+    "it reads as whole minutes, with hours once it reaches an hour"
+   ],
+   "notes": "",
+   "examples": [
+    "59-1 min",
+    "2820-47 min",
+    "7520-2 h 05 min"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-035",
+   "suite": "pytest",
+   "title": "a poll during a build: the second build is queued, and the running build starts it when it ends",
+   "file": "tests/test_release.py",
+   "line": 937,
+   "node": "tests/test_release.py::test_a_build_asked_for_while_another_runs_starts_when_it_ends",
+   "given": [
+    "a build running its steps"
+   ],
+   "when": [
+    "a second build is asked for during its series step, for Eurostat's new data released at 12:00 Greek time"
+   ],
+   "then": [
+    "the second is queued, not started and not failed",
+    "the first, once it ends, has started the second, which names why it was queued and counts from that release",
+    "nothing is left queued"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-REL-036",
+   "suite": "pytest",
+   "title": "several builds queued while one runs make one build, with every reason, timed from the earliest release",
+   "file": "tests/test_release.py",
+   "line": 964,
+   "node": "tests/test_release.py::test_builds_queued_together_make_one_build",
+   "given": [
+    "a build queued for ELSTAT's data released at 12:00, then one for Eurostat's released at 12:00 a day later, then the first again"
+   ],
+   "when": [
+    "the queued build is taken"
+   ],
+   "then": [
+    "it names both reasons once each and counts from the earlier release",
+    "taking it again finds nothing queued"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-001",
+   "suite": "pytest",
+   "title": "a build whose only change is a publisher's new file, within every limit, is promoted",
+   "file": "tests/test_release_decision.py",
+   "line": 38,
+   "node": "tests/test_release_decision.py::test_a_data_only_build_within_its_limits_is_promoted",
+   "given": [
+    "a build with the production build's commit and own tables, one new ELSTAT file and a new month",
+    "no revised value, no group beyond its record, and production serving its recorded build"
+   ],
+   "when": [
+    "the decision is made"
+   ],
+   "then": [
+    "it is promote, with no reasons, against the production build"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-002",
+   "suite": "pytest",
+   "title": "each rule that fails holds the build, and says why",
+   "file": "tests/test_release_decision.py",
+   "line": 50,
+   "node": "tests/test_release_decision.py::test_each_reason_holds_the_build",
+   "given": [
+    "a data-only build within its limits"
+   ],
+   "when": [
+    "one fact changes: the code, an unknown commit, a rebuilt own table, a new survey year, a new or gone dataset, nothing new, a missing inputs record, a revised value, no rates to compare, a group beyond its record, or production serving another build than its record says"
+   ],
+   "then": [
+    "the decision is hold",
+    "its reasons name that rule"
+   ],
+   "notes": "",
+   "examples": [
+    "code changed",
+    "commit unknown",
+    "production commit unknown",
+    "own table rebuilt",
+    "new survey year",
+    "new dataset",
+    "dataset gone",
+    "nothing new",
+    "no inputs record",
+    "production has no inputs record",
+    "a value revised",
+    "no rates to compare",
+    "first release",
+    "beyond a record",
+    "production serves another build"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-003",
+   "suite": "pytest",
+   "title": "with no production build on record, the build holds",
+   "file": "tests/test_release_decision.py",
+   "line": 109,
+   "node": "tests/test_release_decision.py::test_without_a_production_build_nothing_is_promoted",
+   "given": [
+    "no build on production to compare with"
+   ],
+   "when": [
+    "the decision is made"
+   ],
+   "then": [
+    "it is hold, saying production serves no build on record"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-004",
+   "suite": "pytest",
+   "title": "a new month beyond a group's record gap, or its record monthly move, is named; up to the record it isn't",
+   "file": "tests/test_release_decision.py",
+   "line": 129,
+   "node": "tests/test_release_decision.py::test_a_new_month_beyond_a_groups_record_is_named",
+   "given": [
+    "a published history in which the poorest fifth's gap to all households reached 1.00 point and moved by at most 0.50 in a month"
+   ],
+   "when": [
+    "a build adds October with all households at 3.0% and the poorest fifth at 3.9, 4.0, 4.01, 3.21 or 3.19%"
+   ],
+   "then": [
+    "a gap or a move up to the record passes",
+    "one beyond it is named, with the group, the month, the value and the record"
+   ],
+   "notes": "",
+   "examples": [
+    "within",
+    "at the gap record",
+    "beyond the gap record",
+    "within the move record",
+    "beyond the move record"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-005",
+   "suite": "pytest",
+   "title": "a group that production never published is named, not compared with nothing",
+   "file": "tests/test_release_decision.py",
+   "line": 153,
+   "node": "tests/test_release_decision.py::test_a_group_with_no_history_is_named",
+   "given": [
+    "a published history without the group renters"
+   ],
+   "when": [
+    "a build adds a month for renters"
+   ],
+   "then": [
+    "the renters are named as a group with no published history",
+    "months already published are never judged again"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-006",
+   "suite": "pytest",
+   "title": "the inputs record lists every archived file the store has read, per dataset",
+   "file": "tests/test_release_decision.py",
+   "line": 170,
+   "node": "tests/test_release_decision.py::test_the_inputs_record_lists_every_file_the_store_read",
+   "given": [
+    "a store whose load record has two snapshots of one dataset and one of another, one read twice"
+   ],
+   "when": [
+    "the inputs record is made"
+   ],
+   "then": [
+    "it lists each dataset once with its files' SHA-256 sorted and without repeats",
+    "a store with no load record gives an empty record",
+    "the difference with an older record names the new file and the new dataset"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-DEC-007",
+   "suite": "pytest",
+   "title": "a build holds when a dataset a typed figure rests on changed, and only then",
+   "file": "tests/test_release_decision.py",
+   "line": 194,
+   "node": "tests/test_release_decision.py::test_a_figure_in_the_text_holds_the_build_when_its_dataset_changes",
+   "given": [
+    "a past figure in the text resting on ELSTAT's 2025 table 07, which the data can't recompute"
+   ],
+   "when": [
+    "a data-only build brings a new copy of that table, or only the month's new CPI file"
+   ],
+   "then": [
+    "the first holds, naming the text's entry and the dataset",
+    "the second is promoted"
    ],
    "notes": "",
    "examples": [],
@@ -18865,7 +19967,7 @@
    "suite": "pytest",
    "title": "every setting gets its files, and the shared ones are there",
    "file": "tests/test_sitedata.py",
-   "line": 23,
+   "line": 29,
    "node": "tests/test_sitedata.py::test_every_setting_gets_its_files_and_the_shared_ones_are_there",
    "given": [
     "the made-up site data generated through the real export"
@@ -18892,7 +19994,7 @@
    "suite": "pytest",
    "title": "the country card's two rates are for the same month and agree",
    "file": "tests/test_sitedata.py",
-   "line": 47,
+   "line": 53,
    "node": "tests/test_sitedata.py::test_the_country_card_rates_are_for_the_same_month_and_agree",
    "given": [
     "the made-up site data, whose published rates are made from its own overall index"
@@ -18919,7 +20021,7 @@
    "suite": "pytest",
    "title": "the made-up baskets take the special paths",
    "file": "tests/test_sitedata.py",
-   "line": 67,
+   "line": 73,
    "node": "tests/test_sitedata.py::test_made_up_baskets_take_the_special_paths",
    "given": [
     "the made-up site data's weights-used downloads"
@@ -18946,7 +20048,7 @@
    "suite": "pytest",
    "title": "the made-up HICP ends a month earlier, and the availability table says why",
    "file": "tests/test_sitedata.py",
-   "line": 89,
+   "line": 95,
    "node": "tests/test_sitedata.py::test_the_hicp_ends_a_month_earlier_and_says_why",
    "given": [
     "the made-up site data, whose HICP ends a month before the CPI, as the real data do for about a week every month"
@@ -18957,6 +20059,115 @@
    "then": [
     "the HICP's last month is the one before the CPI's last month",
     "the HICP is greyed for the CPI's last month with reason \"ends_earlier\""
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SITEDATA-005",
+   "suite": "pytest",
+   "title": "each made-up data state's prices and surveys end where the state says",
+   "file": "tests/test_sitedata.py",
+   "line": 114,
+   "node": "tests/test_sitedata.py::test_each_data_state_ends_where_it_says",
+   "given": [
+    "one of the made-up data states (HICP behind, HICP caught up, January, a new survey year)"
+   ],
+   "when": [
+    "the module is set to it and its price blocks and baskets are made"
+   ],
+   "then": [
+    "the CPI's and the HICP's last months are the state's",
+    "the baskets cover exactly the state's survey years",
+    "afterwards the module is back on the default state"
+   ],
+   "notes": "",
+   "examples": [
+    "hicp-behind",
+    "hicp-caught-up",
+    "january",
+    "new-survey"
+   ],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SITEDATA-006",
+   "suite": "pytest",
+   "title": "generating another state or value set leaves the module on the defaults, even when it fails",
+   "file": "tests/test_sitedata.py",
+   "line": 136,
+   "node": "tests/test_sitedata.py::test_generate_goes_back_to_the_default_state_even_on_failure",
+   "given": [
+    "a generation for the January state and the second value set that fails part way (the price blocks raise)"
+   ],
+   "when": [
+    "it is run"
+   ],
+   "then": [
+    "the error comes through",
+    "the module is back on the default state and values, so later tests in the same process see the usual data"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SITEDATA-007",
+   "suite": "pytest",
+   "title": "the made-up outputs pass the build's weights check",
+   "file": "tests/test_sitedata.py",
+   "line": 155,
+   "node": "tests/test_sitedata.py::test_the_made_up_outputs_pass_the_weights_check",
+   "given": [
+    "the made-up module 1 outputs and store (surveys 2008-2024, data to 2026-09)"
+   ],
+   "when": [
+    "the build's weights check runs on them"
+   ],
+   "then": [
+    "it finds no problem: 2026 uses survey 2023 as a first estimate (survey 2024's public file came out in 2026), as rule N gives"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-SITEDATA-008",
+   "suite": "pytest",
+   "title": "the second value set gives the same shapes with other numbers of every kind",
+   "file": "tests/test_sitedata.py",
+   "line": 173,
+   "node": "tests/test_sitedata.py::test_the_second_value_set_changes_every_kind_of_number",
+   "given": [
+    "the made-up generator's usual values and its second value set"
+   ],
+   "when": [
+    "a price index, a basket share, an income limit and its error, a group count and a household-type share are made in each"
+   ],
+   "then": [
+    "each differs between the sets, while the months, codes and groups are the same",
+    "the usual values are back afterwards"
    ],
    "notes": "",
    "examples": [],
@@ -19863,6 +21074,95 @@
    "defects": [],
    "tags": [
     "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-WCHK-001",
+   "suite": "pytest",
+   "title": "rule N, restated: final from survey y-1 if held, else the newest survey out before 1 January",
+   "file": "tests/test_weights_check.py",
+   "line": 42,
+   "node": "tests/test_weights_check.py::test_rule_n_for_the_newest_year",
+   "given": [
+    "the surveys held and the dates their public files came out"
+   ],
+   "when": [
+    "the weights rule N gives for a year are worked out"
+   ],
+   "then": [
+    "a held survey of the year before gives final weights",
+    "otherwise the newest held survey out before 1 January of the year gives a first estimate",
+    "a survey out later in the year can't be used, so without any the answer is none"
+   ],
+   "notes": "",
+   "examples": [
+    "survey y-1 held",
+    "first estimate",
+    "final again",
+    "older first estimate",
+    "nothing available"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-WCHK-002",
+   "suite": "pytest",
+   "title": "outputs whose newest year follows rule N pass, and other timing rules are not judged",
+   "file": "tests/test_weights_check.py",
+   "line": 65,
+   "node": "tests/test_weights_check.py::test_outputs_that_follow_rule_n_pass",
+   "given": [
+    "outputs whose newest year 2026 uses survey 2024 as a first estimate, surveys 2023-2024 held",
+    "rows of another timing rule with other surveys"
+   ],
+   "when": [
+    "the weights check runs"
+   ],
+   "then": [
+    "it finds no problem"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-WCHK-003",
+   "suite": "pytest",
+   "title": "a wrong weights switch in the newest year fails the check, naming the group and what rule N gives",
+   "file": "tests/test_weights_check.py",
+   "line": 79,
+   "node": "tests/test_weights_check.py::test_a_wrong_switch_fails",
+   "given": [
+    "outputs whose newest year missed a new survey, kept an older one, has the wrong status, or whose weights stop before the index does"
+   ],
+   "when": [
+    "the weights check runs"
+   ],
+   "then": [
+    "it names the problem, with the group, the survey used and what rule N gives"
+   ],
+   "notes": "",
+   "examples": [
+    "new survey missed",
+    "old survey kept",
+    "wrong status",
+    "weights stop early"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
    ],
    "problems": [],
    "named": false
@@ -25824,6 +27124,79 @@
    ],
    "then": [
     "nothing is fresh, changed, stale or without a known kind"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-SAME-001",
+   "suite": "vitest",
+   "title": "reads what a reader sees or hears: text and labels, not scripts or styles",
+   "file": "site/src/lib/same-in-both.test.ts",
+   "line": 12,
+   "node": "site/src/lib/same-in-both.test.ts › figures that read the same with other data › reads what a reader sees or hears: text and labels, not scripts or styles",
+   "given": [
+    "a page with a figure in its text, one in an aria-label, one in a title, and others in a script and a style"
+   ],
+   "when": [
+    "its text is read"
+   ],
+   "then": [
+    "the text and both attributes are read, with entities decoded, and the script and style are not"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-SAME-002",
+   "suite": "vitest",
+   "title": "compares figures place by place, and names the ones that didn't change and aren't explained",
+   "file": "site/src/lib/same-in-both.test.ts",
+   "line": 37,
+   "node": "site/src/lib/same-in-both.test.ts › figures that read the same with other data › compares figures place by place, and names the ones that didn't change and aren't explained",
+   "given": [
+    "two builds of a page: the same number of figures, one of them unchanged; then a different number of figures; and a figure typed in the text"
+   ],
+   "when": [
+    "the figures that read the same are found"
+   ],
+   "then": [
+    "an unchanged figure in the same place is named, one that only moved place is not",
+    "with a different number of figures, any figure of the first build that the second shows is named",
+    "a figure explained (typed in the text, or allowed) is never named"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "VT-SAME-003",
+   "suite": "vitest",
+   "title": "goes through every page of both builds and names the pages only one has",
+   "file": "site/src/lib/same-in-both.test.ts",
+   "line": 62,
+   "node": "site/src/lib/same-in-both.test.ts › figures that read the same with other data › goes through every page of both builds and names the pages only one has",
+   "given": [
+    "two builds: a page whose figure changed, one with a figure that didn't, and a page in the first only"
+   ],
+   "when": [
+    "the builds are compared"
+   ],
+   "then": [
+    "the page with the unchanged figure is named with it",
+    "the page that only one build has is named as such",
+    "the page whose figure changed is not named"
    ],
    "notes": "",
    "examples": [],
