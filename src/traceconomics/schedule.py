@@ -50,6 +50,33 @@ Persistent=true
 WantedBy=timers.target
 """
 
+POLL_NAME = "traceconomics-poll"
+
+POLL_SERVICE = """[Unit]
+Description=Traceconomics: on a release day, start the run as soon as the release is out
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=8h
+ExecStart={command}
+"""
+
+# Every 5 minutes from the release time until the daily run. No catching up (Persistent=false):
+# a missed poll is covered by the next one or by the daily run. While a poll's run and build go
+# on, the timer can't start the service again: systemd leaves a running oneshot alone.
+POLL_TIMER = """[Unit]
+Description=Traceconomics: release-day poll ({hours}:xx every 5 minutes, {timezone})
+
+[Timer]
+OnCalendar=*-*-* {hours}:00/5:00 {timezone}
+Persistent=false
+
+[Install]
+WantedBy=timers.target
+"""
+
 TEMPLATE = """<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
@@ -107,7 +134,7 @@ def install(config: Config) -> str:
     if sys.platform != "win32":
         raise SystemExit(
             "Task Scheduler is Windows only. On Linux: `traceconomics schedule units --out "
-            "~/.config/systemd/user`, then `systemctl --user enable --now traceconomics-archive.timer`."
+            "~/.config/systemd/user`, then `systemctl --user enable --now traceconomics-archive.timer traceconomics-poll.timer`."
         )
     xml = task_xml(config, _pythonw())
     with tempfile.TemporaryDirectory() as d:
@@ -174,12 +201,18 @@ def systemd_units(
     image: str = IMAGE,
 ) -> dict[str, str]:
     """The service and timer files, by file name."""
-    cmd = container_command(
-        uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node, env_file=env_file, image=image
-    )
+    from traceconomics.job import RELEASE_TIME  # the job imports every source: loaded only here
+
+    where = dict(uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node, env_file=env_file, image=image)
+    cmd = container_command(**where)
+    poll = container_command(**where, args=("poll",))
+    last = (config.run_after.hour * 60 + config.run_after.minute - 1) // 60  # the last hour before the run
+    hours = f"{RELEASE_TIME.hour:02d}" + (f"..{last:02d}" if last > RELEASE_TIME.hour else "")
     return {
         f"{TASK_NAME}.service": SERVICE.format(command=" ".join(cmd)),
         f"{TASK_NAME}.timer": TIMER.format(time=config.run_after.strftime("%H:%M"), timezone=config.timezone),
+        f"{POLL_NAME}.service": POLL_SERVICE.format(command=" ".join(poll)),
+        f"{POLL_NAME}.timer": POLL_TIMER.format(hours=hours, timezone=config.timezone),
     }
 
 

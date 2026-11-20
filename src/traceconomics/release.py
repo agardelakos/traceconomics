@@ -19,6 +19,10 @@ stays after launch as a place to look at a build in its final setting, or `produ
 public address. The two can serve different builds, so a rollback is per target too. After each
 promote, the target address is checked: it must serve the promoted build's own files.
 
+With `[release] auto_promote` on, a passing build whose only change is the publishers' new data,
+within its limits, is promoted to production by itself; any other build waits for the owner, with
+the reasons (`release_decision.py`). In "shadow" the email only says what would have happened.
+
 Each browser step's results, and each promote's check, are also sent to the test-results bucket
 (`testresults`), for the project's public run history. That is a report, not a gate: a failed
 upload is named in the email and changes nothing else.
@@ -40,13 +44,15 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from traceconomics import catalog, testresults
+from traceconomics import catalog, quoted_figures, release_decision as rd, testresults
 from traceconomics.archive.store import Archive, iso, sha256_file, stamp, utc_now
 from traceconomics.config import CONFIG_ENV, Config
-from traceconomics.job import RunLock
+from traceconomics.job import Locked, RunLock
 from traceconomics.notify import notify
 
 PROMOTED = "promoted.json"
+# A build asked for while another ran (`build`): started when that one ends.
+WANTED = "build-wanted.json"
 PREVIEW_URL = re.compile(r"https://[\w.-]+\.workers\.dev\b[^\s\"']*")
 # Promoting to production publishes on the site's public address; staging is a private preview alias.
 STAGING, PRODUCTION = "staging", "production"
@@ -104,10 +110,26 @@ def steps(cfg: Config, folder: Path, build_id: str, ui: Path | None = None) -> l
         Step("check-v1", _py("check", "v1")),
         Step("check-v1-cpi", _py("check", "v1-cpi")),
         Step("check-combos", _py("check", "combos", "--outputs", str(outputs))),
+        # Our own weights switch (a new year, a new survey year): nothing published shows it, so
+        # the outputs are checked against rule N here.
+        Step("check-weights", _py("check", "weights", "--outputs", str(outputs))),
         # Each official figure against its own inputs. Differences never fail it (they are what the
         # topic publishes); only an input it can't read does.
         Step("consistency", _py("module5", "run", "--out", str(outputs))),
         Step("export", _py("export", "site", "--out", str(site / "public" / "data"), "--outputs", str(outputs))),
+        # Past figures typed into the text, against the data just exported: a revision that
+        # changes one stops the build, since nobody may read the text before it goes live.
+        Step(
+            "check-figures",
+            _py(
+                "check",
+                "figures",
+                "--data",
+                str(site / "public" / "data"),
+                "--allow",
+                str(site / "src" / "i18n" / "figures-allow.json"),
+            ),
+        ),
         Step("npm-ci", ("npm", "ci", "--no-audit", "--no-fund"), site),
         Step("site-check", ("npm", "run", "check"), site),
         # The built pages in a browser, on a local server, before anything leaves this machine.
@@ -242,11 +264,43 @@ def build(
     reason: str = "manual",
     runner: Runner = run_step,
     now: datetime | None = None,
+    released: datetime | None = None,
 ) -> dict:
+    """Build, check and test a release; `released` is when the publisher released the data it
+    was started for (the job passes it), so the record can say how long the data took to go live.
+
+    One build at a time. A build that finds another running doesn't fail: it is queued
+    (`WANTED`), and the running build starts it when it ends, so new files never wait for the
+    next release day. Then the record is {"id": None, "result": "queued", ...}."""
     r = cfg.release
     if r.site_dir is None:
         raise SystemExit("release.site_dir is not set in the config")
-    now = now or utc_now()
+    try:
+        lock = RunLock(r.releases_dir).__enter__()
+    except Locked:
+        want(r.releases_dir, reason, released)
+        return {"id": None, "result": "queued", "reason": reason}
+    try:
+        record, folder = _build(cfg, config_path, reason, runner, now or utc_now(), released)
+    finally:
+        lock.__exit__(None, None, None)
+    if record["result"] == "ok" and r.auto_promote != rd.OFF:
+        _auto_promote(cfg, folder, record, runner)
+    record["finished"] = iso(utc_now())
+    _report(cfg, folder, record, email_subject(record))
+    prune(r.releases_dir, r.keep)
+    wanted = take_wanted(r.releases_dir)
+    if wanted:
+        nxt = build(cfg, config_path, reason=wanted["reason"], runner=runner, released=wanted["released"])
+        record["next"] = nxt["id"]
+    return record
+
+
+def _build(
+    cfg: Config, config_path: Path | None, reason: str, runner: Runner, now: datetime, released: datetime | None
+) -> tuple[dict, Path]:
+    """The build's steps, under the lock."""
+    r = cfg.release
     build_id = stamp(now)
     folder = r.releases_dir / build_id
     logs = folder / "logs"
@@ -262,32 +316,133 @@ def build(
         # Kept with the build: a retest or a promote after a later deploy still reports this one.
         "commit": testresults.source_commit(r.site_dir.parent),
     }
-    env = _env(config_path)
-    with RunLock(r.releases_dir):
-        failed = _run_steps(
-            steps(cfg, folder, build_id),
-            env,
-            logs,
-            logs,
-            runner,
-            record["steps"],
-            after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")},
-            on_browser=_send_results(record),
-        )
-        if failed:
-            record.update(result="failed", failed_step=failed[0], log_tail=failed[1])
-            _note_ui(record, folder / "ui", failed[0])
-        else:
-            _passed(cfg, folder, record)
-    record["finished"] = iso(utc_now())
-    subject = (
-        f"release {build_id} ready for review"
-        if record["result"] == "ok"
-        else f"ALERT: release {build_id} failed at {record['failed_step']}"
+    if released is not None:
+        record["released"] = iso(released)
+    failed = _run_steps(
+        steps(cfg, folder, build_id),
+        _env(config_path),
+        logs,
+        logs,
+        runner,
+        record["steps"],
+        after={"site-check": lambda: shutil.copytree(r.site_dir / "dist", folder / "dist")},
+        on_browser=_send_results(record),
     )
-    _report(cfg, folder, record, subject)
-    prune(r.releases_dir, r.keep)
-    return record
+    if failed:
+        record.update(result="failed", failed_step=failed[0], log_tail=failed[1])
+        _note_ui(record, folder / "ui", failed[0])
+    else:
+        _passed(cfg, folder, record)
+        record["ready"] = iso(utc_now())
+    return record, folder
+
+
+def want(releases_dir: Path, reason: str, released: datetime | None) -> None:
+    """Queue a build for when the running one ends. Several wishes make one build: their reasons
+    together, timed from the earliest release among them (the data that has waited longest)."""
+    path = releases_dir / WANTED
+    old = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"reasons": [], "released": None}
+    reasons = old["reasons"] + ([reason] if reason not in old["reasons"] else [])
+    times = [t for t in (old["released"], released and iso(released)) if t]
+    _write_json(path, {"reasons": reasons, "released": min(times) if times else None})
+
+
+def take_wanted(releases_dir: Path) -> dict | None:
+    """The queued build's reason and release time, removing the wish; None if none is queued."""
+    path = releases_dir / WANTED
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    path.unlink()
+    released = datetime.fromisoformat(data["released"]) if data["released"] else None
+    return {"reason": "queued while another build ran: " + "; ".join(data["reasons"]), "released": released}
+
+
+def _auto_promote(cfg: Config, folder: Path, record: dict, runner: Runner) -> None:
+    """Decide; in "on" mode, promote a build the decision allows."""
+    r = cfg.release
+    decision = decide_build(cfg, folder, record)
+    record["decision"] = {**decision.as_dict(), "mode": r.auto_promote}
+    if r.auto_promote == rd.ON and decision.verdict == rd.PROMOTE:
+        _write_json(folder / "release.json", record)  # promote reads the build's record from disk
+        try:
+            done = promote(cfg, record["id"], PRODUCTION, runner=runner)
+            record["decision"]["promoted"] = done
+            if "live" in done:
+                record["live"] = done["live"]
+        except SystemExit as exc:
+            record["decision"]["promote_failed"] = str(exc)
+
+
+def email_subject(record: dict) -> str:
+    """The email's subject: what happened, and whether the owner has to act."""
+    build_id = record["id"]
+    if record["result"] != "ok":
+        return f"ALERT: release {build_id} failed at {record['failed_step']}"
+    d = record.get("decision")
+    if not d:
+        return f"release {build_id} ready for review"
+    first = "; ".join(d["reasons"][:2]) + (f" (and {len(d['reasons']) - 2} more)" if len(d["reasons"]) > 2 else "")
+    if d["mode"] == rd.SHADOW:
+        would = "would promote" if d["verdict"] == rd.PROMOTE else f"would hold: {first}"
+        return f"release {build_id} ready for review (shadow: {would})"
+    if d.get("promote_failed"):
+        return f"ALERT: release {build_id} was to go live by itself, but its promote failed"
+    if d.get("promoted"):
+        return f"PROMOTED: release {build_id} is live (only the publishers' data changed)"
+    return f"HOLD: release {build_id} waits for you: {first}"
+
+
+def decide_build(cfg: Config, folder: Path, record: dict, *, fetch=None) -> rd.Decision:
+    """The decision for a passing build, against the build production serves (`release_decision`)."""
+    r = cfg.release
+    on = promoted(r.releases_dir).get(PRODUCTION)
+    if not on:
+        return rd.decide(
+            production=None,
+            commit=None,
+            production_commit=None,
+            inputs=None,
+            production_inputs=None,
+            changes={},
+            beyond=[],
+            served_problem=None,
+        )
+    prod = r.releases_dir / on["id"]
+    if not (prod / "release.json").is_file():
+        return rd.Decision(rd.HOLD, [f"production's build {on['id']} is no longer on disk"], on["id"])
+    prod_record = json.loads((prod / "release.json").read_text(encoding="utf-8"))
+    # One look at the public address, no waiting: it must serve the production build's own file.
+    served = confirm(
+        r.production_url,
+        (prod / "dist" / METADATA).read_bytes(),
+        on["id"],
+        fetch=fetch or (lambda u: _fetch(u, cfg.user_agent)),
+        sleep=lambda _: None,
+        every=1,
+        limit=0,
+    )
+    rates = Path("gr") / "m1" / "m1_rates.parquet"
+    old_rates, new_rates = prod / "outputs" / rates, folder / "outputs" / rates
+    both = old_rates.is_file() and new_rates.is_file()
+    allow = r.site_dir / "src" / "i18n" / "figures-allow.json"
+    quoted = quoted_figures.sources(quoted_figures.load(allow)) if allow.is_file() else {}
+    return rd.decide(
+        production=on["id"],
+        quoted=quoted,
+        commit=record.get("commit"),
+        production_commit=prod_record.get("commit"),
+        inputs=_inputs(folder),
+        production_inputs=_inputs(prod),
+        changes=changes(prod / "outputs", folder / "outputs") if both else {},
+        beyond=rd.beyond_records_in(old_rates, new_rates) if both else [],
+        served_problem=served,
+    )
+
+
+def _inputs(folder: Path) -> dict | None:
+    path = folder / rd.INPUTS
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
 
 
 def _run_steps(
@@ -362,6 +517,8 @@ def _passed(cfg: Config, folder: Path, record: dict) -> None:
     for key in ("failed_step", "log_tail", "ui_failures", "ui_report"):
         record.pop(key, None)
     _write_sums(folder, ["outputs", "dist"])
+    # Every archived file the store held for this build: what an automatic promote compares.
+    _write_json(folder / rd.INPUTS, rd.store_inputs(cfg.store_dir))
     previous = record.get("baseline")
     record["changes"] = changes(previous and r.releases_dir / previous / "outputs", folder / "outputs")
 
@@ -426,6 +583,7 @@ def retest(
         subject = f"ALERT: release {build_id} failed its retest at {failed[0]}"
     else:
         _passed(cfg, folder, record)
+        record["ready"] = iso(utc_now())  # a retest's delay counts: the data waited for it
         subject = f"release {build_id} passed its retest: ready for review"
     _report(cfg, folder, record, subject)
     return record
@@ -465,10 +623,7 @@ def changes(old: Path | None, new: Path) -> dict:
     if not new_rates.is_file():
         return {}
     con = duckdb.connect()
-    default = (
-        "spending = 'purchases' AND imputed_rent = 'excluded' AND price_source = 'cpi' "
-        "AND weights_timing = 'N' AND tutoring = 'priced' AND unit = 'RCH_A'"
-    )
+    default = rd.DEFAULT_SETTING
     keys = 'grouping, "group", coicop18, ref_period'
     n = f"SELECT {keys}, value_text FROM '{new_rates.as_posix()}' WHERE {default}"
     last = con.execute(f"SELECT max(ref_period) FROM ({n})").fetchone()[0]
@@ -492,8 +647,30 @@ def changes(old: Path | None, new: Path) -> dict:
     }
 
 
+def _seconds(start: str, end: str) -> int:
+    return round((datetime.fromisoformat(end) - datetime.fromisoformat(start)).total_seconds())
+
+
+def duration(seconds: int) -> str:
+    """Like "2 h 05 min" or "47 min": a release's time to go live, as the email gives it."""
+    hours, minutes = divmod(round(seconds / 60), 60)
+    return f"{hours} h {minutes:02d} min" if hours else f"{minutes} min"
+
+
+def _timing(record: dict) -> list[str]:
+    """Release to ready, and to live once production serves the build."""
+    released = record.get("released")
+    if not released or "ready" not in record:
+        return []
+    lines = [f"Released by the publisher {released}; build ready after {duration(_seconds(released, record['ready']))}"]
+    if "live" in record:
+        lines[0] += f", live after {duration(record['live']['seconds'])}"
+    return lines + [""]
+
+
 def render(record: dict) -> str:
     lines = [f"Release {record['id']} ({record['reason']}): {record['result'].upper()}", ""]
+    lines += _timing(record)
     for s in record["steps"]:
         lines.append(f"  {'ok  ' if s['code'] == 0 else 'FAIL'} {s['name']} ({s['seconds']} s)")
     for a in record.get("retests", []):
@@ -516,7 +693,12 @@ def render(record: dict) -> str:
                 f"  revised values: {c['revised_values']}"
                 + (f", largest {c['largest_revision_pp']:.1f} pp" if c["revised_values"] else ""),
             ]
-        lines += ["", f"To publish it: traceconomics release promote {record['id']} --to staging (or --to production)"]
+        lines += _render_decision(record)
+        if not record.get("decision", {}).get("promoted"):
+            lines += [
+                "",
+                f"To publish it: traceconomics release promote {record['id']} --to staging (or --to production)",
+            ]
     else:
         lines += ["", "Nothing was published: staging and the public site are unchanged."]
         if "ui_failures" in record:
@@ -532,6 +714,33 @@ def render(record: dict) -> str:
                 f"traceconomics release retest {record['id']}. If a test or a page was wrong, fix it and build again.",
             ]
     return "\n".join(lines) + "\n"
+
+
+def _render_decision(record: dict) -> list[str]:
+    d = record.get("decision")
+    if not d:
+        return []
+    title = {rd.SHADOW: "Automatic promote (shadow: nothing was promoted)", rd.ON: "Automatic promote"}[d["mode"]]
+    lines = ["", f"{title}, against production's build {d.get('production') or 'none'}:"]
+    if d["verdict"] == rd.PROMOTE:
+        lines.append("  promote: only the publishers' data changed, within every limit")
+    else:
+        lines.append("  hold, because:")
+        lines += [f"  - {x}" for x in d["reasons"]]
+    done = d.get("promoted")
+    if done:
+        lines += [
+            "",
+            f"Promoted to production: {done['url']} serves it (checked {done.get('confirmed')}).",
+        ]
+        if done.get("previous"):
+            lines.append(
+                f"Live before: {done['previous']}. To go back: "
+                f"traceconomics release promote {done['previous']} --to production"
+            )
+    if d.get("promote_failed"):
+        lines += ["", f"The promote failed: {d['promote_failed']}"]
+    return lines
 
 
 # -- promoting and listing ------------------------------------------------------
@@ -580,6 +789,10 @@ def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, f
         raise SystemExit(f"upload failed; see {log}")
     url = r.production_url if to == PRODUCTION else _url_in(log)
     done = {"id": build_id, "to": to, "promoted": iso(utc_now()), "url": url}
+    # The build this one replaces on the target: kept on disk (`prune`) so a revert has it.
+    before = promoted(r.releases_dir).get(to)
+    if before:
+        done["previous"] = before["id"] if before["id"] != build_id else before.get("previous")
     checked = utc_now()
     problem = confirm(
         url,
@@ -589,6 +802,10 @@ def promote(cfg: Config, build_id: str, to: str, *, runner: Runner = run_step, f
         sleep=sleep,
     )
     done["confirmed" if problem is None else "unconfirmed"] = iso(utc_now()) if problem is None else problem
+    if problem is None and to == PRODUCTION and record.get("released"):
+        # The number the speed work is judged by: from the publisher's release to our site serving it.
+        done["live"] = {"at": done["confirmed"], "seconds": _seconds(record["released"], done["confirmed"])}
+        _write_json(folder / "release.json", {**record, "live": done["live"]})
     sent = testresults.send(
         build=build_id,
         commit=record.get("commit"),
@@ -663,8 +880,10 @@ def status(releases_dir: Path) -> list[dict]:
 
 
 def prune(releases_dir: Path, keep: int) -> list[str]:
-    """Delete all but the newest `keep` builds; a build on staging or production is always kept."""
-    live = {rec["id"] for rec in promoted(releases_dir).values()}
+    """Delete all but the newest `keep` builds; a build on staging or production, and the one each
+    replaced there (the revert target), is always kept."""
+    on = promoted(releases_dir).values()
+    live = {rec["id"] for rec in on} | {rec["previous"] for rec in on if rec.get("previous")}
     builds = sorted((p for p in releases_dir.iterdir() if (p / "release.json").is_file()), reverse=True)
     gone = []
     for p in builds[keep:]:

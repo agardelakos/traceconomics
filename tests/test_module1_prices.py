@@ -337,3 +337,31 @@ def test_hicp_blocks_keep_an_item_only_for_years_it_fully_prices():
     assert "105" in b[2014] and "105" not in b[2015]
     assert "0947" not in b[2015]
     assert sorted(b[2015]["01"]) == ["2014-12"] + [f"2015-{m:02d}" for m in range(1, 13)]
+
+
+def _leaves_by_comparison(basket: Basket) -> dict[str, float]:
+    """The definition, comparing every code with every other: the oracle for the fast version."""
+    codes = [c for c, s in basket.shares.items() if s > 0]
+    return {c: basket.shares[c] for c in codes if not any(o != c and o.startswith(c) for o in codes)}
+
+
+@pytest.mark.parametrize(
+    "shares",
+    [
+        {"01": 0.6, "011": 0.6, "0111": 0.4, "0114": 0.2, "04": 0.4, "041": 0.4},
+        {"01": 0.5, "011": 0.0, "0111": 0.0, "012": 0.5, "02": 0.5},
+        {"1": 0.1, "10": 0.2, "105": 0.2, "10501": 0.1, "TOTAL": 1.0, "T": 0.3},
+        {"0111": 0.3, "011": 0.3, "01": 0.3, "07": 0.7},
+        {},
+    ],
+    ids=["nested", "zero shares below", "odd codes", "children listed first", "empty"],
+)
+def test_basket_leaves_match_the_definition(shares):
+    """PY-PRICES-017: a basket's leaves are exactly the definition's, in the same order
+
+    Given a basket with nested codes, children with zero shares, codes that aren't COICOP (TOTAL, one character), children listed before their parents, or no codes
+    When its leaves are taken
+    Then they equal those found by comparing every code with every other, in the same order
+    """
+    basket = Basket(shares, {})
+    assert list(basket.leaves().items()) == list(_leaves_by_comparison(basket).items())

@@ -277,6 +277,19 @@ def _calendar_pdfs(ctx: RunContext, state: dict, page: bytes) -> dict[int, dict[
     return out
 
 
+def new_documents(archive: Archive, http, topic: str) -> list[str]:
+    """Document IDs the topic's page lists that the archive doesn't hold: one request, the poll's
+    sign that a release is out.
+
+    A changed page is not the sign: the CPI page was archived anew on days without a release
+    (2026-11-04, -07, -11, -18), while the release of 2026-11-10 brought IDs never seen before.
+    Files ELSTAT updates in place under old IDs come with the full run the sign starts."""
+    _, page = http.get_bytes(PAGES[topic], archive.new_tmp())
+    docs = document_links(page)
+    require(bool(docs), f"ELSTAT page-{topic}: no documents found; the page layout may have changed")
+    return [doc for doc, _ in docs if archive.latest(SOURCE, f"doc-{doc}") is None]
+
+
 def run(ctx: RunContext, state: dict) -> ReleaseDays:
     """Fetch everything due today. Returns the release days read from the calendar."""
     # 1. The calendar first, so the rest of the run knows what was released.

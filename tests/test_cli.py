@@ -171,6 +171,29 @@ def test_archive_prints_the_run_and_fails_unless_it_went_well(run, monkeypatch, 
     assert got == code
 
 
+@pytest.mark.parametrize(
+    "result, code",
+    [
+        ({"result": "no release awaited today"}, 0),
+        ({"result": "not out yet", "checked": {"elstat-cpi": []}}, 0),
+        ({"result": "out", "run": "ok", "release": "R1"}, 0),
+        ({"result": "out", "run": "failures"}, 1),
+    ],
+    ids=["nothing awaited", "not out yet", "out, run ok", "out, run failed"],
+)
+def test_poll_prints_what_it_saw_and_fails_only_if_its_run_did(run, monkeypatch, result, code):
+    """PY-CLI-047: poll prints what the release-day poll saw, and fails only when the run it started failed
+
+    Given a poll that found nothing awaited, found nothing out yet, or started a run that went well or failed
+    When the poll command is run
+    Then it prints the result as JSON
+    And it exits with code 1 only when the run it started had failures
+    """
+    monkeypatch.setattr(job, "poll", lambda cfg: result)
+    got, out = run("poll")
+    assert json.loads(out) == result and got == code
+
+
 @pytest.mark.parametrize("result, code", [("ok", 0), ("dry-run", 0), ("failed", 1)])
 def test_fetch_history_passes_the_years_and_pause(run, monkeypatch, result, code):
     """PY-CLI-008: fetch-history reads the years and the pause, and fails unless the fetch went well
@@ -512,7 +535,7 @@ def test_schedule_units_needs_a_folder_and_writes_the_units_there(run, tmp_path)
     When schedule units is run without --out
     And it is run with --out and --bin folders
     Then the first run says where to point it and exits with code 2
-    And the second writes the archive timer and service into --out and the traceconomics command into --bin
+    And the second writes the archive and poll timers and services into --out and the traceconomics command into --bin
     And it prints each file written
     """
     code, out = run("schedule", "units")
@@ -521,6 +544,7 @@ def test_schedule_units_needs_a_folder_and_writes_the_units_there(run, tmp_path)
     code, out = run("schedule", "units", "--out", str(units), "--bin", str(bin_dir))
     assert code == 0
     assert (units / "traceconomics-archive.timer").is_file() and (units / "traceconomics-archive.service").is_file()
+    assert (units / "traceconomics-poll.timer").is_file() and (units / "traceconomics-poll.service").is_file()
     assert (bin_dir / "traceconomics").is_file()
     assert f"Wrote {bin_dir / 'traceconomics'}" in out
 
@@ -941,3 +965,64 @@ def test_module5_run_prints_each_check_and_writes_its_files(setup, run, monkeypa
     assert "gr-x: 2 of 3 agree (2024-01 to 2024-03); differ: {'rounding': 1}" in lines
     assert any("survey tables or Eurostat's income limits not in the store yet" in line for line in lines)
     assert (out_dir / "gr" / "m5" / "gr-x.csv").is_file() and (out_dir / "gr" / "m5" / "checks.json").is_file()
+
+
+def test_release_decide_prints_the_verdict_and_its_reasons(setup, run, monkeypatch):
+    """PY-CLI-046: release decide prints whether a passing build would go live by itself, and why not
+
+    Given a passing build on disk whose decision is to hold for two reasons
+    And a build on disk that failed
+    When release decide is run for each
+    Then the first prints the verdict against production's build and each reason, and exits with code 0
+    And the second says a failed build would never go live by itself, and exits with code 1
+    """
+    from traceconomics import release_decision as rd
+
+    releases = setup.cfg.release.releases_dir
+    for build, result in (("b2", "ok"), ("b1", "failed")):
+        (releases / build).mkdir(parents=True)
+        (releases / build / "release.json").write_text(json.dumps({"id": build, "result": result}), encoding="utf-8")
+    held = rd.Decision(rd.HOLD, ["the code changed: commit aaa, production's build bbb", "nothing new"], "b0")
+    monkeypatch.setattr(release, "decide_build", lambda cfg, folder, record: held)
+    code, out = run("release", "decide", "b2")
+    assert code == 0
+    assert out.splitlines() == [
+        "Release b2, against production's build b0: HOLD",
+        "  - the code changed: commit aaa, production's build bbb",
+        "  - nothing new",
+    ]
+    code, out = run("release", "decide", "b1")
+    assert code == 1 and "would never go live by itself" in out
+
+
+def test_check_figures_prints_each_problem_and_fails_on_any(run, tmp_path, monkeypatch):
+    """PY-CLI-048: check figures says how many figures it recomputes and names each problem, failing on any
+
+    Given an allow-list with one past figure the data recompute and one resting on a named dataset
+    When check figures runs with data that still give the figure, then with data that don't
+    Then the first prints the counts and ok, and exits with code 0
+    And the second prints the problem and exits with code 1
+    And without --data or --allow it stops with a message
+    """
+    from traceconomics import quoted_figures
+
+    allow = tmp_path / "allow.json"
+    checks = [
+        {"figure": "2.5 points", "m1": {"period": "2022-04"}},
+        {"figure": "8.4%", "sources": ["elstat/doc-554284"], "reason": "an item index we don't export"},
+    ]
+    entry = {"id": "glossary/gap.md#intro", "kind": "past", "en": ["2.5 points", "8.4%"], "checks": checks}
+    allow.write_text(json.dumps({"entries": [entry]}), encoding="utf-8")
+    monkeypatch.setattr(quoted_figures, "check", lambda data, entries: [])
+    code, out = run("check", "figures", "--data", str(tmp_path), "--allow", str(allow))
+    assert code == 0
+    assert out.splitlines()[0] == (
+        "Past figures in the site's text: 1 recomputed from the data, 1 resting on named datasets "
+        "(reviewed when those change)"
+    )
+    monkeypatch.setattr(quoted_figures, "check", lambda data, entries: ["glossary/gap.md#intro: the text says 2.5"])
+    code, out = run("check", "figures", "--data", str(tmp_path), "--allow", str(allow))
+    assert code == 1 and "  FAIL glossary/gap.md#intro: the text says 2.5" in out
+    with pytest.raises(SystemExit) as exc:
+        run("check", "figures", "--data", str(tmp_path))
+    assert "needs --data" in str(exc.value.code)

@@ -58,3 +58,5 @@ memory_limit = "2GB"
 # worker_name = "traceconomics"
 # production_url = "https://example.org"   # the public address: each promote to production is checked there
 # keep = 12
+# auto_promote = "off"   # "shadow": the email says whether a build would go live by itself; "on": a data-only
+#                        # build within its limits goes to production by itself, anything else waits for you

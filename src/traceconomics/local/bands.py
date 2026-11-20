@@ -35,6 +35,7 @@ from traceconomics.archive.store import Archive
 from traceconomics.checks import require
 from traceconomics.engine.chain import _price_ratio, link_month, months
 from traceconomics.local import bootstrap
+from traceconomics.local.calibration import calibrate
 from traceconomics.local.groups import RANKED, quintile_matrix, ranking
 from traceconomics.local.shares import basket, group_shares, memberships
 from traceconomics.local.weights import prepare
@@ -208,6 +209,10 @@ def run(archive: Archive, con, replicates: int = bootstrap.REPLICATES, only=None
     only = only or combinations.settings()
     wanted = set(combinations.GROUPS)
     rows, designs, unavailable = [], {}, {}
+    # Each survey read and prepared once, for every spending concept and rent option: preparing
+    # doesn't depend on them, and reading the microdata was most of this step's time (17 surveys
+    # read four times). Only what the replicates use is kept, about 1.9 GB for all surveys.
+    prepared: dict[int, tuple] = {}
     for spending, rent in sorted({(s["spending"], s["imputed_rent"]) for s in only}):
         these = [s for s in only if (s["spending"], s["imputed_rent"]) == (spending, rent)]
         built = list(combinations.iterate(con, archive, only=these))
@@ -215,15 +220,20 @@ def run(archive: Archive, con, replicates: int = bootstrap.REPLICATES, only=None
         sets = {}
         for year in surveys:
             # The survey as the weights run prepares it: weights calibrated to the tenure target.
-            p = prepare(archive, year)
+            if year not in prepared:
+                p = prepare(archive, year)
+                # Not `p.recalibrate`: a bound method would keep the whole prepared survey alive.
+                tenure, target = p.groups["tenure"], p.target.shares
+                prepared[year] = (p.mapped, p.groups, lambda w, t=tenure, sh=target: calibrate(w, t, sh))
+            mapped, groups, recalibrate = prepared[year]
             d, leaves, reps = replicate_leaf_shares(
-                p.mapped,
-                p.groups,
+                mapped,
+                groups,
                 wanted,
                 spending,
                 replicates,
                 option=2 if rent == "included" else 1,
-                calibrate=p.recalibrate,
+                calibrate=recalibrate,
             )
             sets[year] = (leaves, reps)
             designs[year] = d.status

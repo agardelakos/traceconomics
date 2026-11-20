@@ -21,16 +21,17 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from traceconomics import analytics, backup, heartbeat
 from traceconomics.archive.store import Archive, iso, stamp, utc_now
+from traceconomics.checks import FormatError
 from traceconomics.config import Config
 from traceconomics.notify import notify
 from traceconomics.sources import ec_empl, elstat, eurostat, terms
-from traceconomics.sources.base import HttpClient, RunContext
+from traceconomics.sources.base import FetchError, HttpClient, RunContext
 from traceconomics.sources.elstat import history as elstat_history
 
 STATE_FILE = "state/state.json"
@@ -38,6 +39,9 @@ LOCK_FILE = "state/run.lock"
 STALE_LOCK = timedelta(hours=6)
 # Cloudflare keeps exact visit-count rows for 7 days: alert while there are still a few left.
 ANALYTICS_ALERT_DAYS = 4
+# Both publishers release at 12:00 Greek time (Eurostat at 11:00 Central European Time, ELSTAT at
+# 12:00 local): a release build counts its time to go live from there.
+RELEASE_TIME = time(12, 0)
 
 
 # -- state (a rebuildable cache next to the archive) ------------------------
@@ -126,9 +130,10 @@ def awaited(state: dict, through: date) -> dict[str, list[date]]:
     return out
 
 
-def check_due(state: dict, config: Config, now: datetime) -> Due:
-    """Whether a run is due at `now` (timezone-aware, in the job's timezone)."""
-    today, after_hour = now.date(), now.time() >= config.run_after
+def check_due(state: dict, config: Config, now: datetime, out_today: bool = False) -> Due:
+    """Whether a run is due at `now` (timezone-aware, in the job's timezone). `out_today`: the
+    poll has seen today's release, so today counts as released before the run time."""
+    today, after_hour = now.date(), now.time() >= config.run_after or out_today
     last = state.get("last_good_run")
     if last is None:
         return Due(True, [], [], "first run")
@@ -149,11 +154,15 @@ def check_due(state: dict, config: Config, now: datetime) -> Due:
     return Due(True, pending, missed, reason)
 
 
-def confirm_releases(state: dict, ctx: RunContext, through: date, now: datetime, floor: str | None) -> None:
+def confirm_releases(
+    state: dict, ctx: RunContext, through: date, now: datetime, floor: str | None, early: bool = False
+) -> None:
     """Move each topic's confirmed day to its awaited release days if this run brought its files;
     otherwise alert, and the days stay awaited, so the next run is due again.
 
-    `floor` is the last good run before this one: topics without a confirmed day start there."""
+    `floor` is the last good run before this one: topics without a confirmed day start there.
+    `early`: a run the poll started before the run time. Today's release days of other topics
+    aren't late yet (the poll goes on, and the run at the run time alerts if they don't come)."""
     confirmed = state.setdefault("release_confirmed", {})
     for topic in state.get("release_dates", {}):
         confirmed.setdefault(topic, floor or through.isoformat())
@@ -161,6 +170,9 @@ def confirm_releases(state: dict, ctx: RunContext, through: date, now: datetime,
         if topic in ctx.brought:
             confirmed[topic] = days[-1].isoformat()
         elif not ctx.failures:  # a failed fetch is reported as such; the days stay awaited
+            days = [d for d in days if not (early and d == now.date())]
+            if not days:
+                continue
             name = TOPIC_NAMES.get(topic, topic)
             ctx.alerts.append(
                 f"{name}: release day {', '.join(d.isoformat() for d in days)}, but no new file by "
@@ -172,13 +184,22 @@ def confirm_releases(state: dict, ctx: RunContext, through: date, now: datetime,
 # -- one run ----------------------------------------------------------------
 
 
-def run(config: Config, *, force: bool = False, dry_run: bool = False, now: datetime | None = None) -> dict:
+def run(
+    config: Config,
+    *,
+    force: bool = False,
+    dry_run: bool = False,
+    now: datetime | None = None,
+    out_today: bool = False,
+) -> dict:
+    """One archive run. `out_today`: started by the poll, which saw today's release before the
+    run time; today's release days count as released."""
     tz = ZoneInfo(config.timezone)
     now = now or datetime.now(tz)
     root = config.archive_dir
     archive = Archive(root)
     state = load_state(root)
-    due = check_due(state, config, now)
+    due = check_due(state, config, now, out_today)
     started = utc_now()
 
     if not (due.due or force):
@@ -195,7 +216,8 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
             archive.append_run(record)
         return record
 
-    released_through = now.date() if now.time() >= config.run_after else now.date() - timedelta(days=1)
+    early = now.time() < config.run_after
+    released_through = now.date() if out_today or not early else now.date() - timedelta(days=1)
     ctx = RunContext(
         archive=archive,
         http=HttpClient(config.user_agent, config.request_pause_seconds),
@@ -211,7 +233,7 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
         archive.clean_tmp()
         floor = state.get("last_good_run")
         _run_sources(ctx, state)
-        confirm_releases(state, ctx, released_through, now, floor)
+        confirm_releases(state, ctx, released_through, now, floor, early=early and out_today)
         visits = export_analytics(config, archive, state, now)
         downloads = export_analytics(config, archive, state, now, analytics.DOWNLOADS)
         good = not ctx.failures
@@ -260,8 +282,77 @@ def run(config: Config, *, force: bool = False, dry_run: bool = False, now: date
     archive.append_run(record)
     if build:
         release, reason, build_at = build
-        record["release"] = release.build(config, reason=reason, now=build_at)["id"]
+        released = released_at(due, now.tzinfo)
+        built = release.build(config, reason=reason, now=build_at, released=released)
+        # None: another build was running, so this one is queued and starts when that one ends.
+        record["release"] = built["id"] or "queued"
     return record
+
+
+def released_at(due: Due, tz) -> datetime | None:
+    """When the newest release day this run covers was released; None for a run on no release day
+    (forced, or the first run)."""
+    if not due.release_days:
+        return None
+    return datetime.combine(max(due.release_days), RELEASE_TIME, tzinfo=tz).astimezone(UTC)
+
+
+# -- the poll: on a release day, start the run as soon as the release is out -----
+
+POLL_KEPT_DAYS = 31
+FetchErrors = (FetchError, FormatError)
+
+
+def _poll_check(topic: str, archive: Archive, http) -> list[str]:
+    """What shows the topic's release is out (new document IDs, a moved update time); empty: not yet."""
+    if topic == "eurostat-hicp":
+        return eurostat.hicp_updated(archive, http)
+    return elstat.new_documents(archive, http, topic.removeprefix("elstat-"))
+
+
+def pollable(topic: str) -> bool:
+    return topic == "eurostat-hicp" or topic.removeprefix("elstat-") in elstat.PAGES
+
+
+def poll(config: Config, *, now: datetime | None = None) -> dict:
+    """On a release day, between the release time and the run time, check whether the release is
+    out; if it is, run the job at once instead of waiting for the run time.
+
+    Meant to be triggered every 5 minutes from 12:00 to 12:55 Greek time: at most 12 requests to
+    each awaited topic's page an hour (and its host's robots.txt), and none on other days or once
+    the topic's files are in. The run at the run time stays the fallback, and still alerts if a
+    release never comes. Each check is logged in the job's state (`polls`), so the real release
+    times build up a record.
+    """
+    tz = ZoneInfo(config.timezone)
+    now = now or datetime.now(tz)
+    if not (RELEASE_TIME <= now.time() < config.run_after):
+        return {"result": "outside the poll window"}
+    root = config.archive_dir
+    state = load_state(root)
+    waiting = sorted(t for t, days in awaited(state, now.date()).items() if days[-1] == now.date() and pollable(t))
+    if not waiting:
+        return {"result": "no release awaited today"}
+    archive = Archive(root)
+    http = HttpClient(config.user_agent, config.request_pause_seconds)
+    out = {}
+    with RunLock(root):  # a run in progress fetches the files anyway: the poll skips (Locked)
+        state = load_state(root)
+        for topic in waiting:
+            try:
+                out[topic] = _poll_check(topic, archive, http)
+            except FetchErrors as exc:
+                out[topic] = f"failed: {exc}"
+        log = state.setdefault("polls", {})
+        log.setdefault(now.date().isoformat(), []).append({"at": now.strftime("%H:%M"), **out})
+        for day in sorted(log)[:-POLL_KEPT_DAYS]:
+            del log[day]
+        save_state(root, state)
+    out_now = sorted(t for t, seen in out.items() if isinstance(seen, list) and seen)
+    if not out_now:
+        return {"result": "not out yet", "checked": out}
+    record = run(config, now=now, out_today=True)
+    return {"result": "out", "checked": out, "run": record.get("result"), "release": record.get("release")}
 
 
 def export_analytics(

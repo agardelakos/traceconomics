@@ -1,5 +1,5 @@
 # The pipeline, on every push and pull request: one run per push. The suites (python, python-local,
-# site, selenium), the style check (lint) and the code scan (codeql) run side by side; then the
+# site, selenium, and the site again on each other data state, data-states), the style check (lint) and the code scan (codeql) run side by side; then the
 # coverage split by layer, the test catalog's check, the run's record on the branch test-history,
 # and the wiki, which follows from both; on main, the README's coverage badges.
 #
@@ -353,6 +353,102 @@ jobs:
           path: site/selenium-report/
           retention-days: 7
           if-no-files-found: ignore
+
+  # Real data pass through a few states every month and year: the HICP a month behind the CPI
+  # (the site and selenium jobs above), the HICP caught up, a new year's January, a new survey year.
+  # The site and both browser suites run on each of the others, so a page or a test that works in
+  # one state only fails here, not on a release day (two release builds failed that way in 2026-11).
+  # A plain build, no coverage: the counts come from the site job.
+  data-states:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        state: [hicp-caught-up, january, new-survey]
+    name: data state (${{ matrix.state }})
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # The Selenium lock: base, dev and the selenium extra, each file checked against its hash.
+      - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - run: python tests/sitedata.py site/public/data --state ${{ matrix.state }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit
+        working-directory: site
+        env:
+          npm_config_fetch_retries: "5"
+      # Type check, unit tests, build and the site checks, on this state's data.
+      - run: npm run check
+        working-directory: site
+      - run: npx playwright install --with-deps chromium
+        working-directory: site
+      - run: npm run test:ui
+        working-directory: site
+      # As in the selenium job: Chrome's sandbox allowed, then the pinned Chrome started once.
+      - name: Chrome starts
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          python -I tests/selenium/chrome.py
+      - run: python -I -m pytest tests/selenium --selenium -n auto -ra --junitxml=site/selenium-report/junit.xml
+      - name: Test summary
+        if: ${{ !cancelled() }}
+        run: python -I tests/compare/report.py selenium site/selenium-report/junit.xml
+      # Both suites' reports, for a failure: screenshots, traces, the page and the console.
+      - name: Upload the reports
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: data-state-${{ matrix.state }}-reports
+          path: |
+            site/playwright-report/
+            site/selenium-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # The site built on two made-up data sets with the same pages and other numbers: a figure that
+  # reads the same in both was typed into a page or component, not taken from the data
+  # (site/src/lib/same-in-both.mjs).
+  same-in-both:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: python -m pip install --require-hashes --no-deps -r requirements-dev.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit
+        working-directory: site
+        env:
+          npm_config_fetch_retries: "5"
+      - name: Build on each data set
+        run: |
+          for values in a b; do
+            rm -rf site/public/data
+            python tests/sitedata.py site/public/data --values "$values"
+            (cd site && npm run build)
+            mv site/dist "site/dist-$values"
+          done
+      - run: node scripts/same-in-both.mjs dist-a dist-b
+        working-directory: site
 
   # Both suites' results from this run side by side on the run's page, also when one of them failed.
   # Only the result files are read (no code from the branch beyond the report script).

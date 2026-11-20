@@ -18,6 +18,7 @@ def config(tmp_path: Path) -> Config:
     return Config(
         archive_dir=tmp_path / "archive",
         user_agent="test",
+        store_dir=tmp_path / "store",
         release=ReleaseConfig(
             enabled=True,
             releases_dir=tmp_path / "releases",
@@ -87,7 +88,7 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
     Given a configuration with release builds on and steps that all succeed
     When a release build runs
     Then it is ok, with an id from the build's UTC time
-    And the steps run in order: inputs, store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, consistency, export, npm-ci, site-check, ui-test, upload, smoke
+    And the steps run in order: inputs, store, series, bands, store-bands, check-v1, check-v1-cpi, check-combos, check-weights, consistency, export, check-figures, npm-ci, site-check, ui-test, upload, smoke
     And the preview address is the build's alias address
     And the build folder's SHA256SUMS lists the site files and the outputs
     And its release.json records the result ok
@@ -106,8 +107,10 @@ def test_a_good_build_keeps_everything_and_reports_the_preview(tmp_path, no_emai
         "check-v1",
         "check-v1-cpi",
         "check-combos",
+        "check-weights",
         "consistency",
         "export",
+        "check-figures",
         "npm-ci",
         "site-check",
         "ui-test",
@@ -661,3 +664,318 @@ def test_a_browser_test_failure_email_names_the_tests_and_the_report(tmp_path, n
         cfg, rec["id"], runner=FakeSteps(cfg.release.site_dir), now=datetime(2026, 11, 10, 12, tzinfo=UTC)
     )
     assert "ui_failures" not in again and "ui_report" not in again
+
+
+# -- automatic promotes (release_decision) ------------------------------------
+
+COMMIT = "c0ffee" * 7
+SETTING = {
+    "spending": "purchases",
+    "imputed_rent": "excluded",
+    "price_source": "cpi",
+    "weights_timing": "N",
+    "tutoring": "priced",
+    "unit": "RCH_A",
+    "coicop18": "TOTAL",
+}
+SEPT = {("all", "all"): {"2026-08": 3.0, "2026-09": 3.0}, ("B", "Q1"): {"2026-08": 3.5, "2026-09": 3.6}}
+OCT = {k: {**v, "2026-10": v["2026-09"] + 0.1} for k, v in SEPT.items()}
+CPI_SEPT = {"archive_dataset": "elstat/doc-585819", "sha256": "a" * 64}
+CPI_OCT = {"archive_dataset": "elstat/doc-585819", "sha256": "c" * 64}
+WEIGHTS = {"archive_dataset": "oet-local/hbs-weights-gr-2024", "sha256": "b" * 64}
+
+
+def write_rates(path: Path, series: dict) -> None:
+    """A rates file as the outputs write it: every column text, the value with its full digits."""
+    import duckdb
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = [
+        {**SETTING, "grouping": g, "group": q, "ref_period": p, "value": repr(v), "value_text": f"{v:.1f}"}
+        for (g, q), months in series.items()
+        for p, v in months.items()
+    ]
+    con = duckdb.connect()
+    con.execute(
+        "CREATE TABLE r (spending TEXT, imputed_rent TEXT, price_source TEXT, weights_timing TEXT, tutoring TEXT, "
+        'unit TEXT, coicop18 TEXT, grouping TEXT, "group" TEXT, ref_period TEXT, value TEXT, value_text TEXT)'
+    )
+    cols = ["spending", "imputed_rent", "price_source", "weights_timing", "tutoring", "unit", "coicop18"]
+    cols += ["grouping", "group", "ref_period", "value", "value_text"]
+    con.executemany(f"INSERT INTO r VALUES ({', '.join('?' * len(cols))})", [[r[c] for c in cols] for r in rows])
+    con.execute(f"COPY r TO '{path.as_posix()}' (FORMAT parquet)")
+
+
+class DataSteps(FakeSteps):
+    """Fake steps whose store holds the given archived files and whose series step writes the given rates."""
+
+    def __init__(self, cfg: Config, rates: dict, loaded: list[dict], fail: str | None = None):
+        super().__init__(cfg.release.site_dir, fail)
+        self.store, self.rates, self.loaded = cfg.store_dir, rates, loaded
+
+    def __call__(self, step, env, log: Path) -> int:
+        code = super().__call__(step, env, log)
+        if step.name == "store":
+            self.store.mkdir(parents=True, exist_ok=True)
+            text = "".join(json.dumps(x) + "\n" for x in self.loaded)
+            (self.store / "loaded.jsonl").write_text(text, encoding="utf-8")
+        if step.name == "series":
+            write_rates(Path(step.argv[step.argv.index("--out") + 1]) / "gr" / "m1" / "m1_rates.parquet", self.rates)
+        return code
+
+
+def auto_config(tmp_path: Path, mode: str) -> Config:
+    cfg = config(tmp_path)
+    return Config(
+        **{**cfg.__dict__, "release": ReleaseConfig(**{**cfg.release.__dict__, "auto_promote": mode, "keep": 3})}
+    )
+
+
+@pytest.fixture
+def on_production(tmp_path, monkeypatch):
+    """September's build, live on production; every build's commit is the same."""
+    monkeypatch.setattr(release.testresults, "source_commit", lambda _: COMMIT)
+    cfg = auto_config(tmp_path, "off")
+    first = release.build(
+        cfg, now=datetime(2026, 10, 9, 11, tzinfo=UTC), runner=DataSteps(cfg, SEPT, [CPI_SEPT, WEIGHTS])
+    )
+    release.promote(cfg, first["id"], "production", runner=FakeSteps(cfg.release.site_dir))
+    return first["id"]
+
+
+# ELSTAT's October CPI: 12:00 Greek time on 2026-11-10.
+RELEASED = datetime(2026, 11, 10, 10, tzinfo=UTC)
+
+
+def october(tmp_path, mode, loaded=(CPI_SEPT, CPI_OCT, WEIGHTS), rates=OCT, fail=None, released=RELEASED):
+    cfg = auto_config(tmp_path, mode)
+    steps = DataSteps(cfg, rates, list(loaded), fail)
+    now = datetime(2026, 11, 10, 11, tzinfo=UTC)
+    return cfg, steps, release.build(cfg, now=now, runner=steps, released=released)
+
+
+def test_shadow_mode_says_it_would_promote_and_promotes_nothing(tmp_path, on_production, no_email):
+    """PY-REL-026: in shadow mode a data-only build's email says it would promote, and nothing is promoted
+
+    Given September's build on production, and the same code
+    When October's build runs in shadow mode with ELSTAT's new file and a new month, nothing revised
+    Then its email's subject says it would promote, and production still serves September's build
+    And the report shows the decision against production's build
+    And the build records its decision and the archived files its store held
+    """
+    cfg, _, rec = october(tmp_path, "shadow")
+    subject, body = no_email[-1]
+    assert subject == f"release {rec['id']} ready for review (shadow: would promote)"
+    assert release.promoted(cfg.release.releases_dir)["production"]["id"] == on_production
+    assert f"Automatic promote (shadow: nothing was promoted), against production's build {on_production}" in body
+    assert rec["decision"]["verdict"] == "promote" and rec["decision"]["mode"] == "shadow"
+    inputs = json.loads((cfg.release.releases_dir / rec["id"] / "inputs.json").read_text(encoding="utf-8"))
+    assert inputs == {"elstat/doc-585819": ["a" * 64, "c" * 64], "oet-local/hbs-weights-gr-2024": ["b" * 64]}
+
+
+def test_a_data_only_build_goes_live_by_itself_and_names_the_way_back(tmp_path, on_production, no_email):
+    """PY-REL-027: with automatic promotes on, a data-only build goes to production and the email names the way back
+
+    Given September's build on production, and the same code
+    When October's build runs with automatic promotes on, with ELSTAT's new file and a new month
+    Then it is promoted to production, which serves it, and records September's build as the one it replaced
+    And the email's subject says it is live
+    And the email names September's build and the command that puts it back
+    """
+    cfg, steps, rec = october(tmp_path, "on")
+    on = release.promoted(cfg.release.releases_dir)["production"]
+    assert on["id"] == rec["id"] and on["previous"] == on_production and on["confirmed"]
+    assert "promote" in steps.ran
+    subject, body = no_email[-1]
+    assert subject == f"PROMOTED: release {rec['id']} is live (only the publishers' data changed)"
+    assert f"To go back: traceconomics release promote {on_production} --to production" in body
+    assert "To publish it" not in body
+
+
+@pytest.mark.parametrize(
+    "loaded, rates, reason",
+    [
+        ((CPI_SEPT, CPI_OCT, {**WEIGHTS, "sha256": "d" * 64}), OCT, "our own tables changed"),
+        ((CPI_SEPT, WEIGHTS), OCT, "nothing new"),
+        (
+            (CPI_SEPT, CPI_OCT, WEIGHTS),
+            {**OCT, ("B", "Q1"): {**OCT[("B", "Q1")], "2026-09": 3.7}},
+            "1 published values revised",
+        ),
+        (
+            (CPI_SEPT, CPI_OCT, WEIGHTS),
+            {**OCT, ("B", "Q1"): {**OCT[("B", "Q1")], "2026-10": 5.0}},
+            "B/Q1 2026-10: gap to all households",
+        ),
+    ],
+    ids=["own table rebuilt", "nothing new", "a value revised", "beyond a record"],
+)
+def test_anything_else_holds_the_build_and_says_why(tmp_path, on_production, no_email, loaded, rates, reason):
+    """PY-REL-028: with automatic promotes on, any other build waits for the owner, and the email's subject says why
+
+    Given September's build on production, and the same code
+    When October's build runs with a rebuilt own table, or nothing new, or September's value revised, or a group beyond its record
+    Then production still serves September's build
+    And the email's subject starts with HOLD and names the reason
+    And the report keeps the command to promote it by hand
+    """
+    cfg, _, rec = october(tmp_path, "on", loaded=loaded, rates=rates)
+    assert release.promoted(cfg.release.releases_dir)["production"]["id"] == on_production
+    subject, body = no_email[-1]
+    assert subject.startswith(f"HOLD: release {rec['id']} waits for you: ") and reason in subject
+    assert f"traceconomics release promote {rec['id']} --to staging" in body
+
+
+def test_a_production_that_serves_another_build_holds(tmp_path, on_production, no_email, monkeypatch):
+    """PY-REL-029: when production doesn't serve the build its record names, the build holds
+
+    Given September's build on record as production's, but the public address serving other files
+    When October's build runs with automatic promotes on
+    Then it holds, saying production doesn't serve its recorded build
+    """
+    monkeypatch.setattr(release, "_fetch", lambda url, ua: b'{"generated_at": "someone else"}')
+    _, _, rec = october(tmp_path, "on")
+    assert rec["decision"]["verdict"] == "hold"
+    assert any("production doesn't serve its recorded build" in r for r in rec["decision"]["reasons"])
+
+
+def test_a_failed_automatic_promote_raises_an_alert(tmp_path, on_production, no_email):
+    """PY-REL-030: an automatic promote whose upload fails raises an alert, and production is unchanged
+
+    Given September's build on production
+    When October's data-only build is to go live by itself, and the promote's upload fails
+    Then production still serves September's build
+    And the email's subject is an ALERT saying the promote failed
+    """
+    cfg, _, rec = october(tmp_path, "on", fail="promote")
+    assert release.promoted(cfg.release.releases_dir)["production"]["id"] == on_production
+    subject, body = no_email[-1]
+    assert subject == f"ALERT: release {rec['id']} was to go live by itself, but its promote failed"
+    assert "The promote failed: upload failed" in body
+
+
+def test_the_build_production_replaced_is_kept_for_a_revert(tmp_path):
+    """PY-REL-031: the build production replaced is kept on disk, whatever the number of builds kept
+
+    Given production replaced by a newer build, which records the build it replaced
+    And more newer builds than the number kept
+    When old builds are pruned
+    Then the build on production and the one it replaced are both still on disk
+    """
+    releases = tmp_path / "releases"
+    for b in ("20261101T000000Z", "20261102T000000Z", "20261103T000000Z", "20261104T000000Z"):
+        (releases / b).mkdir(parents=True)
+        (releases / b / "release.json").write_text(json.dumps({"id": b, "result": "ok"}), encoding="utf-8")
+    on = {"production": {"id": "20261102T000000Z", "to": "production", "previous": "20261101T000000Z"}}
+    (releases / "promoted.json").write_text(json.dumps(on), encoding="utf-8")
+    gone = release.prune(releases, keep=1)
+    assert gone == ["20261103T000000Z"]
+    assert (releases / "20261101T000000Z").is_dir() and (releases / "20261102T000000Z").is_dir()
+
+
+def seconds_since_release(at: str) -> int:
+    return round((datetime.fromisoformat(at) - RELEASED).total_seconds())
+
+
+def test_a_build_that_goes_live_by_itself_records_its_time_from_the_release(tmp_path, on_production, no_email):
+    """PY-REL-032: a build that goes live by itself records and reports its time from the publisher's release to ready and to live
+
+    Given September's build on production, and ELSTAT's October release at 12:00 Greek time
+    When October's data-only build goes live by itself
+    Then its record holds the release time, when it was ready, and when production served it, with the seconds since the release
+    And its email gives both times from the release
+    And a build started for no release (by hand) records and reports none
+    """
+    cfg, _, rec = october(tmp_path, "on")
+    saved = json.loads((cfg.release.releases_dir / rec["id"] / "release.json").read_text(encoding="utf-8"))
+    assert saved["released"] == "2026-11-10T10:00:00Z"
+    assert saved["live"] == release.promoted(cfg.release.releases_dir)["production"]["live"]
+    assert saved["live"]["seconds"] == seconds_since_release(saved["live"]["at"]) > 0
+    assert saved["ready"] <= saved["live"]["at"]
+    _, body = no_email[-1]
+    ready, live = (
+        release.duration(seconds_since_release(saved[k] if k == "ready" else saved["live"]["at"]))
+        for k in ("ready", "live")
+    )
+    assert f"Released by the publisher 2026-11-10T10:00:00Z; build ready after {ready}, live after {live}" in body
+    by_hand = datetime(2026, 11, 11, 9, tzinfo=UTC)
+    manual = release.build(cfg, now=by_hand, runner=DataSteps(cfg, OCT, [CPI_SEPT, CPI_OCT, WEIGHTS]))
+    assert "released" not in manual and "Released by the publisher" not in no_email[-1][1]
+
+
+def test_a_build_promoted_by_hand_records_its_time_to_live(tmp_path, no_email):
+    """PY-REL-033: a release build promoted by hand records its time to live on production, not on staging
+
+    Given a passing build started for a release at 12:00 Greek time, held for the owner
+    When the owner promotes it to staging, then to production
+    Then the staging promote records no time to live
+    And the production promote records it, in the promote record and the build's own record
+    """
+    cfg = config(tmp_path)
+    rec = release.build(
+        cfg, now=datetime(2026, 11, 10, 11, tzinfo=UTC), runner=FakeSteps(cfg.release.site_dir), released=RELEASED
+    )
+    folder = cfg.release.releases_dir / rec["id"]
+    staged = release.promote(cfg, rec["id"], "staging", runner=FakeSteps(cfg.release.site_dir))
+    assert "live" not in staged
+    done = release.promote(cfg, rec["id"], "production", runner=FakeSteps(cfg.release.site_dir))
+    assert done["live"]["seconds"] == seconds_since_release(done["live"]["at"])
+    assert json.loads((folder / "release.json").read_text(encoding="utf-8"))["live"] == done["live"]
+
+
+@pytest.mark.parametrize("seconds, text", [(59, "1 min"), (47 * 60, "47 min"), (2 * 3600 + 5 * 60 + 20, "2 h 05 min")])
+def test_a_time_to_live_reads_in_hours_and_minutes(seconds, text):
+    """PY-REL-034: a time from the release reads in minutes, with hours from the first hour on
+
+    Given a time from the release in seconds
+    When it is written for the email
+    Then it reads as whole minutes, with hours once it reaches an hour
+    """
+    assert release.duration(seconds) == text
+
+
+def test_a_build_asked_for_while_another_runs_starts_when_it_ends(tmp_path, no_email):
+    """PY-REL-035: a poll during a build: the second build is queued, and the running build starts it when it ends
+
+    Given a build running its steps
+    When a second build is asked for during its series step, for Eurostat's new data released at 12:00 Greek time
+    Then the second is queued, not started and not failed
+    And the first, once it ends, has started the second, which names why it was queued and counts from that release
+    And nothing is left queued
+    """
+    cfg = config(tmp_path)
+    queued = []
+
+    class Busy(FakeSteps):
+        def __call__(self, step, env, log):
+            if step.name == "series" and not queued:
+                queued.append(release.build(cfg, reason="new data: eurostat/prc_hicp_minr", released=RELEASED))
+            return super().__call__(step, env, log)
+
+    first = release.build(cfg, now=datetime(2026, 11, 10, 11, tzinfo=UTC), runner=Busy(cfg.release.site_dir))
+    assert queued == [{"id": None, "result": "queued", "reason": "new data: eurostat/prc_hicp_minr"}]
+    assert first["result"] == "ok" and first["next"]
+    second = json.loads((cfg.release.releases_dir / first["next"] / "release.json").read_text(encoding="utf-8"))
+    assert second["reason"] == "queued while another build ran: new data: eurostat/prc_hicp_minr"
+    assert second["released"] == "2026-11-10T10:00:00Z" and second["result"] == "ok"
+    assert release.take_wanted(cfg.release.releases_dir) is None
+
+
+def test_builds_queued_together_make_one_build(tmp_path):
+    """PY-REL-036: several builds queued while one runs make one build, with every reason, timed from the earliest release
+
+    Given a build queued for ELSTAT's data released at 12:00, then one for Eurostat's released at 12:00 a day later, then the first again
+    When the queued build is taken
+    Then it names both reasons once each and counts from the earlier release
+    And taking it again finds nothing queued
+    """
+    later = datetime(2026, 11, 11, 10, tzinfo=UTC)
+    release.want(tmp_path, "new data: elstat/doc-604757", RELEASED)
+    release.want(tmp_path, "new data: eurostat/prc_hicp_minr", later)
+    release.want(tmp_path, "new data: elstat/doc-604757", None)
+    wanted = release.take_wanted(tmp_path)
+    assert wanted == {
+        "reason": "queued while another build ran: new data: elstat/doc-604757; new data: eurostat/prc_hicp_minr",
+        "released": RELEASED,
+    }
+    assert release.take_wanted(tmp_path) is None
