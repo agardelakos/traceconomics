@@ -35,8 +35,7 @@ Everyone taking part in the project follows the [code of conduct](CODE_OF_CONDUC
 2. **Layout, navigation and wording changes need a maintainer's agreement first, in an issue.** The
    pages are ordered for a first-time, non-expert reader, following design decisions that aren't
    all written down in public, so a well-meant rearrangement may be declined.
-3. **One issue per pull request**, and nothing unrelated in it: no drive-by reformatting, renames
-   or dependency bumps.
+3. **Nothing unrelated in a pull request**: no drive-by reformatting, renames or dependency bumps.
 4. Fill in the pull request template. It asks what you tested and how, and whether AI tools were
    used.
 5. CI must pass. The required checks are the Python tests (`python`), the site's checks and browser

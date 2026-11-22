@@ -36,9 +36,12 @@ flowchart LR
    `catalog.py`.
 4. **Engine** (`engine/`). The arithmetic, with no method choices: the COICOP tree with its leaves
    and parent fallback, chain-linking each year's index at December of the year before, and rates.
-   `validate/` checks it against official figures before anything else uses it.
-5. **Topic code** (`module1/` for inflation by household group). Weights timing, prices, indices,
-   rates, contributions and every option combination, written as Parquet and CSV.
+   `validate/` checks it against official figures before anything else uses it. Formulas and
+   checks: [Price index methods](Price-index-methods).
+5. **Topic code** (`module1/` for inflation by household group, `module5/` for the consistency of
+   official figures). Weights timing, prices, indices, rates, contributions and every option
+   combination, written as Parquet and CSV. How the group weights are made:
+   [Household group methods](Household-group-methods).
 6. **Export** (`export/`). The small files the site reads: series, the calculator's inputs,
    category names in both languages, and the bibliography.
 7. **Site** (`site/`). Static pages built at build time from those files. The browser computes
@@ -105,8 +108,10 @@ container image pinned by digest, so builds run on the interpreter and libraries
 A release build recomputes every series, runs the checks, writes the site's data, builds the site,
 runs the browser tests on the built files, uploads it as a private preview, and runs the smoke
 tests again on the preview, where the host's real headers apply. A failure holds the build back.
-Nothing reaches the public address until a maintainer looks at the preview and promotes the build;
-after a promote, the address is checked to serve that build's own files.
+A build that passed then decides whether it may go live by itself: only when nothing but the
+publishers' data changed and the numbers moved as they normally do; anything else waits for a
+maintainer, with the reasons named. After a promote, the address is checked to serve that build's
+own files. The rules, and how they were tested: [How a release goes live](How-a-release-goes-live).
 
 ## Publishing
 

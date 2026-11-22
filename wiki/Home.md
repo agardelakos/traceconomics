@@ -18,8 +18,13 @@ The site, [traceconomics.com](https://traceconomics.com), in English and Greek; 
 reviewed by a native speaker before it was offered.
 
 - **Inflation by household for Greece**: did prices rise the same for everyone? Monthly from 2010,
-  by income fifth, renters and owners, and pensioner households, under every combination of the
-  method options, with error bands.
+  by income fifth, renters and owners, pensioner households and household type (Eurostat's six),
+  under every combination of the method options, with error bands; with our own income limits for
+  the fifths, next to Eurostat's.
+- **Consistency of official figures**: do the official figures add up? Published rates against
+  their own indices, official indices rebuilt from their parts, the survey against the office's
+  own tables, and several sources answering the same question, every difference shown and
+  explained or marked "not known yet".
 - **A personal inflation calculator** and a **group finder**, running entirely in the browser:
   nothing is stored or sent.
 - **Rebuilt official figures**: the engine rebuilds Greece's official consumer price indices from
@@ -39,6 +44,9 @@ The repository holds the code and the binding rules; the wiki holds the longer e
 | -------------------------------------------------------- | ------------------------------------------------------------ |
 | [Architecture](Architecture)                             | understand how data flows from publishers' files to the site |
 | [Design principles](Design-principles)                   | know the rules the project keeps, and why                    |
+| [Price index methods](Price-index-methods)               | see how an index is built and checked against official ones  |
+| [Household group methods](Household-group-methods)       | see how each group's weights come from the survey            |
+| [How a release goes live](How-a-release-goes-live)       | see how a build decides whether it may publish by itself     |
 | [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                            |
 | [Test strategy](Test-strategy)                           | see what each test layer proves, and what isn't tested       |
 | [Test management as code](Test-management-as-code)       | see how test cases and run history are kept with the code    |

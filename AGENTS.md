@@ -180,7 +180,7 @@ Run the suites that cover your change and report each result exactly as it came 
 
 ## Pull requests
 
-- One issue per pull request; no unrelated changes.
+- No unrelated changes in a pull request.
 - The human who opens the pull request owns the code: they have read and understood every line,
   answer for it in review, and confirm the right to contribute it under the project's licence.
   "The AI wrote it" is never an answer in review.
