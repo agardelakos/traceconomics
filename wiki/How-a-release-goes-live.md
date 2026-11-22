@@ -98,3 +98,7 @@ that comes out the same in both was typed in, not read from the data.
 - **It doesn't publish part of a release early.** The whole build passes, or nothing goes out.
 
 Test layers and what each proves: [Test strategy](Test-strategy).
+
+---
+
+_This page is kept in the repository, in [`wiki/How-a-release-goes-live.md`](https://github.com/agardelakos/traceconomics/blob/main/wiki/How-a-release-goes-live.md), and copied here automatically. Changes go through a pull request; an edit made here is replaced at the next update._
