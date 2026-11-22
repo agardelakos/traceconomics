@@ -14,6 +14,6 @@ the Selenium suite), plus anything checked by hand. Report failures as they are.
 - [ ] AI tools were used for this change: yes / no (say which parts)
 - [ ] I own this code: I have read and understood every line, I answer for it in review, and I have the right to contribute it under the project's licence
 - [ ] I ran the relevant test suites locally (list them above)
-- [ ] This pull request covers one issue, with no unrelated changes
+- [ ] This pull request has no unrelated changes
 - [ ] Any layout, navigation or wording change was agreed in an issue first
 - [ ] Every English text change on the site has its Greek change (or I say above that I couldn't write it)

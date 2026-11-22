@@ -21,7 +21,7 @@ Statistical offices revise their numbers and overwrite their files. Some Greek C
 
 ## What the archive job does
 
-On each release day it fetches, from 13:00 Greek time (an hour after both publishers release):
+On each release day it fetches, as soon as the files appear (it checks every 5 minutes from 12:00 Greek time, when both publishers release, with the daily run at 13:00 as the fallback):
 
 - **ELSTAT** (Hellenic Statistical Authority): the consumer price index, harmonised index and household budget survey publication pages and every file they list, the release calendar, and the catalogue of microdata files.
 - **Eurostat**: the HICP datasets for all countries (indices, item weights, first releases), downloaded only when Eurostat's "last data update" time changes, and the HICP methodology notes.
@@ -41,6 +41,10 @@ Fetching is deliberately polite: one request at a time with a pause, a User-Agen
   - `python -m traceconomics check v1-cpi` rebuilds the Greek CPI from ELSTAT's item indices and weights.
 
   Both match the official annual rates to within 0.1 percentage points in every month checked. That's the most that rounding of the published inputs allows.
+
+## From a release to the live site
+
+Every release build rebuilds the series, checks them against the official figures, builds the site and tests it in a browser, then decides by itself whether it may go live: only when nothing but the publishers' data changed and every new month stays within its group's historical record. Anything else (a code change, a revised value, an unusual month) holds for a maintainer, with the reasons named. The rules are running in shadow mode while their decisions are compared with a maintainer's. How it works, and how we tested it on twelve past Januaries replayed from the archive: [How a release goes live](https://github.com/agardelakos/traceconomics/wiki/How-a-release-goes-live).
 
 ## The website
 
