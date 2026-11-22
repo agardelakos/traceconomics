@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "1d15a5f1516599a70e2b7086c75d55452dd6143a",
- "generated": "2026-11-22T19:05:39Z",
+ "commit": "ef28db84578c82858c399642948941434cd13d9c",
+ "generated": "2026-11-22T20:51:27Z",
  "missing": [],
  "cases": [
   {
@@ -21439,6 +21439,9 @@
     "Design-principles.md",
     "Future.md",
     "Home.md",
+    "Household-group-methods.md",
+    "How-a-release-goes-live.md",
+    "Price-index-methods.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
     "_Sidebar.md"
@@ -21473,6 +21476,9 @@
     "Design-principles.md",
     "Future.md",
     "Home.md",
+    "Household-group-methods.md",
+    "How-a-release-goes-live.md",
+    "Price-index-methods.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
     "_Sidebar.md"
