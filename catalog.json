@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "00389751343deeae264a23627b17872319663545",
- "generated": "2026-11-20T14:57:17Z",
+ "commit": "1d15a5f1516599a70e2b7086c75d55452dd6143a",
+ "generated": "2026-11-22T19:05:39Z",
  "missing": [],
  "cases": [
   {
@@ -5487,7 +5487,7 @@
    "suite": "pytest",
    "title": "--version prints the package version",
    "file": "tests/test_cli.py",
-   "line": 34,
+   "line": 36,
    "node": "tests/test_cli.py::test_version_prints_the_package_version",
    "given": [
     "the command line"
@@ -5513,7 +5513,7 @@
    "suite": "pytest",
    "title": "a missing config file stops the command with a usage error",
    "file": "tests/test_cli.py",
-   "line": 48,
+   "line": 50,
    "node": "tests/test_cli.py::test_a_missing_config_file_stops_with_a_usage_error",
    "given": [
     "a config path where no file exists"
@@ -5539,7 +5539,7 @@
    "suite": "pytest",
    "title": "the config file given on the command line is passed on to the steps a run starts",
    "file": "tests/test_cli.py",
-   "line": 64,
+   "line": 66,
    "node": "tests/test_cli.py::test_the_config_given_is_passed_on_to_later_steps",
    "given": [
     "a config file passed with --config"
@@ -5564,7 +5564,7 @@
    "suite": "pytest",
    "title": "a run that finds another run's lock is skipped, not failed",
    "file": "tests/test_cli.py",
-   "line": 80,
+   "line": 82,
    "node": "tests/test_cli.py::test_a_run_that_finds_the_lock_taken_is_skipped",
    "given": [
     "another run holding the store's lock"
@@ -5590,7 +5590,7 @@
    "suite": "pytest",
    "title": "a crash is reported through the alert channel and fails the run",
    "file": "tests/test_cli.py",
-   "line": 93,
+   "line": 95,
    "node": "tests/test_cli.py::test_a_crash_is_reported_and_fails_the_run",
    "given": [
     "a configuration without email settings",
@@ -5618,7 +5618,7 @@
    "suite": "pytest",
    "title": "migrate-local runs before any config exists and fails on a problem",
    "file": "tests/test_cli.py",
-   "line": 118,
+   "line": 120,
    "node": "tests/test_cli.py::test_migrate_local_runs_without_a_config_and_reports_problems",
    "given": [
     "no config file anywhere",
@@ -5646,7 +5646,7 @@
    "suite": "pytest",
    "title": "archive prints the job's result and fails unless the run went well",
    "file": "tests/test_cli.py",
-   "line": 152,
+   "line": 154,
    "node": "tests/test_cli.py::test_archive_prints_the_run_and_fails_unless_it_went_well",
    "given": [
     "an archive job that ends with a given result"
@@ -5678,7 +5678,7 @@
    "suite": "pytest",
    "title": "poll prints what the release-day poll saw, and fails only when the run it started failed",
    "file": "tests/test_cli.py",
-   "line": 174,
+   "line": 176,
    "node": "tests/test_cli.py::test_poll_prints_what_it_saw_and_fails_only_if_its_run_did",
    "given": [
     "a poll that found nothing awaited, found nothing out yet, or started a run that went well or failed"
@@ -5709,7 +5709,7 @@
    "suite": "pytest",
    "title": "fetch-history reads the years and the pause, and fails unless the fetch went well",
    "file": "tests/test_cli.py",
-   "line": 197,
+   "line": 199,
    "node": "tests/test_cli.py::test_fetch_history_passes_the_years_and_pause",
    "given": [
     "a history fetch that ends with a given result"
@@ -5740,7 +5740,7 @@
    "suite": "pytest",
    "title": "import stores a file downloaded by hand, once",
    "file": "tests/test_cli.py",
-   "line": 219,
+   "line": 221,
    "node": "tests/test_cli.py::test_import_stores_a_file_downloaded_by_hand",
    "given": [
     "a file \"hbs-2025.zip\" downloaded by hand on 2026-01-02"
@@ -5768,7 +5768,7 @@
    "suite": "pytest",
    "title": "seed reports what it stored, and fails on a bad checksum",
    "file": "tests/test_cli.py",
-   "line": 239,
+   "line": 241,
    "node": "tests/test_cli.py::test_seed_reports_each_file_and_fails_on_a_bad_checksum",
    "given": [
     "a research folder whose manifest lists one matching file and one changed file"
@@ -5796,7 +5796,7 @@
    "suite": "pytest",
    "title": "seed as a dry run lists what it would store and stores nothing",
    "file": "tests/test_cli.py",
-   "line": 257,
+   "line": 259,
    "node": "tests/test_cli.py::test_seed_dry_run_lists_without_storing",
    "given": [
     "a research folder whose manifest lists one matching file"
@@ -5823,7 +5823,7 @@
    "suite": "pytest",
    "title": "status shows the last runs, the next release days and the files waiting for backup",
    "file": "tests/test_cli.py",
-   "line": 290,
+   "line": 292,
    "node": "tests/test_cli.py::test_status_shows_runs_release_days_and_files_waiting_for_backup",
    "given": [
     "an archive with one stored file, one recorded run, a last good run and a release day tomorrow"
@@ -5852,7 +5852,7 @@
    "suite": "pytest",
    "title": "status on a new archive says what isn't known yet",
    "file": "tests/test_cli.py",
-   "line": 325,
+   "line": 327,
    "node": "tests/test_cli.py::test_status_says_when_nothing_is_known",
    "given": [
     "an empty archive with no saved state"
@@ -5878,7 +5878,7 @@
    "suite": "pytest",
    "title": "notify-test sends a test message through the configured channel",
    "file": "tests/test_cli.py",
-   "line": 338,
+   "line": 340,
    "node": "tests/test_cli.py::test_notify_test_writes_a_test_message",
    "given": [
     "a configuration without email settings"
@@ -5905,7 +5905,7 @@
    "suite": "pytest",
    "title": "backup plan counts every file to send and lists the first fifty",
    "file": "tests/test_cli.py",
-   "line": 356,
+   "line": 358,
    "node": "tests/test_cli.py::test_backup_plan_lists_at_most_fifty_files",
    "given": [
     "60 archive files not yet backed up"
@@ -5931,7 +5931,7 @@
    "suite": "pytest",
    "title": "backup sync prints its result and fails unless it sent the files or is switched off",
    "file": "tests/test_cli.py",
-   "line": 371,
+   "line": 373,
    "node": "tests/test_cli.py::test_backup_sync_fails_unless_it_sent_or_is_off",
    "given": [
     "a backup upload that ends with a given result"
@@ -5961,7 +5961,7 @@
    "suite": "pytest",
    "title": "analytics export for one day runs each feed and reports a feed's failure",
    "file": "tests/test_cli.py",
-   "line": 385,
+   "line": 387,
    "node": "tests/test_cli.py::test_analytics_for_one_day_runs_each_feed_and_reports_a_failure",
    "given": [
     "a visits feed that copies its day and a downloads feed whose request fails"
@@ -5988,7 +5988,7 @@
    "suite": "pytest",
    "title": "analytics export without a day copies from the bookmark and saves the moved bookmark",
    "file": "tests/test_cli.py",
-   "line": 409,
+   "line": 411,
    "node": "tests/test_cli.py::test_analytics_without_a_day_follows_the_bookmark_and_saves_it",
    "given": [
     "a visits feed whose export moves its bookmark"
@@ -6015,7 +6015,7 @@
    "suite": "pytest",
    "title": "release build prints the build's report and fails if the build failed",
    "file": "tests/test_cli.py",
-   "line": 446,
+   "line": 448,
    "node": "tests/test_cli.py::test_release_build_prints_its_report",
    "given": [
     "a release build that ends with a given result"
@@ -6045,7 +6045,7 @@
    "suite": "pytest",
    "title": "release promote and retest refuse to guess the build or the target",
    "file": "tests/test_cli.py",
-   "line": 463,
+   "line": 465,
    "node": "tests/test_cli.py::test_release_promote_and_retest_need_a_build_and_a_target",
    "given": [
     "no build is named, or a promote names no target"
@@ -6076,7 +6076,7 @@
    "suite": "pytest",
    "title": "release promote, retest and status print what they did",
    "file": "tests/test_cli.py",
-   "line": 492,
+   "line": 494,
    "node": "tests/test_cli.py::test_release_promote_retest_and_status",
    "given": [
     "a build that promotes and retests cleanly, and two builds on disk"
@@ -6105,7 +6105,7 @@
    "suite": "pytest",
    "title": "schedule units needs a folder, then writes the units and the shell command there",
    "file": "tests/test_cli.py",
-   "line": 531,
+   "line": 533,
    "node": "tests/test_cli.py::test_schedule_units_needs_a_folder_and_writes_the_units_there",
    "given": [
     "a Linux machine"
@@ -6133,7 +6133,7 @@
    "suite": "pytest",
    "title": "schedule install, remove and show report on the Windows task",
    "file": "tests/test_cli.py",
-   "line": 552,
+   "line": 554,
    "node": "tests/test_cli.py::test_schedule_install_remove_and_show_on_windows",
    "given": [
     "a Windows task scheduler that installs, removes and shows the task"
@@ -6160,7 +6160,7 @@
    "suite": "pytest",
    "title": "schedule install on Linux stops and points to the systemd units",
    "file": "tests/test_cli.py",
-   "line": 569,
+   "line": 571,
    "node": "tests/test_cli.py::test_schedule_install_on_linux_points_to_the_units",
    "given": [
     "a Linux machine"
@@ -6185,7 +6185,7 @@
    "suite": "pytest",
    "title": "store refuses a dataset it doesn't know",
    "file": "tests/test_cli.py",
-   "line": 584,
+   "line": 586,
    "node": "tests/test_cli.py::test_store_refuses_an_unknown_dataset",
    "given": [
     "a dataset name that isn't in the catalog"
@@ -6211,7 +6211,7 @@
    "suite": "pytest",
    "title": "store update reads the chosen dataset's archived snapshot into the store",
    "file": "tests/test_cli.py",
-   "line": 597,
+   "line": 599,
    "node": "tests/test_cli.py::test_store_update_reads_an_archived_dataset",
    "given": [
     "an archive holding one snapshot of Eurostat's HICP monthly indices"
@@ -6238,7 +6238,7 @@
    "suite": "pytest",
    "title": "check v1 says which file to archive first",
    "file": "tests/test_cli.py",
-   "line": 621,
+   "line": 623,
    "node": "tests/test_cli.py::test_check_v1_needs_the_archived_files",
    "given": [
     "an empty archive"
@@ -6264,7 +6264,7 @@
    "suite": "pytest",
    "title": "check v1 rebuilds Greece's HICP from the archived Eurostat files",
    "file": "tests/test_cli.py",
-   "line": 633,
+   "line": 635,
    "node": "tests/test_cli.py::test_check_v1_rebuilds_the_archived_hicp",
    "given": [
     "an archive holding the committed Greek extracts of the HICP indices and item weights"
@@ -6293,7 +6293,7 @@
    "suite": "pytest",
    "title": "check v1-cpi reports missing years, the strict check and the earlier report-only years",
    "file": "tests/test_cli.py",
-   "line": 663,
+   "line": 665,
    "node": "tests/test_cli.py::test_check_v1_cpi_reports_missing_years_and_the_earlier_period",
    "given": [
     "archived table 07 files for 2011, 2012 and 2014, and a strict check that passes or fails"
@@ -6319,11 +6319,124 @@
    "named": false
   },
   {
+   "id": "PY-CLI-049",
+   "suite": "pytest",
+   "title": "check v1-cpi fails when the store holds a month the check didn't reach",
+   "file": "tests/test_cli.py",
+   "line": 686,
+   "node": "tests/test_cli.py::test_check_v1_cpi_fails_when_the_store_holds_a_newer_month",
+   "given": [
+    "a strict check that passes up to 2026-01",
+    "a store whose newest CPI month is 2026-01, 2026-02, or a store with no CPI rows"
+   ],
+   "when": [
+    "check v1-cpi is run"
+   ],
+   "then": [
+    "it passes when the store's newest month was checked",
+    "it fails, naming both months, when the store holds 2026-02",
+    "with no CPI rows in the store it says the months weren't compared, and passes"
+   ],
+   "notes": "",
+   "examples": [
+    "2026-01-0",
+    "2026-02-1",
+    "None-0"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-050",
+   "suite": "pytest",
+   "title": "check v1 fails when the store holds a month beyond the archived HICP file",
+   "file": "tests/test_cli.py",
+   "line": 721,
+   "node": "tests/test_cli.py::test_check_v1_fails_when_the_store_holds_a_newer_month",
+   "given": [
+    "an archive holding the committed Greek extracts of the HICP indices and item weights",
+    "a store whose newest Greek all-items month is a year after the extract's last month"
+   ],
+   "when": [
+    "check v1 is run for GR"
+   ],
+   "then": [
+    "it asks the store for Greece's index of division 01, which only a full release carries",
+    "every level fails, naming the store's newest month, and the run ends \"V1 FAILED.\" with exit code 1"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-051",
+   "suite": "pytest",
+   "title": "check v1 reads the store's newest month and passes when it checked up to it",
+   "file": "tests/test_cli.py",
+   "line": 754,
+   "node": "tests/test_cli.py::test_check_v1_compares_its_months_with_a_real_store",
+   "given": [
+    "an archive holding the committed Greek extracts of the HICP indices and item weights",
+    "a store built from the same archived indices"
+   ],
+   "when": [
+    "check v1 is run for GR"
+   ],
+   "then": [
+    "it doesn't say the store holds no rows",
+    "no level is behind the store, and the run ends \"V1 passed.\" with exit code 0"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-CLI-052",
+   "suite": "pytest",
+   "title": "check v1 measures the store's newest month on division 01, not on the flash's all-items index",
+   "file": "tests/test_cli.py",
+   "line": 781,
+   "node": "tests/test_cli.py::test_check_v1_measures_the_store_on_the_full_release_not_the_flash",
+   "given": [
+    "a store built from an archived HICP table whose all-items index reaches 2026-10, as after Eurostat's flash",
+    "whose division 01 index reaches only 2026-09, the last full release"
+   ],
+   "when": [
+    "the store's newest month is read for each"
+   ],
+   "then": [
+    "the all-items index gives 2026-10 and division 01 gives 2026-09",
+    "a check reaching 2026-09 is behind the all-items month but not behind division 01's"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-CLI-029",
    "suite": "pytest",
    "title": "check v3 prints each year and flags a large weights effect that has no explanation",
    "file": "tests/test_cli.py",
-   "line": 684,
+   "line": 811,
    "node": "tests/test_cli.py::test_check_v3_flags_years_that_need_an_explanation",
    "given": [
     "V3 rows for a year with a small weights effect and a year with a large unexplained one"
@@ -6350,7 +6463,7 @@
    "suite": "pytest",
    "title": "check v6 passes when the largest difference is within rounding",
    "file": "tests/test_cli.py",
-   "line": 708,
+   "line": 835,
    "node": "tests/test_cli.py::test_check_v6_passes_within_rounding_only",
    "given": [
     "a V6 result whose worst contribution, rounded to two decimals, is 0.00 or 0.02 pp off Eurostat's"
@@ -6379,7 +6492,7 @@
    "suite": "pytest",
    "title": "check v4 fails on a Bruegel gap and reports KEPE without a verdict",
    "file": "tests/test_cli.py",
-   "line": 729,
+   "line": 856,
    "node": "tests/test_cli.py::test_check_v4_fails_on_bruegel_and_reports_kepe",
    "given": [
     "a Bruegel rebuild that fails, with one provisional year, and a KEPE rebuild"
@@ -6407,7 +6520,7 @@
    "suite": "pytest",
    "title": "check v5 prints each setting's gap for Bruegel and KEPE",
    "file": "tests/test_cli.py",
-   "line": 768,
+   "line": 895,
    "node": "tests/test_cli.py::test_check_v5_prints_each_setting_gap",
    "given": [
     "attribution rows for Bruegel and KEPE over two years"
@@ -6433,7 +6546,7 @@
    "suite": "pytest",
    "title": "check combos prints the identities and each option's effect, and fails on a broken identity",
    "file": "tests/test_cli.py",
-   "line": 787,
+   "line": 914,
    "node": "tests/test_cli.py::test_check_combos_prints_the_identities_and_the_option_effects",
    "given": [
     "module 1 outputs whose identities hold, or break once",
@@ -6464,7 +6577,7 @@
    "suite": "pytest",
    "title": "check seam and check prices print their reports",
    "file": "tests/test_cli.py",
-   "line": 849,
+   "line": 976,
    "node": "tests/test_cli.py::test_check_seam_and_prices_are_reports",
    "given": [
     "a seam result for one group and a price comparison for one year"
@@ -6491,7 +6604,7 @@
    "suite": "pytest",
    "title": "export writes the skeleton or the site's data and lists what it wrote",
    "file": "tests/test_cli.py",
-   "line": 873,
+   "line": 1000,
    "node": "tests/test_cli.py::test_export_skeleton_and_site",
    "given": [
     "a skeleton export that writes one file and a site export that writes three"
@@ -6519,7 +6632,7 @@
    "suite": "pytest",
    "title": "module1 run computes the chosen settings and writes their files",
    "file": "tests/test_cli.py",
-   "line": 902,
+   "line": 1029,
    "node": "tests/test_cli.py::test_module1_run_writes_the_default_setting",
    "given": [
     "the made-up store and prices of the site's browser tests"
@@ -6547,7 +6660,7 @@
    "suite": "pytest",
    "title": "module5 run prints each check's count and writes the results",
    "file": "tests/test_cli.py",
-   "line": 936,
+   "line": 1063,
    "node": "tests/test_cli.py::test_module5_run_prints_each_check_and_writes_its_files",
    "given": [
     "the made-up store of the site's browser tests, and one check of three months with one difference to rounding",
@@ -6575,7 +6688,7 @@
    "suite": "pytest",
    "title": "release decide prints whether a passing build would go live by itself, and why not",
    "file": "tests/test_cli.py",
-   "line": 970,
+   "line": 1097,
    "node": "tests/test_cli.py::test_release_decide_prints_the_verdict_and_its_reasons",
    "given": [
     "a passing build on disk whose decision is to hold for two reasons",
@@ -6602,7 +6715,7 @@
    "suite": "pytest",
    "title": "check figures says how many figures it recomputes and names each problem, failing on any",
    "file": "tests/test_cli.py",
-   "line": 998,
+   "line": 1125,
    "node": "tests/test_cli.py::test_check_figures_prints_each_problem_and_fails_on_any",
    "given": [
     "an allow-list with one past figure the data recompute and one resting on a named dataset"
@@ -10392,6 +10505,32 @@
    "then": [
     "the CPI check fails",
     "its first failure is January 2026"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-JAN-004",
+   "suite": "pytest",
+   "title": "keeping last year's basket fails the CPI check even when the index can't show it",
+   "file": "tests/test_january.py",
+   "line": 106,
+   "node": "tests/test_january.py::test_last_years_basket_kept_fails_even_when_the_index_cant_show_it",
+   "given": [
+    "made-up tables 07 whose 2026 basket differs from 2025's by one per mille moved between two items"
+   ],
+   "when": [
+    "2026 is chained with 2025's weights, as if the new basket were missed"
+   ],
+   "then": [
+    "January 2026's link to December stays within the check's limit",
+    "the CPI check still fails, naming 2026 as a year with the same weights as 2025"
    ],
    "notes": "",
    "examples": [],
@@ -21022,6 +21161,90 @@
    "named": false
   },
   {
+   "id": "PY-VONE-005",
+   "suite": "pytest",
+   "title": "V1 fails a year whose item weights repeat the year before's",
+   "file": "tests/test_v1.py",
+   "line": 92,
+   "node": "tests/test_v1.py::test_v1_fails_a_year_that_repeats_the_year_befores_weights",
+   "given": [
+    "the committed Greek extract, with its newest year's item weights replaced by the year before's"
+   ],
+   "when": [
+    "V1 is run"
+   ],
+   "then": [
+    "the finest-detail run fails",
+    "its failures name the newest year as having the same weights as the year before"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "integration"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-VONE-006",
+   "suite": "pytest",
+   "title": "only the years in the checked range that repeat the year before's weights are named",
+   "file": "tests/test_v1.py",
+   "line": 108,
+   "node": "tests/test_v1.py::test_repeated_baskets_names_only_years_in_range_that_repeat",
+   "given": [
+    "weights for 2012 to 2015 where 2013 repeats 2012 and 2015 repeats 2014"
+   ],
+   "when": [
+    "years 2014 to 2015 are checked"
+   ],
+   "then": [
+    "only 2015 is named",
+    "checking 2013 to 2015 names 2013 too, the first year of the range",
+    "checking 2016, a year with no weights, names nothing"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
+   "id": "PY-VONE-007",
+   "suite": "pytest",
+   "title": "a check that stopped before the store's newest month fails",
+   "file": "tests/test_v1.py",
+   "line": 125,
+   "node": "tests/test_v1.py::test_a_check_that_stops_before_the_stores_newest_month_fails",
+   "given": [
+    "the last month a check reached and the newest month the store holds"
+   ],
+   "when": [
+    "the two are compared"
+   ],
+   "then": [
+    "a check that reached the newest month, or a store with no month, gives no failure",
+    "a check that stopped earlier, or reached no month, fails, naming both months"
+   ],
+   "notes": "",
+   "examples": [
+    "2026-01-2026-01-False",
+    "2026-01-None-False",
+    "2025-12-2026-01-True",
+    "None-2026-01-True"
+   ],
+   "defects": [],
+   "tags": [
+    "unit"
+   ],
+   "problems": [],
+   "named": false
+  },
+  {
    "id": "PY-ELSTAT-007",
    "suite": "pytest",
    "title": "V1-CPI reads the newest archived English table 07 of each year",
@@ -21055,11 +21278,12 @@
    "suite": "pytest",
    "title": "the fixed-basket years before 2014 are reported apart from the strict check",
    "file": "tests/test_v1_cpi.py",
-   "line": 68,
+   "line": 77,
    "node": "tests/test_v1_cpi.py::test_years_before_2014_are_reported_apart_from_the_strict_check",
    "given": [
-    "made-up tables 07 for 2011 to 2014, one item rising 1% a month, the overall index equal to it",
-    "the 2014 table restating December 2013 0.1% higher than the 2013 table, for the item and the overall index"
+    "made-up tables 07 for 2011 to 2014, two items priced alike rising 1% a month, reweighted every year",
+    "the overall index equal to them",
+    "the 2014 table restating December 2013 0.1% higher than the 2013 table, for the items and the overall index"
    ],
    "when": [
     "V1-CPI is run on them"
@@ -21067,7 +21291,7 @@
    "then": [
     "the strict check covers 2014 on and passes",
     "a separate report covers 2012-2013, named as report only",
-    "the two restated December values are counted as disagreements"
+    "the three restated December values (both items and the overall index) are counted as disagreements"
    ],
    "notes": "",
    "examples": [],
