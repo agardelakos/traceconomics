@@ -20,7 +20,7 @@ from pathlib import Path
 from traceconomics.archive.store import Archive
 from traceconomics.engine import chain
 from traceconomics.sources.elstat.parse import TOTAL, Table07, parse
-from traceconomics.validate.compare import Comparison, compare
+from traceconomics.validate.compare import Comparison, compare, repeated_baskets
 
 ENGLISH_TABLE07 = re.compile(r"DKT87_TS_MM_01_(\d{4})_\d\d_\d{4}_07_F_EN\.xlsx?$")
 
@@ -82,6 +82,7 @@ def run(tables: list[Table07]) -> tuple[Comparison, Comparison | None, int]:
     last = max(weights)
     first = max(CHECKED_FROM, min(weights) + 1)
     checked = _compare(f"CPI, finest detail, {first} on", weights, prices, official, first, last)
+    checked.failures += repeated_baskets(weights, first, last)
     earlier = None
     if min(weights) < CHECKED_FROM - 1:
         earlier = _compare(

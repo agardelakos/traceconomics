@@ -7,6 +7,7 @@ run on a real archive in a temporary folder.
 """
 
 import functools
+import gzip
 import hashlib
 import json
 from datetime import UTC, date, datetime, timedelta
@@ -18,6 +19,7 @@ from clitools import no_store, run, setup  # noqa: F401 - fixtures
 
 from traceconomics import __version__, analytics, backup, cli, config as config_mod, job, release, schedule
 from traceconomics.archive.store import Archive
+from traceconomics.validate.compare import behind
 
 pytestmark = pytest.mark.unit
 
@@ -679,6 +681,131 @@ def test_check_v1_cpi_reports_missing_years_and_the_earlier_period(run, monkeypa
     assert "Table 07 files for 2011-2014 (3 years)" in out and "Missing years: [2013]" in out
     assert "fixed basket, outside the check" in out and "FAIL" not in out.replace("FAILED", "")
     assert (code, out.strip().splitlines()[-1]) == ((0, "V1-CPI passed.") if passed else (1, "V1-CPI FAILED."))
+
+
+@pytest.mark.parametrize(
+    "newest, code",
+    [("2026-01", 0), ("2026-02", 1), (None, 0)],
+)
+def test_check_v1_cpi_fails_when_the_store_holds_a_newer_month(run, monkeypatch, newest, code):
+    """PY-CLI-049: check v1-cpi fails when the store holds a month the check didn't reach
+
+    Given a strict check that passes up to 2026-01
+    And a store whose newest CPI month is 2026-01, 2026-02, or a store with no CPI rows
+    When check v1-cpi is run
+    Then it passes when the store's newest month was checked
+    And it fails, naming both months, when the store holds 2026-02
+    And with no CPI rows in the store it says the months weren't compared, and passes
+    """
+    from traceconomics.validate import v1_cpi
+    from traceconomics.validate.compare import Comparison
+
+    checked = Comparison(name="CPI, finest detail, 2014 on", months=1, first="2014-01", last="2026-01")
+    asked = []
+
+    def newest_in_store(cfg, dataset, where):
+        asked.append((dataset, where))
+        return newest
+
+    monkeypatch.setattr(v1_cpi, "run_archive", lambda archive: (checked, None, 0, {2026: "a"}))
+    monkeypatch.setattr(cli, "_newest_in_store", newest_in_store)
+    rc, out = run("check", "v1-cpi")
+    assert asked == [("elstat:cpi07", "freq = 'M' AND unit = 'I20'")]
+    assert rc == code
+    if newest == "2026-02":
+        assert "checked to 2026-01, but the store holds 2026-02" in out
+    if newest is None:
+        assert "The store holds no elstat:cpi07 rows" in out
+
+
+@pytest.mark.integration
+def test_check_v1_fails_when_the_store_holds_a_newer_month(setup, run, monkeypatch, fixture_bytes):
+    """PY-CLI-050: check v1 fails when the store holds a month beyond the archived HICP file
+
+    Given an archive holding the committed Greek extracts of the HICP indices and item weights
+    And a store whose newest Greek all-items month is a year after the extract's last month
+    When check v1 is run for GR
+    Then it asks the store for Greece's index of division 01, which only a full release carries
+    And every level fails, naming the store's newest month, and the run ends "V1 FAILED." with exit code 1
+    """
+    archive = Archive(setup.cfg.archive_dir)
+    for name in ("prc_hicp_minr", "prc_hicp_iw"):
+        archive.store_bytes(
+            "eurostat",
+            name,
+            fixture_bytes(f"eurostat_v1_gr_{name[9:]}.tsv.gz"),
+            url=None,
+            retrieved_at=NOW,
+            ext=".tsv.gz",
+        )
+    asked = []
+
+    def newest_in_store(cfg, dataset, where):
+        asked.append((dataset, where))
+        return "2099-12"
+
+    monkeypatch.setattr(cli, "_newest_in_store", newest_in_store)
+    code, out = run("check", "v1", "--geo", "GR")
+    assert asked == [("eurostat:prc_hicp_minr", "geo = 'GR' AND unit = 'I25' AND coicop18 = '01'")]
+    assert "but the store holds 2099-12" in out
+    assert (code, out.strip().splitlines()[-1]) == (1, "V1 FAILED.")
+
+
+@pytest.mark.integration
+def test_check_v1_compares_its_months_with_a_real_store(setup, run, fixture_bytes):
+    """PY-CLI-051: check v1 reads the store's newest month and passes when it checked up to it
+
+    Given an archive holding the committed Greek extracts of the HICP indices and item weights
+    And a store built from the same archived indices
+    When check v1 is run for GR
+    Then it doesn't say the store holds no rows
+    And no level is behind the store, and the run ends "V1 passed." with exit code 0
+    """
+    archive = Archive(setup.cfg.archive_dir)
+    for name in ("prc_hicp_minr", "prc_hicp_iw"):
+        archive.store_bytes(
+            "eurostat",
+            name,
+            fixture_bytes(f"eurostat_v1_gr_{name[9:]}.tsv.gz"),
+            url=None,
+            retrieved_at=NOW,
+            ext=".tsv.gz",
+        )
+    code, out = run("store", "update", "--dataset", "eurostat:prc_hicp_minr")
+    assert code == 0, out
+    code, out = run("check", "v1", "--geo", "GR")
+    assert "The store holds no" not in out and "the newest months weren't checked" not in out
+    assert (code, out.strip().splitlines()[-1]) == (0, "V1 passed."), out
+
+
+@pytest.mark.integration
+def test_check_v1_measures_the_store_on_the_full_release_not_the_flash(setup, run):
+    """PY-CLI-052: check v1 measures the store's newest month on division 01, not on the flash's all-items index
+
+    Given a store built from an archived HICP table whose all-items index reaches 2026-10, as after Eurostat's flash
+    And whose division 01 index reaches only 2026-09, the last full release
+    When the store's newest month is read for each
+    Then the all-items index gives 2026-10 and division 01 gives 2026-09
+    And a check reaching 2026-09 is behind the all-items month but not behind division 01's
+    """
+    header = "freq,unit,coicop18,geo\\TIME_PERIOD\t2026-09 \t2026-10 \n"
+    rows = "M,I25,01,EL\t104.10 \t: \nM,I25,TOTAL,EL\t106.10 \t106.52 e\n"
+    Archive(setup.cfg.archive_dir).store_bytes(
+        "eurostat",
+        "prc_hicp_minr",
+        gzip.compress((header + rows).encode(), mtime=0),
+        url=None,
+        retrieved_at=NOW,
+        ext=".tsv.gz",
+    )
+    code, out = run("store", "update", "--dataset", "eurostat:prc_hicp_minr")
+    assert code == 0, out
+    total = cli._newest_in_store(
+        setup.cfg, "eurostat:prc_hicp_minr", "geo = 'GR' AND unit = 'I25' AND coicop18 = 'TOTAL'"
+    )
+    food = cli._newest_in_store(setup.cfg, "eurostat:prc_hicp_minr", "geo = 'GR' AND unit = 'I25' AND coicop18 = '01'")
+    assert (total, food) == ("2026-10", "2026-09")
+    assert behind("2026-09", food) is None and behind("2026-09", total) is not None
 
 
 def test_check_v3_flags_years_that_need_an_explanation(run, monkeypatch, no_store):

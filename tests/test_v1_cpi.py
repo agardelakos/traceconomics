@@ -58,22 +58,32 @@ def test_v1_cpi_reads_the_newest_english_table_of_each_year(tmp_path, fixture_by
 
 
 def _table(year, first_month_value, link=None):
-    """A table 07 with one item, the whole basket, rising 1% a month; the overall index equals it."""
+    """A table 07 with two items priced alike, rising 1% a month; the overall index equals them.
+
+    The shares move a little every year, as ELSTAT reweights every year (the check fails a year
+    that repeats the year before's basket)."""
     months = {f"{year}-{m:02d}": first_month_value * 1.01 ** (m - 1) for m in range(1, 13)}
     if link is not None:
         months[f"{year - 1}-12"] = link
-    return Table07(year, "en", weights={"01": 1000.0, TOTAL: 1000.0}, indices={"01": dict(months), TOTAL: dict(months)})
+    shift = float(year - 2011)
+    return Table07(
+        year,
+        "en",
+        weights={"01": 600.0 + shift, "02": 400.0 - shift, TOTAL: 1000.0},
+        indices={"01": dict(months), "02": dict(months), TOTAL: dict(months)},
+    )
 
 
 def test_years_before_2014_are_reported_apart_from_the_strict_check():
     """PY-ELSTAT-008: the fixed-basket years before 2014 are reported apart from the strict check
 
-    Given made-up tables 07 for 2011 to 2014, one item rising 1% a month, the overall index equal to it
-    And the 2014 table restating December 2013 0.1% higher than the 2013 table, for the item and the overall index
+    Given made-up tables 07 for 2011 to 2014, two items priced alike rising 1% a month, reweighted every year
+    And the overall index equal to them
+    And the 2014 table restating December 2013 0.1% higher than the 2013 table, for the items and the overall index
     When V1-CPI is run on them
     Then the strict check covers 2014 on and passes
     And a separate report covers 2012-2013, named as report only
-    And the two restated December values are counted as disagreements
+    And the three restated December values (both items and the overall index) are counted as disagreements
     """
     tables, start = [], 100.0
     for year in (2011, 2012, 2013, 2014):
@@ -83,4 +93,4 @@ def test_years_before_2014_are_reported_apart_from_the_strict_check():
     checked, earlier, disagreements = v1_cpi.run(tables)
     assert checked.name == "CPI, finest detail, 2014 on" and not checked.failures, checked.summary()
     assert earlier is not None and earlier.name.startswith("CPI, 2012-2013 (report only")
-    assert disagreements == 2
+    assert disagreements == 3
