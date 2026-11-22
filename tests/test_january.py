@@ -36,12 +36,12 @@ def price(code: str, year: int, month: int) -> float:
     return round(100 * math.exp(TREND[code] * t + 0.02 * math.sin(t / 2 + len(code) + int(code))), 3)
 
 
-def tables() -> list[Table07]:
+def tables(by_year: dict[int, dict[str, float]] = WEIGHTS) -> list[Table07]:
     """Tables 07 for 2024-2026: each year's months and its December link, and the overall index
     chained at December with the year's weights (computed here, not by the engine)."""
     overall = {"2023-12": 100.0}
     out = []
-    for year, weights in WEIGHTS.items():
+    for year, weights in by_year.items():
         link = f"{year - 1}-12"
         months = [(year - 1, 12)] + [(year, m) for m in range(1, 13)]
         indices = {c: {f"{y}-{m:02d}": price(c, y, m) for y, m in months} for c in weights}
@@ -101,3 +101,25 @@ def test_last_years_basket_kept_fails_the_cpi_check(monkeypatch):
     checked, _, _ = v1_cpi.run(tables())
     assert not checked.passed
     assert checked.failures[0].startswith("2026-01:"), checked.failures
+
+
+def test_last_years_basket_kept_fails_even_when_the_index_cant_show_it(monkeypatch):
+    """PY-JAN-004: keeping last year's basket fails the CPI check even when the index can't show it
+
+    Given made-up tables 07 whose 2026 basket differs from 2025's by one per mille moved between two items
+    When 2026 is chained with 2025's weights, as if the new basket were missed
+    Then January 2026's link to December stays within the check's limit
+    And the CPI check still fails, naming 2026 as a year with the same weights as 2025
+    """
+    close = {**WEIGHTS, 2026: {"01": 479.0, "02": 321.0, "03": 200.0}}
+    assemble = v1_cpi.assemble
+
+    def stale(tables):
+        weights, prices, official, disagreements = assemble(tables)
+        return {**weights, 2026: weights[2025]}, prices, official, disagreements
+
+    monkeypatch.setattr(v1_cpi, "assemble", stale)
+    checked, _, _ = v1_cpi.run(tables(close))
+    assert not [f for f in checked.failures if "link differs" in f], checked.failures
+    assert not checked.passed
+    assert checked.failures == ["2026: the weights are the same as 2025's (the new year's basket wasn't read)"]

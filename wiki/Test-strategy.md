@@ -100,7 +100,11 @@ does the same on CI.
 These are not unit tests; they are checks on real data, run in every release build and by hand:
 
 - `check v1`, `check v1-cpi`: the engine rebuilds the official all-items indices from their
-  published sub-indices and weights, within the margin the rounding of the inputs allows.
+  published sub-indices and weights, within the margin the rounding of the inputs allows. Two
+  rules the index can't enforce on its own: they fail if a year's weights repeat the year
+  before's (both publishers reweight every year, and in January the index can't tell last year's
+  basket from rounding), and if they stop before the newest month the store holds (for the
+  HICP, the newest full release: Eurostat's flash brings only headline aggregates early).
 - `check v2`: the survey microdata rebuild the published household spending figures (local only).
 - `check mapping`: old spending codes mapped to the current classification, against the next year.
 - `check combos`: every option combination; identities that must hold, and how much each option

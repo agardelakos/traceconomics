@@ -109,3 +109,31 @@ def compare(
         if rate_gap > MAX_RATE_GAP + _EPS:
             c.failures.append(f"{period}: annual rate {ours:.1f} vs official {theirs:.1f}")
     return c
+
+
+def repeated_baskets(weights: dict[int, dict[str, float]], first: int, last: int) -> list[str]:
+    """A failure for each year from `first` to `last` whose weights equal the year before's.
+
+    Both publishers reweight every year: ELSTAT's CPI from 2014 (2012 and 2013 kept 2011's fixed
+    basket) and Eurostat's HICP for Greece in every year from 1996 to 2026 (checked on the archive,
+    2026-11-22). A year that repeats the year before's basket means the new one wasn't read. The
+    index can't show it in January, the one month when it matters most: replayed on every January
+    from 2015 to 2026, a correct January missed the official link to December by up to 1.1e-4 and
+    last year's basket by as little as 1.0e-4, so no tolerance on the link separates the two.
+    """
+    return [
+        f"{y}: the weights are the same as {y - 1}'s (the new year's basket wasn't read)"
+        for y in range(first, last + 1)
+        if y in weights and y - 1 in weights and weights[y] == weights[y - 1]
+    ]
+
+
+def behind(last_checked: str | None, newest: str | None) -> str | None:
+    """A failure if the check stopped before the newest month the store holds; None otherwise.
+
+    A check that passes on everything but the newest month says nothing about the month a release
+    is about to publish (a January file it didn't recognise, say), so it must not pass.
+    """
+    if newest is None or (last_checked is not None and last_checked >= newest):
+        return None
+    return f"checked to {last_checked or 'no month'}, but the store holds {newest}: the newest months weren't checked"

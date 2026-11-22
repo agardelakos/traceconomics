@@ -7,7 +7,7 @@ import pytest
 
 from traceconomics.engine import chain
 from traceconomics.validate import v1
-from traceconomics.validate.compare import compare
+from traceconomics.validate.compare import behind, compare, repeated_baskets
 
 pytestmark = pytest.mark.integration
 
@@ -87,3 +87,55 @@ def test_module5_labels_the_hicp_rebuild():
     s = from_validation("gr-hicp-rebuilt-items", r, {"source": "a"}, {"source": "b"}, []).summary()
     assert (s["compared"], s["agree"]) == (r.months, r.exact)
     assert set(s["differ"]) <= {"rounding"}
+
+
+def test_v1_fails_a_year_that_repeats_the_year_befores_weights():
+    """PY-VONE-005: V1 fails a year whose item weights repeat the year before's
+
+    Given the committed Greek extract, with its newest year's item weights replaced by the year before's
+    When V1 is run
+    Then the finest-detail run fails
+    And its failures name the newest year as having the same weights as the year before
+    """
+    weights, prices, official, rates = load()
+    last = max(weights)
+    stale = {**weights, last: weights[last - 1]}
+    r = {x.name: x for x in v1.run(stale, prices, official, rates, last_year=int(max(official)[:4]))}["finest detail"]
+    assert not r.passed
+    assert f"{last}: the weights are the same as {last - 1}'s (the new year's basket wasn't read)" in r.failures
+
+
+@pytest.mark.unit
+def test_repeated_baskets_names_only_years_in_range_that_repeat():
+    """PY-VONE-006: only the years in the checked range that repeat the year before's weights are named
+
+    Given weights for 2012 to 2015 where 2013 repeats 2012 and 2015 repeats 2014
+    When years 2014 to 2015 are checked
+    Then only 2015 is named
+    And checking 2013 to 2015 names 2013 too, the first year of the range
+    And checking 2016, a year with no weights, names nothing
+    """
+    a, b = {"01": 1.0}, {"01": 2.0}
+    weights = {2012: a, 2013: dict(a), 2014: b, 2015: dict(b)}
+    assert [f[:4] for f in repeated_baskets(weights, 2014, 2015)] == ["2015"]
+    assert [f[:4] for f in repeated_baskets(weights, 2013, 2015)] == ["2013", "2015"]
+    assert repeated_baskets(weights, 2016, 2016) == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "last, newest, fails",
+    [("2026-01", "2026-01", False), ("2026-01", None, False), ("2025-12", "2026-01", True), (None, "2026-01", True)],
+)
+def test_a_check_that_stops_before_the_stores_newest_month_fails(last, newest, fails):
+    """PY-VONE-007: a check that stopped before the store's newest month fails
+
+    Given the last month a check reached and the newest month the store holds
+    When the two are compared
+    Then a check that reached the newest month, or a store with no month, gives no failure
+    And a check that stopped earlier, or reached no month, fails, naming both months
+    """
+    problem = behind(last, newest)
+    assert (problem is not None) == fails
+    if fails:
+        assert f"the store holds {newest}" in problem and (last or "no month") in problem

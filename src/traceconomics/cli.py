@@ -265,6 +265,34 @@ def _years(text: str) -> list[int]:
     return sorted(years)
 
 
+def _newest_in_store(cfg, dataset: str, where: str) -> str | None:
+    """The newest period the store holds for `dataset` under `where`; None without a store or rows."""
+    from traceconomics.store.db import connect
+    from traceconomics.store.query import as_of, open_views
+
+    con = connect(cfg.store_memory_limit, cfg.store_threads)
+    try:
+        open_views(con, cfg.store_dir)
+    except FileNotFoundError:
+        return None
+    return as_of(con, dataset, where=where).aggregate("max(ref_period)").fetchone()[0]
+
+
+def _coverage(cfg, dataset: str, where: str, results) -> None:
+    """Fail every result that stopped before the store's newest month (`compare.behind`)."""
+    from traceconomics.validate.compare import behind
+
+    newest = _newest_in_store(cfg, dataset, where)
+    if newest is None:
+        # Only a check run by hand meets this: a release builds the store before its checks.
+        print(f"The store holds no {dataset} rows, so the months checked weren't compared with it.")
+        return
+    for r in results:
+        problem = behind(r.last, newest)
+        if problem:
+            r.failures.append(problem)
+
+
 def _check_v1(cfg, geo: str) -> int:
     from traceconomics.store.db import connect
     from traceconomics.validate import v1
@@ -283,6 +311,10 @@ def _check_v1(cfg, geo: str) -> int:
         print(f"No all-items index for {geo}.")
         return 1
     results = v1.run(weights, prices, official, rates, last_year=int(max(official)[:4]))
+    # The newest month of a full release: Eurostat's flash puts a few headline aggregates (all
+    # items, energy, food...) for the next month in the same table weeks before the items, and V1
+    # can't check those. Division 01 comes only with the full release.
+    _coverage(cfg, "eurostat:prc_hicp_minr", f"geo = '{geo}' AND unit = 'I25' AND coicop18 = '01'", results)
     print(f"\nV1: {geo} all-items HICP rebuilt from Eurostat sub-indices and item weights\n")
     for r in results:
         print(r.summary() + "\n")
@@ -503,6 +535,7 @@ def _check_v1_cpi(cfg) -> int:
     from traceconomics.validate import v1_cpi
 
     checked, earlier, disagreements, files = v1_cpi.run_archive(Archive(cfg.archive_dir))
+    _coverage(cfg, "elstat:cpi07", "freq = 'M' AND unit = 'I20'", [checked])
     print(f"Table 07 files for {min(files)}-{max(files)} ({len(files)} years)")
     missing = sorted(set(range(min(files), max(files) + 1)) - set(files))
     if missing:

@@ -19,7 +19,7 @@ from traceconomics import catalog
 from traceconomics.engine import chain
 from traceconomics.engine.tree import at_level
 from traceconomics.sources.eurostat import parse
-from traceconomics.validate.compare import Comparison, compare
+from traceconomics.validate.compare import Comparison, compare, repeated_baskets
 
 LEVELS = {"divisions": 2, "groups": 3, "classes": 4, "finest detail": None}
 FIRST_YEAR = {"divisions": 1997, "groups": 1997, "classes": 1997, "finest detail": 2015}
@@ -59,5 +59,8 @@ def run(weights, prices, official, rates, last_year: int) -> list[Comparison]:
         if base is None:
             continue
         result = chain(w, prices, first_year=first, last_year=last_year, base_value=base, periods=set(official))
-        out.append(compare(name, result, official, rates))
+        r = compare(name, result, official, rates)
+        # On the published item weights, not this level's sums: what the publisher released.
+        r.failures += repeated_baskets(weights, first, last_year)
+        out.append(r)
     return out
