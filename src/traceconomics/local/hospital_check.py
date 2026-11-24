@@ -86,5 +86,10 @@ def run(archive: Archive, con, groups_wanted=None) -> dict:
         report["series"][f"{g}/{label}"] = {y: round(rb[y] - ra[y], 3) for y in sorted(ra) if y <= 2016 and y in rb}
     if ("B", "Q1") in rates and ("B", "Q5") in rates:
         (a1, b1), (a5, b5) = rates[("B", "Q1")], rates[("B", "Q5")]
-        report["gap_change"] = {y: round((b1[y] - b5[y]) - (a1[y] - a5[y]), 3) for y in sorted(a1) if y <= 2016}
+        # Only the years all four series have: one that ends earlier mustn't stop the report.
+        report["gap_change"] = {
+            y: round((b1[y] - b5[y]) - (a1[y] - a5[y]), 3)
+            for y in sorted(a1)
+            if y <= 2016 and y in b1 and y in a5 and y in b5
+        }
     return report

@@ -166,7 +166,10 @@ tenth; the parts share it by largest remainder.
 - **Front-end**: Vitest runs twice in CI, the unit tests alone, then all of them; a line the second
   run covers but not the first is one only the integration tests reach (the tests that need the
   generated data files: the calculator parity test and the data-file checks). A line only the
-  browser tests ran is end-to-end.
+  browser tests ran is end-to-end. A known limit, one line in about a thousand: the converter
+  (monocart) derives its own "statements" from the browser's coverage data, so merging many tests
+  can count a line that runs as not run; the [code reference](Code) still lists the tests that run
+  it.
 - **Not measured**: the Selenium suite (it tests the same pages as Playwright, through another
   tool; its coverage is recorded for the [code reference](Code)'s comparison of the two browser
   suites, never counted in the badge) and the release checks on real data.

@@ -283,3 +283,32 @@ def test_the_tenure_check_refuses_a_stale_store(made_up, monkeypatch):
     monkeypatch.setattr(tc, "load_baskets", lambda con, spending: dict(stored))
     with pytest.raises(FormatError, match="missing from the store: run `weights run`"):
         tc.run(None, "con", groups_wanted=[("all", "all"), ("B", "Q1")])
+
+
+def test_the_tenure_check_refuses_stored_baskets_that_differ(made_up, monkeypatch):
+    """PY-TENURE-004: the tenure check refuses stored baskets that differ from the ones it rebuilds
+
+    Given the made-up 2024 survey and stored baskets equal to the calibrated ones but for rent's share, off by a millionth
+    When the tenure check is run, and again with rent's share off by a hundredth of the tolerance
+    Then the first stops with a FormatError naming the gap and saying the store is stale
+    And the second runs, reporting the gap
+    """
+    from traceconomics.module1.weights_used import Basket
+
+    _, stored, _ = tc.survey_baskets(weights.prepare(None, 2024), set(WANTED))
+
+    def nudged(by):
+        return {
+            k: Basket({**b.shares, tc.RENT: b.shares.get(tc.RENT, 0.0) + by}, b.reliability)
+            if k == (2024, "all", "all")
+            else b
+            for k, b in stored.items()
+        }
+
+    monkeypatch.setattr(index, "price_blocks", lambda con, archive: {})
+    monkeypatch.setattr(index, "build", fake_build(lambda b: 0.0))
+    monkeypatch.setattr(tc, "load_baskets", lambda con, spending: nudged(1e-6))
+    with pytest.raises(FormatError, match=r"2024: the rebuilt baskets differ from the stored ones by 1\.0e-06.*stale"):
+        tc.run(None, "con", groups_wanted=WANTED)
+    monkeypatch.setattr(tc, "load_baskets", lambda con, spending: nudged(tc.STORE_GAP / 100))
+    assert tc.run(None, "con", groups_wanted=WANTED)["surveys"][2024]["store_gap"] == pytest.approx(tc.STORE_GAP / 100)

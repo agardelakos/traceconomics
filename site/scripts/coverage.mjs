@@ -4,6 +4,13 @@
 // The figure is lines: of the lines that hold code, the share that ran at least once in either kind
 // of test (as an lcov file counts them). A line run by both counts once.
 //
+// A known limit: monocart turns V8's coverage into lcov through "statements" it derives from V8's
+// ranges, not the source's own, so merging many tests can count a line that runs as one that
+// didn't (2026-11-24: one line of 1,153, src/lib/format.ts line 73, which the calculator page runs on
+// load). Its codecov report gets that line right, but counts every line in a covered range, type
+// declarations included: another measure (2,927 lines), so the figure stays on lcov's. The wiki's
+// code map lists the browser tests that run such a line.
+//
 // Files that no test loads have no lines to count, so they would quietly drop out of the figure.
 // They are listed instead ("not loaded by any test"). With --strict that list must be empty and
 // the figure at least FLOOR (coverage-options.mjs).

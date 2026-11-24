@@ -221,6 +221,36 @@ def test_the_hospital_check_reports_each_groups_change(files, monkeypatch):
     assert r["gap_change"][2011] == pytest.approx(q1[2011] - q5[2011], abs=0.002)
 
 
+def test_the_gap_change_leaves_out_a_year_one_series_lacks(files, monkeypatch):
+    """PY-HOSP-004: the gap's change leaves out a year that one of the four series lacks, instead of failing
+
+    Given the made-up surveys and tables, and a series builder whose quintile 5 series ends in 2015
+    When the hospital check is run for quintiles 1 and 5
+    Then it reports the gap's change for 2009-2015, the years all four series have
+    And quintile 1's own change still runs to 2016
+    """
+    monkeypatch.setattr(index, "price_blocks", lambda con, archive: {})
+    monkeypatch.setattr(
+        hc,
+        "load_baskets",
+        lambda con, spending: {
+            (y, g, q): Basket({"01": 1.0, "06": 0.0}, {})
+            for y in range(2008, 2019)
+            for g, q in (("B", "Q1"), ("B", "Q5"))
+        },
+    )
+
+    def build(con, grouping, label, *, blocks, baskets):
+        last = 2015 if label == "Q5" else 2018
+        rates = {y + 1: 10 * baskets[(y, grouping, label)].shares.get("06", 0.0) for y in range(2008, last)}
+        return type("S", (), {"annual_average_rates": lambda self: rates})()
+
+    monkeypatch.setattr(index, "build", build)
+    r = hc.run(None, "con", groups_wanted=[("B", "Q1"), ("B", "Q5")])
+    assert sorted(r["gap_change"]) == list(range(2009, 2016))
+    assert max(r["series"]["B/Q1"]) == 2016
+
+
 # -- V2 --------------------------------------------------------------------------------------------
 
 

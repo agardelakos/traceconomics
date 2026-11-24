@@ -201,22 +201,27 @@ CSV_TABLES = ("m1_index", "m1_rates")
 def downloads(con, setting: dict, folder: Path) -> list[Path]:
     """Write one setting's tables to `folder` as Parquet, and as CSV for the index, the rates and the default setting.
 
-    Returns the paths written. Leaves the connection set to one thread.
+    Returns the paths written. The connection is back at its own thread count afterwards.
     """
     folder.mkdir(parents=True, exist_ok=True)
     # One thread while writing: with several, the Parquet row groups depend on the number of cores,
-    # and the same rows would give different files on different machines.
+    # and the same rows would give different files on different machines. Only while writing: the
+    # caller's other queries keep their threads.
+    threads = con.execute("SELECT current_setting('threads')").fetchone()[0]
     con.execute("SET threads = 1")
     written = []
-    for table in TABLES:
-        q = f"SELECT * FROM {table} WHERE {_where(setting)}"
-        formats = [("parquet", "(FORMAT parquet, COMPRESSION zstd)")]
-        if table in CSV_TABLES or setting == combinations.DEFAULT:
-            formats.append(("csv", "(HEADER, DELIMITER ',')"))
-        for ext, opts in formats:
-            path = folder / f"{table}.{ext}"
-            con.execute(f"COPY ({q}) TO '{path.as_posix()}' {opts}")
-            written.append(path)
+    try:
+        for table in TABLES:
+            q = f"SELECT * FROM {table} WHERE {_where(setting)}"
+            formats = [("parquet", "(FORMAT parquet, COMPRESSION zstd)")]
+            if table in CSV_TABLES or setting == combinations.DEFAULT:
+                formats.append(("csv", "(HEADER, DELIMITER ',')"))
+            for ext, opts in formats:
+                path = folder / f"{table}.{ext}"
+                con.execute(f"COPY ({q}) TO '{path.as_posix()}' {opts}")
+                written.append(path)
+    finally:
+        con.execute(f"SET threads = {int(threads)}")
     return written
 
 

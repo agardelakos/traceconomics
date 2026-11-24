@@ -90,8 +90,13 @@ def _utc(text: str) -> datetime:
 
 
 def _write_atomic(path: Path, text: str) -> None:
+    # Synced before the rename, as the archive's writes and the appends to the same file are: after a
+    # power cut the file is either the old one or the whole new one, never an empty one.
     tmp = path.with_name(path.name + ".part")
-    tmp.write_text(text, encoding="utf-8")
+    with tmp.open("w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, path)
 
 

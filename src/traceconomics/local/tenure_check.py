@@ -30,6 +30,9 @@ from traceconomics.module1.weights_used import load_baskets
 
 RENT = "041"  # actual rentals for housing, COICOP 2018
 SAME_BASKET = 1e-12  # a tenure group's basket after scaling all its members alike: equal up to rounding
+# The rebuilt baskets against the stored ones: equal up to rounding through the store. The largest
+# gap on the real surveys was 5.0e-11 (2026-11-10); a stale store is off by far more than this.
+STORE_GAP = 1e-9
 
 
 def renter_share(weights: np.ndarray, tenure) -> float:
@@ -66,7 +69,7 @@ def run(archive: Archive, con, groups_wanted=None, years=None) -> dict:
     """The change calibrating to the census's tenure split makes to each group's series and baskets.
 
     The report gives, per survey, the renter share before and after and how far the rebuilt baskets
-    are from the stored ones; per group, the change in annual-average and December rates and rent's
+    are from the stored ones (more than STORE_GAP stops the check); per group, the change in annual-average and December rates and rent's
     share before and after; and the change in the B grouping's Q1-Q5 gap. Reads the archive and the
     store and changes nothing.
     """
@@ -91,6 +94,11 @@ def run(archive: Archive, con, groups_wanted=None, years=None) -> dict:
         )
         require(
             all(k in stored for k in after), f"{year}: groups built here are missing from the store: run `weights run`"
+        )
+        require(
+            gap <= STORE_GAP,
+            f"{year}: the rebuilt baskets differ from the stored ones by {gap:.1e} (more than {STORE_GAP:.0e}): "
+            "the store is stale, run `weights run`",
         )
         note["store_gap"] = gap
         base.update(before)

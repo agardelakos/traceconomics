@@ -172,6 +172,23 @@ def test_downloads_add_a_csv_of_every_table_only_for_the_default_setting(tmp_pat
     assert "m1_rates.csv" in sums and len(sums.splitlines()) == 8
 
 
+def test_downloads_write_on_one_thread_and_give_the_connection_back_as_it_was(tmp_path):
+    """PY-SITEEXP-015: the downloads are written on one thread, and the connection gets its thread count back
+
+    Given module 1 outputs and a connection set to four threads
+    When the default setting's downloads are written twice, into two folders
+    Then the connection is at four threads again after each
+    And both folders hold the same bytes
+    """
+    con, _ = write_outputs(tmp_path)
+    con.execute("SET threads = 4")
+    first = site.downloads(con, combinations.DEFAULT, tmp_path / "a")
+    assert con.execute("SELECT current_setting('threads')").fetchone()[0] == 4
+    second = site.downloads(con, combinations.DEFAULT, tmp_path / "b")
+    assert con.execute("SELECT current_setting('threads')").fetchone()[0] == 4
+    assert [p.read_bytes() for p in first] == [p.read_bytes() for p in second]
+
+
 def test_official_rate_from_the_published_levels_of_two_files():
     # Each year's file holds its own months plus the previous December; only its own months count.
     """PY-SITEEXP-006: the official annual rate is computed from the levels in two years' files

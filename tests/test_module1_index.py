@@ -109,3 +109,107 @@ def test_an_income_fifth_is_built_without_the_2010_survey():
     assert q1.schedule[0].year == 2009
     entry = q1.used[2011].entry
     assert entry.survey == 2009 and entry.price_update_from == 2009
+
+
+def test_the_default_prices_take_the_original_tables_before_2011(monkeypatch):
+    """PY-INDEX-006: the default prices are table 07's re-issued blocks, with the original tables' blocks before 2011
+
+    Given re-issued table 07 blocks for 2010 to 2012, and original-table blocks for 2008 to 2010
+    When the default prices are put together
+    Then 2008 and 2009 come from the original tables, 2011 and 2012 from the re-issue
+    And 2010, in both, comes from the original tables
+    """
+    from traceconomics.module1 import originals
+
+    monkeypatch.setattr(index, "cpi_blocks", lambda con, when: {y: f"reissued {y}" for y in (2010, 2011, 2012)})
+    monkeypatch.setattr(originals, "blocks", lambda archive: ({y: f"original {y}" for y in (2008, 2009, 2010)}, None))
+    assert index.price_blocks("con", "archive") == {
+        2008: "original 2008",
+        2009: "original 2009",
+        2010: "original 2010",
+        2011: "reissued 2011",
+        2012: "reissued 2012",
+    }
+
+
+def test_every_published_group_is_built_on_the_same_prices_and_baskets(monkeypatch):
+    """PY-INDEX-007: every published group's series is built once, all on the same prices and baskets
+
+    Given stand-ins for the default prices, the stored baskets and the series builder
+    When every series is built for one spending definition and date, then for two chosen groups only
+    Then each published group is built once, in order, with that spending, date, prices and baskets
+    And the prices and baskets are read once, the baskets for that spending
+    And the chosen groups alone are built the second time
+    """
+    calls, reads = [], []
+    monkeypatch.setattr(index, "price_blocks", lambda con, archive, when: reads.append(("prices", when)) or "P")
+    monkeypatch.setattr(index, "load_baskets", lambda con, spending: reads.append(("baskets", spending)) or "B")
+    monkeypatch.setattr(index, "build", lambda con, g, q, **kw: calls.append((g, q, kw)) or (g, q))
+    got = index.build_all("con", "archive", spending="consumption", when="2026-01-01")
+    assert got == list(index.PUBLISHED_GROUPS)
+    assert all(
+        kw == {"spending": "consumption", "when": "2026-01-01", "blocks": "P", "baskets": "B"} for _, _, kw in calls
+    )
+    assert reads == [("prices", "2026-01-01"), ("baskets", "consumption")]
+    assert index.build_all("con", "archive", groups=[("B", "Q1"), ("all", "all")]) == [("B", "Q1"), ("all", "all")]
+
+
+def test_the_stored_baskets_are_the_newest_rows_of_the_wanted_setting():
+    """PY-INDEX-008: the stored baskets are each share's and tier's newest row, for the setting asked for
+
+    Given stored weights rows: a share published twice, a share withdrawn later, a reliability tier, and rows for another spending definition and another country
+    When the baskets are read for purchases in Greece
+    Then each group's basket holds the newest value of each share, and its tiers
+    And the withdrawn share and the other setting's rows are left out
+    And the survey year is a number
+    """
+    import duckdb
+
+    from traceconomics.module1.weights_used import load_baskets
+
+    con = duckdb.connect()
+    con.execute(
+        'CREATE TABLE observations (dataset VARCHAR, key VARCHAR, ref_period VARCHAR, grouping VARCHAR, "group" VARCHAR, '
+        "coicop18 VARCHAR, measure VARCHAR, value DOUBLE, value_text VARCHAR, geo VARCHAR, spending VARCHAR, "
+        "imputed_rent VARCHAR, status VARCHAR, published_at TIMESTAMP, retrieved_at TIMESTAMP)"
+    )
+    old, new = "2026-01-01", "2026-06-01"
+
+    def row(code, measure, value, text=None, *, at=new, status="final", spending="purchases", geo="GR", key=None):
+        k = key or f"{spending}|{geo}|Q1|{code}|{measure}"
+        return (
+            "oet-local:hbs_weights",
+            k,
+            "2020",
+            "B",
+            "Q1",
+            code,
+            measure,
+            value,
+            text,
+            geo,
+            spending,
+            "excluded",
+            status,
+            at,
+            at,
+        )
+
+    con.executemany(
+        "INSERT INTO observations VALUES (" + ", ".join("?" * 15) + ")",
+        [
+            row("01", "share", 0.30, at=old),
+            row("01", "share", 0.25),  # the newer publication
+            row("02", "share", 0.10, at=old),
+            row("02", "share", 0.10, status="withdrawn"),
+            row("03", "share", 0.65),
+            row("01", "reliability", None, "flagged"),
+            row("01", "share", 0.99, spending="consumption"),
+            row("01", "share", 0.99, geo="CY"),
+        ],
+    )
+    got = load_baskets(con, spending="purchases")
+    assert list(got) == [(2020, "B", "Q1")]
+    basket = got[(2020, "B", "Q1")]
+    assert basket.shares == {"01": 0.25, "03": 0.65}
+    assert basket.reliability == {"01": "flagged"}

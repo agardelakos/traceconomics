@@ -69,13 +69,12 @@ TOTAL = "TOTAL"
 class Table07:
     """One year's table 07: weights (per mille), monthly indices, annual averages and labels per COICOP 2018 code.
 
-    The overall index is under `TOTAL`; `weight_text` holds each weight as `repr` text.
+    The overall index is under `TOTAL`.
     """
 
     year: int
     language: str  # "en" or "el"
     weights: dict[str, float] = field(default_factory=dict)  # code -> per mille
-    weight_text: dict[str, str] = field(default_factory=dict)
     indices: dict[str, dict[str, float]] = field(default_factory=dict)  # code -> {"YYYY-MM": index}
     annual_average: dict[str, float] = field(default_factory=dict)
     labels: dict[str, str] = field(default_factory=dict)
@@ -184,7 +183,6 @@ def parse(path: Path) -> Table07:
         t.labels[code] = label
         if weight is not None:
             t.weights[code] = weight
-            t.weight_text[code] = repr(weight)
         if series:
             t.indices[code] = series
         if average_col is not None and (avg := _number(r[average_col])) is not None:

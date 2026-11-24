@@ -18,6 +18,7 @@ which can't be separated from it). Each other step changes one setting.
 
 from __future__ import annotations
 
+from traceconomics.checks import require
 from traceconomics.engine import chain
 from traceconomics.engine.rates import annual_average_rate
 from traceconomics.module1 import benchmarks, index
@@ -82,9 +83,13 @@ def v5_bruegel(con, archive) -> dict[str, dict[int, float]]:
                 w[target] = w.get(target, 0.0) + v
         r = chain({y: w for y in range(2019, 2025)}, prices_v1, first_year=2019, last_year=2024)
         chained[q] = r.index
-    out["B1 Bruegel weights, chained"] = {
-        y: annual_average_rate(chained["QU1"], y) - annual_average_rate(chained["QU5"], y) for y in YEARS
-    }
+    b1 = "B1 Bruegel weights, chained"
+    out[b1] = {}
+    for y in YEARS:
+        q1, q5 = annual_average_rate(chained["QU1"], y), annual_average_rate(chained["QU5"], y)
+        # A month missing from the HICP leaves the year without an average: say which, not a type error.
+        require(q1 is not None and q5 is not None, f"{b1}: no full year {y} of chained HICP prices to compare")
+        out[b1][y] = q1 - q5
     # Our side.
     baskets = load_baskets(con, spending="purchases")
     years = range(2019, 2027)  # through the newest prices, as every series is rebased on 2025

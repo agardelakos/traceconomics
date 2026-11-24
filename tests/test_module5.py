@@ -627,3 +627,22 @@ def test_household_types_are_read_by_year_type_and_measure():
             "A2": {"share_households": ("0.3", 0.3)},
         }
     }
+
+
+def test_the_cpi_checks_are_table05_against_its_own_index_then_against_ours(monkeypatch):
+    """PY-M5-019: the CPI checks compare table 05's rates with its own index, then with ours from table 07
+
+    Given table 05's index and rates and table 07's price blocks as the store holds them
+    When the CPI checks are run with a list of explanations
+    Then there are two: table 05 against its own index, then against the rates rebuilt from table 07
+    And each is given table 05's rates and the explanations
+    """
+    from traceconomics.module1 import prices
+
+    seen = []
+    monkeypatch.setattr(cpi, "table05", lambda con: ("INDEX", "RATE"))
+    monkeypatch.setattr(prices, "cpi_blocks", lambda con: "BLOCKS")
+    monkeypatch.setattr(cpi, "own_index", lambda i, r, e: seen.append(("own", i, r, e)) or "own")
+    monkeypatch.setattr(cpi, "rebuilt", lambda b, r, e: seen.append(("rebuilt", b, r, e)) or "rebuilt")
+    assert cpi.checks("con", ["why"]) == ["own", "rebuilt"]
+    assert seen == [("own", "INDEX", "RATE", ["why"]), ("rebuilt", "BLOCKS", "RATE", ["why"])]
