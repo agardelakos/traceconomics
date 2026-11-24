@@ -348,7 +348,12 @@ def _ingest(con, spec: DatasetSpec, snap: Snapshot, folder: Path, seq: int, vers
     if added or withdrawn:
         part = f"{seq:05d}-{snap.sha256[:12]}.parquet"
         tmp = folder / (part + ".part")
-        con.execute(f"COPY out TO '{tmp.as_posix()}' (FORMAT parquet, COMPRESSION zstd)")
+        # Sorted, so the same snapshot always writes the same bytes: the joins above run in
+        # parallel and return rows in a different order each run. (key, ref_period) is unique
+        # here: the parser refuses duplicates, and withdrawn rows are those missing from `new`.
+        con.execute(
+            f"COPY (SELECT * FROM out ORDER BY key, ref_period) TO '{tmp.as_posix()}' (FORMAT parquet, COMPRESSION zstd)"
+        )
         os.replace(tmp, folder / part)
     for t in ("new", "cur", "out"):
         con.execute(f"DROP TABLE IF EXISTS {t}")

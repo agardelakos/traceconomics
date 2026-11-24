@@ -1,6 +1,7 @@
 """The observation store: built from an archive, diffs within one archived file, incremental = full."""
 
 import gzip
+import hashlib
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -383,3 +384,46 @@ def test_forgetting_a_dataset_rewrites_the_loaded_records_durably(tmp_path, monk
     store.forget("a:x", tmp_path / "folder")
     assert [r["dataset"] for r in store.loaded()] == ["b:y"]
     assert calls == ["fsync", "replace"]
+
+
+def big_minr(drop: str | None = None) -> str:
+    """A made-up HICP file of 360,000 values: large enough that DuckDB works on it in parallel."""
+    periods = [f"{y}-{m:02d}" for y in range(1996, 2026) for m in range(1, 13)]
+    lines = ["freq,unit,coicop18,geo\\TIME_PERIOD\t" + "\t".join(f"{p} " for p in periods)]
+    for g, geo in enumerate(["EL", "CY", "DE", "FR", "IT", "ES", "PT", "AT"]):
+        for u in range(5):
+            for c in range(25):
+                key = f"M,U{u},CP{c:02d},{geo}"
+                if key != drop:
+                    values = (f"{100 + (g * c + u + i) % 50}.{i % 100:02d} " for i in range(len(periods)))
+                    lines.append(f"{key}\t" + "\t".join(values))
+    return "\n".join(lines) + "\n"
+
+
+def test_the_same_snapshots_write_the_same_part_bytes(tmp_path):
+    """PY-OBS-014: the same snapshots write byte-identical store parts, whatever the threads
+
+    Given an archive with two snapshots of a 360,000-value HICP file, the second without one series
+    When the store is rebuilt in full on 1, 4, 4 and 8 threads
+    Then every rebuild writes the same parts with the same SHA-256
+    And the rows in each part are sorted by key and period
+
+    Two builds of the store can only be compared by hash if the bytes don't depend on the
+    order a parallel join happens to return rows in.
+    """
+    archive = Archive(tmp_path / "a")
+    put_minr(archive, big_minr(), T1, "2026-09-16T23:00:00+0200")
+    put_minr(archive, big_minr(drop="M,U2,CP07,CY"), T2, "2026-10-15T23:00:00+0200")
+    hashes = []
+    for i, threads in enumerate((1, 4, 4, 8)):
+        store = Store(tmp_path / f"s{i}")
+        c = duckdb.connect(config={"threads": threads})
+        update(archive, store, c, only=[MINR], full=True)
+        c.close()
+        parts = sorted((store.root / "observations").rglob("*.parquet"))
+        hashes.append({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in parts})
+    assert len(hashes[0]) == 2 and all(h == hashes[0] for h in hashes)
+    c = duckdb.connect(config={"threads": 1})
+    for part in parts:
+        keys = c.execute(f"SELECT key, ref_period FROM read_parquet('{part.as_posix()}')").fetchall()
+        assert keys == sorted(keys)
