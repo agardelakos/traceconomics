@@ -12,8 +12,8 @@ pytestmark = pytest.mark.repository
 ROOT = Path(__file__).resolve().parent.parent
 WIKI = ROOT / "wiki"
 PAGES = sorted(WIKI.glob("*.md"))
-# Pages wiki.py writes on every run; they exist only in the wiki itself.
-GENERATED = re.compile(r"^Tests(-[A-Za-z]+)?$")
+# Pages wiki.py and code_reference.py write on every run; they exist only in the wiki itself.
+GENERATED = re.compile(r"^(Tests|Code)(-[A-Za-z0-9-]+)?$")
 # Where a short path in the text may start: the root, the package, its sources, the site.
 BASES = [ROOT, ROOT / "src/traceconomics", ROOT / "src/traceconomics/sources", ROOT / "site"]
 EXTENSIONS = (".py", ".toml", ".md", ".ts", ".mjs", ".bib", ".json", ".yml", ".cff")
@@ -66,7 +66,7 @@ def test_wiki_links_have_a_page(page):
 
     Given a hand-written wiki page
     When its links to other wiki pages are collected (not URLs, absolute paths, relative files or anchors)
-    Then each one has a page in wiki/, or is one of the generated Tests pages
+    Then each one has a page in wiki/, or is one of the generated Tests or Code pages
     """
     links = re.findall(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", page.read_text(encoding="utf-8"))
     local = [x for x in links if not re.match(r"^[a-z]+:|^/|\.", x) and "/" not in x]

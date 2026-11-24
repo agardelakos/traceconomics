@@ -7,6 +7,8 @@
 - [Household group methods](Household-group-methods)
 - [How a release goes live](How-a-release-goes-live)
 - [Adding a source or country](Adding-a-source-or-country)
+  <!-- code:start -->
+  <!-- code:end -->
 
 **Testing**
 

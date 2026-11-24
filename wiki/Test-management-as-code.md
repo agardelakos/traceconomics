@@ -58,6 +58,12 @@ suite and area, obsolete cases, the last runs per case, and each case's flakines
 never edited by hand; a correction goes into the test, and the page follows. Links to them appear in
 the sidebar as they are published.
 
+The `Code-*` pages, the code reference, are generated the same way from the package's docstrings
+(`tests/catalog/code_reference.py`): one page per package, with each module's docstring and its
+public functions, classes and methods, each linked to its source line at the commit the pages were
+made from. Every public part must have a docstring whose first line is one sentence
+(`tests/test_docstrings.py`), so the reference has no gaps.
+
 ## Compared with a dedicated test-management tool
 
 The comparison is with a typical case-management tool of the TestRail kind: a database of cases,
