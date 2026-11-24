@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "d1731348e25553c4f44f9e1f6b588feb27a744a0",
- "generated": "2026-11-24T20:55:55Z",
+ "commit": "c8d8ae7e99d25bf0592cf52a091d12dbd50aedb4",
+ "generated": "2026-11-24T21:50:01Z",
  "missing": [],
  "cases": [
   {
@@ -17783,7 +17783,7 @@
    "suite": "pytest",
    "title": "a first load, then a revision and a withdrawal",
    "file": "tests/test_observation_store.py",
-   "line": 78,
+   "line": 79,
    "node": "tests/test_observation_store.py::test_first_load_then_a_revision_and_a_withdrawal",
    "given": [
     "an archive with one snapshot of Eurostat's HICP monthly indices"
@@ -17813,7 +17813,7 @@
    "suite": "pytest",
    "title": "observations carry their publication time, its quality and their status",
    "file": "tests/test_observation_store.py",
-   "line": 116,
+   "line": 117,
    "node": "tests/test_observation_store.py::test_vintage_dates_and_status",
    "given": [
     "an archive with one HICP snapshot whose Eurostat update time is 2026-09-16 23:00 +02:00"
@@ -17838,7 +17838,7 @@
    "suite": "pytest",
    "title": "an incremental store equals a full rebuild",
    "file": "tests/test_observation_store.py",
-   "line": 140,
+   "line": 141,
    "node": "tests/test_observation_store.py::test_incremental_equals_full_rebuild",
    "given": [
     "an archive with two HICP snapshots"
@@ -17863,7 +17863,7 @@
    "suite": "pytest",
    "title": "two files feed one dataset without withdrawing each other",
    "file": "tests/test_observation_store.py",
-   "line": 159,
+   "line": 160,
    "node": "tests/test_observation_store.py::test_two_files_feed_one_dataset_without_withdrawing_each_other",
    "given": [
     "an archive with CPI table 07 for 2025 and for 2026, each its own archive dataset"
@@ -17889,7 +17889,7 @@
    "suite": "pytest",
    "title": "table 05 is read from the English file only",
    "file": "tests/test_observation_store.py",
-   "line": 184,
+   "line": 185,
    "node": "tests/test_observation_store.py::test_table05_english_file_only",
    "given": [
     "an archive with CPI table 05 in English and in Greek"
@@ -17914,7 +17914,7 @@
    "suite": "pytest",
    "title": "an older snapshot arriving late rebuilds the dataset",
    "file": "tests/test_observation_store.py",
-   "line": 214,
+   "line": 215,
    "node": "tests/test_observation_store.py::test_older_snapshot_arriving_late_rebuilds",
    "given": [
     "a store updated from the newer HICP snapshot"
@@ -17939,7 +17939,7 @@
    "suite": "pytest",
    "title": "a parser change rebuilds the dataset",
    "file": "tests/test_observation_store.py",
-   "line": 230,
+   "line": 231,
    "node": "tests/test_observation_store.py::test_parser_change_rebuilds",
    "given": [
     "a store updated from one HICP snapshot"
@@ -17964,7 +17964,7 @@
    "suite": "pytest",
    "title": "a store part without a loaded record is dropped",
    "file": "tests/test_observation_store.py",
-   "line": 246,
+   "line": 247,
    "node": "tests/test_observation_store.py::test_part_without_a_loaded_record_is_dropped",
    "given": [
     "a store updated from one HICP snapshot",
@@ -17989,7 +17989,7 @@
    "suite": "pytest",
    "title": "as-of rows come in a fixed order",
    "file": "tests/test_observation_store.py",
-   "line": 264,
+   "line": 265,
    "node": "tests/test_observation_store.py::test_as_of_rows_come_in_a_fixed_order",
    "given": [
     "an archive with one HICP snapshot"
@@ -18014,7 +18014,7 @@
    "suite": "pytest",
    "title": "label files come only from the datasets the store reads",
    "file": "tests/test_observation_store.py",
-   "line": 288,
+   "line": 289,
    "node": "tests/test_observation_store.py::test_label_files_come_only_from_the_datasets_the_store_reads",
    "given": [
     "an archive with a Greek table 07 document and an old original table whose file name the label pattern also matches"
@@ -18038,7 +18038,7 @@
    "suite": "pytest",
    "title": "the store's bulk load keeps every value exactly as a row-by-row insert does",
    "file": "tests/test_observation_store.py",
-   "line": 332,
+   "line": 333,
    "node": "tests/test_observation_store.py::test_bulk_load_stores_what_a_row_by_row_insert_stores",
    "given": [
     "rows with empty strings, missing values, quotes, commas, line breaks and Greek text",
@@ -18064,7 +18064,7 @@
    "suite": "pytest",
    "title": "a bulk load of no rows still makes the table, empty",
    "file": "tests/test_observation_store.py",
-   "line": 353,
+   "line": 354,
    "node": "tests/test_observation_store.py::test_bulk_load_of_no_rows_leaves_an_empty_table",
    "given": [
     "no rows (a survey table that can't be built for its year)"
@@ -18088,7 +18088,7 @@
    "suite": "pytest",
    "title": "forgetting a dataset rewrites the loaded records to disk before they replace the old ones",
    "file": "tests/test_observation_store.py",
-   "line": 366,
+   "line": 367,
    "node": "tests/test_observation_store.py::test_forgetting_a_dataset_rewrites_the_loaded_records_durably",
    "given": [
     "a store whose loaded records name two datasets"
@@ -18107,6 +18107,31 @@
    "problems": [],
    "named": false,
    "layer": "unit"
+  },
+  {
+   "id": "PY-OBS-014",
+   "suite": "pytest",
+   "title": "the same snapshots write byte-identical store parts, whatever the threads",
+   "file": "tests/test_observation_store.py",
+   "line": 403,
+   "node": "tests/test_observation_store.py::test_the_same_snapshots_write_the_same_part_bytes",
+   "given": [
+    "an archive with two snapshots of a 360,000-value HICP file, the second without one series"
+   ],
+   "when": [
+    "the store is rebuilt in full on 1, 4, 4 and 8 threads"
+   ],
+   "then": [
+    "every rebuild writes the same parts with the same SHA-256",
+    "the rows in each part are sorted by key and period"
+   ],
+   "notes": "Two builds of the store can only be compared by hash if the bytes don't depend on the\norder a parallel join happens to return rows in.",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "integration"
   },
   {
    "id": "PY-OETLOCAL-001",
