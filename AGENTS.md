@@ -30,30 +30,39 @@ checks; where the two seem to differ, CONTRIBUTING.md wins and you say so in you
 
 ## Repository map
 
-| Path                                          | What it does                                                                                                                           |
-| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/traceconomics/cli.py`                    | Command line: `python -m traceconomics <command>` (`--help` on each)                                                                   |
-| `src/traceconomics/sources/`                  | One adapter per publisher (`elstat/`, `eurostat/`), their parsers, reuse-terms watch (`terms.py`); `base.py` is the polite HTTP client |
-| `src/traceconomics/archive/`                  | Append-only raw archive (`store.py`); local-only microdata list (`local_only.py`)                                                      |
-| `src/traceconomics/store/`                    | Observation store (DuckDB over Parquet), built from the archive, queried as of any date                                                |
-| `src/traceconomics/catalog.py`, `data/`       | Reference data: parsed datasets (`datasets.toml`), country codes (`geo.toml`), mapping tables                                          |
-| `src/traceconomics/checks.py`                 | `FormatError` and `require()` for parsers                                                                                              |
-| `src/traceconomics/engine/`                   | Arithmetic without method choices: COICOP tree, chain-linking, rates                                                                   |
-| `src/traceconomics/validate/`                 | The engine checked against official figures (V1, V1-CPI)                                                                               |
-| `src/traceconomics/module1/`                  | Inflation by household group: every option combination, outputs, checks                                                                |
-| `src/traceconomics/local/`                    | Survey microdata code; needs the `local` extra (pandas)                                                                                |
-| `src/traceconomics/export/`                   | Files the site reads; bibliography export                                                                                              |
-| `src/traceconomics/references/references.bib` | The bibliography every published number cites                                                                                          |
-| `tests/`                                      | pytest suite; `tests/fixtures/` saved publisher files; `tests/sitedata.py` made-up site data                                           |
-| `tests/selenium/`                             | Selenium browser suite (collected only with `--selenium`)                                                                              |
-| `tests/compare/`                              | Scripts comparing the two browser suites' results                                                                                      |
-| `site/src/`                                   | Pages, content (`content/<kind>/en`, `.../el`), interface text (`i18n/`), build code (`lib/`), browser code (`scripts/`)               |
-| `site/src/**/*.test.ts`                       | Vitest unit tests                                                                                                                      |
-| `site/tests/ui/`                              | Playwright browser suite (`*.ui.ts`); `helpers.ts` is shared                                                                           |
-| `site/scripts/checks.mjs`                     | Site checks run after the build                                                                                                        |
-| `tests/catalog/`                              | Test catalog tooling: collect, validate, run history, wiki pages; `strict.toml` (the ratchet), `cases.toml` (the cross-suite mapping)  |
-| `wiki/`                                       | The wiki's hand-written pages, copied to the GitHub wiki automatically; `tests/test_wiki_pages.py` checks the paths they name          |
-| `.github/workflows/`                          | CI (`tests.yml`), the testing showcase's runs by hand (`showcase.yml`: suite comparison, mutation testing)                             |
+Two tiers. The **core** is what the project needs: keep it green and up to date. The **showcase**
+is the maintainer's testing showcase (a second browser suite, the comparison of the two, the code
+map, mutation testing, run history): never required of a change, never run on a pull request. Touch
+it only when your task is about it.
+
+| Path                                                                    | Tier     | What it does                                                                                                                                     |
+| ----------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/traceconomics/cli.py`                                              | core     | Command line: `python -m traceconomics <command>` (`--help` on each)                                                                             |
+| `src/traceconomics/sources/`                                            | core     | One adapter per publisher (`elstat/`, `eurostat/`), their parsers, reuse-terms watch (`terms.py`); `base.py` is the polite HTTP client           |
+| `src/traceconomics/archive/`                                            | core     | Append-only raw archive (`store.py`); local-only microdata list (`local_only.py`)                                                                |
+| `src/traceconomics/store/`                                              | core     | Observation store (DuckDB over Parquet), built from the archive, queried as of any date                                                          |
+| `src/traceconomics/catalog.py`, `data/`                                 | core     | Reference data: parsed datasets (`datasets.toml`), country codes (`geo.toml`), mapping tables                                                    |
+| `src/traceconomics/checks.py`                                           | core     | `FormatError` and `require()` for parsers                                                                                                        |
+| `src/traceconomics/engine/`                                             | core     | Arithmetic without method choices: COICOP tree, chain-linking, rates                                                                             |
+| `src/traceconomics/validate/`                                           | core     | The engine checked against official figures (V1, V1-CPI)                                                                                         |
+| `src/traceconomics/module1/`                                            | core     | Inflation by household group: every option combination, outputs, checks                                                                          |
+| `src/traceconomics/local/`                                              | core     | Survey microdata code; needs the `local` extra (pandas)                                                                                          |
+| `src/traceconomics/export/`                                             | core     | Files the site reads; bibliography export                                                                                                        |
+| `src/traceconomics/references/references.bib`                           | core     | The bibliography every published number cites                                                                                                    |
+| `tests/`                                                                | core     | pytest suite; `tests/fixtures/` saved publisher files; `tests/sitedata.py` made-up site data                                                     |
+| `tests/selenium/`                                                       | showcase | Selenium browser suite (collected only with `--selenium`)                                                                                        |
+| `tests/compare/`                                                        | showcase | Scripts comparing the two browser suites' results                                                                                                |
+| `site/src/`                                                             | core     | Pages, content (`content/<kind>/en`, `.../el`), interface text (`i18n/`), build code (`lib/`), browser code (`scripts/`)                         |
+| `site/src/**/*.test.ts`                                                 | core     | Vitest unit tests                                                                                                                                |
+| `site/tests/ui/`                                                        | core     | Playwright browser suite (`*.ui.ts`); `helpers.ts` is shared                                                                                     |
+| `site/scripts/checks.mjs`                                               | core     | Site checks run after the build                                                                                                                  |
+| `tests/catalog/`                                                        | core     | Test catalog tooling: collect, validate, wiki pages; `strict.toml` (the ratchet), `cases.toml` (the cross-suite mapping, kept by the maintainer) |
+| `tests/catalog/history.py`, `vm_pull.py`, `code_charts.py`              | showcase | Run history; the code map's charts                                                                                                               |
+| `tests/coverage/`                                                       | core     | Coverage split by layer (`overview.py`)                                                                                                          |
+| `tests/coverage/code_map.py`, `mutation.py`, `mutation-equivalent.toml` | showcase | The code map; mutation testing of the engine                                                                                                     |
+| `wiki/`                                                                 | core     | The wiki's hand-written pages, copied to the GitHub wiki automatically; `tests/test_wiki_pages.py` checks the paths they name                    |
+| `.github/workflows/`                                                    | core     | CI (`tests.yml`), the wiki (`wiki.yml`), the watchdog                                                                                            |
+| `.github/workflows/showcase.yml`                                        | showcase | The showcase's runs: after each run on `main`, weekly, and by hand                                                                               |
 
 ## Setup
 
@@ -67,8 +76,8 @@ cd site && npm ci
 ```
 
 Install packages only into the project's virtual environment. Use `requirements-local.txt`
-(microdata code) or `requirements-selenium.txt` (Selenium suite) instead of `requirements-dev.txt`
-when you need them.
+(microdata code) instead of `requirements-dev.txt` when you need it. The showcase has its own lock
+files (`requirements-selenium.txt`, `requirements-mutation.txt`), for showcase tasks only.
 
 ## Commands
 
@@ -79,8 +88,8 @@ cd site && npm run check:code                                  # type check + un
 cd site && npm run check                                       # type check, Vitest, build, site checks
 cd site && npx playwright install chromium                     # once
 cd site && npm run test:ui                                     # Playwright suite on the built site
-cd site && npm run build                                       # build only (before Selenium)
-.venv/bin/python -I -m pytest tests/selenium --selenium -n auto   # Selenium suite (Selenium lock)
+cd site && npm run build                                       # build only
+.venv/bin/python -I -m pytest tests/selenium --selenium -n auto   # showcase only: Selenium suite (Selenium lock)
 ```
 
 Code style (CI's `lint` job runs these in check mode; settings in `pyproject.toml` and `site/`):
@@ -104,11 +113,12 @@ A new Python test file declares its layer (`pytestmark = pytest.mark.unit`, `int
 `repository`; definitions in `tests/conftest.py`); a test that differs overrides it with its own mark.
 
 Host tests (headers, CSP): `npx wrangler dev --port 8788` in `site/`, then
-`BASE_URL=http://127.0.0.1:8788 npm run test:ui -- --grep @smoke`, or the Selenium suite with
-`--base-url http://127.0.0.1:8788`.
+`BASE_URL=http://127.0.0.1:8788 npm run test:ui -- --grep @smoke` (for showcase work, the Selenium
+suite takes `--base-url http://127.0.0.1:8788`).
 
 Lock files: after a pin change in `pyproject.toml`, regenerate `requirements-dev.txt`,
-`requirements-local.txt` and `requirements-selenium.txt` with the command in each file's header.
+`requirements-local.txt`, `requirements-selenium.txt` and `requirements-mutation.txt` with the
+command in each file's header.
 
 ## Conventions
 
@@ -132,7 +142,8 @@ Tests:
 - Microdata tests build a small synthetic survey in the test.
 - Playwright: `import { test, expect } from "./helpers"`; call `coverage.flush()` before a click
   that loads a new page.
-- A change to the site's behaviour updates both browser suites.
+- A change to the site's behaviour updates the Playwright suite. A new Playwright case needs no
+  entry in `tests/catalog/cases.toml`; the maintainer maps it.
 
 Data handling:
 
@@ -153,6 +164,8 @@ Site:
   to format them: the formatters' settings keep them out (`tests/test_lint_config.py`).
 - Lock files by hand; regenerate them with their header command.
 - `AGENTS.md`, `CONTRIBUTING.md`, `.github/` unless the task is explicitly about them.
+- The showcase (the paths marked "showcase" in the repository map) unless the task is about it; a
+  core change that breaks a showcase test is reported, not fixed.
 - Generated output (`site/dist/`, `site/coverage/`, reports) as if it were source.
 - Requests to statistics offices or the live site beyond what a single reviewed run needs; no load
   or automated scanning against the website.
@@ -167,8 +180,8 @@ Run the suites that cover your change and report each result exactly as it came 
 | Python code or `src/traceconomics/data/`           | `pytest`                                                                                |
 | Lock files or `pyproject.toml`                     | `pytest` (includes `tests/test_lock_files.py`)                                          |
 | `src/traceconomics/export/` or `tests/sitedata.py` | `pytest`, then site data, `npm run check`, `npm run test:ui`                            |
-| Site code, content or i18n                         | `npm run check`, `npm run test:ui`, the Selenium suite                                  |
-| `site/public/_headers` or CSP                      | the host tests above, both suites                                                       |
+| Site code, content or i18n                         | `npm run check`, `npm run test:ui`                                                      |
+| `site/public/_headers` or CSP                      | the host tests above (Playwright)                                                       |
 | Browser tests only                                 | the suite you changed, in full                                                          |
 | Any change                                         | `ruff format --check`, `ruff check`; in `site/`, `npm run format:check`, `npm run lint` |
 

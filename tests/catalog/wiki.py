@@ -12,9 +12,16 @@ DIR is the branch `test-history` (see history.py); WIKI_DIR a checkout of the wi
     Tests-Mutation.md        mutation testing of the engine, once a run is stored: the newest run's
                              score, the score over time (tests-mutation-score-*.svg), the result per
                              function, and every survivor with its change and, if written, its reason
-    _Sidebar.md              only the block between `<!-- generated:start -->` and `<!-- generated:end -->`
+    _Sidebar.md              only two blocks: the core's pages between `<!-- generated:start -->` and
+                             `<!-- generated:end -->`, the testing showcase's (Selenium, the runs,
+                             mutation testing) between `<!-- showcase:start -->` and `<!-- showcase:end -->`
 
 and removes any other `Tests-*.md` it wrote before. Every page starts with "Generated, do not edit".
+
+Selenium is the maintainer's testing showcase: nobody else has to keep it in step with the site. So
+its page and the overview say whether it is: whether the newest recorded run on main has Selenium's
+results and what they were, and how many Playwright cases the cross-suite mapping
+(`tests/catalog/cases.toml`) doesn't list yet, each one a test Selenium may lack.
 
 Flakiness: over a case's last WINDOW results on pushes to main that weren't skipped, the share of
 consecutive pairs whose result changed (a pass followed by a fail, or the reverse); a pass that
@@ -31,6 +38,7 @@ import itertools
 import json
 import re
 import sys
+import tomllib
 from collections import defaultdict
 from pathlib import Path
 
@@ -56,6 +64,8 @@ TRIGGER_NAME = {
 MARK = {"passed": "✓", "failed": "✗", "flaky": "≈", "skipped": "–", None: "·"}
 HEAD = "> Generated, do not edit. Made from the test catalog and the run history on every run; a correction goes into the test, and this page follows.\n"
 START, END = "<!-- generated:start -->", "<!-- generated:end -->"
+SHOWCASE_START, SHOWCASE_END = "<!-- showcase:start -->", "<!-- showcase:end -->"
+MAPPING = Path("tests/catalog/cases.toml")  # the cross-suite mapping, relative to the repository
 MIN_FOR_RATE = 5
 LAYERS = ("unit", "integration", "repository")  # the pytest layers (tests/conftest.py)
 
@@ -241,7 +251,57 @@ def page_mutation(repo, result: dict, history: list[dict], root: Path) -> tuple[
     return "\n".join(out), files
 
 
-def page_overview(repo, catalog, obsolete, runs, mutation=None) -> str:
+def load_mapping(root: Path) -> dict | None:
+    """The cross-suite mapping (shared case -> its Playwright and Selenium IDs), or None without the file."""
+    path = root / MAPPING
+    return tomllib.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+
+
+def selenium_status(repo, catalog, runs, mapping) -> str:
+    """Whether the Selenium suite is in step with main: its newest result on main, and the Playwright cases unmapped."""
+    pushes = runs.get("push", [])
+    parts = []
+    if not pushes:
+        parts.append("No run on `main` recorded yet.")
+    else:
+        newest = pushes[-1]
+        with_sel = [r for r in pushes if "selenium" in r.get("suites", {})]
+        if not with_sel:
+            parts.append("No run on `main` has Selenium's results yet.")
+        else:
+            last = with_sel[-1]
+            failed = last["suites"]["selenium"].get("failed", 0)
+            result = f"{failed} failed" if failed else "all passed"
+            when = f"{last['started'][:10]}, commit {commit_link(repo, last.get('commit'))}"
+            if last is newest:
+                parts.append(f"Selenium ran on the newest recorded run on `main` ({when}): {result}.")
+            else:
+                parts.append(
+                    f"**Behind `main`:** Selenium's newest results are from {when} ({result}); "
+                    f"the newest recorded run on `main` ({newest['started'][:10]}, commit "
+                    f"{commit_link(repo, newest.get('commit'))}) has none."
+                )
+    if mapping is not None:
+        mapped = {cid for entry in mapping.values() for cid in entry.get("playwright", [])}
+        unmapped = sorted(
+            {c["id"] for c in catalog["cases"] if c["suite"] == "playwright" and c["id"] and c["id"] not in mapped}
+        )
+        if unmapped:
+            parts.append(
+                f"**{len(unmapped)} Playwright case{'s' if len(unmapped) != 1 else ''} not mapped yet** "
+                "(`tests/catalog/cases.toml`), so Selenium may lack a matching test: "
+                + ", ".join(f"[{cid}](Tests-Playwright#{anchor(cid)})" for cid in unmapped)
+                + "."
+            )
+        else:
+            parts.append("Every Playwright case is mapped to its Selenium case, or says why it has none.")
+    return (
+        "Selenium is part of the maintainer's [testing showcase](Testing-showcase): contributors never "
+        "have to keep it in step, and the maintainer follows up. " + " ".join(parts) + "\n"
+    )
+
+
+def page_overview(repo, catalog, obsolete, runs, mutation=None, mapping=None) -> str:
     out = ["# Test cases and runs\n", HEAD]
     out.append(
         "Every automated test carries its case (an ID and Given/When/Then). How it works: "
@@ -278,6 +338,7 @@ def page_overview(repo, catalog, obsolete, runs, mutation=None) -> str:
             "through a real resource (an archive on disk, the store), a repository test checks the "
             "repository's own files and runs no package code ([Code reference](Code#checks-on-the-code-itself))."
         )
+    out.append("\n" + selenium_status(repo, catalog, runs, mapping).rstrip())
     if mutation is not None:
         out.append("\n" + mutation_line(repo, mutation) + " [Mutation testing](Tests-Mutation).")
     out.append(
@@ -288,9 +349,11 @@ def page_overview(repo, catalog, obsolete, runs, mutation=None) -> str:
     return "\n".join(out)
 
 
-def page_suite(repo, suite, catalog, runs, last, window) -> str:
+def page_suite(repo, suite, catalog, runs, last, window, mapping=None) -> str:
     cases = [c for c in catalog["cases"] if c["suite"] == suite and c["id"]]
     out = [f"# {SUITE_NAME[suite]} cases\n", HEAD]
+    if suite == "selenium":
+        out.append(selenium_status(repo, catalog, runs, mapping))
     if not cases:
         out.append("No cases yet.\n")
         return "\n".join(out)
@@ -365,36 +428,50 @@ def page_obsolete(repo, obsolete) -> str:
     return "\n".join(out) + "\n"
 
 
+def _replace(text: str, start: str, end: str, block: str) -> str:
+    """The text with the block between `start` and `end` replaced, or the block added at the end."""
+    if start in text and end in text:
+        return re.sub(re.escape(start) + r".*?" + re.escape(end), lambda _: block, text, flags=re.S)
+    return (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
+
+
 def sidebar(text: str, mutation: bool = False) -> str:
-    # One more item of the hand-written "Testing" list, with the generated pages nested under it: the
-    # block sits right after that list's last item (wiki/_Sidebar.md). Both markers are indented, so
-    # the Markdown keeps them inside the list instead of ending it there and starting a second one.
-    block = "\n".join(
+    # Two blocks, each one more item of a hand-written list (wiki/_Sidebar.md): the core's test pages
+    # in the TracEconomics section, the showcase's in the Testing showcase section. Each block sits
+    # right after its list's last item; both markers are indented, so the Markdown keeps them inside
+    # the list instead of ending it there and starting a second one.
+    core = "\n".join(
         [
             START,
             "- [Test cases and runs](Tests)",
-            *[f"  - [{SUITE_NAME[s]}]({p})" for s, p in SUITE_PAGE.items()],
-            *(["  - [Mutation testing](Tests-Mutation)"] if mutation else []),
-            "  - [Runs](Tests-Runs)",
+            *[f"  - [{SUITE_NAME[s]}]({p})" for s, p in SUITE_PAGE.items() if s != "selenium"],
             "  - [Obsolete](Tests-Obsolete)",
             "  " + END,
         ]
     )
-    if START in text and END in text:
-        return re.sub(re.escape(START) + r".*?" + re.escape(END), lambda _: block, text, flags=re.S)
-    return (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
+    showcase = "\n".join(
+        [
+            SHOWCASE_START,
+            f"- [Selenium cases]({SUITE_PAGE['selenium']})",
+            "- [Runs](Tests-Runs)",
+            *(["- [Mutation testing](Tests-Mutation)"] if mutation else []),
+            "  " + SHOWCASE_END,
+        ]
+    )
+    return _replace(_replace(text, START, END, core), SHOWCASE_START, SHOWCASE_END, showcase)
 
 
 def generate(store: Path, out: Path, repo: str, last: int, window: int, root: Path = ROOT) -> list[str]:
     catalog, obsolete, runs = load(store)
     mutation, history = load_mutation(store)
+    mapping = load_mapping(root)
     pages = {
-        "Tests": page_overview(repo, catalog, obsolete, runs, mutation),
+        "Tests": page_overview(repo, catalog, obsolete, runs, mutation, mapping),
         "Tests-Runs": page_runs(repo, runs),
         "Tests-Obsolete": page_obsolete(repo, obsolete),
     }
     for suite, name in SUITE_PAGE.items():
-        pages[name] = page_suite(repo, suite, catalog, runs, last, window)
+        pages[name] = page_suite(repo, suite, catalog, runs, last, window, mapping)
     svgs: dict[str, str] = {}
     if mutation is not None:
         pages["Tests-Mutation"], svgs = page_mutation(repo, mutation, history, root)

@@ -353,16 +353,27 @@ def test_mapping():
 
 
 def test_unmapped_browser_cases_warn_until_the_mapping_must_be_complete():
-    """PY-CAT-027: unmapped browser cases are a warning, then an error once the mapping must be complete
+    """PY-CAT-027: an unmapped Selenium case is a warning, then an error once the mapping must be complete
 
-    Given a Playwright case and a Selenium case that no shared case lists
+    Given a Selenium case that no shared case lists
     When the catalog is validated as the backfill allows, and again with the mapping required to be complete
-    Then as the backfill allows, they are an "unmapped" warning
-    And with the mapping required to be complete, they are an "unmapped" error
+    Then as the backfill allows, it is an "unmapped" warning
+    And with the mapping required to be complete, it is an "unmapped" error
     """
-    pw, sel = _browser_pair()
-    assert ("unmapped", False) in rules(cat(pw, sel))
-    assert ("unmapped", True) in rules(cat(pw, sel), strict={"mapping_complete": True})
+    _, sel = _browser_pair()
+    assert rules(cat(sel)) == {("unmapped", False)}
+    assert rules(cat(sel), strict={"mapping_complete": True}) == {("unmapped", True)}
+
+
+def test_an_unmapped_playwright_case_only_warns():
+    """PY-CAT-035: an unmapped Playwright case is a warning even when the mapping must be complete
+
+    Given a Playwright case that no shared case lists
+    When the catalog is validated with the mapping required to be complete
+    Then it is an "unmapped" warning, not an error
+    """
+    pw, _ = _browser_pair()
+    assert rules(cat(pw), strict={"mapping_complete": True}) == {("unmapped", False)}
 
 
 def test_a_mapping_under_the_wrong_suite_or_to_an_unknown_case_is_an_error():
@@ -657,11 +668,12 @@ def test_flakiness():
 def test_pages(tmp_path):
     """PY-CAT-020: the generated wiki pages replace the old ones and leave hand-written pages alone
 
-    Given a run history with one run, and a wiki with a stale generated page, a sidebar with a generated block and a hand-written home page
+    Given a run history with one run, and a wiki with a stale generated page, a sidebar with a core block and a showcase block, and a hand-written home page
     When the wiki pages are generated
     Then a Tests page is written and the stale generated page is deleted
     And the hand-written page is untouched
-    And the sidebar keeps its hand-written part, its generated block is replaced and it links to Tests-Runs
+    And the sidebar keeps its hand-written parts and both blocks are replaced
+    And the core block lists the core's suites without Selenium, the showcase block Selenium and Tests-Runs
     And the pytest page starts with its title and a "Generated, do not edit." note
     And it lists each case with its title, last result and "too few runs" for flakiness
     And it links the case to its file and line at the catalog's commit
@@ -672,18 +684,84 @@ def test_pages(tmp_path):
     out.mkdir()
     (out / "Tests-Old.md").write_text("stale", encoding="utf-8")
     (out / "_Sidebar.md").write_text(
-        "[Home](Home)\n\n<!-- generated:start -->\nold\n<!-- generated:end -->\n", encoding="utf-8"
+        "[Home](Home)\n\n<!-- generated:start -->\nold\n<!-- generated:end -->\n\n**Showcase**\n\n"
+        "<!-- showcase:start -->\nold\n<!-- showcase:end -->\n",
+        encoding="utf-8",
     )
     (out / "Home.md").write_text("hand-written", encoding="utf-8")
     pages = wiki.generate(store, out, "owner/repo", 10, 20)
     assert "Tests" in pages and not (out / "Tests-Old.md").exists()
     assert (out / "Home.md").read_text(encoding="utf-8") == "hand-written"
     sidebar = (out / "_Sidebar.md").read_text(encoding="utf-8")
-    assert sidebar.startswith("[Home](Home)") and "old" not in sidebar and "[Runs](Tests-Runs)" in sidebar
+    assert sidebar.startswith("[Home](Home)") and "old" not in sidebar
+    core, showcase = sidebar.split("**Showcase**")
+    assert "[Playwright](Tests-Playwright)" in core and "Selenium" not in core and "Tests-Runs" not in core
+    assert "- [Selenium cases](Tests-Selenium)" in showcase and "- [Runs](Tests-Runs)" in showcase
     py = (out / "Tests-pytest.md").read_text(encoding="utf-8")
     assert py.startswith("# pytest cases\n\n> Generated, do not edit.")
     assert "| [PY-ENG-001](#py-eng-001) | t | ✗ | too few runs |" in py
     assert "https://github.com/owner/repo/blob/abc1234/tests/test_x.py#L1" in py
+
+
+def _push(commit, started, selenium=None):
+    suites = {"pytest": {"passed": 1}}
+    if selenium is not None:
+        suites["selenium"] = selenium
+    return {"commit": commit, "started": started, "suites": suites, "cases": {}}
+
+
+def test_the_selenium_status_says_whether_selenium_is_in_step_with_main():
+    """PY-CAT-036: the Selenium status says whether Selenium ran on main's newest recorded run, and with what result
+
+    Given recorded runs on main
+    When the Selenium status is written
+    Then with Selenium's results on the newest run, it names that run and its result
+    And with Selenium's newest results on an older run, it says Selenium is behind main and names both runs
+    And without any Selenium results, or without any run, it says so
+    """
+    pw = case(id="PW-CALC-001", suite="playwright", file="site/tests/ui/c.ui.ts")
+    catalog = cat(pw)
+    mapping = {"TC-CALC-001": {"title": "t", "playwright": ["PW-CALC-001"], "selenium": ["SEL-CALC-001"]}}
+    old = _push("a" * 40, "2026-11-20T10:00:00Z", {"passed": 3, "failed": 1})
+    new = _push("b" * 40, "2026-11-21T10:00:00Z", {"passed": 4})
+    status = wiki.selenium_status("o/r", catalog, {"push": [old, new]}, mapping)
+    assert "Selenium ran on the newest recorded run on `main` (2026-11-21, commit [`bbbbbbb`]" in status
+    assert "all passed" in status and "Behind" not in status
+    status = wiki.selenium_status("o/r", catalog, {"push": [old, _push("c" * 40, "2026-11-22T10:00:00Z")]}, mapping)
+    assert "**Behind `main`:** Selenium's newest results are from 2026-11-20, commit [`aaaaaaa`]" in status
+    assert "(1 failed)" in status and "(2026-11-22, commit [`ccccccc`]" in status
+    assert "No run on `main` has Selenium's results yet." in wiki.selenium_status(
+        "o/r", catalog, {"push": [_push("c" * 40, "2026-11-22T10:00:00Z")]}, mapping
+    )
+    assert "No run on `main` recorded yet." in wiki.selenium_status("o/r", catalog, {}, mapping)
+
+
+def test_the_selenium_status_counts_the_playwright_cases_not_mapped_yet(tmp_path):
+    """PY-CAT-037: the Selenium status lists the Playwright cases the cross-suite mapping doesn't list yet
+
+    Given a catalog with two Playwright cases, one of them in the mapping, and a run history
+    When the wiki pages are generated from a repository with that mapping
+    Then the Selenium page and the overview say one Playwright case is not mapped yet, and link it
+    And with both cases mapped, they say every Playwright case is mapped
+    """
+    pw1 = case(id="PW-CALC-001", suite="playwright", file="site/tests/ui/c.ui.ts")
+    pw2 = case(id="PW-CALC-002", suite="playwright", file="site/tests/ui/c.ui.ts", line=9, title="u")
+    store, out, root = tmp_path / "store", tmp_path / "wiki", tmp_path / "repo"
+    store.mkdir()
+    (store / "catalog.json").write_text(json.dumps(cat(pw1, pw2)), encoding="utf-8")
+    (root / "tests/catalog").mkdir(parents=True)
+    toml = '[TC-CALC-001]\ntitle = "t"\nplaywright = ["PW-CALC-001"]\nselenium = ["SEL-CALC-001"]\n'
+    (root / "tests/catalog/cases.toml").write_text(toml, encoding="utf-8")
+    wiki.generate(store, out, "owner/repo", 10, 20, root=root)
+    note = "**1 Playwright case not mapped yet** (`tests/catalog/cases.toml`)"
+    for page in ("Tests-Selenium.md", "Tests.md"):
+        text = (out / page).read_text(encoding="utf-8")
+        assert note in text and "[PW-CALC-002](Tests-Playwright#pw-calc-002)" in text
+    (root / "tests/catalog/cases.toml").write_text(
+        toml + '[TC-CALC-002]\ntitle = "u"\nplaywright = ["PW-CALC-002"]\nwhy = "x"\n', encoding="utf-8"
+    )
+    wiki.generate(store, out, "owner/repo", 10, 20, root=root)
+    assert "Every Playwright case is mapped" in (out / "Tests-Selenium.md").read_text(encoding="utf-8")
 
 
 def test_scripts_run_from_the_command_line(tmp_path):
@@ -997,7 +1075,7 @@ def test_the_mutation_page_shows_the_newest_run_its_history_and_its_survivors(tm
     )
     assert "may no longer hold" not in page
     assert "[Mutation testing](Tests-Mutation)." in (out / "Tests.md").read_text(encoding="utf-8")
-    assert "  - [Mutation testing](Tests-Mutation)" in (out / "_Sidebar.md").read_text(encoding="utf-8")
+    assert "\n- [Mutation testing](Tests-Mutation)\n" in (out / "_Sidebar.md").read_text(encoding="utf-8")
 
     (root / "src/traceconomics/engine/chain.py").write_text("X = 2\n", encoding="utf-8")
     wiki.generate(store, out, "owner/repo", 10, 20, root=root)

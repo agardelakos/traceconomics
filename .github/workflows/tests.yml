@@ -1,7 +1,7 @@
 # The pipeline, on every push and pull request: one run per push. The suites (python, python-local,
-# site, selenium, and the site again on each other data state, data-states), the style check (lint) and the code scan (codeql) run side by side; then the
-# coverage split by layer, the test catalog's check, the run's record on the branch test-history,
-# and the wiki, which follows from both; on main, the README's coverage badges.
+# site, and the site again on each other data state, data-states), the style check (lint) and the
+# code scan (codeql) run side by side; then the coverage split by layer and the test catalog's check;
+# on main, the README's coverage badges.
 #
 # The website's build, its calculator parity test and its browser tests need the published data
 # files, which are generated from the raw archive and are not in the repository. Here the site
@@ -11,11 +11,13 @@
 #
 # The optional microdata dependencies are never installed here: those tests skip themselves.
 # Actions are pinned to a full commit (the tag is in the comment), and the token is read-only,
-# except in the jobs badges and test-history (below), each writing to its own branch only.
+# except in the job badges (below), which writes to its own branch only.
 #
-# Jobs named "showcase: …" (the Selenium suite, the two browser suites compared, the code map) are
-# the testing showcase: never a required check, and nothing a contributor has to keep green. The
-# showcase's longer runs, started by hand, are in showcase.yml.
+# This is the core: what the project needs and contributors keep green. The maintainer's testing
+# showcase (the Selenium suite, the two browser suites compared, the code map, the run's record on
+# the branch test-history and the wiki that follows from it, mutation testing) is in showcase.yml,
+# which starts after every run of this workflow on main and reads its artifacts; it never runs on a
+# pull request and is never a required check.
 
 # Named for what the run is, all of it, not just its tests: the README's status badge shows this name.
 name: pipeline
@@ -127,7 +129,9 @@ jobs:
       - run: python -m pip install --no-deps --no-build-isolation -e .
       # Every file with a test that needs the extra, found here rather than listed, so a new one is
       # never left out.
-      - run: python -I -m coverage run -m pytest -ra --junitxml=${{ runner.temp }}/pytest-local.xml $(grep -l importorskip tests/*.py)
+      - run: |
+          mapfile -t files < <(grep -l importorskip tests/*.py)
+          python -I -m coverage run -m pytest -ra --junitxml="$RUNNER_TEMP/pytest-local.xml" "${files[@]}"
         env:
           COVERAGE_FILE: ${{ runner.temp }}/coverage-local
       - name: Upload the results file
@@ -255,7 +259,8 @@ jobs:
           path: site/test-reports/vitest.json
           retention-days: 7
           if-no-files-found: ignore
-      # Playwright's results file alone (small), for the comparison with Selenium below.
+      # Playwright's results file alone (small): for the run record and the comparison with
+      # Selenium, in showcase.yml.
       - name: Upload the browser test's results file
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -327,132 +332,11 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # The wiki's code map (tests/coverage/code_map.py): which tests run each module, public function and
-  # site file, from the Python coverage of both pytest jobs and the lines the site and Selenium jobs
-  # reduced. Showcase work, not a required check: it waits for the Selenium suite, whatever its
-  # result, and a map without Selenium's lines says so. On main, stored on test-history.
-  code-map:
-    name: "showcase: code map"
-    needs: [python, python-local, site, selenium]
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.14"
-      - run: python -m pip install --require-hashes --no-deps -r requirements-dev.txt
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: coverage-data-*
-          path: ${{ runner.temp }}/coverage-data
-          merge-multiple: true
-      # The site's lines and Selenium's, into one folder; either may be missing.
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        continue-on-error: true
-        with:
-          pattern: "{site,selenium}-code-map"
-          path: ${{ runner.temp }}/site-code-map
-          merge-multiple: true
-      # The paths in both data files are relative to the checkout (relative_files), as in the coverage job.
-      - run: python -I -m coverage combine --keep ${{ runner.temp }}/coverage-data/coverage-python ${{ runner.temp }}/coverage-data/coverage-local
-      - name: The code map
-        run: |
-          set -o pipefail      # the script's exit code, not tee's
-          site=()
-          [ -f "$RUNNER_TEMP/site-code-map/lines.json" ] && site=(--site "$RUNNER_TEMP/site-code-map")
-          python -I tests/coverage/code_map.py --python .coverage --src src/traceconomics \
-            --out "$RUNNER_TEMP/code-map/code-map.json" --commit "$GITHUB_SHA" "${site[@]}" \
-            | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: Upload the code map
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: code-map
-          path: ${{ runner.temp }}/code-map/code-map.json
-          retention-days: 7
-          if-no-files-found: error
-
-  # The same site tested a second way, with Python and Selenium on Chrome (tests/selenium), to
-  # compare the two tools. Same made-up data, a plain build (no coverage). Not a required check.
-  selenium:
-    name: "showcase: Selenium"
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.14"
-      # The Selenium lock: base, dev and the selenium extra, each file checked against its hash.
-      - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
-      - run: python -m pip install --no-deps --no-build-isolation -e .
-      - run: python tests/sitedata.py site/public/data
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          cache: npm
-          cache-dependency-path: site/package-lock.json
-      # Node only to build the site; axe-core for the accessibility tests comes from these packages too.
-      - run: npm ci --no-audit
-        working-directory: site
-        env:
-          npm_config_fetch_retries: "5"
-      # A coverage build (source maps, nothing else changes), so each test's coverage can be traced
-      # back to the site's source files for the wiki's code map.
-      - run: npm run build
-        working-directory: site
-        env:
-          TRACECONOMICS_COVERAGE: "on"
-      # Ubuntu 24.04 can stop programs outside the usual install folders from building Chrome's
-      # sandbox (AppArmor's restriction on unprivileged user namespaces), and Chrome for Testing lives
-      # in ~/.cache. Allowed here rather than running Chrome without its sandbox. Then the pinned
-      # Chrome is fetched and started once on its own, so a Chrome that can't start says why.
-      - name: Chrome starts
-        run: |
-          sysctl kernel.apparmor_restrict_unprivileged_userns || true
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          python -I tests/selenium/chrome.py
-      # With each test's coverage, for the code map (tests/selenium/page_coverage.py).
-      - run: python -I -m pytest tests/selenium --selenium -n auto -ra --junitxml=site/selenium-report/junit.xml
-        env:
-          TRACECONOMICS_COVERAGE: "on"
-          TRACECONOMICS_CODE_MAP: "on"
-      - name: The code map's lines
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        working-directory: site
-        run: node scripts/code-map-lines.mjs selenium coverage/selenium-pertest
-      - name: Upload the code map's lines
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: selenium-code-map
-          path: site/coverage/code-map/selenium.json
-          retention-days: 1
-          if-no-files-found: ignore
-      # On the run's page: passed, failed, skipped, each failure, per file; also after a failure.
-      - name: Test summary
-        if: ${{ !cancelled() }}
-        run: python -I tests/compare/report.py selenium site/selenium-report/junit.xml
-      # Every test with its time (JUnit XML) and, for a failure, a screenshot, the page and the console.
-      - name: Upload the Selenium report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: selenium-report
-          path: site/selenium-report/
-          retention-days: 7
-          if-no-files-found: ignore
-
   # Real data pass through a few states every month and year: the HICP a month behind the CPI
-  # (the site and selenium jobs above), the HICP caught up, a new year's January, a new survey year.
-  # The site and both browser suites run on each of the others, so a page or a test that works in
-  # one state only fails here, not on a release day (two release builds failed that way in 2026-11).
+  # (the site job above), the HICP caught up, a new year's January, a new survey year. The site and
+  # the Playwright suite run on each of the others, so a page or a test that works in one state only
+  # fails here, not on a release day (two release builds failed that way in 2026-11). The showcase's
+  # Selenium suite runs on every state too, in showcase.yml.
   # A plain build, no coverage: the counts come from the site job.
   data-states:
     runs-on: ubuntu-24.04
@@ -469,8 +353,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
-      # The Selenium lock: base, dev and the selenium extra, each file checked against its hash.
-      - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
+      - run: python -m pip install --require-hashes --no-deps -r requirements-dev.txt
       - run: python -m pip install --no-deps --no-build-isolation -e .
       - run: python tests/sitedata.py site/public/data --state ${{ matrix.state }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -489,24 +372,13 @@ jobs:
         working-directory: site
       - run: npm run test:ui
         working-directory: site
-      # As in the selenium job: Chrome's sandbox allowed, then the pinned Chrome started once.
-      - name: Chrome starts
-        run: |
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          python -I tests/selenium/chrome.py
-      - run: python -I -m pytest tests/selenium --selenium -n auto -ra --junitxml=site/selenium-report/junit.xml
-      - name: Test summary
-        if: ${{ !cancelled() }}
-        run: python -I tests/compare/report.py selenium site/selenium-report/junit.xml
-      # Both suites' reports, for a failure: screenshots, traces, the page and the console.
-      - name: Upload the reports
+      # The browser test's report, for a failure: screenshots and traces.
+      - name: Upload the report
         if: ${{ failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: data-state-${{ matrix.state }}-reports
-          path: |
-            site/playwright-report/
-            site/selenium-report/
+          path: site/playwright-report/
           retention-days: 7
           if-no-files-found: ignore
 
@@ -545,41 +417,14 @@ jobs:
       - run: node scripts/same-in-both.mjs dist-a dist-b
         working-directory: site
 
-  # Both suites' results from this run side by side on the run's page, also when one of them failed.
-  # Only the result files are read (no code from the branch beyond the report script).
-  compare:
-    name: "showcase: Playwright and Selenium compared"
-    needs: [site, selenium]
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.14"
-      # A suite that never ran has no file: the report says so instead of the job failing here.
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        continue-on-error: true
-        with:
-          name: playwright-results
-          path: results/playwright
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        continue-on-error: true
-        with:
-          name: selenium-report
-          path: results/selenium
-      - name: Comparison
-        run: python -I tests/compare/report.py compare results/playwright/playwright.json results/selenium/junit.xml
-
   # The test catalog (tests/catalog/): every case of the four suites, read from the tests, and the
   # check that each is well formed. A ratchet: the files tests/catalog/strict.toml lists must be
   # complete, the rest only warn until their turn; IDs that clash or were used before always fail.
   # Collecting needs every suite's tooling (the Selenium lock is a superset of the dev one), the
   # made-up data (Playwright's specs read it while they are listed), a built site (some Selenium
-  # tests are parametrized from its sitemap) and Vitest's results file.
+  # tests are parametrized from its sitemap) and Vitest's results file. Selenium's cases are only
+  # collected here, never run: the suite runs in showcase.yml. A Playwright case the cross-suite
+  # mapping doesn't list only warns (tests/catalog/validate.py): the maintainer maps it.
   catalog:
     needs: [site]
     if: ${{ !cancelled() }}
@@ -640,72 +485,6 @@ jobs:
           python -I tests/catalog/validate.py "$RUNNER_TEMP/catalog/catalog.json" --require-all --quiet \
             --obsolete "$RUNNER_TEMP/obsolete.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
-  # Every push to main's test run, recorded against its commit on the branch `test-history`
-  # (tests/catalog/history.py): each case's result, duration and retries; failures included, so it
-  # runs whatever the tests did. Pull requests are never recorded. The only other job that writes
-  # to the repository, and only to that branch, which it appends to and never force-pushes.
-  test-history:
-    needs: [python, python-local, site, selenium, catalog, code-map]
-    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    # No concurrency group: GitHub keeps one pending job per group and cancels the older one,
-    # which would drop a run's record. The push script retries on a lost race instead.
-    steps:
-      # The whole history: the push script checks that this commit descends from the stored
-      # catalog's before replacing it, so a re-run of an old run never rolls the catalog back.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.14"
-      # A suite that never ran has no file: it is left out of the record, not a reason to stop.
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        continue-on-error: true
-        with:
-          pattern: "{pytest-results,pytest-local-results,vitest-results,playwright-results,selenium-report,catalog,code-map}"
-          path: ${{ runner.temp }}/results
-      - name: The run's record
-        env:
-          R: ${{ runner.temp }}/results
-        run: |
-          args=()
-          [ -f "$R/pytest-results/pytest.xml" ] && args+=(--junit "pytest=$R/pytest-results/pytest.xml")
-          [ -f "$R/pytest-local-results/pytest-local.xml" ] && args+=(--junit "pytest-local=$R/pytest-local-results/pytest-local.xml")
-          [ -f "$R/selenium-report/junit.xml" ] && args+=(--junit "selenium=$R/selenium-report/junit.xml")
-          [ -f "$R/playwright-results/playwright.json" ] && args+=(--playwright "$R/playwright-results/playwright.json")
-          [ -f "$R/vitest-results/vitest.json" ] && args+=(--vitest "$R/vitest-results/vitest.json")
-          # Without the catalog (its job failed) the run is still recorded: Playwright's and Vitest's
-          # results carry their own IDs; pytest's and Selenium's count as tests without a case.
-          catalog="$R/catalog/catalog.json"
-          if [ ! -f "$catalog" ]; then
-            echo "::warning::No catalog from this run: pytest and Selenium results are recorded without their cases."
-            catalog="$RUNNER_TEMP/empty-catalog.json"; echo '{"cases": []}' > "$catalog"
-          fi
-          python -I tests/catalog/history.py record --catalog "$catalog" --out "$R/record.json" \
-            --trigger push --commit "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
-            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --env platform=linux-x86_64 --env runner=ubuntu-24.04 --env data=made-up "${args[@]}"
-      - name: Push the record to the branch test-history
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CATALOG_OK: ${{ needs.catalog.result == 'success' }}
-        run: |
-          # The stored catalog (and with it the obsolete IDs) moves only on a catalog whose check
-          # passed: an incomplete or broken one would make live IDs look removed.
-          catalog=()
-          [ "$CATALOG_OK" = true ] && [ -f "$RUNNER_TEMP/results/catalog/catalog.json" ] \
-            && catalog=(--catalog "$RUNNER_TEMP/results/catalog/catalog.json")
-          # The code map, when the coverage job made one: it replaces the stored map.
-          map=()
-          [ -f "$RUNNER_TEMP/results/code-map/code-map.json" ] && map=(--map "$RUNNER_TEMP/results/code-map/code-map.json")
-          .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}" \
-            "$RUNNER_TEMP/results/record.json" "${catalog[@]}" "${map[@]}"
-
   # Code scanning (CodeQL), one job per language, the same languages and categories as GitHub's
   # default setup used before (so earlier alerts and their dismissals carry over). Nothing to build:
   # Python, TypeScript and the workflow files are analysed from source. Its results are a required
@@ -731,16 +510,6 @@ jobs:
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           category: /language:${{ matrix.language }}
-
-  # The wiki (wiki.yml): the hand-written pages from wiki/ and the generated Tests pages, after this
-  # run's record is stored. wiki.yml also runs daily on its own, for the release builds' runs.
-  wiki:
-    needs: [test-history]
-    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    permissions:
-      contents: write
-    uses: ./.github/workflows/wiki.yml
-    secrets: inherit
 
   # The README's coverage badges, after a push to main whose tests passed. The badges are the only
   # files on the branch `badges`, kept as a single commit (force-pushed), so its history never grows.

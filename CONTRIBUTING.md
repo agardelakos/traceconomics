@@ -103,7 +103,7 @@ python3.14 -m venv .venv
 ```
 
 The lock files pin every package and check it against its hash. `requirements-local.txt` adds the
-optional microdata code (pandas); `requirements-selenium.txt` adds the Selenium browser tests.
+optional microdata code (pandas).
 
 ## Code style
 
@@ -154,20 +154,19 @@ npm run test:ui          # browser tests on the built site (Playwright), accessi
 `npm run check:code` is the quick check that needs no data (type check and the unit tests that
 don't read data files).
 
-**Selenium**, the second browser suite, after `npm run build` in `site/`, with the Selenium lock
-installed:
-
-```sh
-.venv/bin/python -I -m pytest tests/selenium --selenium -n auto
-```
-
-The plain pytest run never collects these. The tests marked `host` need a server that applies the
-site's headers: run `npx wrangler dev --port 8788` in `site/` and add
-`--base-url http://127.0.0.1:8788`.
-
 Writing a browser test: in Playwright, import `test` from `site/tests/ui/helpers.ts`, not from
 `@playwright/test`, and call `coverage.flush()` before a click that loads a new page. A change to
-the site's behaviour updates both browser suites.
+the site's behaviour updates the Playwright suite. A new Playwright test needs no entry in
+`tests/catalog/cases.toml`: the maintainer maps it.
+
+**The testing showcase.** The repository is also the maintainer's software-testing portfolio: a
+second browser suite (Selenium), the comparison of the two suites, the code map, mutation testing and
+the run history. It asks nothing of contributors: you never have to write, update or run a showcase
+test, its jobs never run on a pull request, and if your change breaks one of them, the maintainer
+follows up. Contributions to it are welcome. More on the wiki:
+[Testing showcase](https://github.com/agardelakos/traceconomics/wiki/Testing-showcase). The code
+map there is useful reading, not a rule: for each module and site file, the tests that run it
+([Code](https://github.com/agardelakos/traceconomics/wiki/Code)).
 
 ## Licences
 

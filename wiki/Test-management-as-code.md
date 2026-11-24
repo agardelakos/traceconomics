@@ -27,17 +27,20 @@ A catalog of all cases is generated from the tests by the tooling in `tests/cata
 reads the four suites (pytest and Selenium through a collection plugin, Playwright from its test
 listing, Vitest from a run's report), `validate.py` is the CI check, `history.py` keeps the run
 records and `wiki.py` writes the `Tests` pages. `tests/catalog/strict.toml` sets how strict the
-check is: since every test has its case, it applies to all files (`all = true`), and a Playwright or
-Selenium case missing from the cross-suite mapping is an error too.
+check is: since every test has its case, it applies to all files (`all = true`), and a Selenium
+case missing from the cross-suite mapping is an error too. A Playwright case missing from it is only
+a warning: the maintainer adds it (below).
 
 ## Two browser suites, one mapping
 
-The site has two browser suites, Playwright and Selenium, so the two tools can be compared on the
-same product. **Each suite carries only its own IDs and text.** The cross-suite link is a separate
+Besides Playwright, the site has a second browser suite, Selenium, part of the maintainer's
+[testing showcase](Testing-showcase), so the two tools can be compared on the same product. **Each
+suite carries only its own IDs and text.** The cross-suite link is a separate
 file, `tests/catalog/cases.toml`, mapping a shared case `TC-<AREA>-NNN` to the Playwright and
 Selenium IDs that implement it, or saying why a case is in one suite only. This gives traceability
 ("which behaviours are covered by both suites, which by one") in one place, without either suite
-having to name the other.
+having to name the other. The maintainer keeps the mapping: a contributor who adds a Playwright test
+doesn't edit it.
 
 ## Run history
 
@@ -47,6 +50,8 @@ the full browser suite before upload, the smoke set on the uploaded preview and 
 promote are the runs that actually gate production, on real data. Release runs are labelled by build
 and platform (for example "release build, Linux Arm").
 
+Run history is part of the [testing showcase](Testing-showcase): the `showcase` workflow records
+each run on `main` after the pipeline's run, and the daily wiki update records the release runs.
 Records are appended to the branch `test-history`, keeping the last 200 runs per trigger (a
 working assumption, to be revisited with real volumes). Pull-request runs are not recorded: they
 test code that may never merge.
@@ -64,35 +69,8 @@ public functions, classes and methods, each linked to its source line at the com
 made from. Every public part must have a docstring whose first line is one sentence
 (`tests/test_docstrings.py`), so the reference has no gaps.
 
-They also show what the tests run, from the last coverage run on `main`: the code map
-(`tests/coverage/code_map.py`, stored on the branch `test-history`). Each module lists its
-lines by the lowest layer of test that runs them, the lines no test runs, and the test cases that
-run it, each linked to its steps on the `Tests-pytest` page. Each public function shows how many
-tests run it, or "imported only" (defined while a test file was loaded, but never called by a test),
-or "no test". The overview lists the `repository` tests, which check the repository's own files and
-run no package code, and any test run without a case. A test that runs a line doesn't always check
-it.
-
-The map covers the site's own code too, on the `Code-site` page: each file's lines by the layer
-that runs them (Vitest's unit and integration files, then Playwright), and the Vitest files,
-Playwright cases and Selenium tests that run it. Vitest is measured per test file, Playwright per
-case, Selenium per test (through Chrome's DevTools protocol, taken before every navigation and
-click). The overview draws it all as charts, each in a light and a dark version with its numbers in
-a table below: stacked bars of each area's lines by status, heatmaps of the share each suite runs,
-and a table of the lines only Playwright or only Selenium runs. Each line's status is the coverage
-badges' own; which tests run a line comes from each test's own coverage, kept to what the merged
-runs and the build's bundles confirm, so the two browser suites are compared the same way.
-
-In the sidebar, the code map is under Testing (its overview on `Code`, and `Code-site`), apart from
-the code reference it shares the pages with.
-
-The [mutation testing](Tests-Mutation) page shows how well the tests check the engine, not only what
-they run: mutation testing with [mutmut](https://github.com/boxed/mutmut), started by hand (the
-`showcase` workflow). mutmut changes the engine's code in small ways, one at a time, and runs the
-tests the code map says run the engine on each change. The page gives the share of changes some test
-noticed, the score of every run so far, the result per function, and every change none did: a gap in
-the tests to close with a test, or a change that behaves the same as the code, listed with its reason
-in `tests/coverage/mutation-equivalent.toml`. `Code-engine` ends with the newest score and a link.
+The code map (what the tests run, module by module, with charts) and mutation testing are part of
+the [testing showcase](Testing-showcase), which explains them.
 
 ## Compared with a dedicated test-management tool
 
