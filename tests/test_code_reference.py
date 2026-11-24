@@ -489,14 +489,18 @@ def test_the_pages_show_the_charts_and_the_front_end(tmp_path):
     Then the overview has the map's legend, the bars and both heatmaps, each with a table, and the browser suites compared by folder
     And every chart a page shows is written, in light and dark, and parses as XML; the old chart is removed and the other picture stays
     And the site's page has a chart per folder, each file's lines, its tests linked to their cases (a Vitest file's every case, a test without a case by name), and the lines only one browser suite runs
-    And the sidebar lists the site's page
+    And the sidebar lists the code map under Testing, with its overview and the site's page, and the site's page is no longer under the code reference
     And without Selenium's lines both pages say it wasn't measured
     """
     out = tmp_path / "wiki"
     out.mkdir()
     (out / "code-map-old-light.svg").write_text("old", encoding="utf-8")
     (out / "logo.svg").write_text("kept", encoding="utf-8")
-    (out / "_Sidebar.md").write_text("- [Home](Home)\n", encoding="utf-8")
+    sidebar = (
+        "- [Home](Home)\n  <!-- code:start -->\n  <!-- code:end -->\n\n**Testing**\n\n- [Tests](Tests)\n"
+        "  <!-- codemap:start -->\n  <!-- codemap:end -->\n"
+    )
+    (out / "_Sidebar.md").write_text(sidebar, encoding="utf-8")
     code_reference.generate(made_up(tmp_path), out, REPO, COMMIT, store=front_store(tmp_path))
     overview = (out / "Code.md").read_text(encoding="utf-8")
     for part in (
@@ -534,7 +538,13 @@ def test_the_pages_show_the_charts_and_the_front_end(tmp_path):
         f"| `src/lib/x.ts` | 1: [4](https://github.com/{REPO}/blob/{MAP_COMMIT}/site/src/lib/x.ts#L4) |  |",
     ):
         assert part in site, part
-    assert "  - [Front end (site)](Code-site)" in (out / "_Sidebar.md").read_text(encoding="utf-8")
+    side = (out / "_Sidebar.md").read_text(encoding="utf-8")
+    reference, testing = side.split("**Testing**")
+    assert "Code-site" not in reference and "- [Code reference](Code)" in reference
+    assert (
+        "- [Tests](Tests)\n  <!-- codemap:start -->\n- [Code map](Code#the-map)\n  - [Overview](Code#the-map)\n"
+        "  - [Front end (site)](Code-site)\n  <!-- codemap:end -->"
+    ) in testing
 
     again = tmp_path / "again"
     code_reference.generate(
@@ -545,15 +555,15 @@ def test_the_pages_show_the_charts_and_the_front_end(tmp_path):
 
 
 def test_the_engine_page_shows_the_mutation_result(tmp_path):
-    """PY-CODEREF-012: The engine's page ends with the mutation testing result, its survivors and their reasons
+    """PY-CODEREF-012: The engine's page ends with the mutation testing result in brief, linked to its own page
 
     Given the made-up package, a stored mutation result with two survivors, one listed as behaving the same with its reason
     When the code reference is generated, then again after the engine's source changed, then from a result with no survivors
-    Then the engine's page gives the score, the counts and the commit, and each survivor's function and change
-    And the listed survivor shows its reason, the other says it isn't explained yet
+    Then the engine's page gives the score, the changes, the date and the commit, the survivors and how many aren't explained yet
+    And it links to the mutation testing page for the changes, the survivors and the score over time
     And no other page shows the result
     And once the engine's source has changed, the page says the result may no longer hold
-    And with no survivors it says the tests noticed every change
+    And with no survivors it says none survived
     """
     src = made_up(tmp_path)
     sys.path.insert(0, str(ROOT / "tests" / "coverage"))
@@ -571,6 +581,7 @@ def test_the_engine_page_shows_the_mutation_result(tmp_path):
         "mutants": 10,
         "counts": {"killed": 8, "survived": 2},
         "score": 80.0,
+        "started": "2026-12-08T10:00:00Z",
         "survivors": survivors,
         "source": mutation.fingerprint(tmp_path),
     }
@@ -585,17 +596,12 @@ def test_the_engine_page_shows_the_mutation_result(tmp_path):
     out = tmp_path / "wiki"
     code_reference.generate(src, out, REPO, COMMIT, store=folder)
     engine = (out / "Code-engine.md").read_text(encoding="utf-8")
-    assert "## Mutation testing" in engine
     assert (
-        f"**Score: 80.0%** (killed or timed out, of the changes tested), from commit [`fedcba9`](https://github.com/{REPO}/commit/{MAP_COMMIT}). Results: killed 8, survived 2."
-        in engine
-    )
-    assert (
-        "- `traceconomics.engine.chain.link`: **not explained yet**\n\n  ```diff\n  -    continue\n  +    break\n  ```"
-        in engine
-    )
-    assert "- `traceconomics.engine.chain.link`: behaves the same. a is never read." in engine
-    assert "may no longer hold" not in engine
+        f"## Mutation testing\n\n**80.0%** of 10 changes to the engine's code killed by its tests, on 2026-12-08 "
+        f"(commit [`fedcba9`](https://github.com/{REPO}/commit/{MAP_COMMIT})); 2 survived, 1 not explained yet. "
+        "Every change, every survivor and the score over time: [Mutation testing](Tests-Mutation)."
+    ) in engine
+    assert "may no longer hold" not in engine and "```diff" not in engine
     assert all(
         "Mutation testing" not in p.read_text(encoding="utf-8")
         for p in out.glob("Code*.md")
@@ -609,4 +615,5 @@ def test_the_engine_page_shows_the_mutation_result(tmp_path):
     result |= {"counts": {"killed": 10}, "score": 100.0, "survivors": []}
     (folder / "mutation.json").write_text(json.dumps(result), encoding="utf-8")
     code_reference.generate(src, out, REPO, COMMIT, store=folder)
-    assert "No survivors: the tests noticed every change." in (out / "Code-engine.md").read_text(encoding="utf-8")
+    assert "killed by its tests, on 2026-12-08 (commit" in (out / "Code-engine.md").read_text(encoding="utf-8")
+    assert "none survived." in (out / "Code-engine.md").read_text(encoding="utf-8")

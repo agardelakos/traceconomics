@@ -241,3 +241,44 @@ def picture(stem: str, alt: str) -> str:
         f'<picture><source media="(prefers-color-scheme: dark)" srcset="{stem}-dark.svg">'
         f'<img src="{stem}-light.svg" alt="{escape(alt)}" width="{WIDTH}"></picture>'
     )
+
+
+def line(points: list[tuple[str, float]], title: str, theme: dict, unit: str = "%") -> str:
+    """A value over time: one point per run, in order, the newest marked larger; the axis from a round
+    number below the lowest value to 100."""
+    pad_l, pad_r, top, h = 56, 24, 40, 150
+    low = min((v for _, v in points), default=100)
+    floor = max(0, min(90, int(low // 10) * 10 - (10 if low % 10 < 2 else 0)))
+    x0, x1, y0, y1 = pad_l, WIDTH - pad_r, h - 30, top
+
+    def y(v: float) -> float:
+        return y0 - (v - floor) / (100 - floor) * (y0 - y1)
+
+    # The points sit inside the axis, so the first clears the value labels and the last date fits.
+    inner0, inner1 = x0 + 36, x1 - 40
+    step = (inner1 - inner0) / max(1, len(points) - 1)
+    xs = [inner0 + i * step if len(points) > 1 else (inner0 + inner1) / 2 for i in range(len(points))]
+    body = [f'<text x="16" y="24" font-size="14" font-weight="600" fill="{theme["ink"]}">{escape(title)}</text>']
+    for v in (floor, (floor + 100) / 2, 100):
+        body.append(
+            f'<line x1="{x0}" y1="{y(v):.1f}" x2="{x1}" y2="{y(v):.1f}" stroke="{theme["grid"]}" stroke-width="1"/>'
+        )
+        body.append(
+            f'<text x="{x0 - 8}" y="{y(v) + 4:.1f}" font-size="11" fill="{theme["muted"]}" text-anchor="end" '
+            f'style="font-variant-numeric: tabular-nums">{v:g}{unit}</text>'
+        )
+    colour = theme["status"]["unit"]
+    if len(points) > 1:
+        path = " ".join(f"{x:.1f},{y(v):.1f}" for x, (_, v) in zip(xs, points, strict=True))
+        body.append(f'<polyline fill="none" stroke="{colour}" stroke-width="2" points="{path}"/>')
+    for i, (x, (label, v)) in enumerate(zip(xs, points, strict=True)):
+        newest = i == len(points) - 1
+        body.append(
+            f'<g><title>{escape(label)}: {v:g}{unit}</title><circle cx="{x:.1f}" cy="{y(v):.1f}" '
+            f'r="{5 if newest else 3.5}" fill="{colour}"/></g>'
+        )
+        body.append(
+            f'<text x="{x:.1f}" y="{h - 10}" font-size="11" fill="{theme["muted"]}" text-anchor="middle">'
+            f"{escape(label)}</text>"
+        )
+    return svg(body, h, title, theme)

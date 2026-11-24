@@ -83,12 +83,16 @@ and a table of the lines only Playwright or only Selenium runs. Each line's stat
 badges' own; which tests run a line comes from each test's own coverage, kept to what the merged
 runs and the build's bundles confirm, so the two browser suites are compared the same way.
 
-`Code-engine` also shows how well the tests check the engine, not only what they run: mutation
-testing with [mutmut](https://github.com/boxed/mutmut), started by hand (the `showcase` workflow).
-mutmut changes the engine's code in small ways, one at a time, and runs the tests the code map says
-run the engine on each change. The page gives the share of changes some test noticed, and every
-change none did: a gap in the tests to close with a test, or a change that behaves the same as the
-code, listed with its reason in `tests/coverage/mutation-equivalent.toml`.
+In the sidebar, the code map is under Testing (its overview on `Code`, and `Code-site`), apart from
+the code reference it shares the pages with.
+
+The [mutation testing](Tests-Mutation) page shows how well the tests check the engine, not only what
+they run: mutation testing with [mutmut](https://github.com/boxed/mutmut), started by hand (the
+`showcase` workflow). mutmut changes the engine's code in small ways, one at a time, and runs the
+tests the code map says run the engine on each change. The page gives the share of changes some test
+noticed, the score of every run so far, the result per function, and every change none did: a gap in
+the tests to close with a test, or a change that behaves the same as the code, listed with its reason
+in `tests/coverage/mutation-equivalent.toml`. `Code-engine` ends with the newest score and a link.
 
 ## Compared with a dedicated test-management tool
 

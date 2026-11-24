@@ -357,44 +357,22 @@ def equivalent_reason(survivor: dict, known: list[dict]) -> str | None:
 
 
 def mutation_section(result: dict, root: Path, repo: str) -> list[str]:
-    """The engine page's mutation testing: the score, the counts, each survivor and what it means."""
+    """The engine page's mutation testing in brief, with a link to its own page (Tests-Mutation, tests/catalog/wiki.py)."""
     path = root / EQUIVALENT
     known = tomllib.loads(path.read_text(encoding="utf-8")).get("equivalent", []) if path.is_file() else []
-    counts = result["counts"]
-    out = ["## Mutation testing\n"]
-    out.append(
-        "Coverage says which lines a test runs; mutation testing says whether the tests would notice "
-        "those lines going wrong. [mutmut](https://github.com/boxed/mutmut) changed the engine's code in "
-        f"{result['mutants']} small ways, one at a time (a `<` for a `<=`, a `break` for a `continue`), "
-        "and ran the tests that run the engine on each. A change some test notices is *killed*; one no "
-        "test notices *survived*: either the tests miss something, or the change behaves the same as the "
-        "code.\n"
-    )
+    survivors = result["survivors"]
+    gaps = sum(equivalent_reason(sv, known) is None for sv in survivors)
     score = "–" if result["score"] is None else f"{result['score']}%"
-    out.append(
-        f"**Score: {score}** (killed or timed out, of the changes tested), from commit "
-        f"[`{result['commit'][:7]}`]({commit_link(repo, result['commit'])}). Results: "
-        + ", ".join(f"{k} {v}" for k, v in counts.items())
-        + ".\n"
+    when = f"on {result['started'][:10]} " if result.get("started") else ""
+    line = (
+        f"**{score}** of {result['mutants']} changes to the engine's code killed by its tests, {when}(commit "
+        f"[`{result['commit'][:7]}`]({commit_link(repo, result['commit'])})); "
+        + (f"{len(survivors)} survived, {gaps} not explained yet." if survivors else "none survived.")
+        + " Every change, every survivor and the score over time: [Mutation testing](Tests-Mutation)."
     )
+    out = ["## Mutation testing\n", line + "\n"]
     if result.get("source") != engine_fingerprint(root):
         out.append("> The engine's code has changed since this run: the result may no longer hold.\n")
-    survivors = result["survivors"]
-    if not survivors:
-        return out + ["No survivors: the tests noticed every change.\n"]
-    reasons = [equivalent_reason(sv, known) for sv in survivors]
-    gaps = sum(r is None for r in reasons)
-    out.append(
-        f"### Survivors\n\n{len(survivors)} survivors: {gaps} not yet explained (a gap in the tests, or "
-        f"an equivalent change not written down yet), {len(survivors) - gaps} that behave the same as "
-        "the code, each with its reason.\n"
-    )
-    for sv, reason in zip(survivors, reasons, strict=True):
-        out.append(
-            f"- `{sv['function']}`: " + ("behaves the same. " + inline(reason) if reason else "**not explained yet**")
-        )
-        out.append("")
-        out += ["  ```diff", *[f"  {line}" for line in sv["change"]], "  ```", ""]
     return out
 
 
@@ -831,22 +809,36 @@ def overview_tests(cov: Coverage) -> list[str]:
     return out
 
 
-SIDEBAR_NAMES = {TOP: "Top-level modules", SITE: "Front end (site)"}
+SIDEBAR_NAMES = {TOP: "Top-level modules"}
+# The code map's own block, in the sidebar's Testing list (wiki/_Sidebar.md): the map is about tests.
+MAP_START, MAP_END = "<!-- codemap:start -->", "<!-- codemap:end -->"
 
 
-def sidebar(text: str, pages: list[str]) -> str:
-    """The sidebar with its code block replaced, or added at the end when it has no markers yet."""
+def _replace(text: str, start: str, end: str, block: str) -> str:
+    """The text with the block between `start` and `end` replaced, or the block added at the end."""
+    if start in text and end in text:
+        return re.sub(re.escape(start) + r".*?" + re.escape(end), lambda _: block, text, flags=re.S)
+    return (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
+
+
+def sidebar(text: str, pages: list[str], code_map: bool = False) -> str:
+    """The sidebar with its two blocks replaced: the code reference, and the code map (when there is one)."""
     block = "\n".join(
         [
             START,
             "- [Code reference](Code)",
-            *[f"  - [{SIDEBAR_NAMES.get(p, p)}](Code-{p})" for p in pages],
+            *[f"  - [{SIDEBAR_NAMES.get(p, p)}](Code-{p})" for p in pages if p != SITE],
             "  " + END,
         ]
     )
-    if START in text and END in text:
-        return re.sub(re.escape(START) + r".*?" + re.escape(END), lambda _: block, text, flags=re.S)
-    return (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
+    text = _replace(text, START, END, block)
+    lines = ["- [Code map](Code#the-map)", "  - [Overview](Code#the-map)"]
+    if SITE in pages:
+        lines.append(f"  - [Front end (site)](Code-{SITE})")
+    map_block = "\n".join([MAP_START, *(lines if code_map else []), "  " + MAP_END])
+    if not code_map and MAP_START not in text:
+        return text  # no map, and nowhere marked for it: nothing to add
+    return _replace(text, MAP_START, MAP_END, map_block)
 
 
 def generate(
@@ -878,7 +870,9 @@ def generate(
     sb = out / "_Sidebar.md"
     listed = [*pages, *([SITE] if f"Code-{SITE}" in texts else [])]
     sb.write_text(
-        sidebar(sb.read_text(encoding="utf-8") if sb.is_file() else "", listed), encoding="utf-8", newline="\n"
+        sidebar(sb.read_text(encoding="utf-8") if sb.is_file() else "", listed, cov is not None),
+        encoding="utf-8",
+        newline="\n",
     )
     return sorted(texts)
 
