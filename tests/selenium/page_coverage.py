@@ -8,7 +8,8 @@ code-map-lines.mjs turns that into source lines afterwards, the same way as Play
 Chrome keeps a page's coverage only while the page is open, so it is taken before every navigation
 (`get`, `refresh`) and every click, as the Playwright fixture's `coverage.flush()` does. The profiler
 has to start on a page of the site's own origin: started on `about:blank`, it is lost when the first
-page of the site opens in another renderer.
+page of the site opens in another renderer. So it starts on the test server's blank page
+(server.BLANK), and only when the suite serves the build itself, not with `--base-url`.
 
 Writes site/coverage/selenium-pertest/: per test, `test-<worker>-<n>.json` (its node ID and the
 raw entries), and per Chrome, `sources-<worker>-<kind>.json` (each script's source, once).

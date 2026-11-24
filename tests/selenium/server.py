@@ -3,12 +3,20 @@
 It serves `site/dist` the way a static host does: `/en/about/` is `en/about/index.html`, a folder
 without its slash is redirected to it, anything missing is a 404. It sends none of the host's own
 headers (`site/public/_headers`): the tests that check those run against a real host (`--base-url`).
+
+One address is its own, never the site's: `BLANK`, an empty page on the site's origin, where a reset
+starts Chrome's profiler when each test's coverage is recorded (page_coverage.py). It runs nothing,
+and its empty icon keeps Chrome from asking for `/favicon.ico`, which the site doesn't have (its
+pages name their icon): that request's 404 would land in the next test's console.
 """
 
 import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+BLANK = "/__blank__"
+BLANK_PAGE = b'<!DOCTYPE html><html lang="en"><head><title>blank</title><link rel="icon" href="data:,"></head></html>'
 
 
 class _Handler(SimpleHTTPRequestHandler):
@@ -23,6 +31,16 @@ class _Handler(SimpleHTTPRequestHandler):
         ".txt": "text/plain; charset=utf-8",
         ".xml": "application/xml",
     }
+
+    def do_GET(self):
+        if self.path == BLANK:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(BLANK_PAGE)))
+            self.end_headers()
+            self.wfile.write(BLANK_PAGE)
+            return
+        super().do_GET()
 
     def end_headers(self):
         # Every test sees the current build, never a cached copy from an earlier one.
