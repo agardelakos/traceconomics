@@ -10,7 +10,9 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("selenium")
+# The package's own module: `selenium` alone would find the folder tests/selenium, which is on the
+# import path, and pass without the package installed.
+pytest.importorskip("selenium.webdriver")
 from selenium.webdriver.remote.webdriver import WebDriver  # noqa: E402
 from selenium.webdriver.remote.webelement import WebElement  # noqa: E402
 
