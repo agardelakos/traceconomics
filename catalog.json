@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "8bea1dab962edc50673cd44ccf1eca00cc0216d7",
- "generated": "2026-11-24T16:26:00Z",
+ "commit": "47261f9c635cdd71ff7a6081179ac4013ff39db0",
+ "generated": "2026-11-24T17:37:19Z",
  "missing": [],
  "cases": [
   {
@@ -20633,6 +20633,32 @@
    "problems": [],
    "named": false,
    "layer": "repository"
+  },
+  {
+   "id": "PY-SELSRV-001",
+   "suite": "pytest",
+   "title": "the server's blank page runs nothing and names an empty icon; the build is served as it is",
+   "file": "tests/test_selenium_server.py",
+   "line": 19,
+   "node": "tests/test_selenium_server.py::test_the_blank_page_asks_for_nothing_and_the_site_is_served_as_built",
+   "given": [
+    "a built site of one page"
+   ],
+   "when": [
+    "the server is asked for the blank page, the page, and a favicon.ico the site doesn't have"
+   ],
+   "then": [
+    "the blank page is HTML with an empty icon and no script, so a browser asks for nothing more",
+    "the site's page comes back as built, never to be cached",
+    "the missing file is a 404, as on the host"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "unit"
   },
   {
    "id": "PY-CALIB-001",
