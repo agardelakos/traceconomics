@@ -31,7 +31,7 @@ import pytest
 from helpers import BLOCKED, DIST, REPORT, Site
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from server import StaticServer
+from server import BLANK, StaticServer
 
 DESKTOP = (1280, 900)
 # Pixel 7, as Chrome's device list has it.
@@ -143,11 +143,11 @@ def pytest_runtest_makereport(item, call):
 def _reset(driver, base_url, *, recording=False):
     """Back to a blank page with nothing stored, as a new visitor.
 
-    When the test's coverage is recorded, the blank page is one of the site's own (robots.txt, which
-    runs no script): the profiler starts there and survives the test's first page.
+    When the test's coverage is recorded, the blank page is on the site's origin (the test server's
+    own, server.BLANK): the profiler starts there and survives the test's first page.
     """
     origin = re.match(r"https?://[^/]+", base_url)[0]
-    driver.get(origin + "/robots.txt" if recording else "about:blank")
+    driver.get(origin + BLANK if recording else "about:blank")
     driver.execute_cdp_cmd("Storage.clearDataForOrigin", {"origin": origin, "storageTypes": "all"})
     driver.execute_cdp_cmd("Network.clearBrowserCookies", {})
     # The analytics beacon is only in release builds; if one ever sneaks into a test build it must
@@ -178,7 +178,8 @@ def _site_fixture(kind):
     @pytest.fixture
     def fixture(request, _pool, base_url):
         driver = _pool.get(kind)
-        recorder = _pool.recorders.get(kind)
+        # Recorded only against the suite's own server, which has the blank page to start from.
+        recorder = None if request.config.getoption("--base-url") else _pool.recorders.get(kind)
         _reset(driver, base_url, recording=recorder is not None)
         if recorder is not None:
             recorder.start()
