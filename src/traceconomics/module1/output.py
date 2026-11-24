@@ -75,6 +75,7 @@ GAP = ("Q1", "Q5")
 
 
 def code_fingerprint() -> str:
+    """The first 16 hex digits of a SHA-256 over the code files in CODE, with line endings normalised."""
     # Line endings are normalised: a Windows checkout (CRLF) and a Linux one (LF) of the same code
     # must give the same fingerprint.
     h = hashlib.sha256()
@@ -96,9 +97,11 @@ FLAGS = {"cpi": (LESS_CERTAIN, 2010), "hicp": (COARSER, 2014)}
 
 
 def quality(unit: str, period: str, price_source: str = "cpi") -> str:
-    """The flag for a value: on the index months up to December of the flag's last year, and on
-    every value that compares with them (annual rates and contributions to the next December,
-    monthly rates to the next January, annual averages to the next year)."""
+    """The flag for a value, or "" when its period is past the flag's reach.
+
+    The flag is on the index months up to December of the flag's last year, and on every value that
+    compares with them (annual rates and contributions to the next December, monthly rates to the
+    next January, annual averages to the next year)."""
     flag, year = FLAGS[price_source]
     if unit.startswith("I"):
         last = f"{year}-12"
@@ -121,6 +124,7 @@ LOW_RELIABILITY = "low reliability"
 
 
 def is_default_row(r: dict) -> bool:
+    """True for a row of the default combination, the one the CSV files hold."""
     return r["spending"] == "purchases" and all(r[k] == v for k, v in DEFAULTS.items())
 
 
@@ -137,10 +141,11 @@ def _key(s: Series, unit: str, group: str | None = None, code: str = "TOTAL") ->
 
 
 def published_weights(u) -> dict[str, tuple[float, str, int]]:
-    """{code: (weight, priced with, cells)}: cells with fewer than 20 reporting households are
-    merged into one "rest of" row per parent, so no small cell is shown on its own (the
-    computation prices them at that parent's level too). A rest row that holds a single cell
-    still describes that cell, so it is flagged "low reliability"."""
+    """{code: (weight, priced with, cells)}, with small cells merged into one "rest of" row per parent.
+
+    Cells with fewer than 20 reporting households are merged into one "rest of" row per parent, so
+    no small cell is shown on its own (the computation prices them at that parent's level too). A
+    rest row that holds a single cell still describes that cell, so it is flagged "low reliability"."""
     out: dict[str, tuple[float, set, int]] = {}
     for code, w in u.weights.items():
         target = f"{u.small[code]}{REST}" if code in u.small else code
@@ -218,12 +223,14 @@ def gap_rows(lo: Series, hi: Series, clo=None, chi=None):
 
 
 def setting_of(s: Series) -> tuple:
+    """A series' setting as a hashable key: its spending, then its options sorted by name."""
     return (s.spending, *sorted(s.options.items()))
 
 
 def iter_rows(series: list[Series], blocks=None):
-    """(table, row) for a list of series, then the Q1-Q5 gap of every quintile grouping and
-    setting. `blocks`: {price source: blocks}, or one source's blocks for all; without them, no
+    """(table, row) for a list of series, then the Q1-Q5 gap of every quintile grouping and setting.
+
+    `blocks`: {price source: blocks}, or one source's blocks for all; without them, no
     contributions."""
     contrib = {}
     if blocks is not None:
@@ -242,6 +249,7 @@ def iter_rows(series: list[Series], blocks=None):
 
 
 def rows(series: list[Series], blocks=None) -> dict[str, list[dict]]:
+    """Every row of a list of series and of their Q1-Q5 gaps, by table name."""
     out = {name: [] for name in TABLES}
     for name, r in iter_rows(series, blocks):
         out[name].append(r)
@@ -249,8 +257,9 @@ def rows(series: list[Series], blocks=None) -> dict[str, list[dict]]:
 
 
 class Writer:
-    """Streams rows to disk a batch of series at a time: every combination into Parquet, the
-    default combination also into CSV."""
+    """Streams rows to disk a batch of series at a time.
+
+    Every combination goes into Parquet, the default combination also into CSV."""
 
     def __init__(self, folder: Path):
         self.folder = Path(folder)
@@ -265,6 +274,7 @@ class Writer:
         self.first_period = self.last_period = None
 
     def add(self, series: list[Series], blocks=None) -> None:
+        """Write the rows of a batch of series and widen the first and last period seen."""
         for s in series:
             if s.published:
                 lo, hi = min(s.published), max(s.published)
@@ -277,6 +287,10 @@ class Writer:
                 self._writers[(name, "default")].writerow(r)
 
     def close(self) -> list[Path]:
+        """Close the CSV files and turn each table's full CSV into Parquet, deleting the CSV.
+
+        Returns the files written: each table's default-combination CSV and its Parquet file.
+        """
         for f in self._files.values():
             f.close()
         written = []
@@ -294,10 +308,12 @@ class Writer:
 
 
 def parquet_connection():
-    """A DuckDB connection for writing Parquet files. One thread: DuckDB reads the CSV in parallel
-    chunks, one per thread, and the Parquet row groups follow those chunks, so with the default
-    (one thread per core) the same rows give different files on machines with different numbers
-    of cores. Published files must be byte-identical wherever they are built."""
+    """A DuckDB connection for writing Parquet files.
+
+    One thread: DuckDB reads the CSV in parallel chunks, one per thread, and the Parquet row groups
+    follow those chunks, so with the default (one thread per core) the same rows give different
+    files on machines with different numbers of cores. Published files must be byte-identical
+    wherever they are built."""
     return duckdb.connect(config={"threads": 1})
 
 
@@ -318,6 +334,7 @@ def _write(folder: Path, name: str, table: list[dict]) -> list[Path]:
 
 
 def write_validation(folder: Path, validation: list[Series], blocks=None) -> list[Path]:
+    """Write the validation series' tables under `validation/` in `folder`; empty tables are skipped."""
     written = []
     for name, table in rows(validation, blocks).items():
         if table:
@@ -352,6 +369,11 @@ NOTES = [
 
 
 def write_metadata(folder: Path, *, first_period, last_period, manifest: dict, notes=NOTES) -> Path:
+    """Write `metadata.json`: dimensions, units, quality flags, sources, notes, attribution, manifest.
+
+    Raises ValueError if a source isn't in the bibliography. The file holds the time it was
+    written, so it differs from run to run.
+    """
     missing = references.missing(SOURCES)
     if missing:
         raise ValueError(f"sources not in the bibliography: {missing}")

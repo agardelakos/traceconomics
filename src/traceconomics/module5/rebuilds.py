@@ -29,6 +29,10 @@ HICP = "gr-hicp-rebuilt-items"
 def from_validation(
     check_id: str, validation: Validation, published: dict, rebuilt: dict, explanations: list[Explanation]
 ) -> Check:
+    """A check from a validation's monthly rates: equal at one decimal agrees, 0.1 apart is rounding.
+
+    A larger gap takes its hand-written explanation, or "not-known".
+    """
     check = Check(check_id, "gr", "percent, one decimal", 0.0, published=published, rebuilt=rebuilt)
     for period, ours, theirs in sorted(validation.rows):
         gap = abs(round(ours, 1) - round(theirs, 1))
@@ -45,6 +49,7 @@ def from_validation(
 
 
 def cpi(archive, explanations: list[Explanation]) -> Check:
+    """The CPI rebuilt from the archived table 07 files, as a check (the strictly checked years only)."""
     from traceconomics.validate import v1_cpi
 
     checked, _earlier, _disagreements, _files = v1_cpi.run_archive(archive)
@@ -58,6 +63,10 @@ def cpi(archive, explanations: list[Explanation]) -> Check:
 
 
 def hicp(archive, archive_dir, duck, explanations: list[Explanation]) -> Check | None:
+    """The Greek HICP rebuilt at its finest detail from Eurostat's archived files, as a check.
+
+    None when either file isn't archived or there is no finest-detail result.
+    """
     from traceconomics.validate import v1
 
     paths = {}

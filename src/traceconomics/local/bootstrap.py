@@ -51,6 +51,8 @@ HIGH_RSE = 0.25  # relative standard error at which a share is flagged (BLS/ABS 
 
 @dataclass
 class Design:
+    """The sampling design a survey's files support, why, and each household's stratum and area."""
+
     status: str  # "full", "approximate" or "unavailable"
     note: str
     strata: np.ndarray | None = None
@@ -58,6 +60,10 @@ class Design:
 
 
 def design(survey: Survey) -> Design:
+    """The survey's design for the bootstrap: full, approximate (the region as strata) or unavailable.
+
+    Raises `checks.FormatError` if an area sits in more than one stratum or a stratum has one area.
+    """
     h = survey.households
     if survey.design == "no-clusters":
         return Design(
@@ -94,8 +100,11 @@ def replicate_factors(d: Design, replicates: int, rng: np.random.Generator) -> n
 
 
 def replicate(w: np.ndarray, factors: np.ndarray, calibrate: Calibrate | None) -> np.ndarray:
-    """Replicate weights: the survey's weights rescaled by each replicate's draws, then calibrated
-    again where the survey's own weights were (each replicate is a survey of its own)."""
+    """Replicate weights: the survey's weights rescaled by each replicate's draws, then calibrated again.
+
+    They are calibrated again where the survey's own weights were (each replicate is a survey of its
+    own).
+    """
     rw = w[:, None] * factors
     return calibrate(rw) if calibrate is not None else rw
 
@@ -108,9 +117,12 @@ def standard_errors(
     spending: str = "purchases",
     calibrate: Calibrate | None = None,
 ) -> tuple[Design, pd.DataFrame]:
-    """(the design used, a table grouping, group, imputed_rent, code, se) for the published
-    groupings. The table is empty when the design is unavailable. `calibrate`: how the survey's
-    weights were calibrated, applied again to each replicate's weights."""
+    """The design used and the standard error of every share of the published groupings.
+
+    Returns (the design used, a table grouping, group, imputed_rent, code, se). The table is empty
+    when the design is unavailable. `calibrate`: how the survey's weights were calibrated, applied
+    again to each replicate's weights.
+    """
     d = design(survey)
     if d.status == "unavailable":
         return d, pd.DataFrame(columns=["grouping", "group", "imputed_rent", "code", "se"])
@@ -174,9 +186,12 @@ def limit_errors(
     seed: int = SEED,
     calibrate: Calibrate | None = None,
 ) -> tuple[Design, np.ndarray | None]:
-    """(the design used, the standard error of each limit between the grouping's parts, or None
-    when the design is unavailable). The same replicates as `standard_errors` (same seed and
-    draws): in each one the households are ranked again and the limits recomputed."""
+    """The design used and the standard error of each limit between the grouping's parts.
+
+    Returns (the design used, the standard errors, or None when the design is unavailable). The same
+    replicates as `standard_errors` (same seed and draws): in each one the households are ranked
+    again and the limits recomputed.
+    """
     d = design(survey)
     if d.status == "unavailable":
         return d, None
@@ -198,8 +213,10 @@ def limit_errors(
 
 
 def with_errors(shares: pd.DataFrame, errors: pd.DataFrame, d: Design) -> pd.DataFrame:
-    """The shares table plus se, rse (se / share) and high_rse (rse of 25% or more), and the design
-    status. Without a design the error columns are empty."""
+    """The shares table plus se, rse (se / share), high_rse (rse of 25% or more) and the design status.
+
+    Without a design the error columns are empty.
+    """
     key = ["grouping", "group", "imputed_rent", "code"]
     out = shares.merge(errors, on=key, how="left", validate="one_to_one")
     published = out.grouping.isin(PUBLISHED)

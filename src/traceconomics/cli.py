@@ -15,6 +15,11 @@ from traceconomics.notify import notify
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Parse the arguments, run the command and return its exit code.
+
+    A crash in a command is reported through `notify` (email or the outbox), since a scheduled
+    run has no console, and returns 1.
+    """
     p = argparse.ArgumentParser(
         prog="traceconomics", description="TracEconomics: an open economy tracker built only on public data."
     )

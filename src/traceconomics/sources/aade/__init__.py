@@ -1,5 +1,4 @@
-"""AADE, Greece's Independent Authority for Public Revenue: its yearly statistics on personal
-income tax returns.
+"""AADE, Greece's Independent Authority for Public Revenue: its yearly statistics on personal income tax returns.
 
 AADE publishes one workbook per tax year on its statistics page (`PAGE`). Each is archived once,
 as served (a file's address carries its upload month, so a new year is a new link). The daily

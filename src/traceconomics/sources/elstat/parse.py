@@ -67,6 +67,11 @@ TOTAL = "TOTAL"
 
 @dataclass
 class Table07:
+    """One year's table 07: weights (per mille), monthly indices, annual averages and labels per COICOP 2018 code.
+
+    The overall index is under `TOTAL`; `weight_text` holds each weight as `repr` text.
+    """
+
     year: int
     language: str  # "en" or "el"
     weights: dict[str, float] = field(default_factory=dict)  # code -> per mille
@@ -76,7 +81,10 @@ class Table07:
     labels: dict[str, str] = field(default_factory=dict)
 
     def rows(self):
-        """Long form: (freq, unit, code, ref_period, value). Unit I20 = index 2020=100; PM = per mille."""
+        """Long form: (freq, unit, code, ref_period, value).
+
+        Unit I20 = index 2020=100; PM = per mille.
+        """
         for code, w in self.weights.items():
             yield "A", "PM", code, str(self.year), w
         for code, series in self.indices.items():
@@ -117,6 +125,11 @@ def _number(v) -> float | None:
 
 
 def parse(path: Path) -> Table07:
+    """Read one year's table 07 (`.xls` or `.xlsx`, English or Greek); the year and language come from its title.
+
+    Raises `checks.FormatError` on any unexpected layout, a code repeated with different values,
+    weights that don't add up to 1000, or index values out of range.
+    """
     rows = _read_rows(path)
     require(len(rows) > 10, f"{path.name}: only {len(rows)} rows")
     title = " ".join(_text(v) for v in rows[0])

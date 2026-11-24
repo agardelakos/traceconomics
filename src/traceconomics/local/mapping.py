@@ -1,5 +1,7 @@
-"""Map survey spending to COICOP 2018, the classification of the price indices from 2026 and of
-the household budget survey from 2024.
+"""Map survey spending to COICOP 2018.
+
+COICOP 2018 is the classification of the price indices from 2026 and of the household budget
+survey from 2024.
 
 Older surveys use older codes, in two lists:
 - 2015-2023: ECOICOP version 1 subclasses (5 digits, e.g. 04110 actual rent);
@@ -53,6 +55,7 @@ MISFIT = 0.01  # a RAS group whose new-subclass totals are missed by more is fla
 
 
 def load(name: str) -> pd.DataFrame:
+    """One of the package's mapping tables as a DataFrame: from_code, to_code, share, method, note."""
     return pd.DataFrame(read(name), columns=list(FIELDS))
 
 
@@ -118,9 +121,12 @@ def correspondence(path: Path) -> pd.DataFrame:
 
 
 def subclass_weights(weights: pd.Series, subclasses) -> pd.Series:
-    """Per mille per subclass. Eurostat leaves out the rows below a class or group with a single
-    subclass (06300 hospital services is published as 063 only); there the nearest published
-    parent's weight is the subclass's, provided the subclass is the only one under it."""
+    """Per mille per subclass.
+
+    Eurostat leaves out the rows below a class or group with a single subclass (06300 hospital
+    services is published as 063 only); there the nearest published parent's weight is the
+    subclass's, provided the subclass is the only one under it.
+    """
     subclasses = sorted(subclasses)
     out = {}
     for code in subclasses:
@@ -370,6 +376,10 @@ def build(archive, store_root: Path, out_dir: Path) -> dict:
 
 
 def write(table: pd.DataFrame, path: Path, header: list[str]) -> None:
+    """Write a mapping table to `path` as CSV: the header as `# ` lines, rows by from_code and to_code.
+
+    Shares are written with ten decimals.
+    """
     with open(path, "w", encoding="utf-8", newline="") as f:
         for line in header:
             f.write(f"# {line}\n")

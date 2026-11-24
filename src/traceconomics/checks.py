@@ -13,6 +13,7 @@ class FormatError(Exception):
 
 
 def require(ok: bool, message: str) -> None:
+    """Raise `FormatError` with the message unless `ok` is true."""
     if not ok:
         raise FormatError(message)
 

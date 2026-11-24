@@ -19,7 +19,10 @@ FIELDS = ("from_code", "to_code", "share", "method", "note")
 
 
 def read(name: str) -> list[dict]:
-    """One table's rows, with `share` as a float. Every source code's shares must add up to 1."""
+    """One table's rows, with `share` as a float.
+
+    Every source code's shares must add up to 1.
+    """
     text = resources.files("traceconomics.data").joinpath(name).read_text(encoding="utf-8")
     body = "\n".join(line for line in text.splitlines() if not line.startswith("#"))
     reader = csv.DictReader(io.StringIO(body))

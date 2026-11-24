@@ -1,5 +1,6 @@
-"""The hospital-services check: how much the series change if the
-hospital spending the 2008-2014 public use files leave out were put back.
+"""The hospital-services check: how much the series change with the hospital spending put back.
+
+That is the hospital spending the 2008-2014 public use files leave out.
 
 Those files have no hospital services (06.3) at all, while ELSTAT's published table 1.03 gives
 the average spent per household in each of its bands (income bands, or household size in 2013).
@@ -37,6 +38,10 @@ def with_hospital(survey, table) -> tuple[pd.Series, str]:
 
 
 def baskets_with_hospital(archive: Archive, year: int, groups_wanted) -> tuple[dict, str, float]:
+    """One survey's group baskets with hospital spending put back, how its bands were drawn, and its share.
+
+    The share is hospital spending as a part of all households' weighted purchases.
+    """
     prepared = prepare(archive, year)
     survey, groups, mapped = prepared.calibrated, prepared.groups, prepared.mapped
     table = hbs_tables.parse(v2.archived_tables(archive)[year], year)
@@ -57,6 +62,11 @@ def baskets_with_hospital(archive: Archive, year: int, groups_wanted) -> tuple[d
 
 
 def run(archive: Archive, con, groups_wanted=None) -> dict:
+    """The change hospital spending makes to each group's annual-average rate and to the B grouping's Q1-Q5 gap.
+
+    Years up to 2016, the index years the 2008-2014 surveys feed. Reads the archive and the store and
+    changes nothing.
+    """
     groups_wanted = groups_wanted or index.PUBLISHED_GROUPS
     blocks = index.price_blocks(con, archive)
     base = load_baskets(con, spending="purchases")

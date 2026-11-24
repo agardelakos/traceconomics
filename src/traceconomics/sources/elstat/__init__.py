@@ -104,6 +104,8 @@ def _day(text: str) -> date | None:
 
 @dataclass(frozen=True)
 class CalendarPage:
+    """The release calendar page's rows: those with a readable date, and those without one."""
+
     entries: list[tuple[date, str, str]]  # (release date, indicator, reference period)
     unreadable: list[tuple[str, str]]  # (the date as written, indicator): typos such as "10/11/2 6"
 
@@ -153,6 +155,7 @@ def release_dates(page: bytes) -> dict[str, list[date]]:
 
 
 def calendar_content(page: bytes) -> str:
+    """The calendar page's readable rows as text, one per line: what counts as a change of the page."""
     # What counts as a change of the page. Never raises: it runs while the file is being stored.
     return "\n".join(f"{d.isoformat()}\t{n}\t{p}" for d, n, p in _calendar_rows(page).entries)
 
@@ -169,6 +172,8 @@ def calendar_pdf_links(page: bytes) -> dict[int, str]:
 
 @dataclass(frozen=True)
 class ReleaseDays:
+    """Release days per topic (cpi, hicp, hbs), and the years they cover in full."""
+
     dates: dict[str, list[date]]  # per topic
     # The years these dates cover in full. For them, the job replaces the future release days it
     # knew with these, so a release that ELSTAT moved doesn't stay behind as a release day.
@@ -278,8 +283,9 @@ def _calendar_pdfs(ctx: RunContext, state: dict, page: bytes) -> dict[int, dict[
 
 
 def new_documents(archive: Archive, http, topic: str) -> list[str]:
-    """Document IDs the topic's page lists that the archive doesn't hold: one request, the poll's
-    sign that a release is out.
+    """Document IDs the topic's page lists that the archive doesn't hold.
+
+    One request: the poll's sign that a release is out.
 
     A changed page is not the sign: the CPI page was archived anew on days without a release
     (2026-11-04, -07, -11, -18), while the release of 2026-11-10 brought IDs never seen before.
@@ -291,7 +297,10 @@ def new_documents(archive: Archive, http, topic: str) -> list[str]:
 
 
 def run(ctx: RunContext, state: dict) -> ReleaseDays:
-    """Fetch everything due today. Returns the release days read from the calendar."""
+    """Fetch everything due today.
+
+    Returns the release days read from the calendar.
+    """
     # 1. The calendar first, so the rest of the run knows what was released.
     days = _calendar(ctx, state)
     dates = days.dates

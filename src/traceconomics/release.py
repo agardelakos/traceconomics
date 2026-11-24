@@ -71,6 +71,8 @@ CONFIRM_EVERY, CONFIRM_FOR = 10, 120
 
 @dataclass(frozen=True)
 class Step:
+    """One command of a release build: its name, arguments, working folder and extra environment."""
+
     name: str
     argv: tuple[str, ...]
     cwd: Path | None = None
@@ -82,6 +84,7 @@ Runner = Callable[[Step, dict, Path], int]
 
 
 def run_step(step: Step, env: dict, log: Path) -> int:
+    """Run a step with its output and errors written to the log file, and return its exit code."""
     exe = shutil.which(step.argv[0]) or step.argv[0]  # npm and npx are .cmd files on Windows
     with log.open("w", encoding="utf-8") as f:
         f.write(f"$ {' '.join(step.argv)}\n")
@@ -158,8 +161,11 @@ BROWSER_STEPS = ("ui-test", "smoke")
 
 
 def ui_failures(results: Path) -> list[str]:
-    """ "<test>: <first line of its error>" for each failed test in a Playwright results file, and
-    errors outside any test (a server that didn't start); [] if the file is missing or unreadable."""
+    """The failed tests and outside errors in a Playwright results file, one line each.
+
+    Each failed test as "<test>: <first line of its error>", and errors outside any test (a
+    server that didn't start); [] if the file is missing or unreadable.
+    """
     try:
         data = json.loads(results.read_text(encoding="utf-8"))
     except OSError, ValueError:
@@ -193,8 +199,10 @@ def _note_ui(record: dict, ui: Path, step: str) -> None:
 
 
 def ui_fingerprint(site: Path) -> str:
-    """The browser tests as they are: their files, their config, and the lock file that pins
-    Playwright. A retest must run the tests its build ran."""
+    """The browser tests as they are: their files, their config, and the lock file that pins Playwright.
+
+    A retest must run the tests its build ran.
+    """
     files = [site / "playwright.config.ts", site / "package-lock.json", *sorted((site / "tests" / "ui").rglob("*"))]
     h = hashlib.sha256()
     for f in files:
@@ -266,8 +274,10 @@ def build(
     now: datetime | None = None,
     released: datetime | None = None,
 ) -> dict:
-    """Build, check and test a release; `released` is when the publisher released the data it
-    was started for (the job passes it), so the record can say how long the data took to go live.
+    """Build, check and test a release.
+
+    `released` is when the publisher released the data it was started for (the job passes it),
+    so the record can say how long the data took to go live.
 
     One build at a time. A build that finds another running doesn't fail: it is queued
     (`WANTED`), and the running build starts it when it ends, so new files never wait for the
@@ -338,8 +348,11 @@ def _build(
 
 
 def want(releases_dir: Path, reason: str, released: datetime | None) -> None:
-    """Queue a build for when the running one ends. Several wishes make one build: their reasons
-    together, timed from the earliest release among them (the data that has waited longest)."""
+    """Queue a build for when the running one ends.
+
+    Several wishes make one build: their reasons together, timed from the earliest release among
+    them (the data that has waited longest).
+    """
     path = releases_dir / WANTED
     old = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"reasons": [], "released": None}
     reasons = old["reasons"] + ([reason] if reason not in old["reasons"] else [])
@@ -539,8 +552,11 @@ def retest(
     runner: Runner = run_step,
     now: datetime | None = None,
 ) -> dict:
-    """Run a held-back build's browser tests again, and its upload if it never got that far, on
-    the files it built. A pass makes it a good build, ready to promote."""
+    """Run a held-back build's browser tests again on the files it built.
+
+    Its upload runs again too if it never got that far. A pass makes it a good build, ready to
+    promote.
+    """
     r = cfg.release
     if r.site_dir is None:
         raise SystemExit("release.site_dir is not set in the config")
@@ -669,6 +685,7 @@ def _timing(record: dict) -> list[str]:
 
 
 def render(record: dict) -> str:
+    """The text of a release build's report: its steps, retests, changes and decision, or why it failed."""
     lines = [f"Release {record['id']} ({record['reason']}): {record['result'].upper()}", ""]
     lines += _timing(record)
     for s in record["steps"]:
@@ -757,8 +774,10 @@ def promoted(releases_dir: Path) -> dict[str, dict]:
 
 
 def baseline(releases_dir: Path) -> dict | None:
-    """The build the next one is compared with: the one on production, else on staging, else the
-    newest good one."""
+    """The build the next one is compared with.
+
+    The one on production, else on staging, else the newest good one.
+    """
     on = promoted(releases_dir)
     if on:
         return on.get(PRODUCTION) or on[STAGING]
@@ -880,8 +899,11 @@ def status(releases_dir: Path) -> list[dict]:
 
 
 def prune(releases_dir: Path, keep: int) -> list[str]:
-    """Delete all but the newest `keep` builds; a build on staging or production, and the one each
-    replaced there (the revert target), is always kept."""
+    """Delete all but the newest `keep` builds.
+
+    A build on staging or production, and the one each replaced there (the revert target), is
+    always kept.
+    """
     on = promoted(releases_dir).values()
     live = {rec["id"] for rec in on} | {rec["previous"] for rec in on if rec.get("previous")}
     builds = sorted((p for p in releases_dir.iterdir() if (p / "release.json").is_file()), reverse=True)

@@ -1,5 +1,6 @@
-"""One-off: move a local setup from the project's earlier name (open-econ-tracker, package `oet`)
-to Traceconomics.
+"""One-off: move a local setup from the project's earlier name to Traceconomics.
+
+The earlier name was open-econ-tracker, package `oet`.
 
 What moves:
 - the config file: a new one is written under the new name, with the folder paths, User-Agent
@@ -48,6 +49,7 @@ def _config_base() -> Path:
 
 
 def rewrite_config(text: str) -> str:
+    """The config text with the old project's names, paths and variables changed to the new ones."""
     for pattern, replacement in CONFIG_RULES:
         text = pattern.sub(replacement, text)
     return text
@@ -55,6 +57,8 @@ def rewrite_config(text: str) -> str:
 
 @dataclass
 class Plan:
+    """What a migration did or would do, step by step, and the problems that stopped a step."""
+
     steps: list[str] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)
 
@@ -67,6 +71,12 @@ def _username(config_text: str) -> str | None:
 def run(
     dry_run: bool = True, home: Path | None = None, config_base: Path | None = None, keyring_module=None, schtasks=True
 ) -> Plan:
+    """Move a local setup from the old name to the new one, and return the plan.
+
+    With `dry_run` (the default) nothing changes. Otherwise it writes the new config file,
+    renames folders in the home folder, copies the keyring password and removes the old Windows
+    scheduled task.
+    """
     home = home or Path.home()
     base = config_base or _config_base()
     plan = Plan()

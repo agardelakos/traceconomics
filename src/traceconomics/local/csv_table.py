@@ -18,6 +18,10 @@ def _num(x, digits: int = 10) -> str:
 
 
 def to_csv(table: pd.DataFrame, header: list[str]) -> bytes:
+    """A table as UTF-8 CSV bytes: each header line as a `# ` line, then the columns and rows.
+
+    Floats are written with ten significant digits; NaN, NA and None are left blank.
+    """
     out = io.StringIO()
     for line in header:
         out.write(f"# {line}\n")

@@ -25,13 +25,16 @@ def annual_rate(index: Index, period: str) -> float | None:
 
 
 def monthly_rate(index: Index, period: str) -> float | None:
-    """Change on the previous month. Seasonal: neither the CPI nor the HICP is adjusted."""
+    """Change on the previous month.
+
+    Seasonal: neither the CPI nor the HICP is adjusted."""
     prev = index.get(_shift(period, -1))
     cur = index.get(period)
     return None if prev is None or cur is None else (cur / prev - 1) * 100
 
 
 def annual_average(index: Index, year: int) -> float | None:
+    """The mean of the year's twelve monthly values, or None if any month is missing."""
     values = [index.get(f"{year}-{m:02d}") for m in range(1, 13)]
     return None if any(v is None for v in values) else sum(values) / 12
 
@@ -44,7 +47,9 @@ def annual_average_rate(index: Index, year: int) -> float | None:
 
 
 def rebase(index: Index, year: int) -> Index:
-    """The same index with the average of `year` set to 100. Rates are unchanged."""
+    """The same index with the average of `year` set to 100.
+
+    Rates are unchanged."""
     avg = annual_average(index, year)
     if avg is None:
         raise ValueError(f"no complete year {year} to rebase on")

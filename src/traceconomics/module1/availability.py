@@ -77,6 +77,7 @@ class Summary:
 
     @classmethod
     def of(cls, s: Series) -> Summary:
+        """The summary of one series: its setting, periods, surveys and footnotes."""
         rates = sorted(p for p, r in s.rates().items() if "annual" in r)
         averages = sorted(s.annual_average_rates())
         out = cls(
@@ -93,6 +94,10 @@ class Summary:
 
 
 def footnotes(m: Summary) -> dict[str, dict]:
+    """The footnotes a series carries: hospital services left out, the lockdown survey, first estimates.
+
+    Keyed by reason; each gives the periods it covers and its text.
+    """
     out = {}
     hospital = [y for y, (h, _) in m.surveys.items() if h in HOSPITAL_SURVEYS]
     if hospital and m.annual:
@@ -129,6 +134,7 @@ def _month_after(p: str) -> str:
 
 
 def build(summaries: list[Summary]) -> dict:
+    """The availability table from every series' summary: periods, options, fixed values, identical pairs, series."""
     full_index, full_annual = _span(summaries, "index"), _span(summaries, "annual")
     options: dict = {}
     names = ["spending", *DEFAULT_OPTIONS]
@@ -210,8 +216,10 @@ def _note(options, name, value, code, **periods):
 
 
 def identical(summaries: list[Summary]) -> list[dict]:
-    """The pairs of combinations that must agree, by construction: the tutoring options before
-    2026, and over every period where tutoring never enters (a series ending before 2026)."""
+    """The pairs of combinations that must agree by construction.
+
+    They are the tutoring options before 2026, and over every period where tutoring never enters (a
+    series ending before 2026)."""
     out = []
     for m in summaries:
         if m.setting["tutoring"] != "excluded":
@@ -229,6 +237,7 @@ def identical(summaries: list[Summary]) -> list[dict]:
 
 
 def write(folder: Path, table: dict) -> list[Path]:
+    """Write the table to `availability.json` and its options to `availability.csv` in `folder`; returns both."""
     folder = Path(folder)
     j = folder / "availability.json"
     j.write_text(json.dumps(table, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")

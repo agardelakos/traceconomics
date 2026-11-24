@@ -13,18 +13,22 @@ TOTAL = "TOTAL"
 
 
 def is_item(code: str) -> bool:
+    """True for a code in the COICOP tree: digits only, a division (two digits) or finer."""
     return code.isdigit() and len(code) >= 2
 
 
 def ancestors(code: str) -> list[str]:
-    """Parents up to the division, nearest first. `TOTAL` is never included: pricing an
-    item with the all-items index would make an aggregate partly depend on itself."""
+    """Parents up to the division, nearest first.
+
+    `TOTAL` is never included: pricing an item with the all-items index would make an aggregate
+    partly depend on itself."""
     return [code[:n] for n in range(len(code) - 1, 1, -1)]
 
 
 def leaves(weights: dict[str, float]) -> dict[str, float]:
-    """The items an aggregate is built from: codes with a positive weight and no
-    weighted code below them.
+    """The items an aggregate is built from: weighted codes with no weighted code below them.
+
+    Weighted means a positive weight.
 
     A parent whose children carry only part of its weight is not a leaf; the
     part not covered by any child is left out and the remaining weights are

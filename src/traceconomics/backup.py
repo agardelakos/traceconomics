@@ -52,7 +52,10 @@ def plan(root: Path) -> list[tuple[str, str]]:
 
 
 def sync(root: Path, *, url: str | None = None, timeout: float = 120.0) -> dict:
-    """Send what `plan` lists. Returns counts; stops at the first failed upload."""
+    """Send what `plan` lists.
+
+    Returns counts; stops at the first failed upload.
+    """
     url = url or os.environ.get(URL_ENV)
     if not url:
         return {"result": "off"}

@@ -132,8 +132,11 @@ def build_checked(series: list[Series], blocks, first_year: int = FIRST_YEAR) ->
 
 
 def build(series: list[Series], blocks, first_year: int | None = None, digits: int = 8) -> dict:
-    """The calculator file, checked: every preset, rebuilt from the file's own (rounded) numbers,
-    must give back its published index to the last digit from `first_year` on."""
+    """The calculator file, checked against its own published index.
+
+    Every preset, rebuilt from the file's own (rounded) numbers, must give back its published index to
+    the last digit from `first_year` on.
+    """
     by = {(s.grouping, s.group): s for s in series}
     first_year = first_year or min(by[PRESETS[0]].used)
     years = {y for y in by[PRESETS[0]].used if y >= first_year}

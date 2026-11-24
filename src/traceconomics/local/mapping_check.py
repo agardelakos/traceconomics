@@ -46,6 +46,8 @@ REPLICATES = 500  # enough for a noise threshold
 
 @dataclass
 class Flag:
+    """A code whose share moved between the two years by more than the thresholds allow."""
+
     code: str
     older: float  # share %, the older year mapped
     newer: float
@@ -56,11 +58,14 @@ class Flag:
 
     @property
     def from_mapping(self) -> bool:
+        """True when a large enough part of the code's spending was decided by a split (`EXPOSURE`)."""
         return self.exposure >= EXPOSURE
 
 
 @dataclass
 class Comparison:
+    """One older year mapped against the next year, all households, and the codes it flags."""
+
     older_year: int
     newer_year: int
     table: pd.DataFrame  # code, older, newer, diff (all in %)
@@ -68,6 +73,7 @@ class Comparison:
 
     @property
     def passed(self) -> bool:
+        """True when every flag is explained or can't come from the mapping."""
         return all(f.explanation or not f.from_mapping for f in self.flags)
 
 
@@ -93,8 +99,10 @@ def all_households(survey, replicates: int = 0) -> pd.DataFrame:
 
 
 def effective_table(year: int) -> pd.DataFrame:
-    """The survey's own codes -> COICOP 2018: from_code, to_code, share (the older list goes through
-    the bridge and the v1 table in one step)."""
+    """The survey's own codes mapped to COICOP 2018: from_code, to_code, share.
+
+    The older list goes through the bridge and the v1 table in one step.
+    """
     v1 = mapping.load(mapping.V1_TO_2018)[["from_code", "to_code", "share"]]
     if year not in mapping.OLD_LIST_YEARS:
         return v1
@@ -135,6 +143,11 @@ def compare(
     reasons: dict[str, str] | None = None,
     replicates: int = REPLICATES,
 ) -> Comparison:
+    """Compare the older year's mapped shares with the newer year's and flag the differences.
+
+    `usual` is `usual_change`'s result and `reasons` the explanations for this pair of years.
+    Reads both surveys from the archive.
+    """
     older_survey = puf.read(archive, older_year)
     older = all_households(mapping.to_2018(older_survey), replicates)
     newer = all_households(mapping.to_2018(puf.read(archive, newer_year)), replicates)
@@ -161,8 +174,11 @@ def usual_change(archive) -> pd.Series:
 
 
 def cpi_report(archive, con, lags=(1, 2)) -> pd.DataFrame:
-    """Mean absolute difference (per mille) per division between ELSTAT's CPI weights of year t
-    (table 07, COICOP 2018) and our mapped all-households shares of survey t - lag."""
+    """Mean absolute difference (per mille) per division between ELSTAT's CPI weights and our shares.
+
+    The CPI weights are those of year t (table 07, COICOP 2018); ours are the mapped all-households
+    shares of survey t - lag.
+    """
     from traceconomics.store.query import as_of
 
     cpi = as_of(con, "elstat:cpi07", where="unit = 'PM'").df()

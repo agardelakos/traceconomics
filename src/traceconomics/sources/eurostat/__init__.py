@@ -1,5 +1,7 @@
-"""Eurostat datasets, all countries: the HICP, the EU-SILC income limits (`ilc_di01`), and the
-tables the consistency topic lines up against each other ("same question, different sources").
+"""Eurostat datasets, all countries: the HICP, the EU-SILC income limits and the consistency topic's tables.
+
+The income limits are `ilc_di01`; the consistency topic's tables are the ones it lines up against
+each other ("same question, different sources").
 
 Each live dataset is downloaded in full (one compressed TSV file) only when
 Eurostat's "last data update" time has changed since our last copy. Eurostat
@@ -55,10 +57,12 @@ UPDATE_DATA = re.compile(
 
 
 def bulk_url(dataset: str, api: str = API) -> str:
+    """The URL of a dataset's whole bulk file: compressed TSV, all countries."""
     return f"{api}/sdmx/2.1/data/{dataset.upper()}/?format=TSV&compressed=true"
 
 
 def dataflow_url(dataset: str, api: str = API, agency: str = "ESTAT") -> str:
+    """The URL of a dataset's dataflow description, which carries its "last data update" time."""
     return f"{api}/sdmx/2.1/dataflow/{agency}/{dataset.upper()}/latest"
 
 
@@ -69,6 +73,8 @@ def last_update(dataflow_xml: bytes) -> str | None:
 
 
 def calendar_url(today: date) -> str:
+    """The URL of Eurostat's euro indicators release calendar, from 45 days before `today` to 400 days after."""
+
     def stamp(d: date) -> str:
         return quote(f"{d.isoformat()}T00:00:00+01:00", safe=":")
 
@@ -87,13 +93,17 @@ def release_dates(calendar_json: bytes) -> list[date]:
 
 
 def calendar_content(calendar_json: bytes) -> str:
+    """What counts as a change of the release calendar: each event's start, title and period, sorted."""
     events = json.loads(calendar_json)
     keep = sorted((e.get("start", ""), e.get("title", ""), e.get("period", "")) for e in events)
     return "\n".join("\t".join(k) for k in keep)
 
 
 def run(ctx: RunContext, state: dict) -> list[date]:
-    """Fetch what changed. Returns HICP release dates from the calendar."""
+    """Fetch what changed.
+
+    Returns HICP release dates from the calendar.
+    """
     dates: list[date] = []
     _, data = ctx.fetch_and_store(SOURCE, "calendar", calendar_url(ctx.today), ext=".json", content_of=calendar_content)
     if data:
@@ -128,9 +138,11 @@ HICP = tuple(d for d in LIVE if d.startswith("prc_hicp_"))
 
 
 def hicp_updated(archive, http) -> list[str]:
-    """The first HICP dataset whose "last data update" moved since our copy, as a one-item list
-    (else empty): the poll's sign that a release is out. One small request per dataset checked,
-    and none after the first that moved."""
+    """The first HICP dataset whose "last data update" moved since our copy, as a one-item list.
+
+    The list is empty when none moved. A moved dataset is the poll's sign that a release is out.
+    One small request per dataset checked, and none after the first that moved.
+    """
     for dataset in HICP:
         _, xml = http.get_bytes(dataflow_url(dataset), archive.new_tmp())
         updated = last_update(xml)
@@ -145,9 +157,11 @@ def hicp_updated(archive, http) -> list[str]:
 def check_and_fetch(
     ctx: RunContext, dataset: str, *, source: str = SOURCE, api: str = API, agency: str = "ESTAT"
 ) -> None:
-    """Download `dataset` in full only if its "last data update" changed since our copy. The
-    European Commission's other statistics sites (`ec_empl`) serve the same API, hence the
-    parameters."""
+    """Download `dataset` in full only if its "last data update" changed since our copy.
+
+    The European Commission's other statistics sites (`ec_empl`) serve the same API, hence the
+    parameters.
+    """
     flow = dataflow_url(dataset, api, agency)
     if ctx.dry_run:
         ctx.planned.append(f"{source}/{dataset}: check {flow}, download if updated")

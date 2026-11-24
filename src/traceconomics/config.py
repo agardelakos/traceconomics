@@ -17,6 +17,7 @@ CONFIG_ENV = "TRACECONOMICS_CONFIG"
 
 
 def default_config_path() -> Path:
+    """Where the config file is by default: the user's config folder (APPDATA on Windows, XDG_CONFIG_HOME elsewhere)."""
     if sys.platform == "win32":
         base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
     else:
@@ -26,6 +27,8 @@ def default_config_path() -> Path:
 
 @dataclass(frozen=True)
 class EmailConfig:
+    """The mail server and addresses for reports; the password is never kept here."""
+
     smtp_host: str
     smtp_port: int
     username: str
@@ -37,8 +40,10 @@ class EmailConfig:
 
 @dataclass(frozen=True)
 class ReleaseConfig:
-    """Building releases after the archive job (`traceconomics release`). Off unless enabled:
-    only the machine that publishes the site builds releases."""
+    """Building releases after the archive job (`traceconomics release`).
+
+    Off unless enabled: only the machine that publishes the site builds releases.
+    """
 
     enabled: bool = False
     # Each build keeps its outputs, site files and report here.
@@ -60,6 +65,8 @@ class ReleaseConfig:
 
 @dataclass(frozen=True)
 class Config:
+    """The settings for one machine: archive, fetching, schedule, email, store and release builds."""
+
     archive_dir: Path
     user_agent: str
     timezone: str = "Europe/Athens"
@@ -80,10 +87,16 @@ class Config:
 
 
 class ConfigError(Exception):
+    """The config file is missing, or a field is missing or invalid."""
+
     pass
 
 
 def load(path: Path | None = None) -> Config:
+    """Read the config from `path`, else the file named by the environment, else the default path.
+
+    Raises `ConfigError` when there is no file.
+    """
     path = path or Path(os.environ.get(CONFIG_ENV) or default_config_path())
     if not path.is_file():
         raise ConfigError(
@@ -100,6 +113,10 @@ def _path(text: str, base_dir: Path) -> Path:
 
 
 def parse(raw: dict, base_dir: Path) -> Config:
+    """Build a `Config` from the TOML's contents; relative paths are taken from `base_dir`.
+
+    Raises `ConfigError` on a missing field or an invalid value.
+    """
     try:
         archive = raw["archive"]
         fetch = raw.get("fetch", {})

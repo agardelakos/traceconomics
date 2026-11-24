@@ -61,11 +61,14 @@ SURVEY_YEAR = re.compile(r"-(\d{4})$")
 
 @dataclass
 class Decision:
+    """Whether a build is promoted or held, why, and the production build it was compared with."""
+
     verdict: str
     reasons: list[str] = field(default_factory=list)
     production: str | None = None  # the build compared with
 
     def as_dict(self) -> dict:
+        """The decision as a plain dict."""
         return asdict(self)
 
 
@@ -121,8 +124,11 @@ def _rows(rates_file: Path) -> list[tuple]:
 
 
 def beyond_records(old_rows, new_rows) -> list[str]:
-    """Each new month in which a group's gap to all households, or that gap's change from the
-    month before, goes beyond the group's largest in the old (published) history."""
+    """Each new month in which a group's gap to all households goes beyond its published record.
+
+    Both the gap and its change from the month before are checked against the group's largest
+    in the old (published) history.
+    """
     old, new = _gaps(old_rows), _gaps(new_rows)
     out = []
     for g, series in sorted(new.items()):
@@ -150,6 +156,7 @@ def beyond_records(old_rows, new_rows) -> list[str]:
 
 
 def beyond_records_in(old_rates: Path, new_rates: Path) -> list[str]:
+    """`beyond_records` for two module 1 rates files: production's (old) and this build's (new)."""
     return beyond_records(_rows(old_rates), _rows(new_rates))
 
 

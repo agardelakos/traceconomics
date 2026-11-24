@@ -88,9 +88,11 @@ def replicate_leaf_shares(
 
 
 def without_tutoring(leaves: list[str], reps: np.ndarray, fraction: float | None) -> np.ndarray:
-    """The replicates' shares with tutoring left out, as `weights_used.exclude_tutoring` does for the
-    estimate: all of 10.5, and, for a survey before COICOP 2018 (`fraction` given), the rest of the
-    group's tutoring from 10.1 and 10.2 in proportion."""
+    """The replicates' shares with tutoring left out, as `weights_used.exclude_tutoring` does for the estimate.
+
+    All of 10.5 is left out, and, for a survey before COICOP 2018 (`fraction` given), the rest of the
+    group's tutoring from 10.1 and 10.2 in proportion.
+    """
     reps = reps.copy()
     nbl = [i for i, c in enumerate(leaves) if c.startswith(NOT_BY_LEVEL)]
     lvl = [i for i, c in enumerate(leaves) if c.startswith(BY_LEVEL)]
@@ -106,12 +108,24 @@ def without_tutoring(leaves: list[str], reps: np.ndarray, fraction: float | None
 
 @dataclass
 class Bands:
+    """The standard errors of one setting's series, and the years each series has no band for.
+
+    `unavailable_years`: (grouping, group) -> the index years whose survey has no usable design.
+    """
+
     # (grouping, group, unit) -> period -> se, for one setting
     se: dict[tuple[str, str, str], dict[str, float]] = field(default_factory=dict)
     unavailable_years: dict[tuple[str, str], set[int]] = field(default_factory=dict)
 
 
 def series_rates(index: dict, start: str):
+    """An index's annual rates and annual-average rates, from `start` on.
+
+    Returns (annual rates {"YYYY-MM": %}, annual-average rates {"YYYY": %}).
+
+    Index values may be numbers or arrays of replicates. A rate whose months aren't all in the index
+    is left out.
+    """
     periods = sorted(p for p in index if p >= start)
     annual = {
         p: (index[p] / index[f"{int(p[:4]) - 1}{p[4:]}"] - 1) * 100
@@ -128,10 +142,13 @@ def series_rates(index: dict, start: str):
 
 
 def bands(series: list[Series], blocks, replicate_sets: dict[int, tuple], replicates: int) -> Bands:
-    """Standard errors of each series' annual and annual-average rates, and of the Q1-Q5 gap of every
-    quintile grouping. The series must share one setting (price source, imputed rent, spending).
+    """Standard errors of each series' annual and annual-average rates, and of every quintile Q1-Q5 gap.
 
-    replicate_sets: {survey year: (leaves, {(grouping, group): leaves x R} or None)}."""
+    The gap is that of every quintile grouping. The series must share one setting (price source,
+    imputed rent, spending).
+
+    replicate_sets: {survey year: (leaves, {(grouping, group): leaves x R} or None)}.
+    """
     result = Bands()
     rates = {}
     ratio_cache: dict[tuple, float] = {}
@@ -201,9 +218,11 @@ def bands(series: list[Series], blocks, replicate_sets: dict[int, tuple], replic
 
 
 def run(archive: Archive, con, replicates: int = bootstrap.REPLICATES, only=None, log=print) -> dict:
-    """Compute the bands for every combination in `only` (default: all) and archive them, in one
-    file, as `oet-local/hbs-bands-gr`. One spending concept and imputed-rent option at a time:
-    their replicate shares serve every price source, timing rule and tutoring option."""
+    """Compute the bands for every combination in `only` (default: all) and archive them in one file.
+
+    The file is archived as `oet-local/hbs-bands-gr`. One spending concept and imputed-rent option at
+    a time: their replicate shares serve every price source, timing rule and tutoring option.
+    """
     from traceconomics.module1 import combinations
 
     only = only or combinations.settings()

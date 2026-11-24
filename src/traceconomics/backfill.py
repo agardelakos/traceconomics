@@ -30,6 +30,7 @@ SEED_NOTE = "copied from an earlier research download; only the download date is
 
 
 def slug(text: str) -> str:
+    """The text as a lower-case, hyphen-separated name of at most 80 characters ("file" if nothing is left)."""
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:80] or "file"
 
 
@@ -72,6 +73,11 @@ def import_file(
     downloaded: date | None,
     note: str | None,
 ) -> StoreResult:
+    """Add one file downloaded by hand to the archive, copied, never moved.
+
+    The dataset defaults to `puf-<file name>` (or, for AADE, the name a fetch would give the
+    workbook). With `downloaded`, the snapshot is dated that day and marked as known only to the day.
+    """
     if dataset is None and source == "aade":
         # Named as the adapter names a fetched workbook, so a hand import and a fetch of the
         # same file land in the same dataset (two would count one tax year twice).
@@ -144,6 +150,8 @@ def import_wayback(
 
 @dataclass
 class Candidate:
+    """One earlier download that can be seeded: its file, where and when it came from, and its archive place."""
+
     path: Path
     url: str | None
     day: date
@@ -157,6 +165,8 @@ class Candidate:
 
 @dataclass
 class SeedReport:
+    """What a seed did: datasets stored, files unchanged, skipped, failing their checksum, or with no URL."""
+
     stored: list[str] = field(default_factory=list)
     unchanged: int = 0
     skipped: list[str] = field(default_factory=list)
@@ -314,6 +324,11 @@ def _hdr_candidates(research_root: Path, listed: set[Path]) -> list[Candidate]:
 
 
 def seed(archive: Archive, research_root: Path, *, dry_run: bool = False) -> SeedReport:
+    """Copy the recorded earlier downloads under `research_root` into the archive, oldest first.
+
+    A file with a recorded checksum is stored only if it matches. With `dry_run`, nothing is
+    stored and `stored` lists what would be.
+    """
     report = SeedReport()
     candidates, report.skipped, report.unrecorded = find_candidates(research_root)
     seen: set[Path] = set()

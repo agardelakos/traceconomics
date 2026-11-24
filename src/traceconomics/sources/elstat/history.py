@@ -61,7 +61,10 @@ def check_table07(path: Path, year: int) -> list[str]:
 
 
 def fetch_years(ctx: RunContext, years: list[int]) -> list[str]:
-    """Archive each year's month page and table 07 (English and Greek). Returns notes for the report."""
+    """Archive each year's month page and table 07 (English and Greek).
+
+    Returns notes for the report.
+    """
     notes = []
     for year in years:
         url = PAGE_URL.format(year=year)

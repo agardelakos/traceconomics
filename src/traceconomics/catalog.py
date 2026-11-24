@@ -14,11 +14,15 @@ from importlib import resources
 
 
 class CatalogError(Exception):
+    """The reference data is inconsistent, or names an unknown dataset."""
+
     pass
 
 
 @dataclass(frozen=True)
 class DatasetSpec:
+    """One parsed store dataset as `datasets.toml` describes it: its archive sources, format and dimensions."""
+
     id: str  # e.g. "eurostat:prc_hicp_minr"
     source: str
     name: str
@@ -55,6 +59,10 @@ def _load(name: str) -> dict:
 
 @cache
 def datasets() -> dict[str, DatasetSpec]:
+    """Every store dataset in `datasets.toml`, by id (`source:name`).
+
+    Raises `CatalogError` when a dataset's COICOP or release dimension isn't one of its dimensions.
+    """
     out = {}
     for source, entries in _load("datasets.toml").items():
         for name, e in entries.items():
@@ -83,6 +91,7 @@ def datasets() -> dict[str, DatasetSpec]:
 
 
 def dataset(dataset_id: str) -> DatasetSpec:
+    """The store dataset with this id; raises `CatalogError` if there is none."""
     try:
         return datasets()[dataset_id]
     except KeyError:
@@ -91,11 +100,14 @@ def dataset(dataset_id: str) -> DatasetSpec:
 
 @dataclass(frozen=True)
 class GeoMap:
+    """How one source's geography codes are translated: renamed codes, codes kept as they are, aggregates."""
+
     rename: dict[str, str]
     keep: frozenset[str]
     aggregate_patterns: tuple[re.Pattern, ...]
 
     def is_aggregate(self, code: str) -> bool:
+        """Whether the code is a group of countries (it matches an aggregate pattern)."""
         return any(p.match(code) for p in self.aggregate_patterns)
 
     def is_known(self, code: str) -> bool:
@@ -110,6 +122,7 @@ class GeoMap:
 
 @cache
 def geo(source: str) -> GeoMap:
+    """The geography code map for one source, from `geo.toml`."""
     data = _load("geo.toml")
     src = data.get(source, {})
     return GeoMap(

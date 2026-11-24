@@ -1,5 +1,6 @@
-"""Read ELSTAT's household budget survey table 1.03: average monthly spending per household,
-by item, for all households and by band of total monthly household income.
+"""Read ELSTAT's household budget survey table 1.03: average monthly spending per household.
+
+The table gives it by item, for all households and by band of total monthly household income.
 
 The table is the yardstick for our own reading of the survey microdata: rebuilt
 from the microdata with the survey weights, the all-households figures must come
@@ -33,6 +34,8 @@ ALL = "All households"
 
 @dataclass
 class Table103:
+    """One year's table 1.03: households and monthly purchases per item, for all households and each income band."""
+
     year: int
     groups: list[str]  # "All households", then the income bands
     households: dict[str, float] = field(default_factory=dict)  # group -> number of households (weighted)

@@ -48,6 +48,10 @@ PAGES = (
 
 
 def run(ctx: RunContext) -> None:
+    """Fetch every watched terms page; alert when a new copy's terms block changed or can't be found.
+
+    A new copy whose terms block reads the same is reported as a note.
+    """
     for source, dataset, url, ext, block in PAGES:
         previous = ctx.archive.latest(source, dataset)
         content_of = htmltext.visible_text if ext == ".html" else None
@@ -75,7 +79,9 @@ def run(ctx: RunContext) -> None:
 
 
 def compare(old: bytes, new: bytes | None, block: str | None) -> str:
-    """'same' when the terms block reads the same in both copies, 'changed' when it differs,
+    """Whether the new copy's terms block is 'same', 'changed' or 'missing'.
+
+    'same' when the terms block reads the same in both copies, 'changed' when it differs,
     'missing' when the new copy has no such block.
 
     Without a block (a PDF) or the new bytes (a file too big to hold), any stored change counts

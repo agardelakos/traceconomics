@@ -34,6 +34,7 @@ def _same_year(years, surveys, release_dates=None):
 
 
 def at_level(baskets: dict, digits: int) -> dict:
+    """The same baskets keeping only the codes with `digits` digits (shares and reliability), not rescaled."""
     return {
         k: Basket(
             {c: s for c, s in b.shares.items() if len(c) == digits},
@@ -44,11 +45,16 @@ def at_level(baskets: dict, digits: int) -> dict:
 
 
 def gap(q1, q5) -> dict[int, float]:
+    """Q1's annual-average rate minus Q5's, for each year in YEARS both series cover."""
     a, b = q1.annual_average_rates(), q5.annual_average_rates()
     return {y: a[y] - b[y] for y in YEARS if y in a and y in b}
 
 
 def v5_bruegel(con, archive) -> dict[str, dict[int, float]]:
+    """Bruegel's Q1-Q5 gap against ours, one setting at a time: {rung: {year: gap in pp}}.
+
+    The rungs are those of the module docstring, B0 to O0.
+    """
     out: dict[str, dict[int, float]] = {}
     # B0: Bruegel as published (annual means of its monthly rates).
     pub = benchmarks.bruegel_published(archive)
@@ -100,9 +106,10 @@ def v5_bruegel(con, archive) -> dict[str, dict[int, float]]:
 
 
 def v5_kepe(con, archive) -> dict[str, dict[int, float]]:
-    """Our default against KEPE (P20 - R20 gap), one setting at a time. K1 is our rebuild of KEPE's
-    settings (V4: close but not exact: KEPE priced the 12 COICOP 1999 divisions as published then,
-    we only have ELSTAT's re-issued COICOP 2018 series)."""
+    """Our default against KEPE (P20 - R20 gap), one setting at a time.
+
+    K1 is our rebuild of KEPE's settings (V4: close but not exact: KEPE priced the 12 COICOP 1999
+    divisions as published then, we only have ELSTAT's re-issued COICOP 2018 series)."""
     years = range(2021, 2025)
     pub = benchmarks.kepe_published()["chart1"]
     out = {"K0 KEPE as published": {y: pub["P20"][str(y)] - pub["R20"][str(y)] for y in years}}

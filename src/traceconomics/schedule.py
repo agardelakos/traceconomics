@@ -115,6 +115,7 @@ TEMPLATE = """<?xml version="1.0" encoding="UTF-16"?>
 
 
 def task_xml(config: Config, python: Path) -> str:
+    """The Windows Task Scheduler definition that runs the archive job daily at the configured time."""
     start = f"{date.today().isoformat()}T{config.run_after.strftime('%H:%M')}:00"
     return TEMPLATE.format(
         start=start,
@@ -131,6 +132,10 @@ def _pythonw() -> Path:
 
 
 def install(config: Config) -> str:
+    """Register the daily archive task with Windows Task Scheduler, replacing any old one; return its name.
+
+    Exits with instructions for the systemd units on other systems.
+    """
     if sys.platform != "win32":
         raise SystemExit(
             "Task Scheduler is Windows only. On Linux: `traceconomics schedule units --out "
@@ -145,10 +150,12 @@ def install(config: Config) -> str:
 
 
 def remove() -> None:
+    """Delete the archive task from Windows Task Scheduler."""
     subprocess.run(["schtasks", "/Delete", "/TN", TASK_NAME, "/F"], check=True)
 
 
 def show() -> str:
+    """The archive task's details as Windows Task Scheduler lists them (or its error)."""
     out = subprocess.run(["schtasks", "/Query", "/TN", TASK_NAME, "/V", "/FO", "LIST"], capture_output=True, text=True)
     return out.stdout or out.stderr
 
@@ -219,8 +226,11 @@ def systemd_units(
 def shell_command(
     *, uid: int, gid: int, home: Path, repo: Path, venv: Path, node: Path, env_file: Path, image: str = IMAGE
 ) -> str:
-    """A `traceconomics` command for the server's shell: the same container as the timer's, so a
-    command typed by hand (e.g. `traceconomics release promote <id>`) runs exactly as the job does."""
+    """A `traceconomics` command for the server's shell, in the same container as the timer's.
+
+    So a command typed by hand (e.g. `traceconomics release promote <id>`) runs exactly as the
+    job does.
+    """
     cmd = container_command(
         uid=uid, gid=gid, home=home, repo=repo, venv=venv, node=node, env_file=env_file, image=image, args=()
     )
@@ -235,8 +245,11 @@ def shell_command(
 def write_units(
     config: Config, out: Path, *, bin_dir: Path | None = None, node: Path | None = None, env_file: Path | None = None
 ) -> list[Path]:
-    """Write the unit files for this machine into `out` (the user's systemd folder) and the
-    `traceconomics` shell command into `bin_dir` (default ~/.local/bin). Runs inside the container."""
+    """Write this machine's unit files into `out` and the `traceconomics` shell command into `bin_dir`.
+
+    `out` is the user's systemd folder; `bin_dir` defaults to ~/.local/bin. Runs inside the
+    container.
+    """
     import os
 
     home = Path.home()

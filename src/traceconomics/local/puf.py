@@ -57,17 +57,23 @@ SPEND = re.compile(r"^HE(\d{2,6})([ABC]?)$")
 
 
 def dataset(year: int) -> str:
+    """The archive's dataset name for a year's public use file, e.g. `puf-hbs-2024`."""
     return f"puf-hbs-{year}"
 
 
 def classification(year: int) -> str:
-    """The survey's code list: the national list of 2008-2014 ("hbs-gr-2008"), ECOICOP version 1
-    subclasses (2015-2023) or COICOP 2018 (from 2024)."""
+    """The survey's code list: "hbs-gr-2008", "ecoicop1" or "coicop2018".
+
+    The national list of 2008-2014 ("hbs-gr-2008"), ECOICOP version 1 subclasses (2015-2023) or
+    COICOP 2018 (from 2024).
+    """
     return "coicop2018" if year >= 2024 else "ecoicop1" if year >= 2015 else "hbs-gr-2008"
 
 
 @dataclass
 class Survey:
+    """One year of the household budget survey's public use file, as read: households, persons and spending."""
+
     year: int
     classification: str  # see `classification`
     households: pd.DataFrame  # one row per household, see `read`
@@ -182,6 +188,10 @@ def _spending(hh: pd.DataFrame, year: int) -> tuple[pd.DataFrame, pd.DataFrame, 
 
 
 def read(archive: Archive, year: int) -> Survey:
+    """Read one year's public use file from the archive, in memory, into a `Survey`.
+
+    Raises `checks.FormatError` if the archive has no file for the year or the file isn't as expected.
+    """
     rec = archive.latest(SOURCE, dataset(year))
     require(
         rec is not None, f"no archived PUF for {year} ({SOURCE}/{dataset(year)}); add it with `traceconomics import`"

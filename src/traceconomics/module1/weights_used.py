@@ -91,6 +91,8 @@ def pricing_map(basket: Basket, block: Prices) -> dict[str, str]:
 
 @dataclass
 class Used:
+    """The weights one index year uses: price-updated leaf weights, what prices each leaf, and what was dropped."""
+
     entry: Entry
     weights: dict[str, float]  # leaf -> price-updated weight (sums to 1; dropped leaves absent)
     price_with: dict[str, str]
@@ -139,7 +141,9 @@ def weights_used(
     tutoring: str = PRICED,
     tutoring_split: float | None = None,
 ) -> Used:
-    """`tutoring_split`: the group's `tutoring_fraction` in the first survey coded in COICOP 2018,
+    """The weights one index year uses, from a basket's shares, price-updated to December of the year before.
+
+    `tutoring_split`: the group's `tutoring_fraction` in the first survey coded in COICOP 2018,
     needed only to leave tutoring out with an older survey."""
     require(tutoring in (PRICED, EXCLUDED), f"unknown tutoring option {tutoring}")
     leaves = basket.leaves()

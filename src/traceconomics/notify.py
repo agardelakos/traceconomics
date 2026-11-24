@@ -23,6 +23,7 @@ PASSWORD_ENV = "TRACECONOMICS_SMTP_PASSWORD"
 
 
 def smtp_password(username: str) -> str | None:
+    """The SMTP password from the environment, else from the system keyring; None if neither has one."""
     if pw := os.environ.get(PASSWORD_ENV):
         return pw
     try:
@@ -34,7 +35,10 @@ def smtp_password(username: str) -> str | None:
 
 
 def notify(config: Config, subject: str, body: str) -> str:
-    """Send a message. Returns where it went: "email" or the outbox file path."""
+    """Send a message.
+
+    Returns where it went: "email" or the outbox file path.
+    """
     subject = f"[Traceconomics] {subject}"
     if config.email is not None:
         try:

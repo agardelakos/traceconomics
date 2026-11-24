@@ -11,6 +11,8 @@ from traceconomics.catalog import DatasetSpec
 
 @dataclass(frozen=True)
 class Snapshot:
+    """One archived snapshot that feeds a store dataset: its payload, hash, fetch time and manifest."""
+
     archive_dataset: str  # source/dataset in the archive, e.g. "elstat/doc-585819"
     path: Path  # the payload
     sha256: str
@@ -19,8 +21,10 @@ class Snapshot:
 
 
 def snapshots(archive: Archive, spec: DatasetSpec) -> dict[str, list[Snapshot]]:
-    """archive dataset -> its snapshots, oldest first. Each archive dataset is read in order
-    and compared only with itself."""
+    """The archived snapshots that feed a store dataset, by archive dataset, oldest first.
+
+    Each archive dataset is read in order and compared only with itself.
+    """
     out: dict[str, list[Snapshot]] = {}
     for source, dataset in archive.datasets():
         for rec in archive.snapshots(source, dataset):

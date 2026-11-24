@@ -63,6 +63,13 @@ def survey_baskets(p: Prepared, wanted) -> tuple[dict, dict, dict]:
 
 
 def run(archive: Archive, con, groups_wanted=None, years=None) -> dict:
+    """The change calibrating to the census's tenure split makes to each group's series and baskets.
+
+    The report gives, per survey, the renter share before and after and how far the rebuilt baskets
+    are from the stored ones; per group, the change in annual-average and December rates and rent's
+    share before and after; and the change in the B grouping's Q1-Q5 gap. Reads the archive and the
+    store and changes nothing.
+    """
     groups_wanted = list(groups_wanted or index.PUBLISHED_GROUPS)
     wanted = set(groups_wanted)
     blocks = index.price_blocks(con, archive)
