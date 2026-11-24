@@ -1,0 +1,16 @@
+{
+ "commit": "47261f9c635cdd71ff7a6081179ac4013ff39db0",
+ "counts": {
+  "killed": 269
+ },
+ "mutants": 269,
+ "schema": 1,
+ "score": 100.0,
+ "source": {
+  "src/traceconomics/engine/__init__.py": "40b4a07a85c9ee0f38c54e262ebe070b367f236c515c1253d0d9a96eae9158de",
+  "src/traceconomics/engine/chain.py": "016c8caf5138e9e30d05ce1102b72a00d8ab7e54ccc8f1a49ca0e1352f4c26d0",
+  "src/traceconomics/engine/rates.py": "8b773b864f9f4df8e3530a504c8ffb7a7cee9e27e5708ee5c07206cc893cd852",
+  "src/traceconomics/engine/tree.py": "7d11561802f5afb843395ce0cd503b23ea26ff21735d89ad1b823f57c57c02f1"
+ },
+ "survivors": []
+}
