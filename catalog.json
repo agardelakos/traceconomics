@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "47261f9c635cdd71ff7a6081179ac4013ff39db0",
- "generated": "2026-11-24T17:37:19Z",
+ "commit": "3940e8ceff1d3b0a8ffb0f825d89ef7f1b0a3b5f",
+ "generated": "2026-11-24T18:43:51Z",
  "missing": [],
  "cases": [
   {
@@ -5607,6 +5607,37 @@
    "layer": "repository"
   },
   {
+   "id": "PY-CAT-034",
+   "suite": "pytest",
+   "title": "the mutation testing page shows the newest run, the score over time, each function and each survivor",
+   "file": "tests/test_catalog.py",
+   "line": 918,
+   "node": "tests/test_catalog.py::test_the_mutation_page_shows_the_newest_run_its_history_and_its_survivors",
+   "given": [
+    "a stored mutation result with two survivors (one listed as behaving the same), its per-function counts, and a history of three runs",
+    "an engine whose code is the one the result was made from"
+   ],
+   "when": [
+    "the wiki pages are generated, then again after the engine's code changed, then from a store without a mutation result"
+   ],
+   "then": [
+    "the mutation page gives the newest score, the changes, the date, the commit and a link to the run",
+    "a chart of the score per run, light and dark, well formed, and a table of the runs, newest first",
+    "a row per function, the most survivors first, linked to its module on the engine's code page",
+    "each survivor's change, the listed one with its reason, the other not explained yet",
+    "the overview and the sidebar link to the page",
+    "once the engine's code has changed, the page says the result may no longer hold",
+    "without a result there is no page, no sidebar item and no chart left behind"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
    "id": "PY-CLI-001",
    "suite": "pytest",
    "title": "--version prints the package version",
@@ -7190,9 +7221,36 @@
    ],
    "then": [
     "each result is counted, and the score is the killed and timed-out share of those not skipped",
+    "each function's results are counted apart, a method's under Class.method",
+    "the run's start and its link are kept",
     "each survivor names its function (a method as Class.method) and its change, without the diff's file headers",
     "the engine's source is fingerprinted, the same whatever its line endings",
     "without results the report stops with an error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-MUT-004",
+   "suite": "pytest",
+   "title": "storing a run replaces the newest result and adds its line to the history, the one before kept",
+   "file": "tests/test_code_map.py",
+   "line": 364,
+   "node": "tests/test_code_map.py::test_each_stored_run_keeps_its_line_in_the_history",
+   "given": [
+    "a test-history folder holding one result stored before the history began"
+   ],
+   "when": [
+    "two more runs are stored"
+   ],
+   "then": [
+    "the newest result is the last run's, in full",
+    "the history has three lines, oldest first, each with its start, commit, link, changes, counts and score only"
    ],
    "notes": "",
    "examples": [],
@@ -7207,7 +7265,7 @@
    "suite": "pytest",
    "title": "Every survivor listed as behaving the same as the code has its function, change and reason",
    "file": "tests/test_code_map.py",
-   "line": 355,
+   "line": 386,
    "node": "tests/test_code_map.py::test_every_equivalent_survivor_has_its_reason",
    "given": [
     "the repository's list of equivalent survivors"
@@ -7506,7 +7564,7 @@
     "the overview has the map's legend, the bars and both heatmaps, each with a table, and the browser suites compared by folder",
     "every chart a page shows is written, in light and dark, and parses as XML; the old chart is removed and the other picture stays",
     "the site's page has a chart per folder, each file's lines, its tests linked to their cases (a Vitest file's every case, a test without a case by name), and the lines only one browser suite runs",
-    "the sidebar lists the site's page",
+    "the sidebar lists the code map under Testing, with its overview and the site's page, and the site's page is no longer under the code reference",
     "without Selenium's lines both pages say it wasn't measured"
    ],
    "notes": "",
@@ -7520,9 +7578,9 @@
   {
    "id": "PY-CODEREF-012",
    "suite": "pytest",
-   "title": "The engine's page ends with the mutation testing result, its survivors and their reasons",
+   "title": "The engine's page ends with the mutation testing result in brief, linked to its own page",
    "file": "tests/test_code_reference.py",
-   "line": 547,
+   "line": 557,
    "node": "tests/test_code_reference.py::test_the_engine_page_shows_the_mutation_result",
    "given": [
     "the made-up package, a stored mutation result with two survivors, one listed as behaving the same with its reason"
@@ -7531,11 +7589,11 @@
     "the code reference is generated, then again after the engine's source changed, then from a result with no survivors"
    ],
    "then": [
-    "the engine's page gives the score, the counts and the commit, and each survivor's function and change",
-    "the listed survivor shows its reason, the other says it isn't explained yet",
+    "the engine's page gives the score, the changes, the date and the commit, the survivors and how many aren't explained yet",
+    "it links to the mutation testing page for the changes, the survivors and the score over time",
     "no other page shows the result",
     "once the engine's source has changed, the page says the result may no longer hold",
-    "with no survivors it says the tests noticed every change"
+    "with no survivors it says none survived"
    ],
    "notes": "",
    "examples": [],
