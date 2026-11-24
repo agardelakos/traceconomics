@@ -5,8 +5,9 @@
 #       [--map CODE-MAP.json] [--mutation MUTATION.json] [RECORD.json …]
 #
 # The branch holds only data (tests/catalog/history.py, "append"): one file per run, the newest
-# catalog and the obsolete IDs, the newest code map (tests/coverage/code_map.py) and the newest
-# mutation testing result (tests/coverage/mutation.py), each replacing the one before it. It only ever moves forward: a push that loses a race fetches the
+# catalog and the obsolete IDs, the newest code map (tests/coverage/code_map.py), replacing the one
+# before it, and the newest mutation testing result (tests/coverage/mutation.py, `store`: it replaces
+# the one before and adds a line to mutation-history.jsonl). It only ever moves forward: a push that loses a race fetches the
 # new tip, appends again on top of it and retries, never forces. The first run creates the branch
 # as an orphan, so it shares no history with the code.
 set -euo pipefail
@@ -24,6 +25,7 @@ done
 ((${#records[@]})) || [ -n "$map" ] || [ -n "$mutation" ] || { echo "nothing to append"; exit 0; }
 
 history_py=$(realpath tests/catalog/history.py)
+mutation_py=$(realpath tests/coverage/mutation.py)
 code=$(pwd)
 url=${TEST_HISTORY_REMOTE:-"https://github.com/${GITHUB_REPOSITORY}.git"}   # the override is for testing the script
 auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
@@ -63,7 +65,7 @@ for attempt in 1 2 3 4 5; do
     else echo "the stored code map is newer than this run's: kept as it is"; fi
   fi
   if [ -n "$mutation" ]; then
-    if moves_forward "$mutation" mutation.json; then cp "$mutation" mutation.json
+    if moves_forward "$mutation" mutation.json; then python -I "$mutation_py" store --result "$mutation" --store .
     else echo "the stored mutation result is newer than this run's: kept as it is"; fi
   fi
   git add -A

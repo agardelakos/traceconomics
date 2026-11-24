@@ -9,6 +9,9 @@ DIR is the branch `test-history` (see history.py); WIKI_DIR a checkout of the wi
                              its last results and its flakiness
     Tests-Runs.md            the recent runs of each kind
     Tests-Obsolete.md        cases whose test was removed, with the last commit that had them
+    Tests-Mutation.md        mutation testing of the engine, once a run is stored: the newest run's
+                             score, the score over time (tests-mutation-score-*.svg), the result per
+                             function, and every survivor with its change and, if written, its reason
     _Sidebar.md              only the block between `<!-- generated:start -->` and `<!-- generated:end -->`
 
 and removes any other `Tests-*.md` it wrote before. Every page starts with "Generated, do not edit".
@@ -27,8 +30,15 @@ import argparse
 import itertools
 import json
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with `python -I`: its folder isn't on the path
+import code_charts as charts  # noqa: E402
+from code_reference import EQUIVALENT, engine_fingerprint, equivalent_reason  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[2]  # the repository, for the engine's source and the reasons
 
 SUITE_PAGE = {
     "pytest": "Tests-pytest",
@@ -63,6 +73,21 @@ def load(store: Path):
     for folder in sorted((store / "runs").glob("*")) if (store / "runs").is_dir() else []:
         runs[folder.name] = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(folder.glob("*.json"))]
     return catalog, obsolete, runs
+
+
+def load_mutation(store: Path) -> tuple[dict | None, list[dict]]:
+    """The newest mutation testing result and every run's summary line, oldest first (tests/coverage/mutation.py)."""
+    newest = store / "mutation.json"
+    result = json.loads(newest.read_text(encoding="utf-8")) if newest.is_file() else None
+    history_file = store / "mutation-history.jsonl"
+    history = (
+        [json.loads(line) for line in history_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+        if history_file.is_file()
+        else []
+    )
+    if result is not None and not history:
+        history = [result]  # a result stored before the history began
+    return result, history
 
 
 def esc(text: str) -> str:
@@ -114,7 +139,109 @@ def run_line(repo: str, r: dict) -> str:
 RUNS_HEAD = "| Started (UTC) | Result | Commit | Passed | Failed | Flaky | Skipped | Environment | |\n|---|---|---|---|---|---|---|---|---|"
 
 
-def page_overview(repo, catalog, obsolete, runs) -> str:
+def mutation_line(repo, result: dict) -> str:
+    """The newest mutation result in a sentence: its score, the changes, the survivors, when and where."""
+    survived = result["counts"].get("survived", 0)
+    when = f"{result['started'][:10]}, " if result.get("started") else ""
+    score = "–" if result.get("score") is None else f"{result['score']}%"
+    return (
+        f"**Mutation testing** of the engine: {score} of {result['mutants']} changes killed, "
+        f"{survived} survived ({when}{commit_link(repo, result['commit'])})."
+    )
+
+
+def short_function(name: str) -> str:
+    """`traceconomics.engine.chain.link` as `chain.link`."""
+    return name.removeprefix("traceconomics.engine.")
+
+
+def page_mutation(repo, result: dict, history: list[dict], root: Path) -> tuple[str, dict[str, str]]:
+    """The mutation testing page, and its chart files: the newest run, the score over time, per function, survivors."""
+    reasons_file = root / EQUIVALENT
+    known = []
+    if reasons_file.is_file():
+        import tomllib
+
+        known = tomllib.loads(reasons_file.read_text(encoding="utf-8")).get("equivalent", [])
+    out = ["# Mutation testing\n"]
+    out.append(
+        "> Generated, do not edit. Made from the mutation testing runs on the branch test-history, on every "
+        "update of the wiki.\n"
+    )
+    out.append(
+        "Coverage says which lines a test runs; mutation testing says whether the tests would notice those "
+        "lines going wrong. [mutmut](https://github.com/boxed/mutmut) changes the code of "
+        "`src/traceconomics/engine` in small ways, one at a time (a `<` for a `<=`, a `break` for a "
+        "`continue`), and runs the tests that run the engine on each. A change some test notices is "
+        "*killed*; one no test notices *survived*: either the tests miss something, or the change behaves "
+        "the same as the code. Started by hand (the `showcase` workflow), not on every push.\n"
+    )
+    counts = result["counts"]
+    score = "–" if result.get("score") is None else f"{result['score']}%"
+    when = f"on {result['started'][:10]} " if result.get("started") else ""
+    run = f" ([the run]({result['run_url']}))" if result.get("run_url") else ""
+    out.append("## Newest run\n")
+    out.append(
+        f"**Score: {score}** of {result['mutants']} changes killed (killed or timed out, of those tested), "
+        f"{when}from commit {commit_link(repo, result['commit'])}{run}. Results: "
+        + ", ".join(f"{k} {v}" for k, v in counts.items())
+        + ".\n"
+    )
+    if result.get("source") != engine_fingerprint(root):
+        out.append("> The engine's code has changed since this run: the result may no longer hold.\n")
+    files: dict[str, str] = {}
+    scored = [h for h in history if h.get("score") is not None]
+    if scored:
+        out.append("## Score over time\n")
+        points = [((h.get("started") or "")[:10] or short(h["commit"]), h["score"]) for h in scored]
+        files = charts.pair("tests-mutation-score", lambda th: charts.line(points, "Mutation score per run", th))
+        out.append(charts.picture("tests-mutation-score", "Line chart: the mutation score of each run") + "\n")
+        out.append("| Run | Commit | Changes | Killed | Survived | Score |\n|---|---|--:|--:|--:|--:|")
+        for h in reversed(scored):
+            c = h.get("counts", {})
+            date = (h.get("started") or "")[:10] or "–"
+            run_link = f"[{date}]({h['run_url']})" if h.get("run_url") else date
+            out.append(
+                f"| {run_link} | {commit_link(repo, h['commit'])} | {h['mutants']} | {c.get('killed', 0)} "
+                f"| {c.get('survived', 0)} | {h['score']}% |"
+            )
+        out.append("")
+    if result.get("functions"):
+        out.append("## By function\n")
+        out.append("| Function | Changes | Killed | Survived | Other |\n|---|--:|--:|--:|--:|")
+        rows = sorted(result["functions"].items(), key=lambda kv: (-kv[1].get("survived", 0), kv[0]))
+        for name, c in rows:
+            killed = c.get("killed", 0) + c.get("timeout", 0) + c.get("caught by type check", 0)
+            other = sum(c.values()) - killed - c.get("survived", 0)
+            # The module's heading on Code-engine: `traceconomics.engine.chain` is #traceconomicsenginechain.
+            anchor = "".join(name.split(".")[:3]).lower()
+            out.append(
+                f"| [`{short_function(name)}`](Code-engine#{anchor}) | {sum(c.values())} | {killed} "
+                f"| {c.get('survived', 0)} | {other or ''} |"
+            )
+        out.append("")
+    survivors = result.get("survivors", [])
+    out.append("## Survivors\n")
+    if not survivors:
+        out.append("None: the tests noticed every change.\n")
+        return "\n".join(out), files
+    reasons = [equivalent_reason(sv, known) for sv in survivors]
+    gaps = sum(r is None for r in reasons)
+    out.append(
+        f"{len(survivors)} survivor{'s' if len(survivors) != 1 else ''}: {gaps} not explained yet (a gap in the "
+        "tests, or an equivalent change "
+        f"not written down yet), {len(survivors) - gaps} that behave the same as the code, each with its "
+        "reason (from `tests/coverage/mutation-equivalent.toml`).\n"
+    )
+    for sv, reason in zip(survivors, reasons, strict=True):
+        out.append(f"### `{sv['function']}`: " + ("behaves the same" if reason else "not explained yet") + "\n")
+        out += ["```diff", *sv["change"], "```", ""]
+        if reason:
+            out.append(f"Behaves the same: {esc(reason)}\n")
+    return "\n".join(out), files
+
+
+def page_overview(repo, catalog, obsolete, runs, mutation=None) -> str:
     out = ["# Test cases and runs\n", HEAD]
     out.append(
         "Every automated test carries its case (an ID and Given/When/Then). How it works: "
@@ -151,6 +278,8 @@ def page_overview(repo, catalog, obsolete, runs) -> str:
             "through a real resource (an archive on disk, the store), a repository test checks the "
             "repository's own files and runs no package code ([Code reference](Code#checks-on-the-code-itself))."
         )
+    if mutation is not None:
+        out.append("\n" + mutation_line(repo, mutation) + " [Mutation testing](Tests-Mutation).")
     out.append(
         f"\nObsolete cases: {len(obsolete)} ([list](Tests-Obsolete)). Recent runs: [Tests-Runs](Tests-Runs). "
         f"Catalog as of commit {commit_link(repo, catalog.get('commit'))}.\n"
@@ -236,7 +365,7 @@ def page_obsolete(repo, obsolete) -> str:
     return "\n".join(out) + "\n"
 
 
-def sidebar(text: str) -> str:
+def sidebar(text: str, mutation: bool = False) -> str:
     # One more item of the hand-written "Testing" list, with the generated pages nested under it: the
     # block sits right after that list's last item (wiki/_Sidebar.md). Both markers are indented, so
     # the Markdown keeps them inside the list instead of ending it there and starting a second one.
@@ -245,6 +374,7 @@ def sidebar(text: str) -> str:
             START,
             "- [Test cases and runs](Tests)",
             *[f"  - [{SUITE_NAME[s]}]({p})" for s, p in SUITE_PAGE.items()],
+            *(["  - [Mutation testing](Tests-Mutation)"] if mutation else []),
             "  - [Runs](Tests-Runs)",
             "  - [Obsolete](Tests-Obsolete)",
             "  " + END,
@@ -255,23 +385,36 @@ def sidebar(text: str) -> str:
     return (text.rstrip() + "\n\n" if text.strip() else "") + block + "\n"
 
 
-def generate(store: Path, out: Path, repo: str, last: int, window: int) -> list[str]:
+def generate(store: Path, out: Path, repo: str, last: int, window: int, root: Path = ROOT) -> list[str]:
     catalog, obsolete, runs = load(store)
+    mutation, history = load_mutation(store)
     pages = {
-        "Tests": page_overview(repo, catalog, obsolete, runs),
+        "Tests": page_overview(repo, catalog, obsolete, runs, mutation),
         "Tests-Runs": page_runs(repo, runs),
         "Tests-Obsolete": page_obsolete(repo, obsolete),
     }
     for suite, name in SUITE_PAGE.items():
         pages[name] = page_suite(repo, suite, catalog, runs, last, window)
+    svgs: dict[str, str] = {}
+    if mutation is not None:
+        pages["Tests-Mutation"], svgs = page_mutation(repo, mutation, history, root)
     out.mkdir(parents=True, exist_ok=True)
     for old in out.glob("Tests-*.md"):
         if old.stem not in pages:
             old.unlink()
+    for old in out.glob("tests-*.svg"):
+        if old.name not in svgs:
+            old.unlink()
     for name, text in pages.items():
         (out / f"{name}.md").write_text(text.rstrip() + "\n", encoding="utf-8", newline="\n")
+    for name, text in svgs.items():
+        (out / name).write_text(text, encoding="utf-8", newline="\n")
     sb = out / "_Sidebar.md"
-    sb.write_text(sidebar(sb.read_text(encoding="utf-8") if sb.is_file() else ""), encoding="utf-8", newline="\n")
+    sb.write_text(
+        sidebar(sb.read_text(encoding="utf-8") if sb.is_file() else "", mutation is not None),
+        encoding="utf-8",
+        newline="\n",
+    )
     return sorted(pages)
 
 

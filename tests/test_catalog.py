@@ -913,3 +913,98 @@ def test_each_pytest_case_records_its_layer_and_the_pages_show_it(tmp_path):
     assert "· layer: repository" in py and "· layer: integration" in py
     overview = (out / "Tests.md").read_text(encoding="utf-8")
     assert "pytest cases by layer: unit 2, integration 1, repository 1." in overview
+
+
+def test_the_mutation_page_shows_the_newest_run_its_history_and_its_survivors(tmp_path):
+    """PY-CAT-034: the mutation testing page shows the newest run, the score over time, each function and each survivor
+
+    Given a stored mutation result with two survivors (one listed as behaving the same), its per-function counts, and a history of three runs
+    And an engine whose code is the one the result was made from
+    When the wiki pages are generated, then again after the engine's code changed, then from a store without a mutation result
+    Then the mutation page gives the newest score, the changes, the date, the commit and a link to the run
+    And a chart of the score per run, light and dark, well formed, and a table of the runs, newest first
+    And a row per function, the most survivors first, linked to its module on the engine's code page
+    And each survivor's change, the listed one with its reason, the other not explained yet
+    And the overview and the sidebar link to the page
+    And once the engine's code has changed, the page says the result may no longer hold
+    And without a result there is no page, no sidebar item and no chart left behind
+    """
+    import xml.etree.ElementTree as ET
+
+    root = tmp_path / "repo"
+    (root / "src/traceconomics/engine").mkdir(parents=True)
+    (root / "src/traceconomics/engine/chain.py").write_text("X = 1\n", encoding="utf-8")
+    (root / "tests/coverage").mkdir(parents=True)
+    (root / "tests/coverage/mutation-equivalent.toml").write_text(
+        '[[equivalent]]\nfunction = "traceconomics.engine.chain.link"\nchange = ["- a", "+ b"]\nreason = "the order doesn\'t matter."\n',
+        encoding="utf-8",
+    )
+    sys.path.insert(0, str(Path(__file__).parent / "coverage"))
+    import mutation
+
+    store, out = tmp_path / "store", tmp_path / "wiki"
+    store.mkdir()
+    out.mkdir()
+    (out / "_Sidebar.md").write_text("<!-- generated:start -->\n<!-- generated:end -->\n", encoding="utf-8")
+    result = {
+        "commit": "c" * 40,
+        "started": "2026-12-08T10:00:00Z",
+        "run_url": "https://run/3",
+        "mutants": 10,
+        "counts": {"killed": 8, "survived": 2},
+        "score": 80.0,
+        "functions": {
+            "traceconomics.engine.chain.chain": {"killed": 5, "survived": 1},
+            "traceconomics.engine.chain.link": {"killed": 3, "survived": 1},
+            "traceconomics.engine.rates.rebase": {"killed": 0, "skipped": 0},
+        },
+        "survivors": [
+            {"mutant": "m1", "function": "traceconomics.engine.chain.chain", "change": ["-    continue", "+    break"]},
+            {"mutant": "m2", "function": "traceconomics.engine.chain.link", "change": ["- a", "+ b"]},
+        ],
+        "source": mutation.fingerprint(root),
+    }
+    for r in (
+        {**result, "commit": "a" * 40, "started": "2026-11-24T10:00:00Z", "run_url": None, "score": 95.5},
+        {**result, "commit": "b" * 40, "started": "2026-12-01T10:00:00Z", "run_url": "https://run/2", "score": 100.0},
+        result,
+    ):
+        mutation.store(r, store)
+    wiki.generate(store, out, "owner/repo", 10, 20, root=root)
+    page = (out / "Tests-Mutation.md").read_text(encoding="utf-8")
+    assert (
+        "**Score: 80.0%** of 10 changes killed (killed or timed out, of those tested), on 2026-12-08 from commit "
+        f"[`ccccccc`](https://github.com/owner/repo/commit/{'c' * 40}) ([the run](https://run/3)). Results: killed 8, survived 2."
+    ) in page
+    for mode in ("light", "dark"):
+        ET.parse(out / f"tests-mutation-score-{mode}.svg")
+    assert 'srcset="tests-mutation-score-dark.svg"' in page
+    runs = [line for line in page.splitlines() if line.startswith("| [2026") or line.startswith("| 2026")]
+    assert [r.split(" | ")[0] for r in runs] == [
+        "| [2026-12-08](https://run/3)",
+        "| [2026-12-01](https://run/2)",
+        "| 2026-11-24",
+    ]
+    functions = [line for line in page.splitlines() if line.startswith("| [`")]
+    assert functions[0].startswith("| [`chain.chain`](Code-engine#traceconomicsenginechain) | 6 | 5 | 1 |")
+    assert functions[-1].startswith("| [`rates.rebase`](Code-engine#traceconomicsenginerates) | 0 | 0 | 0 |")
+    assert (
+        "### `traceconomics.engine.chain.chain`: not explained yet\n\n```diff\n-    continue\n+    break\n```" in page
+    )
+    assert (
+        "### `traceconomics.engine.chain.link`: behaves the same" in page
+        and "Behaves the same: the order doesn't matter." in page
+    )
+    assert "may no longer hold" not in page
+    assert "[Mutation testing](Tests-Mutation)." in (out / "Tests.md").read_text(encoding="utf-8")
+    assert "  - [Mutation testing](Tests-Mutation)" in (out / "_Sidebar.md").read_text(encoding="utf-8")
+
+    (root / "src/traceconomics/engine/chain.py").write_text("X = 2\n", encoding="utf-8")
+    wiki.generate(store, out, "owner/repo", 10, 20, root=root)
+    assert "may no longer hold" in (out / "Tests-Mutation.md").read_text(encoding="utf-8")
+
+    for f in ("mutation.json", mutation.HISTORY):
+        (store / f).unlink()
+    wiki.generate(store, out, "owner/repo", 10, 20, root=root)
+    assert not (out / "Tests-Mutation.md").exists() and not list(out.glob("tests-mutation-*.svg"))
+    assert "Mutation testing" not in (out / "_Sidebar.md").read_text(encoding="utf-8")

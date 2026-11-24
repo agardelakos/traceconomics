@@ -10,11 +10,11 @@
 #  - mutation: mutation testing of the engine (src/traceconomics/engine): mutmut changes the engine's
 #    code in small ways, one at a time, and runs the tests that run the engine (taken from the code
 #    map on the branch test-history) on each change; a change no test notices is a survivor
-#    (tests/coverage/mutation.py). About 15 minutes (UNVERIFIED estimate: 7.5 minutes for 269 changes
-#    on the desktop's 8 workers; the runner has 4). On main, the result is stored on test-history
-#    (mutation.json, replacing the previous one) and the wiki is updated, where Code-engine shows the
-#    score and the survivors; on another branch it is only the run's artifact `mutation`, so it never
-#    stands for code that isn't on main.
+#    (tests/coverage/mutation.py). About 9 minutes (8 min 52 s for 269 changes on the runner's 4
+#    workers, 2026-11-24). On main, the result is stored on test-history (mutation.json, replacing the
+#    previous one, and a line per run in mutation-history.jsonl) and the wiki is updated, where the
+#    page Tests-Mutation shows the score over time and the survivors; on another branch it is only the
+#    run's artifact `mutation`, so it never stands for code that isn't on main.
 #
 # The jobs on every push that belong to the showcase (Selenium, the comparison of one run, the code
 # map) are in tests.yml, named "showcase: …".
@@ -136,6 +136,7 @@ jobs:
         run: |
           set -o pipefail      # the script's exit code, not tee's
           python -I tests/coverage/mutation.py report --out "$RUNNER_TEMP/mutation/mutation.json" --commit "$GITHUB_SHA" \
+            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Upload the result
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

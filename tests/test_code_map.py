@@ -300,6 +300,8 @@ def test_the_report_counts_mutants_and_lists_each_survivor(tmp_path):
     Given mutmut's result files for two engine modules: killed, survived, timed out, skipped and unknown results, one survivor in a method
     When the report is written
     Then each result is counted, and the score is the killed and timed-out share of those not skipped
+    And each function's results are counted apart, a method's under Class.method
+    And the run's start and its link are kept
     And each survivor names its function (a method as Class.method) and its change, without the diff's file headers
     And the engine's source is fingerprinted, the same whatever its line endings
     And without results the report stops with an error
@@ -335,8 +337,15 @@ def test_the_report_counts_mutants_and_lists_each_survivor(tmp_path):
         encoding="utf-8",
     )
     diff = "# x: survived\n--- src/a.py\n+++ src/a.py\n@@ -1 +1 @@\n-    continue\n+    break\n"
-    got = mutation.report(root, COMMIT, show=lambda m: diff)
+    got = mutation.report(root, COMMIT, show=lambda m: diff, started="2026-12-08T10:00:00Z", run_url="https://run/1")
     assert got["mutants"] == 6
+    assert (got["started"], got["run_url"]) == ("2026-12-08T10:00:00Z", "https://run/1")
+    assert got["functions"] == {
+        "traceconomics.engine.chain.ChainResult.fallback_summary": {"survived": 1},
+        "traceconomics.engine.chain.chain": {"timeout": 1},
+        "traceconomics.engine.chain.link": {"killed": 1, "survived": 1},
+        "traceconomics.engine.rates.rebase": {"skipped": 1, "suspicious": 1},
+    }
     assert got["counts"] == {"killed": 1, "skipped": 1, "survived": 2, "suspicious": 1, "timeout": 1}
     assert got["score"] == 40.0  # (1 killed + 1 timeout) of 5 not skipped
     assert [s["function"] for s in got["survivors"]] == [
@@ -350,6 +359,28 @@ def test_the_report_counts_mutants_and_lists_each_survivor(tmp_path):
     (meta / "rates.py.meta").unlink()
     with pytest.raises(SystemExit, match="no mutmut results"):
         mutation.report(root, COMMIT, show=lambda m: diff)
+
+
+def test_each_stored_run_keeps_its_line_in_the_history(tmp_path):
+    """PY-MUT-004: storing a run replaces the newest result and adds its line to the history, the one before kept
+
+    Given a test-history folder holding one result stored before the history began
+    When two more runs are stored
+    Then the newest result is the last run's, in full
+    And the history has three lines, oldest first, each with its start, commit, link, changes, counts and score only
+    """
+    first = {"commit": "a" * 40, "mutants": 10, "counts": {"killed": 9, "survived": 1}, "score": 90.0, "survivors": [1]}
+    (tmp_path / "mutation.json").write_text(json.dumps(first), encoding="utf-8")
+    runs = [
+        {**first, "commit": "b" * 40, "started": "2026-12-01T10:00:00Z", "run_url": "u1", "score": 100.0},
+        {**first, "commit": "c" * 40, "started": "2026-12-08T10:00:00Z", "run_url": "u2", "score": 95.0},
+    ]
+    for r in runs:
+        mutation.store(r, tmp_path)
+    assert json.loads((tmp_path / "mutation.json").read_text(encoding="utf-8")) == runs[1]
+    lines = [json.loads(x) for x in (tmp_path / mutation.HISTORY).read_text(encoding="utf-8").splitlines()]
+    assert [x["commit"][0] for x in lines] == ["a", "b", "c"] and [x["score"] for x in lines] == [90.0, 100.0, 95.0]
+    assert all(set(x) == set(mutation.SUMMARY) for x in lines) and lines[0]["started"] is None
 
 
 def test_every_equivalent_survivor_has_its_reason():

@@ -2,7 +2,8 @@
 
     python -I tests/coverage/mutation.py select --map code-map.json [--pyproject pyproject.toml]
     mutmut run
-    python -I tests/coverage/mutation.py report --out mutation.json --commit SHA
+    python -I tests/coverage/mutation.py report --out mutation.json --commit SHA [--run-url URL]
+    python -I tests/coverage/mutation.py store --result mutation.json --store DIR
 
 mutmut (the `mutation` extra; settings in pyproject.toml, `[tool.mutmut]`) makes small changes to
 src/traceconomics/engine, one at a time (a `<` for a `<=`, a `break` for a `continue`), and runs the
@@ -15,9 +16,13 @@ says which lines a test runs; this says whether the tests would notice those lin
 of the repository doesn't have, and couldn't notice a change to the engine anyway.
 
 `report` reads mutmut's results (mutants/**/*.meta) and each survivor's change (`mutmut show`), and
-writes the counts, the score (killed or timed out, of those tested, as mutmut counts it), each
-survivor with its function and change, and a fingerprint of the engine's source, so the wiki can say
-when the engine has changed since. Survivors that behave the same as the code are listed, with the
+writes when it ran, the counts, the score (killed or timed out, of those tested, as mutmut counts
+it), the counts per function, each survivor with its function and change, and a fingerprint of the
+engine's source, so the wiki can say when the engine has changed since.
+
+`store` puts a result into the branch test-history's folder: `mutation.json`, replacing the one
+before, and one line per run in `mutation-history.jsonl` (when, which commit, counts and score),
+so the wiki can show the score over time (tests/catalog/wiki.py, the page Tests-Mutation). Survivors that behave the same as the code are listed, with the
 reason, in tests/coverage/mutation-equivalent.toml; the wiki shows the reason beside them.
 
 Standard library only (mutmut is called as a command).
@@ -33,6 +38,7 @@ import subprocess
 import sys
 import tomllib
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 
 ENGINE = "src/traceconomics/engine/"
@@ -127,14 +133,22 @@ def show(mutant: str) -> str:
     return done.stdout
 
 
-def report(root: Path, commit: str, show=show) -> dict:
-    """The run's result: counts, score, survivors with their changes, and the engine's fingerprint."""
+def score(counts: dict) -> float | None:
+    """Killed or timed out, of the changes tested (all but the skipped), in percent; as mutmut counts it."""
+    tested = sum(counts.values()) - counts.get("skipped", 0)
+    caught = counts.get("killed", 0) + counts.get("timeout", 0) + counts.get("caught by type check", 0)
+    return round(100 * caught / tested, 1) if tested else None
+
+
+def report(root: Path, commit: str, show=show, started: str | None = None, run_url: str | None = None) -> dict:
+    """The run's result: when, counts, score, per function, survivors with their changes, the engine's fingerprint."""
     found = results(root / "mutants")
     if not found:
         raise SystemExit("no mutmut results in mutants/ (run `mutmut run` first)")
     counts = Counter(found.values())
-    tested = len(found) - counts["skipped"]
-    caught = counts["killed"] + counts["timeout"] + counts["caught by type check"]
+    by_function: dict[str, Counter] = {}
+    for m, st in found.items():
+        by_function.setdefault(function_of(m), Counter())[st] += 1
     survivors = [
         {"mutant": m, "function": function_of(m), "change": change(show(m))}
         for m in sorted(found)
@@ -143,12 +157,38 @@ def report(root: Path, commit: str, show=show) -> dict:
     return {
         "schema": 1,
         "commit": commit,
+        "started": started or datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "run_url": run_url,
         "mutants": len(found),
         "counts": dict(sorted(counts.items())),
-        "score": round(100 * caught / tested, 1) if tested else None,
+        "score": score(counts),
+        "functions": {f: dict(sorted(c.items())) for f, c in sorted(by_function.items())},
         "survivors": survivors,
         "source": fingerprint(root),
     }
+
+
+HISTORY = "mutation-history.jsonl"
+SUMMARY = ("started", "commit", "run_url", "mutants", "counts", "score")
+
+
+def store(result: dict, folder: Path) -> None:
+    """Put a run's result into test-history's folder: the newest in full, and a line in the history.
+
+    A history that doesn't exist yet starts with the result stored before this one, if there is one,
+    so the first run kept in full isn't lost from the score over time.
+    """
+    history, newest = folder / HISTORY, folder / "mutation.json"
+    lines = []
+    if not history.is_file() and newest.is_file():
+        lines.append(json.loads(newest.read_text(encoding="utf-8")))
+    lines.append(result)
+    with history.open("a", encoding="utf-8", newline="\n") as f:
+        for r in lines:
+            f.write(json.dumps({k: r.get(k) for k in SUMMARY}, sort_keys=True) + "\n")
+    newest.write_text(
+        json.dumps(result, indent=1, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
+    )
 
 
 def equivalents(path: Path) -> list[dict]:
@@ -173,14 +213,22 @@ def main(argv=None) -> int:
     r.add_argument("--out", required=True, type=Path)
     r.add_argument("--commit", required=True, help="the commit mutmut ran on")
     r.add_argument("--root", type=Path, default=Path.cwd())
+    r.add_argument("--run-url", help="the workflow run, for the wiki's link")
+    st = sub.add_parser("store", help="put a result into test-history's folder, with its line in the history")
+    st.add_argument("--result", required=True, type=Path, help="mutation.json from `report`")
+    st.add_argument("--store", required=True, type=Path, help="the branch test-history, checked out")
     a = ap.parse_args(argv)
+    if a.command == "store":
+        store(json.loads(a.result.read_text(encoding="utf-8")), a.store)
+        print(f"stored the mutation result and its line in {HISTORY}")
+        return 0
     if a.command == "select":
         files = select(json.loads(a.map.read_text(encoding="utf-8")), a.pyproject)
         print(f"mutmut will run {len(files)} test files: " + ", ".join(files))
         return 0
     if not re.fullmatch(r"[0-9a-f]{7,40}", a.commit):
         ap.error(f"--commit must be a commit hash, not {a.commit!r}")
-    result = report(a.root, a.commit)
+    result = report(a.root, a.commit, run_url=a.run_url)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(
         json.dumps(result, indent=1, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"

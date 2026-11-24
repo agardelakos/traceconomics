@@ -176,7 +176,7 @@ tenth; the parts share it by largest remainder.
 
 Coverage counts the lines a test runs, not whether a test would notice them going wrong. For the
 engine, the arithmetic every published number rests on, mutation testing measures that too
-(`Code-engine` on the [code reference](Code)); it runs by hand, not on every push.
+([Mutation testing](Tests-Mutation)); it runs by hand, not on every push.
 
 Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
 fails its build below 90%. The Python figure was first measured at 73.9%, so its run failed below a
