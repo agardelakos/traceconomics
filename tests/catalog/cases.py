@@ -63,6 +63,7 @@ class Case:
     tags: list[str] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)  # what the reader found wrong in the text
     named: bool = False  # the title was given with the case, not taken from the test
+    layer: str | None = None  # pytest only: unit, integration or repository (tests/conftest.py)
 
     def to_json(self) -> dict:
         return asdict(self)

@@ -4,6 +4,7 @@ Most tests run the generator on a small made-up package written here; two run it
 because what they guard (identical bytes, nothing private) is about the real docstrings.
 """
 
+import json
 import re
 import subprocess
 import sys
@@ -69,6 +70,16 @@ def made_up(tmp_path: Path) -> Path:
 
             def link(weights, prices):
                 """One month's link."""
+
+
+            def spare():
+                """Never called."""
+
+
+            class Point:
+                """A point."""
+
+                x: int = 0
             ''',
     }
     for name, text in files.items():
@@ -231,3 +242,130 @@ def test_the_command_line_needs_a_commit_hash(tmp_path):
     assert not (tmp_path / "w").exists()
     good = subprocess.run([*args, "--commit", COMMIT], capture_output=True, text=True)
     assert good.returncode == 0 and "Code-engine" in good.stdout
+
+
+MAP_COMMIT = "fedcba9876543210fedcba9876543210fedcba98"
+
+
+def entry(lines=0, unit=0, integration=0, imported=0, none=0, no_test=(), tests=((), ()), **members):
+    return {
+        "lines": lines,
+        "unit": unit,
+        "integration": integration,
+        "imported": imported,
+        "none": none,
+        "no_test": [list(r) for r in no_test],
+        "tests": {"unit": list(tests[0]), "integration": list(tests[1])},
+        **({"members": members} if members else {}),
+    }
+
+
+def store(tmp_path: Path) -> Path:
+    """A stored code map and catalog for the made-up package, from an earlier commit than the pages'."""
+    folder = tmp_path / "store"
+    folder.mkdir()
+    tests = ["tests/test_job.py::test_run", "tests/test_lock.py::test_take", "tests/test_orphan.py::test_x"]
+    modules = {
+        "src/traceconomics/__init__.py": entry(),
+        "src/traceconomics/job.py": entry(
+            6,
+            2,
+            1,
+            2,
+            1,
+            [(12, 13)],
+            ([0], [1, 2]),
+            run=entry(2, unit=1, imported=1, tests=([0], [])),
+            Lock=entry(3, integration=1, imported=2, tests=([], [1])),
+            **{"Lock.take": entry(2, integration=1, imported=1, tests=([], [1]))},
+        ),
+        "src/traceconomics/engine/chain.py": entry(
+            3,
+            imported=1,
+            none=2,
+            no_test=[(9, 9), (13, 13)],
+            link=entry(2, imported=1, none=1),
+            spare=entry(1, none=1),
+            Point=entry(2, imported=2),
+        ),
+    }
+    code_map = {"schema": 1, "commit": MAP_COMMIT, "back-end": {"tests": tests, "modules": modules}}
+    (folder / "code-map.json").write_text(json.dumps(code_map), encoding="utf-8")
+
+    def case(cid, node, layer, title, file=None):
+        return {
+            "id": cid,
+            "suite": "pytest",
+            "node": node,
+            "layer": layer,
+            "title": title,
+            "file": file or node.split("::")[0],
+        }
+
+    cases = [
+        case("PY-JOB-001", "tests/test_job.py::test_run", "unit", "The job runs"),
+        case("PY-LOCK-001", "tests/test_lock.py::test_take", "integration", "The lock is taken"),
+        case("PY-DOCS-001", "tests/test_docs.py::test_docs", "repository", "Every part has a docstring"),
+        case("PY-HELP-001", "tests/test_help.py::test_helper", "unit", "A helper under tests"),
+        {"id": "PW-X-001", "suite": "playwright", "node": "a", "title": "Not pytest", "file": "a"},
+    ]
+    (folder / "catalog.json").write_text(json.dumps({"cases": cases}), encoding="utf-8")
+    return folder
+
+
+def test_the_pages_show_what_the_tests_run(tmp_path):
+    """PY-CODEREF-008: With a stored code map, the pages show each module's and member's tests, joined to their cases
+
+    Given the made-up package, and a stored code map from an earlier commit and a catalog with unit, integration and repository cases
+    When the code reference is generated with that store
+    Then each page names the map's commit and says it is earlier than the page's
+    And each public member shows its tests per layer, or "imported only", or "no test", and a class of definitions alone shows none of them
+    And each module shows its lines by status, the lines no test runs linked at the map's commit, and its cases by layer behind a summary
+    And a case links to its steps on the pytest page, and a test without a case shows its node ID
+    And a module newer than the map says it is not in the coverage run yet
+    And the overview adds each package's lines, the share run by a test and the lines no test runs
+    And it lists the repository checks by test file, the unit and integration tests that run no package code, and the test runs without a case
+    """
+    out = tmp_path / "wiki"
+    code_reference.generate(made_up(tmp_path), out, REPO, COMMIT, store=store(tmp_path))
+    top = (out / "Code-top-level.md").read_text(encoding="utf-8")
+    assert f"coverage of commit [`fedcba9`](https://github.com/{REPO}/commit/{MAP_COMMIT})" in top
+    assert "an earlier commit than this page's" in top
+    assert "One run of the job. · tests: unit 1" in top
+    assert "Take the lock. · tests: integration 1" in top
+    assert (
+        "**Tests:** 6 lines with code: run by unit tests 2, by integration tests only 1, imported only 2, no test 1 "
+        f"(lines [12–13](https://github.com/{REPO}/blob/{MAP_COMMIT}/src/traceconomics/job.py#L12-L13))."
+    ) in top
+    assert "<details><summary>Test cases that run it: unit 1, integration 2</summary>" in top
+    assert "Unit:\n\n- [PY-JOB-001](Tests-pytest#py-job-001) The job runs" in top
+    assert (
+        "- [PY-LOCK-001](Tests-pytest#py-lock-001) The lock is taken\n- `tests/test_orphan.py::test_x` (no case)" in top
+    )
+    engine = (out / "Code-engine.md").read_text(encoding="utf-8")
+    assert "One month's link. · **imported only**" in engine and "Never called. · **no test**" in engine
+    assert "): A point.\n" in engine  # definitions only: nothing a test could run
+    assert "_Not in the coverage run yet: the module is newer than the code map._" in engine
+    overview = (out / "Code.md").read_text(encoding="utf-8")
+    assert "| Lines with code | Run by a test | Imported only | No test |" in overview
+    assert "| 2 | 3 | 6 | 3 (50%) | 2 (33%) | 1 (17%) |" in overview  # the top-level modules' row
+    assert "## Checks on the code itself" in overview
+    assert "- `tests/test_docs.py`\n  - [PY-DOCS-001](Tests-pytest#py-docs-001) Every part has a docstring" in overview
+    assert "- [PY-HELP-001](Tests-pytest#py-help-001) A helper under tests (unit)" in overview
+    assert "## Test runs without a case\n\n- `tests/test_orphan.py::test_x`" in overview
+    assert "PW-X-001" not in overview
+
+
+def test_a_store_without_a_map_changes_nothing(tmp_path):
+    """PY-CODEREF-009: A store without a code map gives the same pages as no store
+
+    Given the made-up package, and a store holding a catalog but no code map yet
+    When the code reference is generated with the store, and again without it
+    Then both give the same pages, byte for byte
+    """
+    src = made_up(tmp_path)
+    folder = store(tmp_path)
+    (folder / "code-map.json").unlink()
+    code_reference.generate(src, tmp_path / "a", REPO, COMMIT, store=folder)
+    code_reference.generate(src, tmp_path / "b", REPO, COMMIT)
+    assert pages(tmp_path / "a") == pages(tmp_path / "b")

@@ -92,5 +92,5 @@ select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
 combine-as-imports = true
 
 [tool.coverage.html]
-# Each line's layers, shown in the HTML report.
+# Each line's layers and tests, shown in the HTML report.
 show_contexts = true

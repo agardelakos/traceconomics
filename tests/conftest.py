@@ -80,8 +80,17 @@ def pytest_collection_modifyitems(config, items):
         )
 
 
+# Each line run is labelled `<layer>|<test>` (a dynamic context): the layer gives the badges' split
+# (tests/coverage/overview.py reads the part before `|`), the test gives the code map
+# (tests/coverage/code_map.py: which test cases run which code). While a test file is imported the
+# test is `<file>::<import>`: the package lines that run then are module-level code (imports,
+# definitions), and only the first file to import a module records them, so the map treats them as
+# one set, "imported", never as the work of that file's tests.
+IMPORT = "::<import>"
+
+
 def _context(label: str):
-    """Label the coverage being recorded with a layer, when coverage is running; else nothing."""
+    """Label the coverage being recorded, when coverage is running; else nothing."""
     cov = Coverage.current() if Coverage is not None else None
     if cov is not None:
         cov.switch_context(label)
@@ -93,7 +102,7 @@ def pytest_make_collect_report(collector):
     # count for the file's layer, read from its source since the module isn't imported yet.
     if not (isinstance(collector, pytest.Module) and _measured(collector.path)):
         return (yield)
-    _context(file_layer(collector.path) or "")
+    _context(f"{file_layer(collector.path) or ''}|{collector.nodeid}{IMPORT}")
     try:
         return (yield)
     finally:
@@ -105,7 +114,7 @@ def pytest_runtest_protocol(item, nextitem):
     # Setup, call and teardown alike: a fixture's work counts for the test that asked for it.
     if not _measured(item.path):
         return (yield)
-    _context(layer(item) or "")
+    _context(f"{layer(item) or ''}|{item.nodeid}")
     try:
         return (yield)
     finally:

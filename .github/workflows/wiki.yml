@@ -6,8 +6,8 @@
 #     test-history. The read link is the secret TESTRESULTS_READ_URL; without it this step is skipped.
 #  2. The wiki: the hand-written pages copied from wiki/ (a page removed there is removed here),
 #     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py)
-#     and the Code pages from the package's docstrings (tests/catalog/code_reference.py), pushed in
-#     one commit. Editing the wiki itself is pointless: the next run puts the repository's
+#     and the Code pages from the package's docstrings and the stored code map
+#     (tests/catalog/code_reference.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
 #     version back.
 #
 # Runs only the default branch's code (tests.yml calls it for pushes to main only): nothing from a
@@ -100,7 +100,7 @@ jobs:
           cp "$GITHUB_WORKSPACE"/wiki/*.md .
           python -I "$GITHUB_WORKSPACE/tests/catalog/wiki.py" --store "$RUNNER_TEMP/store" --out . --repo "$GITHUB_REPOSITORY"
           python -I "$GITHUB_WORKSPACE/tests/catalog/code_reference.py" --src "$GITHUB_WORKSPACE/src/traceconomics" \
-            --out . --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA"
+            --out . --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --store "$RUNNER_TEMP/store"
           git add -A
           if git diff --cached --quiet; then
             echo "The wiki is up to date." | tee -a "$GITHUB_STEP_SUMMARY"

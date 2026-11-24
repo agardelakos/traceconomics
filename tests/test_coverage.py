@@ -103,6 +103,30 @@ def test_back_end_refuses_wrong_labels(tmp_path):
     assert any("repository test" in p for p in got["problems"])
 
 
+def test_the_split_reads_the_layer_of_a_label_that_names_its_test(tmp_path):
+    """PY-COV-011: the split reads the layer part of a label that also names the test
+
+    Given lines labelled with a layer and a test, with a layer and an import, and with a repository test and its node ID
+    When the back-end split is read
+    Then each line counts for the layer before the `|`, the import line too, the lowest layer winning
+    And the repository test's line is a problem that names the test
+    """
+    data_file, src = write_data(
+        tmp_path,
+        {
+            "unit|tests/test_a.py::test_one[x]": [1],
+            "integration|tests/test_b.py::test_two": [1, 2],
+            "unit|tests/test_a.py::<import>": [3],
+            "repository|tests/test_c.py::test_three": [4],
+        },
+    )
+    got = overview.back_end(data_file)
+    assert got["files"][src.as_posix()] == {"total": 5, "unit": 2, "integration": 1}
+    assert got["problems"] == [
+        f"{src}:4 ran in a repository test (it should run no package code): repository|tests/test_c.py::test_three"
+    ]
+
+
 def test_badge_shows_total_and_parts_and_nothing_else():
     """PY-COV-006: a badge shows its total and each layer's part, self-contained
 
@@ -237,12 +261,13 @@ def test_a_test_file_without_a_layer_stops_the_run(tmp_path):
 
 
 def test_each_line_is_labelled_with_the_layer_that_ran_it(tmp_path):
-    """PY-COV-008: coverage records the layer of the test that ran each line
+    """PY-COV-008: coverage records the layer and the test that ran each line
 
     Given a unit test file calling one function and an integration test in it, marked to override its file, calling another
     When the tests run under coverage
-    Then the first function's body is recorded under unit and the second's under integration
-    And the module-level lines, run when the file is imported, are recorded under the file's layer
+    Then the first function's body is labelled with unit and the unit test's node ID
+    And the second's with integration and the integration test's node ID
+    And the module-level lines, run when the file is imported, with the file's layer and the file as an import
     """
     p = project(
         tmp_path,
@@ -259,6 +284,7 @@ def test_each_line_is_labelled_with_the_layer_that_ran_it(tmp_path):
     data = coverage.CoverageData(str(p / ".coverage"))
     data.read()
     by_line = data.contexts_by_lineno(str(p / "lib.py"))
-    assert set(by_line[2]) == {"unit"}  # low()'s body
-    assert set(by_line[6]) == {"integration"}  # high()'s body
-    assert set(by_line[1]) == {"unit"} and set(by_line[5]) == {"unit"}  # the defs, run on import
+    assert set(by_line[2]) == {"unit|test_lib.py::test_low"}  # low()'s body
+    assert set(by_line[6]) == {"integration|test_lib.py::test_high"}  # high()'s body
+    imported = {"unit|test_lib.py::<import>"}
+    assert set(by_line[1]) == imported and set(by_line[5]) == imported  # the defs, run on import

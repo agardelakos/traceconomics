@@ -64,6 +64,15 @@ public functions, classes and methods, each linked to its source line at the com
 made from. Every public part must have a docstring whose first line is one sentence
 (`tests/test_docstrings.py`), so the reference has no gaps.
 
+They also show what the tests run, from the last coverage run on `main`: the code map
+(`tests/coverage/code_map.py`, stored on the branch `test-history`). Each module lists its
+lines by the lowest layer of test that runs them, the lines no test runs, and the test cases that
+run it, each linked to its steps on the `Tests-pytest` page. Each public function shows how many
+tests run it, or "imported only" (defined while a test file was loaded, but never called by a test),
+or "no test". The overview lists the `repository` tests, which check the repository's own files and
+run no package code, and any test run without a case. A test that runs a line doesn't always check
+it.
+
 ## Compared with a dedicated test-management tool
 
 The comparison is with a typical case-management tool of the TestRail kind: a database of cases,

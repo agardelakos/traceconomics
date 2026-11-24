@@ -251,7 +251,9 @@ jobs:
 
   # Both coverage figures split by layer (tests/coverage/overview.py): the Python package's, from
   # both pytest jobs combined, and the site's, from its summary. On every run: the split on the run's
-  # page and the Python HTML report (each line's layers shown); on main, the badges for the job below.
+  # page and the Python HTML report (each line's layers and tests shown); on main, the badges for the
+  # job below. Also the code map (tests/coverage/code_map.py), which tests run which module and public
+  # function: on main, stored on test-history for the wiki's Code pages.
   # The Python figure fails below its ratchet (tests/coverage/overview.py, RATCHET), which rises to
   # the site's 90% floor as tests are added; the site's floor is enforced in the site job.
   coverage:
@@ -279,6 +281,18 @@ jobs:
       # here against this checkout's sources.
       - run: python -I -m coverage combine --keep ${{ runner.temp }}/coverage-data/coverage-python ${{ runner.temp }}/coverage-data/coverage-local
       - run: python -I -m coverage html --directory ${{ runner.temp }}/python-coverage --title "Back-end coverage"
+      # Before the split, so a run below the ratchet still has its map.
+      - name: The code map
+        run: |
+          python -I tests/coverage/code_map.py --python .coverage --src src/traceconomics \
+            --out "$RUNNER_TEMP/code-map/code-map.json" --commit "$GITHUB_SHA"
+      - name: Upload the code map
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: code-map
+          path: ${{ runner.temp }}/code-map/code-map.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Split by layer
         run: |
           set -o pipefail      # the script's exit code, not tee's
@@ -549,7 +563,7 @@ jobs:
   # runs whatever the tests did. Pull requests are never recorded. The only other job that writes
   # to the repository, and only to that branch, which it appends to and never force-pushes.
   test-history:
-    needs: [python, python-local, site, selenium, catalog]
+    needs: [python, python-local, site, selenium, catalog, coverage]
     if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -571,7 +585,7 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         continue-on-error: true
         with:
-          pattern: "{pytest-results,pytest-local-results,vitest-results,playwright-results,selenium-report,catalog}"
+          pattern: "{pytest-results,pytest-local-results,vitest-results,playwright-results,selenium-report,catalog,code-map}"
           path: ${{ runner.temp }}/results
       - name: The run's record
         env:
@@ -604,8 +618,11 @@ jobs:
           catalog=()
           [ "$CATALOG_OK" = true ] && [ -f "$RUNNER_TEMP/results/catalog/catalog.json" ] \
             && catalog=(--catalog "$RUNNER_TEMP/results/catalog/catalog.json")
+          # The code map, when the coverage job made one: it replaces the stored map.
+          map=()
+          [ -f "$RUNNER_TEMP/results/code-map/code-map.json" ] && map=(--map "$RUNNER_TEMP/results/code-map/code-map.json")
           .github/scripts/test_history_push.sh "Run $GITHUB_RUN_ID on ${GITHUB_SHA::7}" \
-            "$RUNNER_TEMP/results/record.json" "${catalog[@]}"
+            "$RUNNER_TEMP/results/record.json" "${catalog[@]}" "${map[@]}"
 
   # Code scanning (CodeQL), one job per language, the same languages and categories as GitHub's
   # default setup used before (so earlier alerts and their dismissals carry over). Nothing to build:
