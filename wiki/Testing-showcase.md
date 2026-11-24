@@ -34,7 +34,8 @@ All of it runs in the `showcase` workflow (`.github/workflows/showcase.yml`):
 - **After every pipeline run on `main`:** the Selenium suite on the made-up data, in every data
   state the pipeline tests Playwright on; one comparison of that run's Playwright results with
   Selenium's; the code map, from the pipeline's coverage data and Selenium's; the run's record on
-  the branch `test-history`; and the wiki.
+  the branch `test-history`; and the wiki. If a newer push reaches `main` first, that run skips and
+  the newer push's run does it all instead.
 - **Weekly:** the Selenium suite on `main`, so a change outside the repository (a new Chrome for
   Testing, a dependency) shows even in a quiet week.
 - **By hand:** the long comparison (several runs of each suite) and mutation testing.

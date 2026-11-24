@@ -11,8 +11,12 @@
 #  - test-history: the run's record on the branch test-history (the pipeline's results and
 #    Selenium's, against the pipeline run), and the code map; then the wiki (wiki.yml).
 #
-# The jobs check out the commit the pipeline ran on and download that run's artifacts: only runs of
-# pushes to main, never a pull request's, so nothing here reads code or files a review hasn't passed.
+# The jobs download that pipeline run's artifacts: only runs of pushes to main, never a pull
+# request's, so nothing here reads files a review hasn't passed. They check out main's head, not the
+# commit named by the event, so no code from an event's payload runs with main's rights (and its
+# cache); they run only while main's head is still the commit the pipeline ran on. If a newer push
+# landed first, they skip and job "newer-commit" says so: that push's own pipeline run starts the
+# next showcase run, and the older commit has no Selenium run or record.
 #
 # Weekly: the Selenium suite alone on main, so a change outside the repository (a new Chrome for
 # Testing, a dependency) shows even in a week with no push.
@@ -185,13 +189,27 @@ jobs:
     uses: ./.github/workflows/wiki.yml
     secrets: inherit
 
+  # After a pipeline run on main whose commit is no longer main's head: nothing else runs (see the
+  # top of this file), and the run's page says why.
+  newer-commit:
+    name: "showcase: skipped, main has a newer commit"
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_sha != github.sha }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - env:
+          TESTED: ${{ github.event.workflow_run.head_sha }}
+          HEAD: ${{ github.sha }}
+        run: |
+          echo "The pipeline ran on $TESTED, but main is now at $HEAD: skipped. The pipeline run of $HEAD starts the next showcase run." | tee -a "$GITHUB_STEP_SUMMARY"
+
   # The Selenium suite (tests/selenium), in Python and Selenium on Chrome, to compare the two tools.
-  # After a pipeline run on main, on that run's commit, in every data state (tests/sitedata.py
+  # After a pipeline run on main, on that run's commit (main's head), in every data state (tests/sitedata.py
   # --state); weekly, on main's head. Only the default state is a coverage build with each test's
   # coverage, for the code map, and only its report feeds the comparison and the run record.
   selenium:
     name: "showcase: Selenium (${{ matrix.state }})"
-    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push') || github.event_name == 'schedule' }}
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_sha == github.sha) || github.event_name == 'schedule' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
@@ -204,7 +222,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
@@ -279,7 +296,7 @@ jobs:
   compare-main:
     name: "showcase: Playwright and Selenium compared (one run)"
     needs: [selenium]
-    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' }}
+    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_sha == github.sha }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -289,7 +306,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
@@ -316,7 +332,7 @@ jobs:
   code-map:
     name: "showcase: code map"
     needs: [selenium]
-    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' }}
+    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_sha == github.sha }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -326,7 +342,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
@@ -379,7 +394,7 @@ jobs:
   test-history:
     name: "showcase: run record"
     needs: [selenium, code-map]
-    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' }}
+    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_sha == github.sha }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -399,7 +414,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
@@ -458,7 +472,7 @@ jobs:
   # runs.
   wiki-main:
     needs: [test-history]
-    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' }}
+    if: ${{ !cancelled() && github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_sha == github.sha }}
     permissions:
       contents: write
     uses: ./.github/workflows/wiki.yml
