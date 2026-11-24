@@ -156,9 +156,11 @@ Households in one area are alike, so the uncertainty comes from which areas were
 bootstrap resamples areas within each stratum (`local/bootstrap.py`; Rao and Wu 1988, in the
 rescaled-weights form of Rao, Wu and Yue 1992):
 
+<!-- from: traceconomics.local.bootstrap -->
+
 ```text
-in each stratum h with n_h areas, draw n_h - 1 areas with replacement;
-an area drawn r_hi times gets the weight factor r_hi * n_h / (n_h - 1)
+in every stratum h with n_h areas, draw n_h - 1 areas with replacement;
+area i drawn r_hi times gets the weight factor r_hi * n_h / (n_h - 1).
 ```
 
 1,000 replicates with a fixed seed, so a rerun gives the same errors. Because weights, not data,

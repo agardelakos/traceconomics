@@ -14,9 +14,11 @@ says nothing about why.
 Each year has fixed weights, and each year is computed relative to December of the year before,
 the link month. The years are then multiplied together (`engine/chain.py`):
 
+<!-- from: traceconomics.engine.chain -->
+
 ```text
-link(y, m) = sum_i w_i * P_i(y, m) / P_i(Dec y-1)  /  sum_i w_i
-I(y, m)    = I(Dec y-1) * link(y, m)
+link(y, m)  = sum_i w_i * P_i(y, m) / P_i(Dec y-1)  /  sum_i w_i
+I(y, m)     = I(Dec y-1) * link(y, m)
 ```
 
 This is how the HICP (HICP Methodological Manual 2024, section 2.4) and the Greek CPI are built,
