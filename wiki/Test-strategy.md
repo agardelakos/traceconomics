@@ -168,7 +168,8 @@ tenth; the parts share it by largest remainder.
   generated data files: the calculator parity test and the data-file checks). A line only the
   browser tests ran is end-to-end.
 - **Not measured**: the Selenium suite (it tests the same pages as Playwright, through another
-  tool) and the release checks on real data.
+  tool; its coverage is recorded for the [code reference](Code)'s comparison of the two browser
+  suites, never counted in the badge) and the release checks on real data.
 
 Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
 fails its build below 90%. The Python figure was first measured at 73.9%, so its run failed below a

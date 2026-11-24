@@ -5,6 +5,7 @@ A made-up package and a coverage data file written here, with the labels tests/c
 """
 
 import json
+import re
 import subprocess
 import sys
 import textwrap
@@ -168,3 +169,86 @@ def test_the_command_line_writes_the_same_bytes_and_needs_a_hash(tmp_path):
     (tmp_path / "wrong").mkdir()
     wrong = run(tmp_path / "d.json", data_file=data(tmp_path / "wrong", src, {"repository|t.py::test_a": [8]}))
     assert wrong.returncode == 1 and "repository test" in wrong.stderr and not (tmp_path / "d.json").exists()
+
+
+def site_files(folder: Path, *, selenium: bool = True) -> Path:
+    """The files code-map-lines.mjs writes, made up: two site files and one test of each kind."""
+    a, b = "src/lib/a.ts", "src/scripts/b.ts"
+    files = {
+        "lines": {a: [1, 2, 3, 4, 5, 6], b: [1, 2]},
+        "layers": {"unit": {a: [1, 2]}, "integration": {a: [1, 2, 3]}, "e2e": {a: [4], b: [1]}},
+        "bundled": {a: [4, 5], b: [1, 2]},
+        "vitest": {
+            "src/lib/a.test.ts": {"layer": "unit", "lines": {a: [1, 2, 6]}},  # 6: a header it never calls
+            "src/lib/data-files.test.ts": {"layer": "integration", "lines": {a: [3]}},
+        },
+        # 5 is bundled but the merged run lost it; 3 isn't bundled at all
+        "playwright": {"PW-X-001": {a: [4, 5], b: [1]}, "PW-X-002": {a: [3]}},
+    }
+    if selenium:
+        files["selenium"] = {"tests/selenium/test_b.py::test_b": {a: [4], b: [1, 2]}}
+    folder.mkdir()
+    for name, data in files.items():
+        (folder / f"{name}.json").write_text(json.dumps(data), encoding="utf-8")
+    return folder
+
+
+def test_the_front_end_takes_the_badge_statuses_and_each_tests_trusted_lines(tmp_path):
+    """PY-CODEMAP-004: The front end takes each line's status from the badge's runs and its tests from their own lines
+
+    Given a site file's lines run by a unit and an integration Vitest file, two Playwright cases and a Selenium test, and each layer's merged run
+    And a Vitest file whose own lines include one its layer's merged run didn't run
+    And a Playwright case whose own lines include one the merged run lost and one the build never bundled
+    When the map's front end is built, with Selenium's lines and then without them
+    Then each line's status is the first layer whose merged run ran it, else none, as on the badge
+    And a Vitest file's line counts only where its layer's merged run ran it, a browser test's only where the build bundled it
+    And each suite's count of lines it runs, and the lines only Playwright or only Selenium runs, follow from those
+    And the lines no test runs at all are given as ranges
+    And without Selenium's lines its counts and the comparison are left empty and the map says so
+    """
+    got = code_map.site(site_files(tmp_path / "site"))
+    tests = got["tests"]
+    a, b = got["files"]["src/lib/a.ts"], got["files"]["src/scripts/b.ts"]
+    assert {k: a[k] for k in code_map.SITE_STATUSES} == {"unit": 2, "integration": 1, "e2e": 1, "none": 2}
+    assert a["no_test"] == [[6, 6]]
+    names = {k: [tests[i] for i in v] for k, v in a["tests"].items()}
+    assert names == {
+        "unit": ["vitest|src/lib/a.test.ts"],
+        "integration": ["vitest|src/lib/data-files.test.ts"],
+        "e2e": ["playwright|PW-X-001"],
+        "selenium": ["selenium|tests/selenium/test_b.py::test_b"],
+    }
+    assert a["ran"] == {"unit": 2, "integration": 1, "e2e": 2, "selenium": 1}
+    assert (a["playwright_only"], a["selenium_only"]) == ([[5, 5]], [])
+    assert (b["e2e"], b["none"], b["no_test"], b["selenium_only"]) == (1, 1, [], [[2, 2]])
+    assert got["selenium"] is True
+
+    without = code_map.site(site_files(tmp_path / "site2", selenium=False))
+    a2 = without["files"]["src/lib/a.ts"]
+    assert without["selenium"] is False and a2["ran"]["selenium"] is None
+    assert a2["playwright_only"] is None and a2["selenium_only"] is None
+    with pytest.raises(FileNotFoundError):
+        code_map.site(tmp_path / "missing")
+
+
+SITE = Path(__file__).resolve().parent.parent / "site"
+
+
+def test_the_vitest_integration_files_are_named_alike_everywhere():
+    """PY-CODEMAP-005: The Vitest files counted as integration are the same in the code map, the quick check and CI
+
+    Given the code map's list of Vitest integration files, the quick check's script and CI's unit-only Vitest run
+    When the three lists are read
+    Then they name the same files
+    And each file exists
+    """
+    options = (SITE / "scripts" / "coverage-options.mjs").read_text(encoding="utf-8")
+    listed = re.search(r"VITEST_INTEGRATION = \[([^\]]*)\]", options)[1]
+    in_map = set(re.findall(r'"([^"]+)"', listed))
+    script = json.loads((SITE / "package.json").read_text(encoding="utf-8"))["scripts"]["check:code"]
+    in_check = set(re.findall(r"--exclude (\S+)", script))
+    workflow = (SITE.parent / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+    unit_run = next(line for line in workflow.splitlines() if "npx vitest run --exclude" in line)
+    in_ci = set(re.findall(r"--exclude (\S+)", unit_run))
+    assert in_map == in_check == in_ci and len(in_map) == 2
+    assert all((SITE / f).is_file() for f in in_map)

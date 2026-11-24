@@ -73,6 +73,16 @@ or "no test". The overview lists the `repository` tests, which check the reposit
 run no package code, and any test run without a case. A test that runs a line doesn't always check
 it.
 
+The map covers the site's own code too, on the `Code-site` page: each file's lines by the layer
+that runs them (Vitest's unit and integration files, then Playwright), and the Vitest files,
+Playwright cases and Selenium tests that run it. Vitest is measured per test file, Playwright per
+case, Selenium per test (through Chrome's DevTools protocol, taken before every navigation and
+click). The overview draws it all as charts, each in a light and a dark version with its numbers in
+a table below: stacked bars of each area's lines by status, heatmaps of the share each suite runs,
+and a table of the lines only Playwright or only Selenium runs. Each line's status is the coverage
+badges' own; which tests run a line comes from each test's own coverage, kept to what the merged
+runs and the build's bundles confirm, so the two browser suites are compared the same way.
+
 ## Compared with a dedicated test-management tool
 
 The comparison is with a typical case-management tool of the TestRail kind: a database of cases,

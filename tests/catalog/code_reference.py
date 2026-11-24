@@ -33,9 +33,13 @@ import argparse
 import ast
 import json
 import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with `python -I`: its folder isn't on the path
+import code_charts as charts  # noqa: E402
 
 HEAD = (
     "> Generated, do not edit. Made from the code's docstrings on every update of the wiki; a correction "
@@ -45,7 +49,19 @@ START, END = "<!-- code:start -->", "<!-- code:end -->"
 TOP = "top-level"  # the page name of the modules directly in the package
 INDENT = 4  # docstring lines indented this much are code (formulas, layouts); lists nest by 2
 LAYERS = ("unit", "integration")  # the layers that run package code, the lowest first
+SITE_LAYERS = ("unit", "integration", "e2e")  # the front-end badge's layers
+BACK_STATUSES = ("unit", "integration", "imported", "none")
+SITE_STATUSES = ("unit", "integration", "e2e", "none")
 TESTS_PAGE = "Tests-pytest"
+SITE = "site"  # the front end's page, Code-site
+MEANS = {
+    "unit": "a unit test runs it directly (pytest, or Vitest's unit files)",
+    "integration": "only tests that run it with its real neighbours: files on disk, the store, the generated data",
+    "e2e": "front end only: only Playwright reaches it, through the built site",
+    "imported": "back end only: it ran only while test files were being loaded (imports, `def` lines)",
+    "none": "no test runs it",
+}
+COLOUR = {"unit": "blue", "integration": "orange", "e2e": "green", "imported": "dark grey", "none": "light grey"}
 
 
 @dataclass
@@ -57,6 +73,8 @@ class Coverage:
     tests: list[str]  # node IDs; the map's entries refer to them by position
     cases: dict  # node ID -> the catalog's pytest case
     catalog: list[dict]  # every pytest case
+    front: dict | None = None  # the map's front end: its tests and files
+    others: list[dict] = field(default_factory=list)  # the Vitest, Playwright and Selenium cases
 
     @staticmethod
     def load(store: Path) -> Coverage | None:
@@ -67,8 +85,30 @@ class Coverage:
         cat = store / "catalog.json"
         cases = json.loads(cat.read_text(encoding="utf-8"))["cases"] if cat.is_file() else []
         pytest_cases = [c for c in cases if c["suite"] == "pytest" and c.get("id")]
+        others = [c for c in cases if c["suite"] != "pytest" and c.get("id")]
         back = m["back-end"]
-        return Coverage(m["commit"], back["modules"], back["tests"], {c["node"]: c for c in pytest_cases}, pytest_cases)
+        nodes = {c["node"]: c for c in pytest_cases}
+        return Coverage(m["commit"], back["modules"], back["tests"], nodes, pytest_cases, m.get("front-end"), others)
+
+    def front_link(self, key: str) -> list[str]:
+        """A front-end test as links to its cases: a Vitest file's every case, a Playwright case, a Selenium test's."""
+        kind, _, name = key.partition("|")
+        if kind == "vitest":
+            found = [c for c in self.others if c["suite"] == "vitest" and c["file"] == f"site/{name}"]
+            head = f"`{name}`: "
+        elif kind == "playwright":
+            found = [c for c in self.others if c["suite"] == "playwright" and c["id"] == name]
+            head = ""
+        else:
+            found = [c for c in self.others if c["suite"] == "selenium" and c["node"] == name]
+            head = ""
+        if not found:
+            return [f"`{name}` (no case)"]
+        page = {"vitest": "Tests-Vitest", "playwright": "Tests-Playwright", "selenium": "Tests-Selenium"}[kind]
+        links = [
+            f"[{c['id']}]({page}#{c['id'].lower()}) {inline(c['title'])}" for c in sorted(found, key=lambda c: c["id"])
+        ]
+        return [head + ", ".join(links)] if kind == "vitest" else links
 
     def case_link(self, node: str) -> str:
         """A test as a link to its case's steps, or its node ID when it has no case."""
@@ -295,6 +335,12 @@ def page_package(page: str, modules: list[Module], repo: str, commit: str, cov: 
     if cov is not None:
         out.append(coverage_note(cov, repo, commit))
     out.append("[Code reference](Code) · " + " · ".join(f"[`{m.name}`](#{anchor(m.name)})" for m in modules) + "\n")
+    if cov is not None:
+        rows = [(module_label(m), cov.modules[m.path]) for m in modules if cov.modules.get(m.path, {}).get("lines")]
+        if rows:
+            stem = f"code-map-{page}"
+            out.append(charts.picture(stem, f"Stacked bars: the lines of each module of {page}, by status") + "\n")
+            out.append(status_table(rows, BACK_STATUSES, "Module") + "\n")
     for m in modules:
         entry = cov.modules.get(m.path) if cov else None
         found = (entry or {}).get("members", {})
@@ -368,8 +414,302 @@ def page_overview(pages: dict[str, list[Module]], repo: str, commit: str, cov: C
             )
         out.append(row)
     if cov is not None:
+        if cov.front is not None:
+            out.append(f"\nThe site's own code, file by file: [Front end (site)](Code-{SITE}).")
+        out += overview_map(pages, cov)
         out += overview_tests(cov)
     return "\n".join(out) + "\n"
+
+
+def module_label(m: Module) -> str:
+    """A module's name within its package: `chain.py`, `elstat/parse.py`; the top level's by file name."""
+    parts = m.path.split("/")[2:]  # after src/traceconomics
+    return "/".join(parts[1:]) if len(parts) > 1 else parts[0]
+
+
+def status_table(rows: list[tuple[str, dict]], statuses: tuple[str, ...], first: str) -> str:
+    """The numbers under a bar chart: each row's lines, and each status's share of them."""
+    out = [f"| {first} | Lines | " + " | ".join(statuses) + " |", "|---|--:|" + "--:|" * len(statuses)]
+    for label, e in rows:
+        out.append(
+            f"| {inline(label)} | {e['lines']:,} | "
+            + " | ".join(charts.share(e[k], e["lines"]) if e.get(k) else "" for k in statuses)
+            + " |"
+        )
+    return "\n".join(out)
+
+
+def summed(entries: list[dict], statuses: tuple[str, ...]) -> dict:
+    """Several entries' lines and statuses added up, with the lines each suite or layer runs."""
+    out = {"lines": sum(e["lines"] for e in entries), **{k: sum(e[k] for e in entries) for k in statuses}}
+    ran: dict = {}
+    for e in entries:
+        for k, v in e.get("ran", {}).items():
+            ran[k] = None if v is None or ran.get(k, 0) is None else ran.get(k, 0) + v
+    out["ran"] = ran
+    return out
+
+
+def site_area(path: str) -> str:
+    """A front-end file's folder on the map: `lib`, `lib/engine`, `scripts`, `pages`, …"""
+    parts = path.split("/")
+    return f"lib/{parts[2]}" if parts[1] == "lib" and len(parts) > 3 else parts[1]
+
+
+def site_areas(front: dict) -> dict[str, list[tuple[str, dict]]]:
+    """The front end's files by folder, the biggest folder first, each folder's files by size."""
+    areas = defaultdict(list)
+    for f, e in front["files"].items():
+        areas[site_area(f)].append((f, e))
+    for files in areas.values():
+        files.sort(key=lambda fe: (-fe[1]["lines"], fe[0]))
+    return dict(sorted(areas.items(), key=lambda kv: (-sum(e["lines"] for _, e in kv[1]), kv[0])))
+
+
+def shares(entry: dict, cols: dict[str, str]) -> dict:
+    """{column: the share of the entry's lines that suite runs}, None where it wasn't measured."""
+    ran = entry["ran"]
+    return {
+        col: None if ran.get(key) is None or not entry["lines"] else ran[key] / entry["lines"]
+        for col, key in cols.items()
+    }
+
+
+BACK_COLS = {"pytest unit": "unit", "pytest integration": "integration"}
+SITE_COLS = {"Vitest unit": "unit", "Vitest integration": "integration", "Playwright": "e2e", "Selenium": "selenium"}
+
+
+def heat_table(rows: list[tuple[str, dict]], cols: list[str], first: str) -> str:
+    """The numbers under a heatmap."""
+    out = [f"| {first} | " + " | ".join(cols) + " |", "|---|" + "--:|" * len(cols)]
+    for label, sh in rows:
+        cells = ["–" if v is None else ("<1%" if 0 < v < 0.005 else f"{100 * v:.0f}%") for v in sh.values()]
+        out.append(f"| {inline(label)} | " + " | ".join(cells) + " |")
+    return "\n".join(out)
+
+
+def overview_map(pages: dict[str, list[Module]], cov: Coverage) -> list[str]:
+    """The map on Code.md: the legend, the lines per area by status, which suites run each area."""
+    back = {
+        page: summed([cov.modules[m.path] for m in mods if m.path in cov.modules], BACK_STATUSES)
+        for page, mods in pages.items()
+    }
+    back = {p: e for p, e in back.items() if e["lines"]}
+    front = (
+        {a: summed([e for _, e in fs], SITE_STATUSES) for a, fs in site_areas(cov.front).items()} if cov.front else {}
+    )
+    out = ["", "## The map\n"]
+    out.append(
+        "Each line with code counts once, for the first of these that holds (the README's coverage "
+        "badges count the same way, except that they count *imported* lines for the layer of the file "
+        "being loaded):\n"
+    )
+    out += ["| Status | Colour | The line |", "|---|---|---|"]
+    out += [f"| **{k}** | {COLOUR[k]} | {MEANS[k]} |" for k in ("unit", "integration", "e2e", "imported", "none")]
+    out.append(
+        "\nThe Selenium suite tests the same pages as Playwright with another tool, so it isn't one of "
+        "the layers; it has its own column below. The charts' numbers are in the table under each one.\n"
+    )
+    out.append("### Lines per area\n")
+    out.append(
+        charts.picture("code-map-overview", "Stacked bars: the lines of each area of the code, by status") + "\n"
+    )
+    out.append(status_table([(page_title(p).strip("`"), e) for p, e in back.items()], BACK_STATUSES, "Back end") + "\n")
+    if front:
+        out.append(status_table([(a, e) for a, e in front.items()], SITE_STATUSES, "Front end") + "\n")
+    out.append("### Which suites run each area\n")
+    out.append(
+        "A different count: each cell is the share of the area's lines that suite runs at all, so a line "
+        "run by several suites counts in each.\n"
+    )
+    hb = [(page_title(p).strip("`"), shares(e, BACK_COLS)) for p, e in back.items()]
+    out.append(
+        charts.picture("code-map-heat-back", "Heatmap: the share of each back-end area's lines each layer runs") + "\n"
+    )
+    out.append(heat_table(hb, list(BACK_COLS), "Back end") + "\n")
+    if front:
+        hf = [(a, shares(e, SITE_COLS)) for a, e in front.items()]
+        out.append(
+            charts.picture("code-map-heat-front", "Heatmap: the share of each front-end area's lines each suite runs")
+            + "\n"
+        )
+        out.append(heat_table(hf, list(SITE_COLS), "Front end") + "\n")
+        out += compare_suites(cov, front)
+    return out
+
+
+def compare_suites(cov: Coverage, front: dict) -> list[str]:
+    """Where Playwright and Selenium run different code, by folder; the lines are on Code-site."""
+    out = ["### Playwright and Selenium compared\n"]
+    if not cov.front.get("selenium"):
+        return out + ["Not measured in this run: the Selenium suite ran without coverage.\n"]
+    out.append(
+        "The two browser suites test the same pages. Lines one of them runs and the other doesn't, by "
+        f"folder; each file's lines are on [Front end (site)](Code-{SITE}#playwright-and-selenium-compared).\n"
+    )
+    out += [
+        "| Folder | Lines | Playwright runs, Selenium doesn't | Selenium runs, Playwright doesn't |",
+        "|---|--:|--:|--:|",
+    ]
+    for area, files in site_areas(cov.front).items():
+        pw = sum(count(e["playwright_only"]) for _, e in files)
+        sel = sum(count(e["selenium_only"]) for _, e in files)
+        out.append(f"| {area} | {front[area]['lines']:,} | {pw:,} | {sel:,} |")
+    return out + [""]
+
+
+def count(ranges: list[list[int]] | None) -> int:
+    """How many lines a list of ranges holds."""
+    return sum(b - a + 1 for a, b in ranges or [])
+
+
+def site_source(repo: str, commit: str, path: str) -> str:
+    """A front-end file's source link: an .astro file's script block links to the .astro file."""
+    return source_link(repo, commit, "site/" + re.sub(r" \(script \d+\)$", "", path))
+
+
+def site_ranges(ranges: list[list[int]], repo: str, commit: str, path: str) -> str:
+    """Line ranges of a front-end file, linked; an .astro script block's lines are its own, so unlinked."""
+    if path.endswith(")"):
+        return ", ".join(f"{a}" if a == b else f"{a}–{b}" for a, b in ranges)
+    return line_ranges(ranges, repo, commit, "site/" + path)
+
+
+def page_site(cov: Coverage, repo: str, commit: str) -> str:
+    """The front end's page: a chart per folder, then each file's lines and the cases that run it."""
+    front = cov.front
+    areas = site_areas(front)
+    out = [
+        "# Front end (site)\n",
+        "> Generated, do not edit. Made from the code map on every update of the wiki.\n",
+        coverage_note(cov, repo, commit),
+        "The site's own code (`site/src`: the scripts, the build code in `lib`, the components' and pages' "
+        "script blocks), as the front-end coverage badge counts it. Vitest is measured per test file, so a "
+        "file's Vitest cases are all the cases of the test files that run it; Playwright per case; "
+        "Selenium per test. Statuses as on [the code reference](Code#the-map). An `.astro` file's script "
+        "block is numbered as the build numbers it; its line numbers count from the block's start.\n",
+        "[Code reference](Code) · "
+        + " · ".join(f"[{a}](#{anchor(a)})" for a in areas)
+        + " · [Playwright and Selenium compared](#playwright-and-selenium-compared)\n",
+    ]
+    for area, files in areas.items():
+        out.append(f"## {area}\n")
+        out.append(
+            charts.picture(
+                f"code-map-site-{area.replace('/', '-')}", f"Stacked bars: the lines of each file in {area}, by status"
+            )
+            + "\n"
+        )
+        out.append(
+            status_table(
+                [(f"`{f.split('/', 2)[-1] if area == 'lib' else f.rsplit('/', 1)[-1]}`", e) for f, e in files],
+                SITE_STATUSES,
+                "File",
+            )
+            + "\n"
+        )
+        for f, e in files:
+            out.append(f"### `{f}`\n")
+            out.append(f"[source]({site_source(repo, commit, f)})\n")
+            line = f"**Tests:** {e['lines']} lines with code: " + ", ".join(f"{k} {e[k]}" for k in SITE_STATUSES)
+            if e["no_test"]:
+                line += f" (no test: lines {site_ranges(e['no_test'], repo, cov.commit, f)})"
+            out.append(line + ".\n")
+            groups = {k: [front["tests"][i] for i in e["tests"].get(k, [])] for k in (*SITE_LAYERS, "selenium")}
+            if any(groups.values()):
+                summary = ", ".join(f"{NAMES[k]} {len(v)}" for k, v in groups.items() if v)
+                out.append(f"<details><summary>Tests that run it: {summary}</summary>\n")
+                for k, keys in groups.items():
+                    if keys:
+                        out.append(f"{NAMES[k]}:\n")
+                        out += [f"- {link}" for key in keys for link in cov.front_link(key)]
+                        out.append("")
+                out.append("</details>\n")
+    out.append("## Playwright and Selenium compared\n")
+    if not front.get("selenium"):
+        out.append("Not measured in this run: the Selenium suite ran without coverage.\n")
+    else:
+        rows = [(f, e) for fs in areas.values() for f, e in fs if e["playwright_only"] or e["selenium_only"]]
+        out.append(
+            "Lines one browser suite runs and the other doesn't. Files where both run the same lines are left out.\n"
+        )
+        out += ["| File | Playwright runs, Selenium doesn't | Selenium runs, Playwright doesn't |", "|---|---|---|"]
+        for f, e in sorted(rows):
+            pw = (
+                f"{count(e['playwright_only'])}: {site_ranges(e['playwright_only'], repo, cov.commit, f)}"
+                if e["playwright_only"]
+                else ""
+            )
+            sel = (
+                f"{count(e['selenium_only'])}: {site_ranges(e['selenium_only'], repo, cov.commit, f)}"
+                if e["selenium_only"]
+                else ""
+            )
+            out.append(f"| `{f}` | {pw} | {sel} |")
+        if not rows:
+            out.append("| None: both suites run the same lines | | |")
+    return "\n".join(out).rstrip() + "\n"
+
+
+NAMES = {"unit": "Vitest unit", "integration": "Vitest integration", "e2e": "Playwright", "selenium": "Selenium"}
+
+
+def chart_files(pages: dict[str, list[Module]], cov: Coverage) -> dict[str, str]:
+    """Every chart the pages show, light and dark: {file name: SVG}."""
+    out: dict[str, str] = {}
+    back = {
+        page: summed([cov.modules[m.path] for m in mods if m.path in cov.modules], BACK_STATUSES)
+        for page, mods in pages.items()
+    }
+    back = {p: e for p, e in back.items() if e["lines"]}
+    rows = [("#", "Back end (Python)")] + [
+        (page_title(p).strip("`").removeprefix("traceconomics."), e) for p, e in back.items()
+    ]
+    areas = site_areas(cov.front) if cov.front else {}
+    front = {a: summed([e for _, e in fs], SITE_STATUSES) for a, fs in areas.items()}
+    if front:
+        rows += [("#", "Front end (site)")] + list(front.items())
+    counts = [(lab, {k: e.get(k, 0) for k in charts.STATUS_ORDER} if lab != "#" else e) for lab, e in rows]
+    out |= charts.pair(
+        "code-map-overview",
+        lambda th: charts.bars(counts, "Lines per area, by the first test layer that runs them", th, 150),
+    )
+    hb = [(page_title(p).strip("`").removeprefix("traceconomics."), shares(e, BACK_COLS)) for p, e in back.items()]
+    out |= charts.pair(
+        "code-map-heat-back",
+        lambda th: charts.heatmap(
+            hb, list(BACK_COLS), "Back end: the share of each area's lines each layer runs", th, 150
+        ),
+    )
+    if front:
+        hf = [(a, shares(e, SITE_COLS)) for a, e in front.items()]
+        out |= charts.pair(
+            "code-map-heat-front",
+            lambda th: charts.heatmap(
+                hf, list(SITE_COLS), "Front end: the share of each folder's lines each suite runs", th, 150
+            ),
+        )
+        for area, files in areas.items():
+            fr = [
+                (f.rsplit("/", 1)[-1] if area != "lib" else f.split("/", 2)[-1], {k: e[k] for k in SITE_STATUSES})
+                for f, e in files
+            ]
+            out |= charts.pair(
+                f"code-map-site-{area.replace('/', '-')}",
+                lambda th, fr=fr, area=area: charts.bars(fr, f"Site, {area}: lines per file", th),
+            )
+    for page, mods in pages.items():
+        mr = [
+            (module_label(m), {k: cov.modules[m.path][k] for k in BACK_STATUSES})
+            for m in mods
+            if cov.modules.get(m.path, {}).get("lines")
+        ]
+        if mr:
+            name = page_title(page).strip("`")
+            out |= charts.pair(
+                f"code-map-{page}", lambda th, mr=mr, name=name: charts.bars(mr, f"{name}: lines per module", th)
+            )
+    return out
 
 
 def share(n: int, total: int) -> str:
@@ -408,13 +748,16 @@ def overview_tests(cov: Coverage) -> list[str]:
     return out
 
 
+SIDEBAR_NAMES = {TOP: "Top-level modules", SITE: "Front end (site)"}
+
+
 def sidebar(text: str, pages: list[str]) -> str:
     """The sidebar with its code block replaced, or added at the end when it has no markers yet."""
     block = "\n".join(
         [
             START,
             "- [Code reference](Code)",
-            *[f"  - [{'Top-level modules' if p == TOP else p}](Code-{p})" for p in pages],
+            *[f"  - [{SIDEBAR_NAMES.get(p, p)}](Code-{p})" for p in pages],
             "  " + END,
         ]
     )
@@ -433,15 +776,24 @@ def generate(
     texts = {"Code": page_overview(pages, repo, commit, cov)}
     for page, modules in pages.items():
         texts[f"Code-{page}"] = page_package(page, modules, repo, commit, cov)
+    if cov is not None and cov.front is not None:
+        texts[f"Code-{SITE}"] = page_site(cov, repo, commit)
+    svgs = chart_files(pages, cov) if cov is not None else {}
     out.mkdir(parents=True, exist_ok=True)
     for old in out.glob("Code-*.md"):
         if old.stem not in texts:
             old.unlink()
+    for old in out.glob("code-map-*.svg"):
+        if old.name not in svgs:
+            old.unlink()
     for name, text in texts.items():
         (out / f"{name}.md").write_text(text, encoding="utf-8", newline="\n")
+    for name, text in svgs.items():
+        (out / name).write_text(text, encoding="utf-8", newline="\n")
     sb = out / "_Sidebar.md"
+    listed = [*pages, *([SITE] if f"Code-{SITE}" in texts else [])]
     sb.write_text(
-        sidebar(sb.read_text(encoding="utf-8") if sb.is_file() else "", list(pages)), encoding="utf-8", newline="\n"
+        sidebar(sb.read_text(encoding="utf-8") if sb.is_file() else "", listed), encoding="utf-8", newline="\n"
     )
     return sorted(texts)
 

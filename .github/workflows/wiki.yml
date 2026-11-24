@@ -6,8 +6,8 @@
 #     test-history. The read link is the secret TESTRESULTS_READ_URL; without it this step is skipped.
 #  2. The wiki: the hand-written pages copied from wiki/ (a page removed there is removed here),
 #     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py)
-#     and the Code pages from the package's docstrings and the stored code map
-#     (tests/catalog/code_reference.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
+#     and the Code pages from the package's docstrings and the stored code map, with the map's
+#     charts as SVG files beside them (tests/catalog/code_reference.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
 #     version back.
 #
 # Runs only the default branch's code (tests.yml calls it for pushes to main only): nothing from a

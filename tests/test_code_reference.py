@@ -369,3 +369,176 @@ def test_a_store_without_a_map_changes_nothing(tmp_path):
     code_reference.generate(src, tmp_path / "a", REPO, COMMIT, store=folder)
     code_reference.generate(src, tmp_path / "b", REPO, COMMIT)
     assert pages(tmp_path / "a") == pages(tmp_path / "b")
+
+
+def test_the_charts_are_self_contained_svg_in_light_and_dark():
+    """PY-CODEREF-010: The charts are self-contained SVG, light and dark, with bars that add up and cells that say their share
+
+    Given stacked-bar rows under a heading, and heatmap rows with a share of none, a small share, all, and one not measured
+    When each chart is drawn in light and dark, twice
+    Then each SVG parses, names its title, and refers to no script, link or other site
+    And the legend lists only the statuses in the rows, and each bar's segments together are as long as its total
+    And each heatmap cell shows its share, "<1%" for a small one and "–" where not measured, with the "not measured" key
+    And the light and dark versions differ only in colour, and drawing again gives the same bytes
+    """
+    import xml.etree.ElementTree as ET
+
+    sys.path.insert(0, str(ROOT / "tests" / "catalog"))
+    import code_charts as charts
+
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    rows = [("#", "Back end"), ("engine", {"unit": 30, "imported": 10}), ("store", {"integration": 5, "none": 15})]
+    bars = charts.pair("code-map-x", lambda th: charts.bars(rows, "Lines per area", th))
+    assert sorted(bars) == ["code-map-x-dark.svg", "code-map-x-light.svg"]
+    for text in bars.values():
+        root = ET.fromstring(text)
+        assert root.find("s:title", ns).text == "Lines per area"
+        assert "<script" not in text and "href" not in text and "http" not in text.replace(ns["s"], "")
+        legend = [t.text for t in root.iterfind("s:text", ns)][1:5]
+        assert legend == ["unit", "integration", "imported", "none"]
+    light = ET.fromstring(bars["code-map-x-light.svg"])
+    engine = next(g for g in light.iterfind("s:g", ns) if g.find("s:title", ns).text.startswith("engine"))
+    assert engine.find("s:title", ns).text == "engine: 40 lines; unit 30, imported 10"
+    store = next(g for g in light.iterfind("s:g", ns) if g.find("s:title", ns).text.startswith("store"))
+    # Each bar ends at its total's label: 20 lines against engine's 40 reach half as far from the axis.
+    x0 = 16 + 200  # the left padding and the label column
+
+    def end(g):
+        return float([t for t in g.iterfind("s:text", ns)][-1].get("x")) - 6 - x0
+
+    assert abs(end(store) - end(engine) / 2) < 0.5
+    assert bars == charts.pair("code-map-x", lambda th: charts.bars(rows, "Lines per area", th))
+    assert bars["code-map-x-light.svg"] != bars["code-map-x-dark.svg"]
+
+    heat = charts.heatmap(
+        [("lib", {"a": 0, "b": 0.004}), ("pages", {"a": 1.0, "b": None})], ["a", "b"], "Share", charts.THEMES["light"]
+    )
+    cells = [t.text for t in ET.fromstring(heat).iterfind(".//s:g/s:text", ns)]
+    assert cells == ["0", "<1%", "100%", "–"] and "not measured" in heat
+
+
+def front_store(tmp_path: Path, *, selenium: bool = True) -> Path:
+    """The stored map of store(), with "ran" counts and a front end of two site files."""
+    folder = store(tmp_path)
+    m = json.loads((folder / "code-map.json").read_text(encoding="utf-8"))
+    for e in m["back-end"]["modules"].values():
+        e["ran"] = {"unit": e["unit"], "integration": e["integration"]}
+    keys = [
+        "playwright|PW-CALC-001",
+        "selenium|tests/selenium/test_calc.py::test_calc",
+        "vitest|src/lib/x.test.ts",
+        "vitest|src/lib/y.test.ts",
+    ]
+
+    def site_entry(lines, unit, e2e, none, tests, ran, pw_only, sel_only, no_test=()):
+        return {
+            "lines": lines,
+            "unit": unit,
+            "integration": 0,
+            "e2e": e2e,
+            "none": none,
+            "no_test": [list(r) for r in no_test],
+            "tests": tests,
+            "ran": ran if selenium else {**ran, "selenium": None},
+            "playwright_only": pw_only if selenium else None,
+            "selenium_only": sel_only if selenium else None,
+        }
+
+    m["front-end"] = {
+        "tests": keys,
+        "selenium": selenium,
+        "files": {
+            "src/lib/x.ts": site_entry(
+                10,
+                8,
+                1,
+                1,
+                {"unit": [2, 3], "integration": [], "e2e": [0], "selenium": [1]},
+                {"unit": 8, "integration": 0, "e2e": 3, "selenium": 2},
+                [[4, 4]],
+                [],
+                no_test=[(9, 9)],
+            ),
+            "src/scripts/y.ts": site_entry(
+                4,
+                0,
+                4,
+                0,
+                {"unit": [], "integration": [], "e2e": [0], "selenium": [1]},
+                {"unit": 0, "integration": 0, "e2e": 4, "selenium": 4},
+                [],
+                [],
+            ),
+        },
+    }
+    (folder / "code-map.json").write_text(json.dumps(m), encoding="utf-8")
+    cat = json.loads((folder / "catalog.json").read_text(encoding="utf-8"))
+    cat["cases"] += [
+        {"id": "VT-X-001", "suite": "vitest", "node": "x", "title": "x formats", "file": "site/src/lib/x.test.ts"},
+        {"id": "PW-CALC-001", "suite": "playwright", "node": "c", "title": "The calculator opens", "file": "c"},
+    ]
+    (folder / "catalog.json").write_text(json.dumps(cat), encoding="utf-8")
+    return folder
+
+
+def test_the_pages_show_the_charts_and_the_front_end(tmp_path):
+    """PY-CODEREF-011: With a front end in the map, the pages show the charts, the site's own page and the two browser suites compared
+
+    Given the made-up package, a stored map with a front end of two site files run by Vitest, Playwright and Selenium, and a wiki folder with an old chart and another picture
+    When the code reference is generated, then again from a map without Selenium's lines
+    Then the overview has the map's legend, the bars and both heatmaps, each with a table, and the browser suites compared by folder
+    And every chart a page shows is written, in light and dark, and parses as XML; the old chart is removed and the other picture stays
+    And the site's page has a chart per folder, each file's lines, its tests linked to their cases (a Vitest file's every case, a test without a case by name), and the lines only one browser suite runs
+    And the sidebar lists the site's page
+    And without Selenium's lines both pages say it wasn't measured
+    """
+    out = tmp_path / "wiki"
+    out.mkdir()
+    (out / "code-map-old-light.svg").write_text("old", encoding="utf-8")
+    (out / "logo.svg").write_text("kept", encoding="utf-8")
+    (out / "_Sidebar.md").write_text("- [Home](Home)\n", encoding="utf-8")
+    code_reference.generate(made_up(tmp_path), out, REPO, COMMIT, store=front_store(tmp_path))
+    overview = (out / "Code.md").read_text(encoding="utf-8")
+    for part in (
+        "## The map",
+        "| **imported** | dark grey |",
+        'srcset="code-map-overview-dark.svg"',
+        "code-map-heat-back-light.svg",
+        "code-map-heat-front-light.svg",
+        "| Front end | Lines | unit | integration | e2e | none |",
+        "| Folder | Lines | Playwright runs, Selenium doesn't | Selenium runs, Playwright doesn't |",
+        "| lib | 10 | 1 | 0 |",
+    ):
+        assert part in overview, part
+    shown = set()
+    for page in out.glob("Code*.md"):
+        shown |= set(re.findall(r'(?:src|srcset)="(code-map-[^"]+\.svg)"', page.read_text(encoding="utf-8")))
+    assert shown and all((out / name).is_file() for name in shown)
+    import xml.etree.ElementTree as ET
+
+    for svg in out.glob("code-map-*.svg"):
+        ET.fromstring(svg.read_text(encoding="utf-8"))  # GitHub shows an SVG only if it is well formed
+    assert {n.replace("-light", "-dark") for n in shown if "-light" in n} <= shown
+    assert not (out / "code-map-old-light.svg").exists() and (out / "logo.svg").read_text(encoding="utf-8") == "kept"
+    site = (out / "Code-site.md").read_text(encoding="utf-8")
+    for part in (
+        "## lib",
+        'src="code-map-site-scripts-light.svg"',
+        "### `src/lib/x.ts`",
+        "**Tests:** 10 lines with code: unit 8, integration 0, e2e 1, none 1 (no test: lines [9](",
+        "<details><summary>Tests that run it: Vitest unit 2, Playwright 1, Selenium 1</summary>",
+        "- `src/lib/x.test.ts`: [VT-X-001](Tests-Vitest#vt-x-001) x formats",
+        "- `src/lib/y.test.ts` (no case)",
+        "- [PW-CALC-001](Tests-Playwright#pw-calc-001) The calculator opens",
+        "- `tests/selenium/test_calc.py::test_calc` (no case)",
+        f"| `src/lib/x.ts` | 1: [4](https://github.com/{REPO}/blob/{MAP_COMMIT}/site/src/lib/x.ts#L4) |  |",
+    ):
+        assert part in site, part
+    assert "  - [Front end (site)](Code-site)" in (out / "_Sidebar.md").read_text(encoding="utf-8")
+
+    again = tmp_path / "again"
+    code_reference.generate(
+        made_up(tmp_path / "b"), again, REPO, COMMIT, store=front_store(tmp_path / "b", selenium=False)
+    )
+    assert "Not measured in this run" in (again / "Code.md").read_text(encoding="utf-8")
+    assert "Not measured in this run" in (again / "Code-site.md").read_text(encoding="utf-8")
