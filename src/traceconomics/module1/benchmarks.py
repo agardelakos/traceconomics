@@ -1,5 +1,6 @@
-"""Other studies' Greek series, rebuilt with their own settings (V4), to show that the differences
-from ours come from choices, not from errors.
+"""Other studies' Greek series, rebuilt with their own settings (V4).
+
+This shows that the differences from ours come from choices, not from errors.
 
 Bruegel ("Inflation inequality in the European Union and its drivers", version of 25 October
 2024): for each month, a quintile's inflation is the weighted sum of its categories' year-on-year
@@ -74,6 +75,8 @@ def bruegel_published(archive, geo: str = "EL") -> dict[str, dict[str, float]]:
 
 @dataclass
 class V4Result:
+    """One V4 comparison: months compared, the worst monthly gap, and the annual averages, ours and theirs."""
+
     name: str
     months: int = 0
     provisional: list[str] = field(default_factory=list)  # months Bruegel built on provisional data
@@ -82,14 +85,17 @@ class V4Result:
 
     @property
     def worst_month_gap(self) -> float:
+        """The largest monthly gap in percentage points; 0 when no month was compared."""
         return 0.0 if self.worst_month is None else abs(self.worst_month[1] - self.worst_month[2])
 
     @property
     def worst_annual_gap(self) -> float:
+        """The largest annual-average gap in percentage points; 0 when no year was complete."""
         return max((abs(a - b) for a, b in self.annual.values()), default=0.0)
 
     @property
     def passed(self) -> bool:
+        """True when both the monthly and the annual-average gaps are within their limits."""
         return self.worst_month_gap <= MONTHLY_PP + 1e-9 and self.worst_annual_gap <= ANNUAL_LIMIT_PP + 1e-9
 
 
@@ -125,6 +131,11 @@ def bruegel_rebuild(con, archive, geo: str = "GR") -> dict[str, dict[str, float]
 
 
 def v4_bruegel(con, archive, geo: str = "GR") -> list[V4Result]:
+    """Our rebuild of Bruegel's Q1 and Q5 against its published rates, one V4Result per quintile.
+
+    Months whose HICP column differs from the final official rate were built on provisional data:
+    they are listed, not compared. Annual averages only for years with all twelve months compared.
+    """
     ours = bruegel_rebuild(con, archive)
     theirs = bruegel_published(archive)
     official = {
@@ -159,6 +170,7 @@ def v4_bruegel(con, archive, geo: str = "GR") -> list[V4Result]:
 
 
 def kepe_published() -> dict:
+    """KEPE's 2025 study's published figures, read from the package data file `benchmarks_gr.toml`."""
     import tomllib
     from importlib import resources
 
@@ -194,9 +206,11 @@ def divisions_only(baskets: dict) -> dict:
 
 
 def v4_kepe(con) -> dict:
-    """KEPE's settings, with the two it doesn't state tested both ways (people or households;
-    purchases or all spending). Returns, per variant, our P20/R20/R10 annual averages for
-    2021-2024 and the gaps to KEPE's chart (tier B on one-decimal published figures)."""
+    """KEPE's settings, with the two it doesn't state tested both ways.
+
+    Those two are people or households, and purchases or all spending. Returns, per variant, our
+    P20/R20/R10 annual averages for 2021-2024 and the gaps to KEPE's chart (tier B on one-decimal
+    published figures)."""
     from traceconomics.module1 import index
     from traceconomics.module1.weights_used import load_baskets
 

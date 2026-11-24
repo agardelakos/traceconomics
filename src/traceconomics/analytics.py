@@ -264,7 +264,10 @@ def export_day(
     now: datetime | None = None,
     feed: Feed = VISITS,
 ) -> dict:
-    """Fetch and archive one day without touching any state (a manual fill or a test). Raises on failure."""
+    """Fetch and archive one day without touching any state (a manual fill or a test).
+
+    Raises on failure.
+    """
     token, account, zone = _credentials(feed, token, account, zone)
     if not token or not (account or zone):
         raise AnalyticsError(f"{TOKEN_ENV} and {feed.tag_env} must be set")

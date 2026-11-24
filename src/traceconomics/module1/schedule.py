@@ -21,6 +21,8 @@ FIRST, FINAL = "first", "final"
 
 @dataclass(frozen=True)
 class Entry:
+    """Which survey one index year's weights come from, from which month, and whether they are final."""
+
     year: int  # the index year
     survey: int  # the survey whose shares are used
     status: str  # FIRST or FINAL
@@ -70,8 +72,9 @@ def rule_n(years, surveys: set[int], release_dates: dict[int, dict] | None = Non
 
 
 def elstat_rule(years, surveys: set[int], release_dates=None) -> list[Entry]:
-    """ELSTAT's own rule for the CPI, for comparison only: survey y-2, price-updated to December
-    y-1 (CPI quality report 2026; ELSTAT SIMS). Ends at the first year without its survey."""
+    """ELSTAT's own rule for the CPI, for comparison only: survey y-2, price-updated to December y-1.
+
+    Sources: CPI quality report 2026; ELSTAT SIMS. Ends at the first year without its survey."""
     out = []
     for y in years:
         if y - 2 not in surveys:
@@ -102,8 +105,9 @@ def rule_f(years, surveys: set[int], release_dates=None, lag: int = 3) -> list[E
 
 
 def rule_u(years, surveys: set[int], release_dates=None) -> list[Entry]:
-    """Rule U: the same year's survey, as in studies made after the fact (KEPE). Not a
-    Laspeyres-type index (its weights aren't from a period before the prices); no
+    """Rule U: the same year's survey, as in studies made after the fact (KEPE).
+
+    Not a Laspeyres-type index (its weights aren't from a period before the prices); no
     price-updating is needed. Ends at the first year whose survey isn't held."""
     out = []
     for y in years:
@@ -134,16 +138,19 @@ def unusable(grouping: str, survey: int) -> bool:
 
 
 def held_for_rule(grouping: str, surveys: set[int]) -> set[int]:
-    """The surveys a rule may pick for the grouping: those held, plus each unusable survey whose
-    stand-in is held (the rule picks it; `with_stand_ins` then swaps in the stand-in)."""
+    """The surveys a rule may pick for the grouping: those held, plus unusable ones with a held stand-in.
+
+    For an unusable survey whose stand-in is held, the rule picks it; `with_stand_ins` then swaps in
+    the stand-in."""
     if grouping not in INCOME_RANKED:
         return set(surveys)
     return set(surveys) | {s for s, by in UNUSABLE_INCOMES.items() if by in surveys}
 
 
 def with_stand_ins(grouping: str, entries: list[Entry]) -> list[Entry]:
-    """The schedule with every unusable survey replaced by its stand-in. The stand-in's shares
-    are price-updated from its own year, like any survey's."""
+    """The schedule with every unusable survey replaced by its stand-in.
+
+    The stand-in's shares are price-updated from its own year, like any survey's."""
     out = []
     for e in entries:
         if unusable(grouping, e.survey):

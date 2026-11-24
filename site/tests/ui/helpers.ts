@@ -2,14 +2,16 @@
 //
 //  - the visit-count beacon is blocked (release builds carry it; a test must never count as a visit);
 //  - any console error or uncaught exception fails the test, with the errors attached to the report;
-//  - with TRACECONOMICS_COVERAGE=on (CI's coverage build), the lines our scripts run are recorded.
+//  - with TRACECONOMICS_COVERAGE=on (CI's coverage build), the lines our scripts run are recorded;
+//    with TRACECONOMICS_CODE_MAP=on as well, each test's own lines too, labelled with its case, for
+//    the wiki's code map (scripts/code-map-lines.mjs reduces them).
 //
 // Expected values come from the site's own files and texts, never typed in: `t()` is the site's
 // own text lookup (a missing key throws), `json()` reads a published data file.
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { test as base, expect, type APIRequestContext, type Page } from "@playwright/test";
 import { CoverageReport } from "monocart-coverage-reports";
-import { ui as coverageOptions } from "../../scripts/coverage-options.mjs";
+import { CODE_MAP_DIR, ui as coverageOptions } from "../../scripts/coverage-options.mjs";
 import { fill, type Lang } from "../../src/lib/format";
 
 export { expect };
@@ -64,6 +66,7 @@ export const BEACON = /cloudflareinsights\.com/;
 /** Testing a deployed copy (BASE_URL), as a release's `smoke` step does, rather than dist/. */
 export const REMOTE = !!process.env.BASE_URL;
 const COVERAGE = process.env.TRACECONOMICS_COVERAGE === "on" && !REMOTE;
+const CODE_MAP = COVERAGE && process.env.TRACECONOMICS_CODE_MAP === "on";
 
 /** Module 1's pages for a language: m1("en", "explore/") → "/en/gr/inflation-by-group/explore/". */
 export const m1 = (lang: string, rest = "") => `/${lang}/gr/inflation-by-group/${rest}`;
@@ -117,7 +120,7 @@ export const test = base.extend<Fixtures>({
   ],
 
   coverage: [
-    async ({ page, javaScriptEnabled }, use) => {
+    async ({ page, javaScriptEnabled }, use, info) => {
       // With scripts off there is nothing to measure, and Chromium refuses to start the coverage.
       if (!COVERAGE || !javaScriptEnabled) {
         await use({ flush: async () => {} });
@@ -147,7 +150,18 @@ export const test = base.extend<Fixtures>({
       }) as Page["reload"];
       await use({ flush });
       await stop().catch(() => {}); // the test may have closed the page
-      if (entries.length) await new CoverageReport(coverageOptions).add(entries);
+      if (!entries.length) return;
+      await new CoverageReport(coverageOptions).add(entries);
+      if (CODE_MAP) {
+        // The same entries again, in a folder of this test's own, with its case beside them.
+        const dir = `${CODE_MAP_DIR}/${info.testId}`;
+        await new CoverageReport({ ...coverageOptions, outputDir: dir }).add(entries);
+        const id = info.annotations.find((a) => a.type === "id")?.description ?? null;
+        writeFileSync(
+          `${dir}/case.json`,
+          JSON.stringify({ id, title: info.titlePath.join(" › ") }),
+        );
+      }
     },
     { auto: true },
   ],

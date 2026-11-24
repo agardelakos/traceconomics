@@ -30,6 +30,11 @@ TOTAL = "TOTAL"
 
 @dataclass
 class Original07:
+    """One year's original table VII: each item's weight (per mille), monthly index, annual average and label.
+
+    Keyed by the old national item code; the overall index is under `TOTAL`.
+    """
+
     year: int
     base: str  # e.g. "2009"
     weights: dict[str, float] = field(default_factory=dict)  # per mille
@@ -45,6 +50,10 @@ def _code(value) -> str:
 
 
 def parse(path: Path, year: int) -> Original07:
+    """Read one year's original table VII (`.xls`); its title must name `year` and the base year.
+
+    Raises `checks.FormatError` if the title doesn't, or the overall index row or most item rows are missing.
+    """
     sheet = xlrd.open_workbook(path).sheet_by_index(0)
     title = " ".join(str(sheet.cell_value(0, c)) for c in range(sheet.ncols))
     m = BASE.search(title)

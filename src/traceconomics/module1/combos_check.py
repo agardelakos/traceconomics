@@ -52,6 +52,7 @@ def _dims(exclude=()):
 
 
 def tutoring_identity(con) -> tuple[bool, str]:
+    """Whether the two tutoring options give the same rows in every table before 2026, as (passed, message)."""
     bad = {}
     for t in ("m1_index", "m1_rates", "m1_weights_used", "m1_contributions"):
         cols = _dims(("tutoring",)) + ", value_text"
@@ -84,6 +85,10 @@ def baseline_identity(con, baseline: Path) -> tuple[bool, str]:
 
 
 def contribution_identity(con) -> tuple[bool, str]:
+    """Whether each series' division contributions add up to its annual rate, as (passed, message).
+
+    Within CONTRIBUTION_TOLERANCE; fails also when no rate has contributions.
+    """
     keys = _dims(("coicop18", "unit"))
     worst = con.execute(f"""
         WITH c AS (SELECT {keys}, sum(CAST(value AS DOUBLE)) total FROM m1_contributions
@@ -96,6 +101,7 @@ def contribution_identity(con) -> tuple[bool, str]:
 
 
 def availability_identity(con, folder: Path) -> tuple[bool, str]:
+    """Whether the series written and the series in `availability.json` are the same, as (passed, message)."""
     table = json.loads((Path(folder) / "availability.json").read_text(encoding="utf-8"))
     listed = {
         (
@@ -122,6 +128,10 @@ def availability_identity(con, folder: Path) -> tuple[bool, str]:
 
 
 def identities(folder: Path, baseline: Path | None = None) -> list[tuple[str, bool, str]]:
+    """Every strict identity on the written files, as (name, passed, message).
+
+    The comparison with an earlier build runs only when `baseline` is given.
+    """
     con = _con(folder)
     out = [
         ("tutoring options before 2026", *tutoring_identity(con)),
@@ -159,6 +169,7 @@ DEFAULT_WHERE = {
 
 
 def where(**changes) -> str:
+    """A SQL condition selecting the default combination, with the options in `changes` replaced."""
     return " AND ".join(f"{k} = '{v}'" for k, v in {**DEFAULT_WHERE, **changes}.items())
 
 
@@ -178,6 +189,7 @@ def source(folder: Path) -> dict:
 
 
 def timing(folder: Path, grouping: str = "B") -> dict:
+    """The Q1-Q5 annual-average gap of one grouping under rules N, F and U: {year: {rule: gap}}."""
     con = _con(folder)
     gaps = {rule: _gap(con, where(weights_timing=rule) + f" AND grouping = '{grouping}'") for rule in ("N", "F", "U")}
     years = sorted(set().union(*gaps.values()))

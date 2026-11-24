@@ -174,6 +174,7 @@ class Prepared:
 
 
 def prepare(archive: Archive, year: int) -> Prepared:
+    """One survey year read and calibrated to its tenure target, with its groups and its COICOP 2018 mapping."""
     survey = puf.read(archive, year)
     as_read = assign(survey)
     target = calibration.target(archive, year)
@@ -292,8 +293,11 @@ def build(
 
 
 def types_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_version: str) -> pd.DataFrame:
-    """Our household types next to ELSTAT's own; refuses a year where they agree on fewer than
-    TYPE_AGREEMENT of households, unless it is a known case."""
+    """Our household types next to ELSTAT's own.
+
+    Refuses a year where they agree on fewer than TYPE_AGREEMENT of households, unless it is a known
+    case.
+    """
     h = survey.households
     ours = groups["hhtype"]
     theirs = (
@@ -331,10 +335,12 @@ def types_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_vers
 
 
 def rent_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_version: str) -> pd.DataFrame:
-    """Rent paid for the main home, by tenure and for all households: counts, weighted households
-    and people, and the yearly total in euros. Spending is held in annual euros (`puf`), so the
-    total is the weighted sum of the rent column. Owners and the housed free pay none by
-    definition (tenure is decided by that same column first), and their rows say so."""
+    """Rent paid for the main home, by tenure and for all households.
+
+    Counts, weighted households and people, and the yearly total in euros. Spending is held in annual
+    euros (`puf`), so the total is the weighted sum of the rent column. Owners and the housed free pay
+    none by definition (tenure is decided by that same column first), and their rows say so.
+    """
     w = survey.households.weight.to_numpy(float)
     rent = survey.spending[RENT_CODE].fillna(0).to_numpy(float)
     people = groups.people_weight.to_numpy(float)
@@ -358,9 +364,12 @@ def rent_table(survey: puf.Survey, groups: pd.DataFrame, year: int, source_versi
 
 
 def spending_table(results: list[v2.V2Result], year: int, source_version: str) -> pd.DataFrame:
-    """V2's comparison as a table: per column, a row of household totals (ELSTAT's against the
-    survey file's weights), then every item compared, with its result. Only averages over all
-    households or a published band, and ELSTAT's own figures, so nothing here is one household's."""
+    """V2's comparison as a table, with a row of household totals per column and every item compared.
+
+    Per column, a row of household totals (ELSTAT's against the survey file's weights), then every
+    item compared, with its result. Only averages over all households or a published band, and
+    ELSTAT's own figures, so nothing here is one household's.
+    """
     rows = []
     for r in results:
         rows.append(
@@ -396,9 +405,11 @@ def spending_table(results: list[v2.V2Result], year: int, source_version: str) -
 def limits_table(
     survey: puf.Survey, year: int, replicates: int, source_version: str, calibrate: bootstrap.Calibrate | None = None
 ) -> pd.DataFrame:
-    """The limits between the default grouping's parts, rounded to the euro (half to even), with
-    standard errors from the same bootstrap as the shares. For a survey whose incomes can't
-    rank households: no rows (the file is still written, so the store withdraws earlier limits)."""
+    """The limits between the default grouping's parts, rounded to the euro (half to even).
+
+    With standard errors from the same bootstrap as the shares. For a survey whose incomes can't
+    rank households: no rows (the file is still written, so the store withdraws earlier limits).
+    """
     if unusable(LIMITS_GROUPING, year):
         return pd.DataFrame(columns=LIMIT_COLUMNS)
     value, by_people, parts, prefix = RANKED[LIMITS_GROUPING]

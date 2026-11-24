@@ -48,12 +48,15 @@ def settings() -> list[dict[str, str]]:
 
 
 def label(setting: dict) -> str:
+    """The setting's option values joined with "/", in the order of OPTIONS (e.g. "purchases/excluded/cpi/N/priced")."""
     return "/".join(setting[k] for k in OPTIONS)
 
 
 def iterate(con, archive, *, when=None, only=None, groups=None, blocks=None, baskets=None):
-    """(setting, its series, {price source: blocks}) for every setting in `only` (default: all 48),
-    one setting at a time, so a caller can write and drop each before the next.
+    """(setting, its series, {price source: blocks}) for every setting in `only`, one at a time.
+
+    `only` defaults to all 48 settings. One setting at a time, so a caller can write and drop each
+    before the next.
 
     `blocks` ({price source: blocks}) and `baskets` ({(spending, imputed rent): baskets}) are
     used instead of loading them from the store and archive: the site's browser tests run on

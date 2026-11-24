@@ -36,6 +36,8 @@ DROP = "drop"
 
 @dataclass(frozen=True)
 class Fallback:
+    """One month in which a weighted item was priced with an ancestor's index, or could not be priced."""
+
     period: str
     code: str
     used: str | None  # the ancestor whose index priced it; None if nothing could
@@ -43,6 +45,8 @@ class Fallback:
 
 @dataclass
 class ChainResult:
+    """The chained index, each month's link and priced share, and every fallback the chain used."""
+
     index: dict[str, float] = field(default_factory=dict)  # period -> chained index
     links: dict[str, float] = field(default_factory=dict)  # period -> link to December of the previous year
     covered: dict[str, float] = field(default_factory=dict)  # period -> share of leaf weight that was priced
@@ -57,10 +61,12 @@ class ChainResult:
 
 
 def link_month(year: int) -> str:
+    """The link month for `year`: December of the year before, as "YYYY-12"."""
     return f"{year - 1}-12"
 
 
 def months(year: int) -> list[str]:
+    """The twelve months of `year`, as "YYYY-MM"."""
     return [f"{year}-{m:02d}" for m in range(1, 13)]
 
 

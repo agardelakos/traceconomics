@@ -55,6 +55,10 @@ class Question:
     values: dict[str, dict[str, float]] = field(default_factory=dict)  # label -> period -> value
 
     def summary(self) -> dict:
+        """The question as `checks.json` holds it: sources, first and last period, values by source.
+
+        Every source has every period; a period it has no value for is None.
+        """
         periods = sorted({p for v in self.values.values() for p in v})
         return {
             "id": self.id,
@@ -155,6 +159,7 @@ def spending(years: dict[int, dict[str, dict[str, dict[str, tuple[str | None, fl
 
 
 def load_spending(store_con) -> dict:
+    """The spending-table rows from the store: year -> column -> code -> measure -> (text, number)."""
     years: dict[int, dict] = {}
     for year, column, code, measure, text, value in _latest(
         store_con, "oet-local:hbs_spending", 'ref_period, "group", coicop, measure, value_text, value', "geo = 'GR'"
@@ -211,6 +216,7 @@ def _latest(store_con, dataset: str, columns: str, where: str) -> list[tuple]:
 
 
 def load_types(store_con) -> dict:
+    """The household-type rows from the store: year -> type -> measure -> (text, number)."""
     years: dict[int, dict] = {}
     for year, group, measure, text, value in _latest(
         store_con, "oet-local:hbs_hhtypes", 'ref_period, "group", measure, value_text, value', "geo = 'GR'"
@@ -220,6 +226,12 @@ def load_types(store_con) -> dict:
 
 
 def load_limits(store_con) -> tuple[dict, dict]:
+    """Each survey year's income limits by fifth (Q1-Q4): ours from the HBS run, and EU-SILC's.
+
+    Returns (ours, silc).
+
+    SILC years without all four limits are left out.
+    """
     ours: dict[int, dict] = {}
     for year, group, value in _latest(
         store_con,

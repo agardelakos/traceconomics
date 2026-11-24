@@ -5,8 +5,9 @@
 #     test-results bucket (tests/catalog/vm_pull.py), checked and appended to the branch
 #     test-history. The read link is the secret TESTRESULTS_READ_URL; without it this step is skipped.
 #  2. The wiki: the hand-written pages copied from wiki/ (a page removed there is removed here),
-#     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py),
-#     pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
+#     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py)
+#     and the Code pages from the package's docstrings and the stored code map, with the map's
+#     charts as SVG files beside them (tests/catalog/code_reference.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
 #     version back.
 #
 # Runs only the default branch's code (tests.yml calls it for pushes to main only): nothing from a
@@ -88,15 +89,18 @@ jobs:
           cd "$RUNNER_TEMP/wiki"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Mirror the hand-written pages: wiki/ is the source; the Tests pages are wiki.py's.
+          # Mirror the hand-written pages: wiki/ is the source; the Tests pages are wiki.py's, the Code
+          # pages code_reference.py's.
           for f in *.md; do
             case $f in
-              Tests.md|Tests-*.md) ;;
+              Tests.md|Tests-*.md|Code.md|Code-*.md) ;;
               *) [ -f "$GITHUB_WORKSPACE/wiki/$f" ] || git rm -q "$f" ;;
             esac
           done
           cp "$GITHUB_WORKSPACE"/wiki/*.md .
           python -I "$GITHUB_WORKSPACE/tests/catalog/wiki.py" --store "$RUNNER_TEMP/store" --out . --repo "$GITHUB_REPOSITORY"
+          python -I "$GITHUB_WORKSPACE/tests/catalog/code_reference.py" --src "$GITHUB_WORKSPACE/src/traceconomics" \
+            --out . --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --store "$RUNNER_TEMP/store"
           git add -A
           if git diff --cached --quiet; then
             echo "The wiki is up to date." | tee -a "$GITHUB_STEP_SUMMARY"

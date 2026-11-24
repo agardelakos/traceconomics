@@ -15,13 +15,18 @@ phone and no-script browsers are separate Chromes, started the first time a test
 After every test the browser's console must hold no error; a test that expects one says so with
 `@pytest.mark.console_errors`. A failing test leaves a screenshot, the page's HTML and the console
 in site/selenium-report/failures/.
+
+With TRACECONOMICS_COVERAGE=on and TRACECONOMICS_CODE_MAP=on (and a coverage build), each test's
+coverage of the site's scripts is recorded for the wiki's code map (page_coverage.py).
 """
 
 import json
+import os
 import re
 import shutil
 
 import chrome
+import page_coverage
 import pytest
 from helpers import BLOCKED, DIST, REPORT, Site
 from selenium import webdriver
@@ -38,6 +43,8 @@ PHONE = {
 
 
 def pytest_configure(config):
+    if page_coverage.ON:
+        page_coverage.install()
     config.addinivalue_line("markers", "console_errors: the test expects errors in the browser's console")
     config.addinivalue_line("markers", "phone: the test uses the phone browser")
 
@@ -47,6 +54,7 @@ def pytest_sessionstart(session):
     # any worker starts.
     if not hasattr(session.config, "workerinput"):
         shutil.rmtree(REPORT / "failures", ignore_errors=True)
+        page_coverage.clear()
 
 
 def _options(*, phone=False, scripts=True) -> webdriver.ChromeOptions:
@@ -81,6 +89,7 @@ class _Pool:
 
     def __init__(self):
         self._drivers: dict[str, webdriver.Chrome] = {}
+        self.recorders: dict[str, page_coverage.Recorder] = {}
 
     def get(self, kind: str) -> webdriver.Chrome:
         if kind not in self._drivers:
@@ -92,6 +101,10 @@ class _Pool:
             d.set_page_load_timeout(30)
             d.execute_cdp_cmd("Network.enable", {})
             self._drivers[kind] = d
+            # With scripts off there is nothing to record.
+            if page_coverage.ON and kind != "noscript":
+                worker = os.environ.get("PYTEST_XDIST_WORKER", "main")
+                self.recorders[kind] = page_coverage.Recorder(d, f"{worker}-{kind}")
         return self._drivers[kind]
 
     def close(self):
@@ -127,10 +140,14 @@ def pytest_runtest_makereport(item, call):
     return report
 
 
-def _reset(driver, base_url):
-    """Back to a blank page with nothing stored, as a new visitor."""
-    driver.get("about:blank")
+def _reset(driver, base_url, *, recording=False):
+    """Back to a blank page with nothing stored, as a new visitor.
+
+    When the test's coverage is recorded, the blank page is one of the site's own (robots.txt, which
+    runs no script): the profiler starts there and survives the test's first page.
+    """
     origin = re.match(r"https?://[^/]+", base_url)[0]
+    driver.get(origin + "/robots.txt" if recording else "about:blank")
     driver.execute_cdp_cmd("Storage.clearDataForOrigin", {"origin": origin, "storageTypes": "all"})
     driver.execute_cdp_cmd("Network.clearBrowserCookies", {})
     # The analytics beacon is only in release builds; if one ever sneaks into a test build it must
@@ -161,9 +178,16 @@ def _site_fixture(kind):
     @pytest.fixture
     def fixture(request, _pool, base_url):
         driver = _pool.get(kind)
-        _reset(driver, base_url)
+        recorder = _pool.recorders.get(kind)
+        _reset(driver, base_url, recording=recorder is not None)
+        if recorder is not None:
+            recorder.start()
         site = Site(driver, base_url, phone=kind == "phone")
-        yield site
+        try:
+            yield site
+        finally:
+            if recorder is not None:
+                recorder.stop(request.node.nodeid)
         console = site.console()
         call = getattr(request.node, "_report_call", None)
         if call is not None and call.failed:

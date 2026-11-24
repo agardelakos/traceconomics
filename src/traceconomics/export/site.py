@@ -57,6 +57,7 @@ PUBLISHED_RATE = "elstat:cpi05"  # ELSTAT's own twelve-month rates (table 05)
 
 
 def slug(setting: dict) -> str:
+    """A setting's name in file names: its option values joined by underscores, in `OPTION_KEYS` order."""
     return "_".join(setting[k] for k in OPTION_KEYS)
 
 
@@ -107,6 +108,12 @@ def bands(store_con) -> dict:
 
 
 def series_file(con, setting: dict, se: dict, footnotes: dict) -> dict:
+    """One setting's series file: each group's index, rates and standard errors, and the Q1-Q5 gaps.
+
+    `se` is `bands`' result and `footnotes` is keyed by (setting slug, grouping, group). Monthly
+    values are arrays on one month axis (`start` to `end`, null where missing); annual averages are
+    keyed by year.
+    """
     w = _where(setting)
     s = slug(setting)
     rng = con.execute(f"SELECT min(ref_period), max(ref_period) FROM m1_index WHERE {w}").fetchone()
@@ -177,6 +184,7 @@ def series_file(con, setting: dict, se: dict, footnotes: dict) -> dict:
 
 
 def contributions_file(con, setting: dict) -> dict:
+    """One setting's contributions file: each division's contribution to each group's annual rate, by month."""
     w = _where(setting)
     out: dict = {}
     for g, q, _unit, code, p, text in con.execute(f"""
@@ -191,20 +199,29 @@ CSV_TABLES = ("m1_index", "m1_rates")
 
 
 def downloads(con, setting: dict, folder: Path) -> list[Path]:
+    """Write one setting's tables to `folder` as Parquet, and as CSV for the index, the rates and the default setting.
+
+    Returns the paths written. The connection is back at its own thread count afterwards.
+    """
     folder.mkdir(parents=True, exist_ok=True)
     # One thread while writing: with several, the Parquet row groups depend on the number of cores,
-    # and the same rows would give different files on different machines.
+    # and the same rows would give different files on different machines. Only while writing: the
+    # caller's other queries keep their threads.
+    threads = con.execute("SELECT current_setting('threads')").fetchone()[0]
     con.execute("SET threads = 1")
     written = []
-    for table in TABLES:
-        q = f"SELECT * FROM {table} WHERE {_where(setting)}"
-        formats = [("parquet", "(FORMAT parquet, COMPRESSION zstd)")]
-        if table in CSV_TABLES or setting == combinations.DEFAULT:
-            formats.append(("csv", "(HEADER, DELIMITER ',')"))
-        for ext, opts in formats:
-            path = folder / f"{table}.{ext}"
-            con.execute(f"COPY ({q}) TO '{path.as_posix()}' {opts}")
-            written.append(path)
+    try:
+        for table in TABLES:
+            q = f"SELECT * FROM {table} WHERE {_where(setting)}"
+            formats = [("parquet", "(FORMAT parquet, COMPRESSION zstd)")]
+            if table in CSV_TABLES or setting == combinations.DEFAULT:
+                formats.append(("csv", "(HEADER, DELIMITER ',')"))
+            for ext, opts in formats:
+                path = folder / f"{table}.{ext}"
+                con.execute(f"COPY ({q}) TO '{path.as_posix()}' {opts}")
+                written.append(path)
+    finally:
+        con.execute(f"SET threads = {int(threads)}")
     return written
 
 
@@ -293,10 +310,12 @@ def _latest(store_con, dataset: str, columns: str, where: str = "TRUE") -> list[
 
 
 def pps_factor(eur: dict[str, float], pps: dict[str, float]) -> float:
-    """Euros per purchasing power standard, from one year of Eurostat's limits in both units: the
-    total in euros over the total in PPS (the least affected by their rounding to whole units).
-    Eurostat converts every limit of a year with one factor; a limit that doesn't fit it within
-    a euro means the file changed meaning, and is refused."""
+    """Euros per purchasing power standard, from one year of Eurostat's limits in both units.
+
+    The factor is the total in euros over the total in PPS (the least affected by their rounding to
+    whole units). Eurostat converts every limit of a year with one factor; a limit that doesn't fit it
+    within a euro means the file changed meaning, and is refused.
+    """
     require(eur.keys() == pps.keys() and eur, f"limits in EUR {sorted(eur)} and PPS {sorted(pps)} don't match")
     factor = sum(eur.values()) / sum(pps.values())
     off = {k: eur[k] - factor * pps[k] for k in eur if abs(eur[k] - factor * pps[k]) > 1}
@@ -390,8 +409,10 @@ def income_limits_file(store_con) -> dict:
 
 
 def household_types_file(store_con) -> dict:
-    """Each household type's share of households and its surveyed households, for the newest survey
-    year, for the Groups page (from the archived groups tables, `hbs_groups`)."""
+    """Each household type's share of households and its surveyed households, for the Groups page.
+
+    For the newest survey year, from the archived groups tables (`hbs_groups`).
+    """
     rows = _latest(
         store_con,
         "oet-local:hbs_groups",
@@ -419,6 +440,7 @@ def household_types_file(store_con) -> dict:
 
 
 def checksums(root: Path) -> Path:
+    """Write `SHA256SUMS` in `root`, one line per file below it in path order, and return its path."""
     lines = []
     for path in sorted(p for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS"):
         lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}")
@@ -449,8 +471,11 @@ def label_sources(archive) -> tuple[Path, Path, Path]:
 
 
 def used_codes(con) -> set[str]:
-    """Every category code the site's files name: weights (a rest row names its parent), the
-    indices that price them, contributions."""
+    """Every category code the site's files name.
+
+    That is the weights (a rest row names its parent), the indices that price them, and the
+    contributions.
+    """
     codes = set()
     for (c,) in con.execute("SELECT DISTINCT coicop18 FROM m1_weights_used").fetchall():
         codes.add(c[: -len(REST)] if c.endswith(REST) else c)
@@ -548,9 +573,11 @@ def export(
 
 
 def export_m5(outputs: Path, out: Path, log=print) -> list[Path]:
-    """Copy the consistency checks (`traceconomics module5 run`) to the site's data, as written:
+    """Copy the consistency checks (`traceconomics module5 run`) to the site's data, as written.
+
     `checks.json` for the pages, each check's and question's CSV under `downloads/`. Left out,
-    with a line in the log, when the outputs folder has no `m5` (the topic has no pages then)."""
+    with a line in the log, when the outputs folder has no `m5` (the topic has no pages then).
+    """
     written = []
     for folder in sorted(Path(outputs).glob("*/m5")):
         country = folder.parent.name

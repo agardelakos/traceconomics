@@ -14,6 +14,7 @@ DEFAULT_MEMORY_LIMIT = "2GB"
 
 
 def connect(memory_limit: str = DEFAULT_MEMORY_LIMIT, threads: int | None = None) -> duckdb.DuckDBPyConnection:
+    """A new in-memory DuckDB connection with a memory cap and, if given, a number of threads."""
     config = {"memory_limit": memory_limit}
     if threads:
         config["threads"] = threads

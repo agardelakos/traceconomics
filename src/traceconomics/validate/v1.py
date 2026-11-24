@@ -51,6 +51,11 @@ def load(con: duckdb.DuckDBPyConnection, minr: Path, iw: Path, geo: str):
 
 
 def run(weights, prices, official, rates, last_year: int) -> list[Comparison]:
+    """Rebuild the index at each depth in LEVELS and compare it with the official one: one Comparison each.
+
+    A depth with no official value for the December before its first year is skipped. A year
+    whose published weights repeat the year before's is a failure.
+    """
     out = []
     for name, digits in LEVELS.items():
         first = FIRST_YEAR[name]

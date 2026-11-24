@@ -25,11 +25,15 @@ KEPT_HEADERS = ("content-type", "content-length", "content-disposition", "last-m
 
 
 class FetchError(Exception):
+    """A download that failed after its retries, or that the host's robots.txt doesn't allow."""
+
     pass
 
 
 @dataclass(frozen=True)
 class Response:
+    """One completed download: the URL asked for, the status, the headers worth keeping and when it ended."""
+
     url: str
     status: int
     headers: dict[str, str]
@@ -47,10 +51,13 @@ class Response:
         return os.path.basename(name) if name else None
 
     def manifest(self) -> dict:
+        """The status and headers, as kept in a snapshot's manifest."""
         return {"status": self.status, "headers": self.headers}
 
 
 class HttpClient:
+    """A polite HTTP client: one request at a time, a pause between them, retries, robots.txt respected."""
+
     def __init__(self, user_agent: str, pause_seconds: float = 2.0, retries: int = 3, timeout: float = 120.0):
         self.user_agent = user_agent
         self.pause_seconds = pause_seconds
@@ -60,7 +67,10 @@ class HttpClient:
         self._robots: dict[str, urllib.robotparser.RobotFileParser | None] = {}
 
     def download(self, url: str, dest: Path) -> Response:
-        """Stream a URL to a file. Raises FetchError after the last retry."""
+        """Stream a URL to a file.
+
+        Raises FetchError after the last retry.
+        """
         self._check_robots(url)
         last_error: Exception | None = None
         for attempt in range(self.retries):
@@ -78,6 +88,10 @@ class HttpClient:
         raise FetchError(f"{url}: {last_error}")
 
     def get_bytes(self, url: str, tmp: Path) -> tuple[Response, bytes]:
+        """Download a URL through the file `tmp` and return the response and the bytes; `tmp` is deleted.
+
+        Raises FetchError as `download` does.
+        """
         resp = self.download(url, tmp)
         try:
             return resp, tmp.read_bytes()
@@ -154,7 +168,9 @@ class RunContext:
         content_of=None,
         extra: dict | None = None,
     ) -> tuple[StoreResult | None, bytes | None]:
-        """Download a URL and store it. Returns the result and, for small files, the bytes.
+        """Download a URL and store it.
+
+        Returns the result and, for small files, the bytes.
 
         content_of, if given, turns the downloaded bytes into the text used for
         change detection (e.g. the visible text of a web page).
@@ -194,6 +210,7 @@ class RunContext:
 
 
 def guess_ext(resp: Response) -> str:
+    """A file extension for a download: from the server's file name, else from its content type, else empty."""
     name = resp.filename
     if name and "." in name:
         return "." + name.rsplit(".", 1)[1].lower()

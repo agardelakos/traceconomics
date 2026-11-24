@@ -1,4 +1,4 @@
-"""Consistency of official figures: do the official figures add up?
+"""Consistency of official figures: checks whether the official figures add up.
 
 Each check takes two published sides of one figure (a rate and the index it comes from, a
 rebuilt index and the published one, two surveys answering one question), compares them

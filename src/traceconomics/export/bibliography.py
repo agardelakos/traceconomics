@@ -36,12 +36,17 @@ def _braced(src: str, i: int) -> tuple[str, int]:
 
 
 def plain(value: str) -> str:
+    """A field's value as plain text: escapes and case-protecting braces off, dashes as Unicode, spaces collapsed."""
     text = value.replace(r"\_", "_").replace(r"\&", "&").replace("---", "—").replace("--", "–")
     text = re.sub(r"(?<!\\)[{}]", "", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
 def parse(src: str) -> dict[str, dict[str, str]]:
+    """{key: {field: value}} for every entry of a BibTeX text, with BibTeX's @type as `entrytype`.
+
+    URLs are kept as written; every other value goes through `plain`. Fails on unbalanced braces.
+    """
     out: dict[str, dict[str, str]] = {}
     for m in ENTRY.finditer(src):
         _, end = _braced(src, src.index("{", m.start()))
@@ -68,6 +73,10 @@ def parse(src: str) -> dict[str, dict[str, str]]:
 
 
 def export(out: Path) -> Path:
+    """Write the bibliography to `<out>/v1/references.json` and return the file's path.
+
+    Raises `checks.FormatError` if this parser and `references.entries` find different keys.
+    """
     entries = parse(references.text())
     require(set(entries) == set(references.entries()), "the bibliography parser and the key reader disagree")
     path = Path(out) / "v1" / "references.json"

@@ -47,6 +47,7 @@ MARK = {"passed": "✓", "failed": "✗", "flaky": "≈", "skipped": "–", None
 HEAD = "> Generated, do not edit. Made from the test catalog and the run history on every run; a correction goes into the test, and this page follows.\n"
 START, END = "<!-- generated:start -->", "<!-- generated:end -->"
 MIN_FOR_RATE = 5
+LAYERS = ("unit", "integration", "repository")  # the pytest layers (tests/conftest.py)
 
 
 def load(store: Path):
@@ -138,6 +139,18 @@ def page_overview(repo, catalog, obsolete, runs) -> str:
     for suite, pg in SUITE_PAGE.items():
         missing = newest[0].get("no_case", {}).get(suite, "–")
         out.append(f"| [{SUITE_NAME[suite]}]({pg}) | {per.get(suite, 0)} | {missing} |")
+    layers = defaultdict(int)
+    for c in catalog["cases"]:
+        if c["id"] and c.get("layer"):
+            layers[c["layer"]] += 1
+    if layers:
+        out.append(
+            "\npytest cases by layer: "
+            + ", ".join(f"{k} {layers[k]}" for k in LAYERS if layers.get(k))
+            + ". A unit test runs one of our components on its own, an integration test several of them "
+            "through a real resource (an archive on disk, the store), a repository test checks the "
+            "repository's own files and runs no package code ([Code reference](Code#checks-on-the-code-itself))."
+        )
     out.append(
         f"\nObsolete cases: {len(obsolete)} ([list](Tests-Obsolete)). Recent runs: [Tests-Runs](Tests-Runs). "
         f"Catalog as of commit {commit_link(repo, catalog.get('commit'))}.\n"
@@ -170,6 +183,7 @@ def page_suite(repo, suite, catalog, runs, last, window) -> str:
             out.append(f"### {c['id']}\n")
             out.append(
                 f"**{esc(c['title'])}** · [`{c['file']}`](https://github.com/{repo}/blob/{commit}/{c['file']}#L{c['line']})"
+                + (f" · layer: {c['layer']}" if c.get("layer") else "")
                 + (f" · tags: {', '.join(c['tags'])}" if c.get("tags") else "")
                 + "\n"
             )

@@ -337,6 +337,25 @@ def test_v5_walks_from_bruegel_to_our_default_one_setting_at_a_time(tmp_path, mo
         assert all(v == pytest.approx(value) for v in out[name].values()), name
 
 
+def test_v5_says_which_year_of_bruegels_chain_is_incomplete(tmp_path):
+    """PY-BENCH-012: V5 stops with the year its rebuilt Bruegel chain has no full year for, rather than a type error
+
+    Given Bruegel's published rates and weights, and HICP prices missing June 2022
+    When V5 is run against Bruegel
+    Then it stops with a FormatError naming 2022 and the chained rung
+    """
+    archive = Archive(tmp_path)
+    _hbs(archive)
+    rows = []
+    for p in months(2020, 2021, 2022, 2023):
+        y, m = p.split("-")
+        rows.append(["EL", list(benchmarks.MONTHS)[int(m) - 1] + "-" + y[2:], 7.5, 6.0, 7.0, 3.0])
+    _bruegel(archive, rows)
+    prices = [r for r in _prices(range(2018, 2025)) if r["ref_period"] != "2022-06"]
+    with pytest.raises(FormatError, match=r"B1 Bruegel weights, chained: no full year 2022"):
+        attribution.v5_bruegel(store(prices), archive)
+
+
 def test_v5_walks_from_kepe_to_our_default(monkeypatch):
     """PY-BENCH-011: V5 walks from KEPE's published gap to our default
 

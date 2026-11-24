@@ -182,6 +182,7 @@ def _question(qid: str, unit: str, lines: list[tuple[dict, dict[str, float]]]) -
 
 
 def renters(store_con) -> Question | None:
+    """The share of households (and persons) renting, in percent, by source; None with fewer than two."""
     census = {}
     for ds in ("eurostat:cens_11htts_r2", "eurostat:cens_21hhct_r3"):
         rent = _series(store_con, ds, "geo = 'GR' AND hhcomp = 'TOTAL' AND unit = 'NR' AND tenure = 'RENT'")
@@ -218,6 +219,7 @@ def renters(store_con) -> Question | None:
 
 
 def rent_paid(store_con) -> Question | None:
+    """Rent paid in a year, in euros, by source; None with fewer than two sources."""
     return _question(
         "gr-rent-paid",
         "EUR",
@@ -241,6 +243,7 @@ def rent_paid(store_con) -> Question | None:
 
 
 def household_income(store_con) -> Question | None:
+    """Households' income in a year, in euros: national accounts and tax returns; None without both."""
     return _question(
         "gr-household-income",
         "EUR",
@@ -263,6 +266,7 @@ def household_income(store_con) -> Question | None:
 
 
 def unemployment(store_con) -> Question | None:
+    """Unemployed persons: the labour force survey and the register; None without both."""
     return _question(
         "gr-unemployment",
         "persons",
@@ -289,6 +293,7 @@ def unemployment(store_con) -> Question | None:
 
 
 def rent_weight(store_con) -> Question | None:
+    """Actual rent's share of spending, in percent, by source; None with fewer than two sources."""
     nama = "geo = 'GR' AND unit = 'CP_MEUR' AND coicop = '{}'"
     return _question(
         "gr-rent-weight",
@@ -342,6 +347,10 @@ def _mean_rent(store_con, dataset: str) -> dict[str, float]:
 
 
 def rent_change(store_con) -> Question | None:
+    """Rent as an index, 2015 = 100: the CPI's rent index and the surveys' mean rent paid by renters.
+
+    None with fewer than two sources.
+    """
     from traceconomics.module1 import prices
 
     yearly = {}
@@ -363,6 +372,7 @@ def rent_change(store_con) -> Question | None:
 
 
 def all_questions(store_con) -> list[Question]:
+    """Every question with at least two sources in the store now."""
     found = (
         renters(store_con),
         rent_paid(store_con),

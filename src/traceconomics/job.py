@@ -48,6 +48,7 @@ RELEASE_TIME = time(12, 0)
 
 
 def load_state(root: Path) -> dict:
+    """The job's state saved under the archive root, or an empty dict if there is none yet."""
     path = root / STATE_FILE
     if not path.is_file():
         return {}
@@ -55,6 +56,7 @@ def load_state(root: Path) -> dict:
 
 
 def save_state(root: Path, state: dict) -> None:
+    """Write the job's state under the archive root, atomically (a temporary file, then a rename)."""
     path = root / STATE_FILE
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".part")
@@ -63,6 +65,8 @@ def save_state(root: Path, state: dict) -> None:
 
 
 class Locked(Exception):
+    """Another run holds the lock."""
+
     pass
 
 
@@ -93,6 +97,8 @@ class RunLock:
 
 @dataclass(frozen=True)
 class Due:
+    """Whether a run is due, the release days it covers, those missed on the day, and why."""
+
     due: bool
     release_days: list[date]  # release days since the last good run
     missed: list[date]  # of those, days with no run on the day itself
@@ -100,6 +106,7 @@ class Due:
 
 
 def all_release_dates(state: dict, config: Config) -> set[date]:
+    """Every known release day: those read from the calendars and those added in the config."""
     days = {date.fromisoformat(d) for ds in state.get("release_dates", {}).values() for d in ds}
     return days | set(config.extra_release_dates)
 
@@ -131,8 +138,10 @@ def awaited(state: dict, through: date) -> dict[str, list[date]]:
 
 
 def check_due(state: dict, config: Config, now: datetime, out_today: bool = False) -> Due:
-    """Whether a run is due at `now` (timezone-aware, in the job's timezone). `out_today`: the
-    poll has seen today's release, so today counts as released before the run time."""
+    """Whether a run is due at `now` (timezone-aware, in the job's timezone).
+
+    `out_today`: the poll has seen today's release, so today counts as released before the run time.
+    """
     today, after_hour = now.date(), now.time() >= config.run_after or out_today
     last = state.get("last_good_run")
     if last is None:
@@ -157,8 +166,10 @@ def check_due(state: dict, config: Config, now: datetime, out_today: bool = Fals
 def confirm_releases(
     state: dict, ctx: RunContext, through: date, now: datetime, floor: str | None, early: bool = False
 ) -> None:
-    """Move each topic's confirmed day to its awaited release days if this run brought its files;
-    otherwise alert, and the days stay awaited, so the next run is due again.
+    """Confirm each topic's awaited release days if this run brought its files, else alert.
+
+    A topic whose files came has its confirmed day moved to its awaited release days. Otherwise
+    the run alerts, and the days stay awaited, so the next run is due again.
 
     `floor` is the last good run before this one: topics without a confirmed day start there.
     `early`: a run the poll started before the run time. Today's release days of other topics
@@ -192,8 +203,11 @@ def run(
     now: datetime | None = None,
     out_today: bool = False,
 ) -> dict:
-    """One archive run. `out_today`: started by the poll, which saw today's release before the
-    run time; today's release days count as released."""
+    """One archive run.
+
+    `out_today`: started by the poll, which saw today's release before the run time; today's
+    release days count as released.
+    """
     tz = ZoneInfo(config.timezone)
     now = now or datetime.now(tz)
     root = config.archive_dir
@@ -290,8 +304,10 @@ def run(
 
 
 def released_at(due: Due, tz) -> datetime | None:
-    """When the newest release day this run covers was released; None for a run on no release day
-    (forced, or the first run)."""
+    """When the newest release day this run covers was released.
+
+    None for a run on no release day (forced, or the first run).
+    """
     if not due.release_days:
         return None
     return datetime.combine(max(due.release_days), RELEASE_TIME, tzinfo=tz).astimezone(UTC)
@@ -311,12 +327,15 @@ def _poll_check(topic: str, archive: Archive, http) -> list[str]:
 
 
 def pollable(topic: str) -> bool:
+    """Whether the poll can tell that a topic's release is out (Eurostat's HICP, or an ELSTAT page it watches)."""
     return topic == "eurostat-hicp" or topic.removeprefix("elstat-") in elstat.PAGES
 
 
 def poll(config: Config, *, now: datetime | None = None) -> dict:
-    """On a release day, between the release time and the run time, check whether the release is
-    out; if it is, run the job at once instead of waiting for the run time.
+    """Run the job at once if today's release is already out, instead of waiting for the run time.
+
+    Only on a release day, between the release time and the run time: it checks whether the
+    release is out, and if it is, runs the job then.
 
     Meant to be triggered every 5 minutes from 12:00 to 12:55 Greek time: at most 12 requests to
     each awaited topic's page an hour (and its host's robots.txt), and none on other days or once
@@ -423,6 +442,7 @@ def _run_sources(ctx: RunContext, state: dict) -> None:
 
 
 def render_report(config, now, due, force, stored, unchanged, ctx, to_back_up) -> str:
+    """The text of a run's report: why it ran, alerts, failures, notes, files stored and files to back up."""
     lines = [
         f"Archive run at {now:%Y-%m-%d %H:%M} ({config.timezone}).",
         f"Why: {'forced by hand' if force and not due.due else due.reason}.",
@@ -500,6 +520,10 @@ def fetch_history(config: Config, years: list[int], *, pause_seconds: float, dry
 
 
 def mark_backup_done(config: Config) -> str:
+    """Record now as the backup mark in the job's state, and return it as an ISO time.
+
+    Files stored after it count as not yet backed up.
+    """
     state = load_state(config.archive_dir)
     state["backup_mark"] = iso(utc_now())
     save_state(config.archive_dir, state)

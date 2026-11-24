@@ -36,18 +36,22 @@ RUNS = "runs.jsonl"
 
 
 def utc_now() -> datetime:
+    """The current time in UTC, to the whole second."""
     return datetime.now(UTC).replace(microsecond=0)
 
 
 def iso(ts: datetime) -> str:
+    """The time in UTC as ISO 8601 text, e.g. 2026-10-18T11:00:00Z."""
     return ts.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def stamp(ts: datetime) -> str:
+    """The time in UTC without colons, as snapshot folders are named, e.g. 20261018T110000Z."""
     return ts.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
 
 
 def sha256_file(path: Path) -> str:
+    """The SHA-256 of a file's bytes, in hex."""
     h = hashlib.sha256()
     with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -56,6 +60,7 @@ def sha256_file(path: Path) -> str:
 
 
 def sha256_text(text: str) -> str:
+    """The SHA-256 of a text's UTF-8 bytes, in hex."""
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
@@ -84,6 +89,7 @@ def _append_line(path: Path, record: dict) -> None:
 
 
 def read_jsonl(path: Path) -> list[dict]:
+    """Every record in a JSON Lines file, blank lines skipped; an empty list if there is no file."""
     if not path.is_file():
         return []
     out = []
@@ -97,6 +103,8 @@ def read_jsonl(path: Path) -> list[dict]:
 
 @dataclass(frozen=True)
 class StoreResult:
+    """The outcome of storing one file: a new snapshot (`stored`), or the same content as before (`unchanged`)."""
+
     status: str  # "stored" or "unchanged"
     source: str
     dataset: str
@@ -105,6 +113,11 @@ class StoreResult:
 
 
 class Archive:
+    """The raw archive under one root folder, creating `raw/` and `tmp/` if they are missing.
+
+    The stored snapshots are read from the index once, when the archive is opened.
+    """
+
     def __init__(self, root: Path):
         self.root = Path(root)
         self.raw = self.root / RAW
@@ -127,17 +140,21 @@ class Archive:
         return sorted(self._snapshots.get((source, dataset), []), key=lambda r: r["retrieved_at"])
 
     def latest(self, source: str, dataset: str) -> dict | None:
+        """The newest stored snapshot of one dataset (its index record), or None."""
         snaps = self.snapshots(source, dataset)
         return snaps[-1] if snaps else None
 
     def manifest(self, record: dict) -> dict:
+        """The manifest stored beside a snapshot's payload, given its index record."""
         path = self.root / record["path"]
         return json.loads((path.parent / "manifest.json").read_text(encoding="utf-8"))
 
     def index(self) -> list[dict]:
+        """Every line of the index: stored, unchanged and failed attempts, in the order logged."""
         return read_jsonl(self.raw / INDEX)
 
     def runs(self) -> list[dict]:
+        """Every job run's record, in the order logged."""
         return read_jsonl(self.raw / RUNS)
 
     def stored_since(self, logged_after: str | None) -> list[dict]:
@@ -151,6 +168,7 @@ class Archive:
     # -- writing ---------------------------------------------------------
 
     def new_tmp(self, suffix: str = "") -> Path:
+        """A new, unused path under `tmp/` for a partial download; the file isn't created."""
         return self.tmp / f"{uuid.uuid4().hex}{suffix}.part"
 
     def store_file(
@@ -242,11 +260,13 @@ class Archive:
         return StoreResult("stored", source, dataset, sha, payload)
 
     def store_bytes(self, source: str, dataset: str, data: bytes, **kw) -> StoreResult:
+        """Write bytes to a temporary file and store it as `store_file` does, with the same keywords."""
         tmp = self.new_tmp()
         _write_atomic(tmp, data)
         return self.store_file(source, dataset, tmp, **kw)
 
     def log_failure(self, source: str, dataset: str, url: str | None, error: str) -> None:
+        """Record a failed fetch attempt in the index."""
         self._log({"status": "failed", "source": source, "dataset": dataset, "url": url, "error": error})
 
     def log_unchanged_check(self, source: str, dataset: str, url: str | None, note: str) -> None:
@@ -254,9 +274,11 @@ class Archive:
         self._log({"status": "unchanged", "source": source, "dataset": dataset, "url": url, "note": note})
 
     def append_run(self, record: dict) -> None:
+        """Add one job run's record to `runs.jsonl`."""
         _append_line(self.raw / RUNS, record)
 
     def clean_tmp(self) -> None:
+        """Delete the partial downloads left in `tmp/`."""
         for p in self.tmp.glob("*.part"):
             p.unlink(missing_ok=True)
 

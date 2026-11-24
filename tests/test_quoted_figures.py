@@ -175,3 +175,18 @@ def test_values_are_rounded_half_up_as_the_site_writes_them(value, decimals, tex
     Then halves go away from zero (0.125 to 0.13, 2.5 to 3, -1.25 to -1.3), where Python's round() would go to the even digit
     """
     assert str(qf.rounded(value, decimals)) == text
+
+
+def test_the_datasets_behind_past_figures_are_listed_by_entry():
+    """PY-QFIG-008: each past figure's entry is listed with the archived datasets its checks name
+
+    Given an allow-list with a past figure whose two checks name three datasets (one twice), a past figure with a data check only, and a figure of another kind
+    When the datasets behind the figures are listed
+    Then only the first entry is listed, with its datasets once each and sorted
+    """
+    entries = [
+        {"id": "a", "kind": qf.PAST, "checks": [{"sources": ["z:x", "e:y*"]}, {"sources": ["z:x", "b:c"]}]},
+        {"id": "b", "kind": qf.PAST, "checks": [{"figure": "1.2"}]},
+        {"id": "c", "kind": "other", "checks": [{"sources": ["z:x"]}]},
+    ]
+    assert qf.sources(entries) == {"a": ["b:c", "e:y*", "z:x"]}

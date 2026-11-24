@@ -62,6 +62,11 @@ def release_dates(pdf: bytes, year: int) -> dict[str, list[date]]:
 
 
 def dates_from_lines(lines: list[str], year: int) -> dict[str, list[date]]:
+    """Release days per topic (cpi, hicp, hbs) from the text lines of the calendar PDF for `year`.
+
+    Raises `checks.FormatError` on an impossible date, or unless the CPI and the HICP each have
+    one release a month, each for the month before.
+    """
     # Imported here: the package's __init__ imports this module.
     from traceconomics.sources.elstat import topic_of
 

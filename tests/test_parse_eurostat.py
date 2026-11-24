@@ -267,3 +267,20 @@ def test_update_check_refuses_a_dataflow_without_its_update_date(tmp_path):
     eurostat.check_and_fetch(ctx, "une_rt_a")
     assert ctx.failures == ["eurostat/une_rt_a: no UPDATE_DATA in the dataflow; the format may have changed"]
     assert ctx.fetched == []
+
+
+def test_the_dataset_catalogue_reads_every_store_dataset():
+    """PY-EUROSTAT-014: the dataset catalogue reads every store dataset by its source and name
+
+    Given the package's datasets.toml
+    When the catalogue is read
+    Then every dataset's id is its source and name, with at least one archived file and a format
+    And Eurostat's HICP indices and ELSTAT's CPI table 07 are among them, each in its own format
+    And the cached catalogue the rest of the code reads is the same
+    """
+    found = catalog.datasets.__wrapped__()  # read afresh: the cached copy was made when this file was imported
+    assert found == catalog.datasets()
+    for spec_id, spec in found.items():
+        assert spec_id == f"{spec.source}:{spec.name}" and spec.archive and spec.format
+    assert found["eurostat:prc_hicp_midx"].format == "eurostat-tsv"
+    assert found["elstat:cpi07"].format == "elstat-cpi07"

@@ -25,6 +25,8 @@ _EPS = 1e-9
 
 @dataclass
 class Comparison:
+    """A rebuilt index against the official one: rate and link gaps, coverage, fallbacks and failures."""
+
     name: str
     months: int = 0  # months with both rates
     exact: int = 0  # of those, rounded rates equal
@@ -43,9 +45,11 @@ class Comparison:
 
     @property
     def passed(self) -> bool:
+        """True when there were months to compare and nothing failed."""
         return not self.failures and self.months > 0
 
     def summary(self) -> str:
+        """The comparison as a few lines of text for a report."""
         if not self.months:
             return f"{self.name}: no months to compare"
         lines = [
@@ -77,7 +81,9 @@ class Comparison:
 def compare(
     name: str, result: ChainResult, official: dict[str, float], official_rates: dict[str, float] | None = None
 ) -> Comparison:
-    """`official`: the official all-items index by month. `official_rates`: published annual
+    """A rebuilt index's links and annual rates against the official ones, month by month.
+
+    `official`: the official all-items index by month. `official_rates`: published annual
     rates (one decimal); if missing, they're computed from `official`, as the publishers do."""
     c = Comparison(name=name, fallbacks=result.fallback_summary())
     periods = sorted(result.links)

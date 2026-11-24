@@ -361,3 +361,25 @@ def test_bulk_load_of_no_rows_leaves_an_empty_table():
     build._load(con, "empty", COLUMNS, iter([]))
     assert con.execute("SELECT count(*) FROM empty").fetchone()[0] == 0
     assert [r[0] for r in con.execute("DESCRIBE empty").fetchall()] == ["a", "b", "value", "flags"]
+
+
+@pytest.mark.unit
+def test_forgetting_a_dataset_rewrites_the_loaded_records_durably(tmp_path, monkeypatch):
+    """PY-OBS-013: forgetting a dataset rewrites the loaded records to disk before they replace the old ones
+
+    Given a store whose loaded records name two datasets
+    When one of them is forgotten
+    Then the records left are the other dataset's
+    And the new file is synced to disk before it takes the old one's place, as every other write of it is
+    """
+    store = Store(tmp_path / "store")
+    store._append_loaded({"dataset": "a:x", "seq": 1})
+    store._append_loaded({"dataset": "b:y", "seq": 1})
+    calls = []
+    monkeypatch.setattr(build.os, "fsync", lambda fd: calls.append("fsync"))
+    real_replace = build.os.replace
+    monkeypatch.setattr(build.os, "replace", lambda a, b: (calls.append("replace"), real_replace(a, b)))
+    (tmp_path / "folder").mkdir()
+    store.forget("a:x", tmp_path / "folder")
+    assert [r["dataset"] for r in store.loaded()] == ["b:y"]
+    assert calls == ["fsync", "replace"]

@@ -89,12 +89,19 @@ def _silc_table(archive: Archive, year: int) -> tuple[dict[str, float], str]:
 
 
 def census_part(year: int) -> float:
-    """How much of the step between the censuses a survey year carries: 0 up to 2011, a tenth
-    more each year, all of it from 2021."""
+    """How much of the step between the censuses a survey year carries, from 0 to 1.
+
+    0 up to 2011, a tenth more each year, all of it from 2021.
+    """
     return min(max((year - CENSUS) / (NEXT_CENSUS - CENSUS), 0.0), 1.0)
 
 
 def target(archive: Archive, year: int) -> Target:
+    """The tenure split a survey year's weights are calibrated to, from the archived EU-SILC tables.
+
+    Up to the earlier census and from EU-SILC's first year on the later one, EU-SILC's own split; in
+    between, that plus `census_part(year)` of EU-SILC's step from one census to the next.
+    """
     silc, source = _silc_table(archive, year)
     if year <= CENSUS or year >= FIRST_ON_NEW:
         return Target(silc, "EU-SILC's split for the year", silc, (source,))
@@ -113,13 +120,16 @@ def target(archive: Archive, year: int) -> Target:
 
 
 def member(tenure: pd.Series, label: str) -> np.ndarray:
+    """Which households have tenure `label` (households with no tenure are not members)."""
     return (pd.Series(tenure) == label).fillna(False).to_numpy(bool)
 
 
 def calibrate(weights: np.ndarray, tenure: pd.Series, shares: dict[str, float]) -> np.ndarray:
-    """The weights (households, or households x replicates) scaled within each tenure class so the
-    classes make up `shares` of the households whose tenure is known, column by column; households
-    with no tenure keep their weight."""
+    """The weights scaled within each tenure class so the classes make up `shares` of the known tenures.
+
+    `weights` is households, or households x replicates; the scaling is column by column, and the
+    shares are of the households whose tenure is known. Households with no tenure keep their weight.
+    """
     w = np.asarray(weights, dtype=float)
     flat = w.ndim == 1
     w = w.reshape(len(w), -1)

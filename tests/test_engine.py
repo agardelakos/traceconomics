@@ -3,7 +3,7 @@
 import pytest
 
 from traceconomics.engine import annual_average_rate, annual_rate, chain, monthly_rate, rebase
-from traceconomics.engine.chain import link
+from traceconomics.engine.chain import Fallback, link
 from traceconomics.engine.tree import ancestors, at_level, leaves
 
 pytestmark = pytest.mark.unit
@@ -47,8 +47,9 @@ def test_negative_weight_is_refused():
     Given a weight below zero
     When the leaves are taken
     Then a ValueError is raised
+    And it names the code and its weight, so the bad row can be found
     """
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"negative weights: \{'01': -1\}"):
         leaves({"01": -1})
 
 
@@ -308,3 +309,110 @@ def test_drop_takes_an_item_out_and_rescales():
     assert r.links["2025-01"] == pytest.approx(1.10) and r.covered["2025-01"] == 1.0
     unmapped = chain(w, prices, first_year=2025, last_year=2025)  # without the rule: priced with 094
     assert unmapped.links["2025-01"] == pytest.approx((3 * 1.1 + 2.0) / 4)
+
+
+# -- where the chain stops, and what each link reports ------------------------------
+
+
+def year_of(year, value=100.0):
+    return flat(value, *[f"{year}-{m:02d}" for m in range(1, 13)])
+
+
+def test_the_chain_stops_at_the_last_year_asked_for():
+    """PY-ENG-020: the chain stops at the last year asked for, even with weights and prices after it
+
+    Given weights and prices for 2025 and 2026
+    When the chain is asked for 2025 alone
+    Then it computes 2025's months and none of 2026's
+    """
+    prices = {"01": {"2024-12": 100, **year_of(2025), **year_of(2026, 110)}}
+    r = chain({2025: {"01": 1}, 2026: {"01": 1}}, prices, first_year=2025, last_year=2025)
+    assert "2025-12" in r.index and not [p for p in r.index if p.startswith("2026")]
+
+
+def test_a_year_whose_december_was_left_out_ends_the_chain():
+    """PY-ENG-021: a year whose link month wasn't computed ends the chain, with no error
+
+    Given weights and prices for 2025 and 2026, with December 2025 published
+    When the chain is asked for every month but December 2025
+    Then 2025 stops at November and nothing of 2026 is computed, since it has no December to link to
+    """
+    prices = {"01": {"2024-12": 100, **year_of(2025), **year_of(2026, 110)}}
+    wanted = {p for p in [*year_of(2025), *year_of(2026)] if p != "2025-12"}
+    r = chain({2025: {"01": 1}, 2026: {"01": 1}}, prices, first_year=2025, last_year=2026, periods=wanted)
+    assert "2025-11" in r.index and "2025-12" not in r.index
+    assert not [p for p in r.index if p.startswith("2026")]
+
+
+def test_a_year_missing_from_prices_by_year_ends_the_chain():
+    """PY-ENG-022: a year missing from the prices by year ends the chain, with no error
+
+    Given prices by year for 2025 and 2027 but not 2026, and weights for all three
+    When the three years are chained
+    Then 2025 is computed, and neither 2026 nor 2027
+    """
+    w = {2025: {"01": 1}, 2026: {"01": 1}, 2027: {"01": 1}}
+    prices = {2025: {"01": {"2024-12": 100, **year_of(2025)}}, 2027: {"01": {"2026-12": 100, **year_of(2027)}}}
+    r = chain(w, prices, first_year=2025, last_year=2027, by_year=True)
+    assert "2025-12" in r.index and not [p for p in r.index if p[:4] in ("2026", "2027")]
+
+
+def test_months_after_one_left_out_are_still_computed():
+    """PY-ENG-023: the months after one that periods leave out are still computed
+
+    Given a year of prices
+    When the chain is asked for January, March and April only
+    Then those three links are computed, the ones after the gap too
+    """
+    prices = {"01": {"2024-12": 100, **year_of(2025)}}
+    r = chain({2025: {"01": 1}}, prices, first_year=2025, last_year=2025, periods={"2025-01", "2025-03", "2025-04"})
+    assert set(r.links) == {"2025-01", "2025-03", "2025-04"}
+
+
+def test_items_after_a_dropped_or_unpriced_one_still_count_and_fallbacks_name_their_month():
+    """PY-ENG-024: items after a dropped or unpriced one still count, and each fallback names its month
+
+    Given a basket whose first item is dropped, whose second has no index anywhere, a third with its own index and a fourth priced by its class
+    When one month's link is computed
+    Then the link is the weighted mean of the third and fourth items
+    And the coverage is their share of the items not dropped
+    And both fallbacks are reported for that month, the unpriced item with no index used and the fourth with its class
+    """
+    weights = {"01": 1, "02": 1, "03": 2, "0411": 1}
+    prices = {"03": {"2024-12": 100, "2025-01": 110}, "041": {"2024-12": 100, "2025-01": 130}}
+    r = chain(
+        {2025: weights}, prices, first_year=2025, last_year=2025, periods={"2025-01"}, price_with={2025: {"01": "drop"}}
+    )
+    assert r.links["2025-01"] == pytest.approx((2 * 1.10 + 1 * 1.30) / 3)
+    assert r.covered["2025-01"] == pytest.approx(3 / 4)
+    assert sorted(r.fallbacks, key=lambda f: f.code) == [
+        Fallback("2025-01", "02", None),
+        Fallback("2025-01", "0411", "041"),
+    ]
+
+
+def test_the_fallback_summary_counts_months():
+    """PY-ENG-025: the fallback summary counts the months each fallback was used
+
+    Given an item priced by its class and an item priced nowhere, over three months
+    When the year is chained and the fallbacks summed up
+    Then each counts three months, not one per item
+    """
+    prices = {
+        "011": {"2024-12": 100, "2025-01": 101, "2025-02": 102, "2025-03": 103},
+        "03": {"2024-12": 100},
+    }
+    r = chain({2025: {"0111": 1, "03": 1}}, prices, first_year=2025, last_year=2025)
+    assert set(r.links) == {"2025-01", "2025-02", "2025-03"}
+    assert r.fallback_summary() == {("0111", "011"): 3, ("03", None): 3}
+
+
+def test_rebasing_on_an_incomplete_year_is_refused():
+    """PY-ENG-026: rebasing on a year without all twelve months is refused, naming the year
+
+    Given an index with all of 2025 and no 2026
+    When it is rebased on 2026
+    Then a ValueError says there is no complete 2026 to rebase on
+    """
+    with pytest.raises(ValueError, match="no complete year 2026 to rebase on"):
+        rebase(INDEX, 2026)

@@ -14,6 +14,7 @@ SKIP = {"script", "style", "noscript", "template", "head"}
 
 
 def decode(data: bytes) -> str:
+    """The bytes as text: UTF-8, else the Greek Windows code page with undecodable bytes replaced."""
     try:
         return data.decode("utf-8")
     except UnicodeDecodeError:
@@ -75,6 +76,7 @@ def _squash(s: str) -> str:
 
 
 def read(data: bytes | str) -> _Reader:
+    """Parse a page once; the reader holds its visible text pieces, its links and its table rows."""
     r = _Reader()
     r.feed(decode(data) if isinstance(data, bytes) else data)
     r.close()

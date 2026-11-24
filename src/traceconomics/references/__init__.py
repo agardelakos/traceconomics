@@ -17,18 +17,24 @@ FIELD = re.compile(r"^\s*(\w+)\s*=\s*\{", re.MULTILINE)
 
 @dataclass(frozen=True)
 class Entry:
+    """One bibliography entry: its type, key and the names of its fields."""
+
     type: str
     key: str
     fields: frozenset[str]
 
 
 def text() -> str:
+    """The bibliography file's text."""
     return resources.files("traceconomics.references").joinpath("references.bib").read_text(encoding="utf-8")
 
 
 @cache
 def entries() -> dict[str, Entry]:
-    """Key -> entry. Raises ValueError on a duplicate key."""
+    """Every bibliography entry, by key.
+
+    Raises ValueError on a duplicate key.
+    """
     src = text()
     starts = list(ENTRY.finditer(src))
     out: dict[str, Entry] = {}

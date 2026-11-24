@@ -127,6 +127,11 @@ def _count(n: int) -> str:
 
 
 def table(sheets: dict[str, pd.DataFrame], year: int, source_version: str) -> pd.DataFrame:
+    """One survey year's tenure table from its D, H and R sheets: one row per tenure class.
+
+    Counts under `SMALL` are written as "<20". Raises `checks.FormatError` on a tenure code not in
+    ELSTAT's list, a value that isn't a number, or a household or person that doesn't link.
+    """
     d, h, r = sheets["D_FILE"], sheets["H_FILE"], sheets["R_FILE"]
     hid = h.HB030.astype(str).str.strip()
     weights = pd.Series(_number(d.DB090, f"{year} DB090"), index=d.DB030.astype(str).str.strip())
@@ -170,8 +175,10 @@ def table(sheets: dict[str, pd.DataFrame], year: int, source_version: str) -> pd
 
 
 def code_fingerprint() -> str:
-    """The hash of the code that shapes the table (the list: `survey_tables`); the provenance line
-    names it."""
+    """The hash of the code that shapes the table (the list: `survey_tables`).
+
+    The provenance line names it.
+    """
     return silc_fingerprint()
 
 

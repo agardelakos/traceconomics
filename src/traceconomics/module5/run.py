@@ -64,12 +64,17 @@ def all_checks(store_con, archive, archive_dir: Path, duck) -> list[Check]:
 
 
 def all_questions(store_con) -> list[hbs.Question]:
+    """Every question with data in the store: the income limits, then the other questions."""
     ours, silc = hbs.load_limits(store_con)
     found = [hbs.income_limits(ours, silc)] if ours and silc else []
     return found + questions.all_questions(store_con)
 
 
 def write(checks: list[Check], out: Path, questions: list[hbs.Question] = ()) -> list[Path]:
+    """Write each country's `m5/` folder: a CSV per check and per question, and `checks.json`.
+
+    Returns the paths written.
+    """
     written = []
     for country in sorted({c.country for c in [*checks, *questions]}):
         folder = Path(out) / country / "m5"

@@ -58,6 +58,38 @@ suite and area, obsolete cases, the last runs per case, and each case's flakines
 never edited by hand; a correction goes into the test, and the page follows. Links to them appear in
 the sidebar as they are published.
 
+The `Code-*` pages, the code reference, are generated the same way from the package's docstrings
+(`tests/catalog/code_reference.py`): one page per package, with each module's docstring and its
+public functions, classes and methods, each linked to its source line at the commit the pages were
+made from. Every public part must have a docstring whose first line is one sentence
+(`tests/test_docstrings.py`), so the reference has no gaps.
+
+They also show what the tests run, from the last coverage run on `main`: the code map
+(`tests/coverage/code_map.py`, stored on the branch `test-history`). Each module lists its
+lines by the lowest layer of test that runs them, the lines no test runs, and the test cases that
+run it, each linked to its steps on the `Tests-pytest` page. Each public function shows how many
+tests run it, or "imported only" (defined while a test file was loaded, but never called by a test),
+or "no test". The overview lists the `repository` tests, which check the repository's own files and
+run no package code, and any test run without a case. A test that runs a line doesn't always check
+it.
+
+The map covers the site's own code too, on the `Code-site` page: each file's lines by the layer
+that runs them (Vitest's unit and integration files, then Playwright), and the Vitest files,
+Playwright cases and Selenium tests that run it. Vitest is measured per test file, Playwright per
+case, Selenium per test (through Chrome's DevTools protocol, taken before every navigation and
+click). The overview draws it all as charts, each in a light and a dark version with its numbers in
+a table below: stacked bars of each area's lines by status, heatmaps of the share each suite runs,
+and a table of the lines only Playwright or only Selenium runs. Each line's status is the coverage
+badges' own; which tests run a line comes from each test's own coverage, kept to what the merged
+runs and the build's bundles confirm, so the two browser suites are compared the same way.
+
+`Code-engine` also shows how well the tests check the engine, not only what they run: mutation
+testing with [mutmut](https://github.com/boxed/mutmut), started by hand (the `showcase` workflow).
+mutmut changes the engine's code in small ways, one at a time, and runs the tests the code map says
+run the engine on each change. The page gives the share of changes some test noticed, and every
+change none did: a gap in the tests to close with a test, or a change that behaves the same as the
+code, listed with its reason in `tests/coverage/mutation-equivalent.toml`.
+
 ## Compared with a dedicated test-management tool
 
 The comparison is with a typical case-management tool of the TestRail kind: a database of cases,

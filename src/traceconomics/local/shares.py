@@ -44,11 +44,13 @@ PUBLISHED = tuple(g for g in GROUPINGS if g not in VALIDATION_ONLY)
 
 
 def leaves(codes) -> list[str]:
+    """The finest codes among `codes`, sorted: those no other code starts with (the total, `00`, left out)."""
     codes = [c for c in codes if c != "00"]
     return sorted(c for c in codes if not any(o != c and o.startswith(c) for o in codes))
 
 
 def reliability(n: int) -> str:
+    """The publication tier for a number of reporting households: suppressed, flagged or normal."""
     return "suppressed" if n < 20 else "flagged" if n < 50 else "normal"
 
 
@@ -63,6 +65,7 @@ class Tree:
 
     @classmethod
     def build(cls, all_leaves: list[str], option: int) -> Tree:
+        """The tree for one imputed-rent option: imputed rent dropped under option 1, every parent code added."""
         kept = [c for c in all_leaves if option == 2 or not c.startswith(IMPUTED_RENT)]
         parents = {c[:k] for c in kept for k in range(2, len(c))}
         codes = sorted(set(kept) | parents)
@@ -71,15 +74,16 @@ class Tree:
 
 
 def group_shares(x: np.ndarray, weights: np.ndarray, tree: Tree) -> np.ndarray:
-    """codes x R shares, from x (households x leaves, euros) and weights (households x R) that are
-    already zero outside the group."""
+    """One group's shares, codes x R, from spending and weights already zero outside the group.
+
+    x is households x leaves, in euros; weights are households x R.
+    """
     sums = x.T @ weights  # leaves x R
     return tree.incidence @ sums / sums.sum(axis=0)
 
 
 def basket(survey: Survey, spending: str, option: int) -> tuple[Tree, np.ndarray]:
-    """The leaves in scope and households x leaves euros, for one spending concept and
-    imputed-rent option."""
+    """The leaves in scope and households x leaves euros, for one spending concept and imputed-rent option."""
     if spending == "all":
         frame = survey.spending
         tree = Tree.build(leaves(frame.columns), option)
@@ -108,8 +112,11 @@ def memberships(groups: pd.DataFrame, groupings=GROUPINGS) -> list[tuple[str, st
 
 
 def shares(survey: Survey, groups: pd.DataFrame | None = None, spending: str = "purchases") -> pd.DataFrame:
-    """Long table: grouping, group, imputed_rent, code, digits, leaf, share, n_reporting, reliability,
-    plus the group's sample size and weighted households."""
+    """The groups' spending shares as a long table, one row per grouping, group, option and code.
+
+    Columns: grouping, group, imputed_rent, code, digits, leaf, share, n_reporting, reliability,
+    plus the group's sample size and weighted households.
+    """
     groups = assign(survey) if groups is None else groups
     w = survey.households.weight.to_numpy(float)
     rows = []

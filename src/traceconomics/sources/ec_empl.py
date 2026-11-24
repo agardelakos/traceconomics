@@ -23,5 +23,6 @@ LIVE = ("lmp_rjru",)
 
 
 def run(ctx: RunContext) -> None:
+    """Fetch each LMP table in full, but only if its "last data update" changed since the archived copy."""
     for dataset in LIVE:
         eurostat.check_and_fetch(ctx, dataset, source=SOURCE, api=API, agency="EMPL")

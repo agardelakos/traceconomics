@@ -539,3 +539,46 @@ def test_export_day_downloads_needs_zone(monkeypatch):
     monkeypatch.delenv("CLOUDFLARE_ZONE_ID", raising=False)
     with pytest.raises(AnalyticsError, match="CLOUDFLARE_ZONE_ID"):
         export_day(Archive(Path(tempfile.mkdtemp())), date(2026, 10, 27), token="tok", feed=DOWNLOADS)
+
+
+def test_the_default_post_sends_the_body_and_headers_and_returns_the_answer():
+    """PY-ANALYT-017: the real POST sends its body and headers and gives back the answer, or the error
+
+    Given a local server on this machine that records each request and answers the first with JSON, the second with a 500
+    When the default POST sends a JSON body with an authorisation header, twice
+    Then the server got the method, the body and the header, and the first call returns the answer's bytes
+    And the second raises urllib's HTTP error with the status, for the caller to handle
+    """
+    import http.server
+    import threading
+
+    from traceconomics.analytics import default_post
+
+    got = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            body = self.rfile.read(int(self.headers["Content-Length"]))
+            got.append((self.command, body, self.headers["Authorization"]))
+            status = 200 if len(got) == 1 else 500
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"ok": true}')
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{server.server_address[1]}/graphql"
+        headers = {"Authorization": "Bearer t", "Content-Type": "application/json"}
+        assert default_post(url, b'{"q": 1}', headers, timeout=5) == b'{"ok": true}'
+        with pytest.raises(urllib.error.HTTPError) as e:
+            default_post(url, b"{}", headers, timeout=5)
+        assert e.value.code == 500
+    finally:
+        server.shutdown()
+        server.server_close()
+    assert got[0] == ("POST", b'{"q": 1}', "Bearer t")

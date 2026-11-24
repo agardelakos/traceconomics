@@ -63,6 +63,11 @@ def _inputs(con: duckdb.DuckDBPyConnection):
 
 
 def export(con: duckdb.DuckDBPyConnection, out_dir: Path) -> list[Path]:
+    """Write the rebuilt all-households HICP for Greece (CSV) and its metadata (JSON) to `out_dir`; return both paths.
+
+    Raises ValueError if the store has no all-items HICP for Greece or a source is missing from the
+    bibliography.
+    """
     weights, prices, rates, newest = _inputs(con)
     official = prices.get("TOTAL", {})
     if not official:

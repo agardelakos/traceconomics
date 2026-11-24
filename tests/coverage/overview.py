@@ -3,8 +3,8 @@
     python tests/coverage/overview.py --python .coverage --site site/coverage/summary.json --out badges/
 
 Back-end: the Python package (src/traceconomics), from coverage.py's data file. tests/conftest.py
-labels every line run with the layer of the test running it (a dynamic context: `unit` or
-`integration`). Front-end: the site's own code, from the summary `site/scripts/coverage.mjs` writes,
+labels every line run with the layer and the test running it (a dynamic context, `unit|<test>` or
+`integration|<test>`); only the layer counts here. Front-end: the site's own code, from the summary `site/scripts/coverage.mjs` writes,
 which counts the covered lines of each layer the same way (unit, integration, e2e).
 
 Both count lines: of the lines that hold code, the share run by at least one test. A line run by
@@ -68,6 +68,11 @@ def assign(contexts: set[str], layers: tuple[str, ...]) -> str | None:
     return next((k for k in layers if k in contexts), None)
 
 
+def layer_of(context: str) -> str:
+    """The layer part of a context label: `unit|tests/test_x.py::test_a` gives `unit`."""
+    return context.split("|", 1)[0]
+
+
 def back_end(data_file: Path) -> dict:
     """Lines per layer for the package, from a (combined) coverage.py data file."""
     from coverage import Coverage
@@ -82,12 +87,13 @@ def back_end(data_file: Path) -> dict:
         by_line = data.contexts_by_lineno(path)
         counts = dict.fromkeys(layers, 0)
         for line in sorted(statements & set(by_line)):
-            ctx = set(by_line[line])
+            ctx = {layer_of(c) for c in by_line[line]}
             layer = assign(ctx, layers)
             if "repository" in ctx:
-                problems.append(f"{path}:{line} ran in a repository test (it should run no package code)")
+                tests = sorted(c for c in by_line[line] if layer_of(c) == "repository")
+                problems.append(f"{path}:{line} ran in a repository test (it should run no package code): {tests[0]}")
             elif layer is None:
-                problems.append(f"{path}:{line} ran with no layer ({', '.join(sorted(ctx)) or 'no context'})")
+                problems.append(f"{path}:{line} ran with no layer ({', '.join(sorted(by_line[line])) or 'no context'})")
             if layer is not None:
                 counts[layer] += 1
         files[Path(path).as_posix()] = {"total": len(statements), **counts}

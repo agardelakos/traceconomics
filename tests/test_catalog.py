@@ -865,3 +865,51 @@ def test_runs_pruned_from_the_history_are_not_fetched_again(tmp_path):
     folder = "results/20261107T120000Z/ui-test-20261107T120500Z/"
     files = {folder + "meta.json": meta(), folder + "playwright.json": json.dumps(PLAYWRIGHT).encode()}
     assert vm_pull.pull("https://bucket/o/", store, tmp_path / "out", bucket(files), keep=1) == ([], [])
+
+
+def test_each_pytest_case_records_its_layer_and_the_pages_show_it(tmp_path):
+    """PY-CAT-033: each pytest case records its layer, and the wiki pages show it
+
+    Given a throwaway unit test file with one test marked to override its file as an integration test
+    And a stored catalog of unit, integration and repository cases
+    When the file is collected through pytest, and the wiki pages are generated from the stored catalog
+    Then each collected case has the layer of its closest mark, and no layer among its tags
+    And the pytest page names each case's layer
+    And the overview counts the pytest cases per layer, unit first
+    """
+    f = tmp_path / "test_layers.py"
+    f.write_text(
+        textwrap.dedent('''
+        import pytest
+
+        pytestmark = pytest.mark.unit
+
+        def test_own():
+            """PY-DEMO-001: the file's layer"""
+
+        @pytest.mark.integration
+        @pytest.mark.slow
+        def test_override():
+            """PY-DEMO-002: its own layer"""
+    '''),
+        encoding="utf-8",
+    )
+    items = collect.pytest_items([str(f), "--rootdir", str(tmp_path), "-c", "/dev/null"])
+    got = {c.id: c for c in collect.from_pytest(items, "pytest")}
+    assert (got["PY-DEMO-001"].layer, got["PY-DEMO-001"].tags) == ("unit", [])
+    assert (got["PY-DEMO-002"].layer, got["PY-DEMO-002"].tags) == ("integration", ["slow"])
+
+    store, out = tmp_path / "store", tmp_path / "wiki"
+    store.mkdir()
+    catalog = cat(
+        case(layer="repository"),
+        case(id="PY-ENG-002", node="tests/test_x.py::test_b", layer="unit"),
+        case(id="PY-ENG-003", node="tests/test_x.py::test_c", layer="unit"),
+        case(id="PY-ENG-004", node="tests/test_x.py::test_d", layer="integration"),
+    )
+    (store / "catalog.json").write_text(json.dumps(catalog), encoding="utf-8")
+    wiki.generate(store, out, "owner/repo", 10, 20)
+    py = (out / "Tests-pytest.md").read_text(encoding="utf-8")
+    assert "· layer: repository" in py and "· layer: integration" in py
+    overview = (out / "Tests.md").read_text(encoding="utf-8")
+    assert "pytest cases by layer: unit 2, integration 1, repository 1." in overview

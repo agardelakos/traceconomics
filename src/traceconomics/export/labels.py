@@ -54,6 +54,11 @@ def _plain(text: str) -> str:
 
 
 def eu_vocabularies(path: Path) -> dict[str, dict]:
+    """{code: {en, el, kind, source}} from the EU Vocabularies ECOICOP version 2 labels CSV.
+
+    The code is the last part of the concept URI in column `c`; a code without both an English and a
+    Greek name is left out.
+    """
     out = {}
     with Path(path).open(encoding="utf-8") as f:
         for r in csv.DictReader(f):

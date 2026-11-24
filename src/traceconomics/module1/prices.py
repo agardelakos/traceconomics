@@ -80,8 +80,9 @@ def year_ratio(blocks: dict[int, Prices], code: str, year: int) -> tuple[float, 
 
 
 def update_factor(blocks: dict[int, Prices], code: str, survey: int, year: int) -> tuple[float, list[str]] | None:
-    """P(December of year-1) / P(average of the survey year), chained through each year's block,
-    for the code or its nearest ancestor with the data; None if no level has them.
+    """P(December of year-1) / P(average of the survey year), chained through each year's block.
+
+    For the code or its nearest ancestor with the data; None if no level has them.
 
     Within the survey year: December over the year's average. Then, for every later year up to
     year-1, that year's December over the one before it."""
@@ -106,8 +107,9 @@ HICP_DATASET = "eurostat:prc_hicp_minr"
 
 
 def hicp_blocks(con: duckdb.DuckDBPyConnection, when=None, geo: str = "GR") -> dict[int, Prices]:
-    """{year: {code: {"YYYY-MM": index}}} from Eurostat's HICP item indices (2025=100), as known
-    at `when`. Eurostat publishes each item as one continuous chain-linked series, so a year's
+    """{year: {code: {"YYYY-MM": index}}} from Eurostat's HICP item indices (2025=100), as known at `when`.
+
+    Eurostat publishes each item as one continuous chain-linked series, so a year's
     block is simply its twelve months and the December before, cut from that series; unlike the
     CPI there is no second copy of a December to choose between."""
     cond = "dataset = $d AND geo = $geo AND unit = 'I25' AND freq = 'M'"

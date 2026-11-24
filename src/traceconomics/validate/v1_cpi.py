@@ -97,6 +97,7 @@ def run(tables: list[Table07]) -> tuple[Comparison, Comparison | None, int]:
 
 
 def run_archive(archive: Archive) -> tuple[Comparison, Comparison | None, int, dict[int, Path]]:
+    """`run` on the newest archived English table 07 of each year; also returns those files by year."""
     files = archived_files(archive)
     checked, earlier, disagreements = run([parse(p) for p in files.values()])
     return checked, earlier, disagreements, files

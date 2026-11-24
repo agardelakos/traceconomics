@@ -62,6 +62,8 @@ COMMON_TAIL = [
 
 @dataclass
 class DatasetReport:
+    """What one store update did to one dataset: snapshots read, values added or withdrawn, any full re-read."""
+
     dataset: str
     rebuilt: str | None = None  # why everything was re-read, if it was
     snapshots: int = 0  # snapshots read this time
@@ -70,6 +72,7 @@ class DatasetReport:
     skipped: list[str] = field(default_factory=list)
 
     def line(self) -> str:
+        """The report as one line of text."""
         why = f" (re-read everything: {self.rebuilt})" if self.rebuilt else ""
         return (
             f"{self.dataset}: {self.snapshots} snapshot(s) read, {self.added:,} values added or revised, "
@@ -78,6 +81,7 @@ class DatasetReport:
 
 
 def folder_name(spec: DatasetSpec) -> str:
+    """The name of a dataset's folder in the store: `source.name`."""
     return f"{spec.source}.{spec.name}"  # no ":" in Windows file names
 
 
@@ -86,12 +90,19 @@ def _utc(text: str) -> datetime:
 
 
 def _write_atomic(path: Path, text: str) -> None:
+    # Synced before the rename, as the archive's writes and the appends to the same file are: after a
+    # power cut the file is either the old one or the whole new one, never an empty one.
     tmp = path.with_name(path.name + ".part")
-    tmp.write_text(text, encoding="utf-8")
+    with tmp.open("w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, path)
 
 
 class Store:
+    """The observation store under one root folder, creating `observations/` and `labels/` if they are missing."""
+
     def __init__(self, root: Path):
         self.root = Path(root)
         self.observations = self.root / "observations"
@@ -100,6 +111,7 @@ class Store:
             d.mkdir(parents=True, exist_ok=True)
 
     def loaded(self, dataset_id: str | None = None) -> list[dict]:
+        """The records in `loaded.jsonl`, all or one dataset's, in the order written."""
         recs = read_jsonl(self.root / LOADED)
         return [r for r in recs if dataset_id is None or r["dataset"] == dataset_id]
 
@@ -122,6 +134,11 @@ class Store:
 def update(
     archive: Archive, store: Store, con: duckdb.DuckDBPyConnection, *, only: list[str] | None = None, full: bool = False
 ) -> list[DatasetReport]:
+    """Read new archived snapshots into the store, for every catalogued dataset or only those in `only`.
+
+    A dataset is re-read from scratch with `full`, after a parser version change, or when an
+    older snapshot arrived after newer ones were read. Returns one report per dataset.
+    """
     reports = []
     for spec in datasets().values():
         if only and spec.id not in only:

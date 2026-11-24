@@ -51,6 +51,8 @@ KNOWN = {
 
 @dataclass
 class V3Row:
+    """One year of the V3 ladder: the official CPI's annual-average rate and our L1 and L2 rates."""
+
     year: int
     official: float
     l1: float
@@ -58,14 +60,17 @@ class V3Row:
 
     @property
     def weights_effect(self) -> float:
+        """L1 minus the official rate: the effect of the weights data, in percentage points."""
         return self.l1 - self.official
 
     @property
     def timing_effect(self) -> float:
+        """L2 minus L1: the effect of the timing rule, in percentage points."""
         return self.l2 - self.l1
 
 
 def v3(con, archive, spending: str = "purchases") -> list[V3Row]:
+    """The V3 ladder, one row for each year after FIRST_L1 that has the official, L1 and L2 rates."""
     blocks = index.price_blocks(con, archive)
     baskets = load_baskets(con, spending=spending)
     # ELSTAT's rule needs survey y-2's average prices: from 2012 (survey 2010), the first CPI year.
@@ -92,15 +97,19 @@ def v3(con, archive, spending: str = "purchases") -> list[V3Row]:
 
 @dataclass
 class V6Result:
+    """The V6 result: contributions compared, how many are equal at two decimals, and the largest gap."""
+
     compared: int
     exact: int  # equal at two decimals
     worst: tuple[str, str, float, float] | None  # period, division, ours, Eurostat
 
 
 def v6(con, archive, first_year: int = 2016, last_year: int = 2025) -> V6Result:
-    """Rebuild Eurostat's contributions of the 12 ECOICOP v1 divisions to the euro area's annual
-    HICP rate (dataset prc_hicp_ctrb) with our `ribe` code, from Eurostat's euro-area division
-    indices (prc_hicp_midx) and item weights (prc_hicp_inw)."""
+    """Rebuild Eurostat's euro-area division contributions to the annual HICP rate with our `ribe` code.
+
+    The contributions are those of the 12 ECOICOP v1 divisions to the euro area's annual HICP rate
+    (dataset prc_hicp_ctrb), rebuilt from Eurostat's euro-area division indices (prc_hicp_midx) and
+    item weights (prc_hicp_inw)."""
     import gzip
 
     from traceconomics.checks import require
@@ -173,8 +182,9 @@ def v6(con, archive, first_year: int = 2016, last_year: int = 2025) -> V6Result:
 
 
 def v_prices(con, digits=(4, 5)) -> dict[int, dict]:
-    """Per year: how far apart the CPI's and the HICP's annual rates are for the same item code
-    (both are re-coded series in COICOP 2018: ELSTAT's re-issued table 07, Eurostat's back-cast).
+    """Per year: how far apart the CPI's and the HICP's annual rates are for the same item code.
+
+    Both are re-coded series in COICOP 2018: ELSTAT's re-issued table 07, Eurostat's back-cast.
     Report only: the two use the same prices but weight them differently inside an item."""
     import statistics
 

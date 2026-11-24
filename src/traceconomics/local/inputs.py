@@ -1,4 +1,4 @@
-"""Do our survey tables still match what they were built from? (`traceconomics check inputs`)
+"""Check that our survey tables still match what they were built from (`traceconomics check inputs`).
 
 The tables `weights run` and `silc run` archive (`survey_tables`) are a third kind of input,
 neither code nor a publisher's file: they stay as they were built until someone runs those
@@ -35,16 +35,20 @@ HBS_FIX = "rebuild the household budget survey's tables: `weights run`"
 
 @dataclass
 class Report:
+    """The result of `check`: the stale tables' problems, the table sets that match, and whether EU-SILC's are stale."""
+
     problems: list[str] = field(default_factory=list)  # SILC's first: the weights depend on them
     checked: list[str] = field(default_factory=list)  # one line per table set that matches
     silc_stale: bool = False
 
     @property
     def ok(self) -> bool:
+        """True when no table is stale."""
         return not self.problems
 
     @property
     def fix(self) -> str | None:
+        """What to run to rebuild the stale tables (EU-SILC's first when those are stale), or None."""
         if self.ok:
             return None
         return SILC_FIX if self.silc_stale else HBS_FIX
@@ -91,6 +95,7 @@ def _named_input(archive: Archive, named: str) -> str | None:
 
 
 def check(archive: Archive) -> Report:
+    """Check every archived survey table, EU-SILC's then the household budget survey's, against its inputs."""
     report = Report()
     _check_silc(archive, report)
     _check_hbs(archive, report)

@@ -136,3 +136,21 @@ def test_the_2009_survey_stands_in_for_2010s_income_groups(rule, year):
     assert {y: e.survey for y, e in by_income.items() if y != year} == {
         y: e.survey for y, e in by_tenure.items() if y != year
     }
+
+
+def test_elstats_own_rule_uses_the_survey_two_years_before():
+    """PY-SCHED-011: ELSTAT's own rule weights each year with the survey two years before, until one is missing
+
+    Given surveys for 2018, 2019 and 2021, and index years 2020 to 2024
+    When ELSTAT's rule is applied
+    Then 2020 uses the 2018 survey and 2021 the 2019 survey, each final, linked from January
+    And the schedule ends at 2022, whose 2020 survey is missing, though 2023's survey is there
+    """
+    from traceconomics.module1.schedule import elstat_rule
+
+    got = elstat_rule(range(2020, 2025), {2018, 2019, 2021})
+    assert [(e.year, e.survey, e.status, e.valid_from) for e in got] == [
+        (2020, 2018, FINAL, "2020-01"),
+        (2021, 2019, FINAL, "2021-01"),
+    ]
+    assert "two years before" in got[0].basis

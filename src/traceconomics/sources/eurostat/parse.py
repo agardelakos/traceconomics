@@ -42,6 +42,8 @@ FLAG = re.compile(r"^(@[CN]|[bcdefimnpuz]+)$")
 
 @dataclass(frozen=True)
 class Parsed:
+    """One bulk file parsed into a DuckDB table: the table's name, its counts and its first and last period."""
+
     table: str  # DuckDB table holding the result
     rows: int  # observations, including flagged cells without a value
     values: int  # observations with a number
@@ -60,7 +62,10 @@ def header(path: Path) -> tuple[list[str], list[str]]:
 
 
 def parse(con: duckdb.DuckDBPyConnection, path: Path, spec: DatasetSpec, table: str = "parsed") -> Parsed:
-    """Parse one bulk file into `table` (replaced if it exists). Raises FormatError on any surprise."""
+    """Parse one bulk file into `table` (replaced if it exists).
+
+    Raises FormatError on any surprise.
+    """
     raw_dims, periods = header(path)
     # Compared without regard to case: DG EMPL's files, served by the same API, write the key
     # dimensions in capitals. The column is still read by its name as written.

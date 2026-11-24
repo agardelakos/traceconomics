@@ -7,13 +7,16 @@ tables must know they still match (`traceconomics check inputs`), so this module
 check needs, with the standard library only: CI and the release build's check run without pandas.
 
 Fingerprints. Each covers every file whose change can change the table: the code, and the data
-files that code reads. `tests/test_survey_tables.py` walks the imports of `weights.py` and
+files that code reads. The code is read as code: without its docstrings and comments and whatever
+its layout (`code_text`), so a change to the docs never makes the tables look stale; data files are
+read as they are. `tests/test_survey_tables.py` walks the imports of `weights.py` and
 `silc.py` and fails if a file they reach is neither covered here nor exempted there with its
 reason, so the lists can't fall behind the code.
 """
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import re
 from importlib import resources
@@ -79,12 +82,31 @@ SILC_DATA: tuple[str, ...] = ()
 SHORT = 16  # characters of a fingerprint written into a table's provenance
 
 
+def code_text(source: bytes) -> bytes:
+    """A module as the fingerprint reads it: its code alone, without docstrings or comments, in one layout.
+
+    Parsed and written back (`ast.unparse`), with the docstring of the module and of each class and
+    function left out: none of that can change what the code does, so editing it never makes the
+    tables look stale. A string the code uses stays. The layout `ast.unparse` writes belongs to the
+    Python release; the desktop and the server run the same pinned one, and a new release gets a
+    new fingerprint, so the tables are rebuilt with it.
+    """
+    tree = ast.parse(source.replace(b"\r\n", b"\n"))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef):
+            body = node.body
+            if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+                if isinstance(body[0].value.value, str):
+                    node.body = body[1:] or [ast.Pass()]
+    return ast.unparse(tree).encode("utf-8")
+
+
 def _digest(code, data) -> str:
-    # Line endings are normalised: a Windows checkout (CRLF) and a Linux one (LF) of the same code
-    # must give the same fingerprint.
+    # Code is read as code (`code_text`); data files as they are, with line endings normalised: a
+    # Windows checkout (CRLF) and a Linux one (LF) of the same file must give the same fingerprint.
     h = hashlib.sha256()
     for package, name in code:
-        h.update(resources.files(package).joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
+        h.update(code_text(resources.files(package).joinpath(name).read_bytes()))
     for name in data:
         h.update(resources.files("traceconomics.data").joinpath(name).read_bytes().replace(b"\r\n", b"\n"))
     return h.hexdigest()

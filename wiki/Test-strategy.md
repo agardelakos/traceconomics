@@ -47,7 +47,7 @@ that differs from its file overrides it with its own mark (`tests/conftest.py`):
   tooling); no package code runs.
 
 A test file without a layer stops the run before any test: the choice is the author's, never a
-default. The layer is a tag on each test case in the [test pages](Tests).
+default. Each test case shows its layer in the [test pages](Tests), which count the cases per layer.
 
 Untouched fixtures are stored byte for byte (`.gitattributes` disables line-ending conversion) and
 checked against their published SHA-256, so they stay evidence of what the publisher served, not a
@@ -157,16 +157,26 @@ end-to-end. So the parts read as "what the unit tests reach", "what the integrat
 "what only the browser reaches", and they always add up to the total. The total is rounded down to a
 tenth; the parts share it by largest remainder.
 
-- **Back-end**: `tests/conftest.py` labels every line coverage.py records with the layer of the test
-  running it (a dynamic context), including the lines run when a test file is imported. A covered
+- **Back-end**: `tests/conftest.py` labels every line coverage.py records with the layer and the
+  test running it (a dynamic context, `unit|<node ID>`), including the lines run when a test file is
+  imported (`unit|<file>::<import>`). The badge reads the layer; the [code reference](Code) reads the
+  test. A covered
   line without a layer, or one run by a `repository` test, fails the split rather than being
   guessed. Branch coverage is recorded too, and shown in the HTML report, not on the badge.
 - **Front-end**: Vitest runs twice in CI, the unit tests alone, then all of them; a line the second
   run covers but not the first is one only the integration tests reach (the tests that need the
   generated data files: the calculator parity test and the data-file checks). A line only the
-  browser tests ran is end-to-end.
+  browser tests ran is end-to-end. A known limit, one line in about a thousand: the converter
+  (monocart) derives its own "statements" from the browser's coverage data, so merging many tests
+  can count a line that runs as not run; the [code reference](Code) still lists the tests that run
+  it.
 - **Not measured**: the Selenium suite (it tests the same pages as Playwright, through another
-  tool) and the release checks on real data.
+  tool; its coverage is recorded for the [code reference](Code)'s comparison of the two browser
+  suites, never counted in the badge) and the release checks on real data.
+
+Coverage counts the lines a test runs, not whether a test would notice them going wrong. For the
+engine, the arithmetic every published number rests on, mutation testing measures that too
+(`Code-engine` on the [code reference](Code)); it runs by hand, not on every push.
 
 Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
 fails its build below 90%. The Python figure was first measured at 73.9%, so its run failed below a
@@ -175,7 +185,7 @@ tests were added, never lowered to pass a run. It reached the 90% floor on 2026-
 97.4%), so the Python run now fails below 90%, as the site's does.
 
 CI's `coverage` job writes the split on the run's page and keeps the Python HTML report (artifact
-`python-coverage`, each line showing the layers that ran it; the site's is `site-coverage`); on
+`python-coverage`, each line showing the layers and tests that ran it; the site's is `site-coverage`); on
 `main`, the `badges` job publishes both badges. Locally: `python -I -m coverage run -m pytest`, then
 `python -I -m coverage html`; the site's commands are in the README.
 

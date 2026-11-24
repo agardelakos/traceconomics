@@ -35,8 +35,11 @@ COMMIT = re.compile(r"^[0-9a-f]{40}$")
 
 
 def source_commit(repo: Path) -> str | None:
-    """The commit the code at `repo` is checked out at, read from `.git` itself: the release
-    image has no git. None when it can't be told (no checkout, a detached state we can't read)."""
+    """The commit the code at `repo` is checked out at, read from `.git` itself.
+
+    The release image has no git. None when it can't be told (no checkout, a detached state we
+    can't read).
+    """
     git = repo / ".git"
     try:
         if git.is_file():  # a worktree: `.git` names the real folder
@@ -66,6 +69,7 @@ def source_commit(repo: Path) -> str | None:
 
 
 def environment() -> dict[str, str]:
+    """Where the results come from: this machine's platform, real data and a release build."""
     return {
         "platform": f"{platform.system().lower()}-{platform.machine().lower()}",
         "data": "real",
@@ -91,7 +95,10 @@ def send(
     put: Callable[[str, bytes, float], None] = _put,
     timeout: float = 60.0,
 ) -> dict:
-    """Upload one step run's results. Returns {"result": "off" | "ok" | "failed", …}; never raises."""
+    """Upload one step run's results.
+
+    Returns {"result": "off" | "ok" | "failed", …}; never raises.
+    """
     url = (url if url is not None else os.environ.get(URL_ENV, "")).strip()
     if not url:
         return {"result": "off"}

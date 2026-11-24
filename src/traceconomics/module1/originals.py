@@ -39,6 +39,10 @@ BASE_YEAR = "2009"
 
 
 def read(archive) -> dict[int, Original07]:
+    """Each year's original table 07, parsed from the archive.
+
+    Raises `checks.FormatError` if a year's table isn't archived.
+    """
     out = {}
     for year in YEARS:
         rec = archive.latest("elstat", f"cpi07-original-{year}")

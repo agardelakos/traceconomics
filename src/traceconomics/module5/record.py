@@ -15,6 +15,8 @@ CATEGORIES = ("rounding", "revision", "rebasing", "splice", "definition", "not-k
 
 @dataclass(frozen=True)
 class Explanation:
+    """A hand-written reason why one check differs in the given periods, with its evidence."""
+
     check: str
     periods: tuple[str, ...]
     category: str
@@ -24,6 +26,8 @@ class Explanation:
 
 @dataclass(frozen=True)
 class Comparison:
+    """One period compared: the published and rebuilt values, whether they agree, and why not."""
+
     period: str
     published: float
     rebuilt: float
@@ -33,11 +37,14 @@ class Comparison:
 
     @property
     def difference(self) -> float:
+        """Rebuilt minus published, in the check's unit."""
         return self.rebuilt - self.published
 
 
 @dataclass
 class Check:
+    """One check: every period compared, with the unit, the tolerance and what each side is."""
+
     id: str  # stable: it names the files and the site's pages
     country: str  # ISO 3166-1 alpha-2, lower case
     unit: str
@@ -49,9 +56,11 @@ class Check:
 
     @property
     def agree(self) -> int:
+        """The number of periods where the two sides agree."""
         return sum(c.agree for c in self.comparisons)
 
     def summary(self) -> dict:
+        """The check as `checks.json` holds it: counts overall, by year and by reason, and every difference."""
         by: dict[str, int] = {}
         for c in self.comparisons:
             if not c.agree:
@@ -110,6 +119,10 @@ def load_explanations(text: str | None = None) -> list[Explanation]:
 
 
 def explain(check: str, period: str, explanations: list[Explanation]) -> Explanation | None:
+    """The explanation written for this check and period, or None.
+
+    Raises `checks.FormatError` if two explanations cover the same period.
+    """
     found = [e for e in explanations if e.check == check and period in e.periods]
     require(len(found) <= 1, f"{check} {period}: explained twice")
     return found[0] if found else None

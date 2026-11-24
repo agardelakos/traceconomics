@@ -56,6 +56,8 @@ FIRST_YEAR = 1959
 
 @dataclass
 class Table05:
+    """Table 05 as read: the overall CPI (2020=100) and its twelve-month rate, by month and as annual averages."""
+
     last: str  # "YYYY-MM", the latest month
     index: dict[str, float] = field(default_factory=dict)  # "YYYY-MM" -> index, 2020=100
     rate: dict[str, float] = field(default_factory=dict)  # "YYYY-MM" -> rate, a fraction
@@ -63,7 +65,10 @@ class Table05:
     annual_rate: dict[str, float] = field(default_factory=dict)  # "YYYY" -> its rate, a fraction
 
     def rows(self):
-        """Long form: (freq, unit, ref_period, value). I20 = index 2020=100; RCH_A_FR = annual rate, a fraction."""
+        """Long form: (freq, unit, ref_period, value).
+
+        I20 = index 2020=100; RCH_A_FR = annual rate, a fraction.
+        """
         for unit, monthly, annual in (
             ("I20", self.index, self.annual_index),
             ("RCH_A_FR", self.rate, self.annual_rate),
@@ -97,6 +102,11 @@ def _read_rows(path: Path) -> list[list]:
 
 
 def parse(path: Path) -> Table05:
+    """Read table 05 (`.xlsx`), every block of years, from 1959 to the latest month.
+
+    Raises `checks.FormatError` on an unexpected title, base or block layout, a month missing
+    or extra, or values out of range.
+    """
     rows = _read_rows(path)
     require(len(rows) >= 18, f"{path.name}: only {len(rows)} rows, less than one block")
     title = " ".join(_text(v) for v in rows[0])

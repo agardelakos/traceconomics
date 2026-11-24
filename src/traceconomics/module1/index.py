@@ -49,6 +49,8 @@ VALIDATION_GROUPS = [("B10", "D10")] + [("BH", f"Q{k}") for k in (1, 5)] + [("BH
 
 @dataclass
 class Series:
+    """One group's series under one setting: the weights schedule, the weights used, the chain and the index."""
+
     grouping: str
     group: str
     spending: str
@@ -75,6 +77,7 @@ class Series:
         return out
 
     def annual_average_rates(self) -> dict[int, float]:
+        """{year: rate}: the change in the published index's annual average, where both years are complete."""
         years = sorted({int(p[:4]) for p in self.published})
         return {y: r for y in years if (r := annual_average_rate(self.published, y)) is not None}
 
@@ -92,11 +95,12 @@ def build(
     first_year: int | None = FIRST_YEAR,
     options: dict | None = None,
 ) -> Series:
-    """One group's series. `options` label it and choose its weights-timing rule and tutoring
-    treatment (`blocks` and `baskets` must match its price source and imputed-rent option);
-    `rule` overrides the timing rule, to rebuild other studies. `first_year` None: the first year
-    the rule has weights for (from FIRST_YEAR on); a rule with no weights for a given
-    `first_year` fails."""
+    """One group's series.
+
+    `options` label it and choose its weights-timing rule and tutoring treatment (`blocks` and
+    `baskets` must match its price source and imputed-rent option); `rule` overrides the timing
+    rule, to rebuild other studies. `first_year` None: the first year the rule has weights for (from
+    FIRST_YEAR on); a rule with no weights for a given `first_year` fails."""
     options = {**DEFAULT_OPTIONS, **(options or {})}
     rule = rule or RULES[options["weights_timing"]]
     blocks = cpi_blocks(con, when) if blocks is None else blocks
@@ -150,6 +154,7 @@ def price_blocks(con, archive, when=None) -> dict:
 
 
 def build_all(con, archive, *, spending: str = "purchases", groups=None, when=None) -> list[Series]:
+    """The series of every published group (or `groups`) under the default options, for one spending definition."""
     blocks = price_blocks(con, archive, when)
     baskets = load_baskets(con, spending=spending)
     return [

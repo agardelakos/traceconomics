@@ -48,7 +48,10 @@ PENSION = "4"  # HI11: main income source "Pensions, retirement benefits" (every
 
 
 def household_size(survey: Survey) -> pd.DataFrame:
-    """hh -> size and modified-OECD scale. Households without person records get NaN."""
+    """Each household's size and modified-OECD equivalence scale, by household id.
+
+    Households without person records get NaN.
+    """
     p = survey.persons
     g = (
         p.assign(adult=p.age >= 14, child=p.age < 14)
@@ -62,10 +65,12 @@ def household_size(survey: Survey) -> pd.DataFrame:
 
 
 def quintile_matrix(value: pd.Series, weights: np.ndarray, ids: pd.Series, parts: int = 5) -> np.ndarray:
-    """Quintile 1-5 (or 1..parts: deciles with parts=10) per row and per column of weights (n rows x
-    R sets of weights, e.g. bootstrap replicates); 0 where the value is missing. The ranking is the
-    same for every column, only the cut points move. A row with zero weight in a column gets a
-    group there, but adds nothing to it."""
+    """Quintile 1-5 (or 1..parts: deciles with parts=10) per row and per column of weights.
+
+    The weights are n rows x R sets of weights, e.g. bootstrap replicates; 0 where the value is
+    missing. The ranking is the same for every column, only the cut points move. A row with zero
+    weight in a column gets a group there, but adds nothing to it.
+    """
     weights = np.asarray(weights, dtype=float).reshape(len(value), -1)
     ok = value.notna().to_numpy()
     ranked = pd.DataFrame({"v": value.to_numpy()[ok], "id": ids.to_numpy()[ok], "row": np.flatnonzero(ok)})
@@ -119,8 +124,10 @@ def dependent_child(persons: pd.DataFrame) -> pd.Series:
 
 
 def household_type(survey: Survey) -> pd.Series:
-    """Each household's type (aligned with survey.households); NA without person records or with
-    no adult (not seen in the data)."""
+    """Each household's type, aligned with survey.households.
+
+    NA without person records or with no adult (not seen in the data).
+    """
     p = survey.persons
     dep = dependent_child(p)
     g = p.assign(adult=~dep, dep=dep).groupby("hh").agg(adults=("adult", "sum"), deps=("dep", "sum"))
@@ -130,8 +137,10 @@ def household_type(survey: Survey) -> pd.Series:
 
 
 def tenure(survey: Survey) -> pd.Series:
-    """renter / owner / rent_free, from the main-residence rent columns, in that order of priority;
-    NA for a household with none of them (one or two a year).
+    """Each household's tenure (renter, owner or rent_free), from the main-residence rent columns.
+
+    The columns are read in that order of priority; NA for a household with none of them (one or two
+    a year).
 
     The older classification's "other imputed rentals" (0422) also holds imputed rent on
     second homes (04222); there the narrower "housed free" code (04221) is used instead.
@@ -147,9 +156,11 @@ def tenure(survey: Survey) -> pd.Series:
 
 
 def total_spending(survey: Survey) -> pd.Series:
-    """All-modes consumption spending: the sum of the finest codes, the same spending the shares
-    describe. (The files' own division columns aren't always that sum: in 2008-2010 division 04
-    is larger by an amount that isn't in any housing group nor in ELSTAT's published table.)"""
+    """All-modes consumption spending: the sum of the finest codes, the same spending the shares describe.
+
+    (The files' own division columns aren't always that sum: in 2008-2010 division 04
+    is larger by an amount that isn't in any housing group nor in ELSTAT's published table.)
+    """
     from traceconomics.local.shares import leaves
 
     s = survey.spending

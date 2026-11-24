@@ -34,6 +34,8 @@ from cases import Case, from_annotations, from_docstring, from_meta, issues  # n
 ROOT = HERE.parent.parent
 # Marks that aren't tags: pytest's own, and the ones that carry defect links.
 PYTEST_MARKS = {"parametrize", "usefixtures", "filterwarnings", "skip", "skipif", "xfail"}
+# The test layers (tests/conftest.py): a case's layer is a field of its own, not a tag.
+LAYERS = {"unit", "integration", "repository"}
 
 
 def _rel(path: str | Path, base: Path = ROOT) -> str:
@@ -91,8 +93,9 @@ def from_pytest(items: list[dict], suite: str) -> list[Case]:
                 then=d["then"],
                 notes=d["notes"],
                 defects=issues(reasons),
-                tags=[m for m in it["markers"] if m not in PYTEST_MARKS],
+                tags=[m for m in it["markers"] if m not in PYTEST_MARKS | LAYERS],
                 problems=d["problems"],
+                layer=next((m for m in it["markers"] if m in LAYERS), None),
             )
         if it["param"] is not None:
             c.examples.append(it["param"])

@@ -56,6 +56,8 @@ BAND_NUMBER = re.compile(r"\d+")
 
 @dataclass
 class V2Result:
+    """One year's V2 comparison for one group: the published spending against ours, item by item."""
+
     year: int
     households_puf: float
     households_published: float
@@ -71,15 +73,19 @@ class V2Result:
 
     @property
     def same_households(self) -> bool:
+        """True when the survey's weighted households match the table's, within rounding."""
         return abs(self.households_puf - self.households_published) < 1.5  # 2020 differs by rounding
 
     @property
     def passed(self) -> bool:
+        """True when the households match and no figure differs (excused items aside)."""
         return self.same_households and not self.mismatches
 
 
 @dataclass
 class CVResult:
+    """One year's coefficients of variation: ELSTAT's published ones against our bootstrap's."""
+
     year: int
     design: str
     rows: list[tuple[str, float, float]]  # code, published CV %, ours
@@ -87,10 +93,12 @@ class CVResult:
 
     @property
     def passed(self) -> bool:
+        """True when every division's CV is within its tolerance of ELSTAT's."""
         return all(abs(ours - pub) <= self.tolerance[code] for code, pub, ours in self.rows)
 
 
 def published_cvs() -> dict[int, dict]:
+    """{year: entry} from the package data file of ELSTAT's published coefficients of variation."""
     data = tomllib.loads(
         resources.files("traceconomics.data").joinpath("hbs_published_cvs.toml").read_text(encoding="utf-8")
     )
@@ -158,8 +166,11 @@ def _excused(code: str, year: int, missing: dict[str, list]) -> bool:
 
 
 def bands(survey: Survey, table: Table103, by: str) -> pd.Series:
-    """Each household's band in the table (aligned with survey.households), from the band labels:
-    "up 750", "751-1100", ..., "3501 and over" (euros a month), or "1 member", ..., "6 members and over"."""
+    """Each household's band in the table (aligned with survey.households), from the band labels.
+
+    The labels are "up 750", "751-1100", ..., "3501 and over" (euros a month), or "1 member", ...,
+    "6 members and over".
+    """
     labels = table.groups[1:]
     numbers = [[int(n) for n in BAND_NUMBER.findall(b)] for b in labels]
     if by == "income":
@@ -231,8 +242,11 @@ def compare(
 
 
 def compare_all(survey: Survey, table: Table103, missing: dict[str, list] | None = None) -> list[V2Result]:
-    """All households (with the share of purchases the survey lacks), then each band where the
-    year's bands can be rebuilt (`BANDED`)."""
+    """The V2 comparisons for all households, then for each band the year's bands can be rebuilt for.
+
+    The all-households result carries the share of purchases the survey lacks; bands are compared
+    where they can be rebuilt (`BANDED`).
+    """
     missing = missing_items() if missing is None else missing
     result = compare(survey, table, missing)
     result.uncovered = uncovered(survey, table, missing)[0]

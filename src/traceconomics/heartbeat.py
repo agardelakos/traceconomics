@@ -21,6 +21,7 @@ FIELDS = ("started", "finished", "result", "reason", "stored", "unchanged", "fai
 
 
 def payload(record: dict) -> bytes:
+    """The heartbeat's JSON body: the record's listed fields only, with failures as a count."""
     beat = {k: record[k] for k in FIELDS if k in record}
     if isinstance(beat.get("failures"), list):
         beat["failures"] = len(beat["failures"])
@@ -28,7 +29,10 @@ def payload(record: dict) -> bytes:
 
 
 def send(record: dict, *, url: str | None = None, timeout: float = 30.0) -> str:
-    """Upload the heartbeat. Returns "sent", "off" (no URL configured) or "failed: <reason>"."""
+    """Upload the heartbeat.
+
+    Returns "sent", "off" (no URL configured) or "failed: <reason>".
+    """
     url = url or os.environ.get(URL_ENV)
     if not url:
         return "off"

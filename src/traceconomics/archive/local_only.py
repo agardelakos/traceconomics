@@ -28,6 +28,7 @@ def _rules() -> tuple[tuple[str, ...], frozenset[str]]:
 
 
 def is_local_only(source: str, dataset: str) -> bool:
+    """True if `source/dataset` holds microdata: it matches a listed pattern and isn't an exception."""
     name = f"{source}/{dataset}"
     patterns, exceptions = _rules()
     if name in exceptions:
@@ -36,7 +37,10 @@ def is_local_only(source: str, dataset: str) -> bool:
 
 
 def check(items: Iterable[tuple[str, str]]) -> None:
-    """Raise if any (source, dataset) is local-only. Call before publishing or syncing."""
+    """Raise if any (source, dataset) is local-only.
+
+    Call before publishing or syncing.
+    """
     bad = sorted(f"{s}/{d}" for s, d in items if is_local_only(s, d))
     if bad:
         raise LocalOnlyError(

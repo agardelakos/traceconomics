@@ -67,6 +67,7 @@ class Data:
         self._default = None
 
     def default(self) -> str:
+        """The default setting's slug, read from the site's `settings.json` once."""
         if self._default is None:
             settings = json.loads((self.root / "m1" / "latest" / "settings.json").read_text(encoding="utf-8"))
             self._default = settings["default"]
@@ -148,8 +149,11 @@ def check(data_dir: Path, entries: list[dict]) -> list[str]:
 
 
 def problems_in_list(entries: list[dict]) -> list[str]:
-    """What's wrong with the list itself: every `past` entry must say where each English figure
-    comes from, in order, either as a data check or as the datasets it rests on with a reason."""
+    """What's wrong with the allow-list itself.
+
+    Every `past` entry must say where each English figure comes from, in order, either as a data
+    check or as the datasets it rests on with a reason.
+    """
     out = []
     for e in entries:
         if e.get("kind") != PAST:
@@ -196,4 +200,5 @@ def changed_sources(quoted: dict[str, list[str]], changed: set[str]) -> list[str
 
 
 def load(allow_list: Path) -> list[dict]:
+    """The entries of the site's figures allow-list."""
     return json.loads(allow_list.read_text(encoding="utf-8"))["entries"]

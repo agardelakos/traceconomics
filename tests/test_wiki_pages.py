@@ -1,7 +1,9 @@
 """The wiki's hand-written pages (wiki/) stay true to the repository: every file or folder they name
-exists, and every link to another wiki page has a page behind it. The cheap guard against an
-architecture page that describes code which moved or no longer exists."""
+exists, every link to another wiki page has a page behind it, and every block they quote from the
+code still says what the code's docstring says. The cheap guard against an architecture or method
+page that describes code which moved, no longer exists, or has changed."""
 
+import ast
 import re
 from pathlib import Path
 
@@ -12,12 +14,17 @@ pytestmark = pytest.mark.repository
 ROOT = Path(__file__).resolve().parent.parent
 WIKI = ROOT / "wiki"
 PAGES = sorted(WIKI.glob("*.md"))
-# Pages wiki.py writes on every run; they exist only in the wiki itself.
-GENERATED = re.compile(r"^Tests(-[A-Za-z]+)?$")
+# Pages wiki.py and code_reference.py write on every run; they exist only in the wiki itself.
+GENERATED = re.compile(r"^(Tests|Code)(-[A-Za-z0-9-]+)?$")
 # Where a short path in the text may start: the root, the package, its sources, the site.
 BASES = [ROOT, ROOT / "src/traceconomics", ROOT / "src/traceconomics/sources", ROOT / "site"]
 EXTENSIONS = (".py", ".toml", ".md", ".ts", ".mjs", ".bib", ".json", ".yml", ".cff")
 SKIP_DIRS = {"node_modules", ".venv", ".git", "dist", "coverage"}
+# A block quoted from the code: `<!-- from: traceconomics.engine.chain -->`, then a fenced block.
+QUOTED = re.compile(r"<!-- from: ([\w.]+) -->\s*```[a-z]*\n(.*?)\n```", re.S)
+FENCE = re.compile(r"^```[a-z]*\n(.*?)\n```", re.S | re.M)
+# On these pages every code block is quoted from a docstring, so each one must name its module.
+METHOD_PAGES = ["Price-index-methods.md", "Household-group-methods.md"]
 
 
 def names(page: Path) -> list[str]:
@@ -66,9 +73,60 @@ def test_wiki_links_have_a_page(page):
 
     Given a hand-written wiki page
     When its links to other wiki pages are collected (not URLs, absolute paths, relative files or anchors)
-    Then each one has a page in wiki/, or is one of the generated Tests pages
+    Then each one has a page in wiki/, or is one of the generated Tests or Code pages
     """
     links = re.findall(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", page.read_text(encoding="utf-8"))
     local = [x for x in links if not re.match(r"^[a-z]+:|^/|\.", x) and "/" not in x]
     missing = [x for x in local if not (WIKI / f"{x}.md").is_file() and not GENERATED.match(x)]
     assert missing == [], f"{page.name} links to wiki pages that don't exist: {missing}"
+
+
+def module_docstring(dotted: str) -> str | None:
+    """The docstring of a module of the package, read from its source; None if there is no such module."""
+    rel = Path(*dotted.split("."))
+    for path in (ROOT / "src" / rel.with_suffix(".py"), ROOT / "src" / rel / "__init__.py"):
+        if path.is_file():
+            return ast.get_docstring(ast.parse(path.read_text(encoding="utf-8"))) or ""
+    return None
+
+
+def words(text: str) -> str:
+    return " ".join(text.split())
+
+
+@pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
+def test_quoted_blocks_match_their_docstring(page):
+    """PY-WIKI-004: every block a wiki page quotes from the code still matches that module's docstring
+
+    Given a hand-written wiki page with blocks marked `<!-- from: <module> -->`
+    When each block is compared with the named module's docstring, whitespace ignored
+    Then the module exists
+    And its docstring contains the block word for word
+    """
+    wrong = []
+    for module, block in QUOTED.findall(page.read_text(encoding="utf-8")):
+        doc = module_docstring(module)
+        if doc is None:
+            wrong.append(f"{module}: no such module")
+        elif words(block) not in words(doc):
+            wrong.append(f"{module}: the docstring no longer says:\n{block}")
+    assert wrong == [], f"{page.name}:\n" + "\n".join(wrong)
+
+
+@pytest.mark.parametrize("page", METHOD_PAGES)
+def test_every_block_on_a_method_page_names_its_source(page):
+    """PY-WIKI-005: every code block on a method page is marked with the module it quotes
+
+    Given the price index and household group method pages
+    When their fenced code blocks are listed
+    Then the page has at least one
+    And each one carries a `<!-- from: <module> -->` marker, so PY-WIKI-004 checks it against the code
+    """
+    text = (WIKI / page).read_text(encoding="utf-8")
+    blocks = FENCE.findall(text)
+    quoted = [block for _, block in QUOTED.findall(text)]
+    assert blocks, f"{page} has no code block: is this list out of date?"
+    unmarked = [b for b in blocks if b not in quoted]
+    assert unmarked == [], f"{page}: code blocks without a `<!-- from: <module> -->` marker:\n" + "\n---\n".join(
+        unmarked
+    )

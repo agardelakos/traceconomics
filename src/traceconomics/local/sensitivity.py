@@ -1,7 +1,8 @@
-"""What the sensitivity checks share: a survey's group baskets, built the way the weights run
-builds them, so a check can change the survey (put spending back, reweight households) and
-rebuild the series on the result. The survey's weights are calibrated as the weights run
-calibrates them, so a check measures its change on top of the published method.
+"""What the sensitivity checks share: a survey's group baskets, built the way the weights run builds them.
+
+So a check can change the survey (put spending back, reweight households) and rebuild the series
+on the result. The survey's weights are calibrated as the weights run calibrates them, so a check
+measures its change on top of the published method.
 
 Only the default basket is built: purchases, imputed rent excluded. The checks measure how far
 the default series move (the headline figures always use the default setting); the other options

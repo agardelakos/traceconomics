@@ -56,6 +56,7 @@ def _label(check: str, period: str, published: float, rebuilt: float, explanatio
 
 
 def own_index(index: dict[str, float], rate: dict[str, float], explanations: list[Explanation]) -> Check:
+    """Table 05's twelve-month rates against the rates its own index gives, month by month."""
     check = Check(
         OWN_INDEX,
         "gr",
@@ -72,8 +73,10 @@ def own_index(index: dict[str, float], rate: dict[str, float], explanations: lis
 
 
 def rebuilt(blocks: dict, rate: dict[str, float], explanations: list[Explanation]) -> Check:
-    """Ours from table 07's overall index. Each year's levels come from that year's own file;
-    the year before's file supplies the year-ago month, as `export.site.official_rate` does."""
+    """Table 05's twelve-month rates against ours, computed from table 07's overall index.
+
+    Each year's levels come from that year's own file; the year before's file supplies the year-ago
+    month, as `export.site.official_rate` does."""
     check = Check(
         REBUILT,
         "gr",
@@ -94,5 +97,6 @@ def rebuilt(blocks: dict, rate: dict[str, float], explanations: list[Explanation
 
 
 def checks(store_con, explanations: list[Explanation]) -> list[Check]:
+    """The two CPI rate checks, from tables 05 and 07 as the store holds them now."""
     index, rate = table05(store_con)
     return [own_index(index, rate, explanations), rebuilt(prices.cpi_blocks(store_con), rate, explanations)]

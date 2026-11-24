@@ -979,3 +979,25 @@ def test_builds_queued_together_make_one_build(tmp_path):
         "released": RELEASED,
     }
     assert release.take_wanted(tmp_path) is None
+
+
+def test_a_step_runs_with_its_output_in_the_log(tmp_path):
+    """PY-REL-037: a release step runs in its folder with its environment, its output and errors in its log
+
+    Given a step that prints its folder and an environment value, writes to its error stream and exits with 3
+    When the step is run
+    Then its exit code, 3, is returned
+    And the log starts with the command, then holds what it printed and its errors
+    """
+    import sys
+
+    script = (
+        "import os, sys; print(os.getcwd(), flush=True); print(os.environ['X'], flush=True); "
+        "print('oops', file=sys.stderr); sys.exit(3)"
+    )
+    step = release.Step("demo", (sys.executable, "-c", script), cwd=tmp_path)
+    log = tmp_path / "demo.log"
+    assert release.run_step(step, {"X": "here", "PATH": ""}, log) == 3
+    lines = log.read_text(encoding="utf-8").splitlines()
+    assert lines[0].startswith(f"$ {sys.executable} -c ")
+    assert lines[1:] == [str(tmp_path), "here", "oops"]

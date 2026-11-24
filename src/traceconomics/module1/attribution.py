@@ -18,6 +18,7 @@ which can't be separated from it). Each other step changes one setting.
 
 from __future__ import annotations
 
+from traceconomics.checks import require
 from traceconomics.engine import chain
 from traceconomics.engine.rates import annual_average_rate
 from traceconomics.module1 import benchmarks, index
@@ -34,6 +35,7 @@ def _same_year(years, surveys, release_dates=None):
 
 
 def at_level(baskets: dict, digits: int) -> dict:
+    """The same baskets keeping only the codes with `digits` digits (shares and reliability), not rescaled."""
     return {
         k: Basket(
             {c: s for c, s in b.shares.items() if len(c) == digits},
@@ -44,11 +46,16 @@ def at_level(baskets: dict, digits: int) -> dict:
 
 
 def gap(q1, q5) -> dict[int, float]:
+    """Q1's annual-average rate minus Q5's, for each year in YEARS both series cover."""
     a, b = q1.annual_average_rates(), q5.annual_average_rates()
     return {y: a[y] - b[y] for y in YEARS if y in a and y in b}
 
 
 def v5_bruegel(con, archive) -> dict[str, dict[int, float]]:
+    """Bruegel's Q1-Q5 gap against ours, one setting at a time: {rung: {year: gap in pp}}.
+
+    The rungs are those of the module docstring, B0 to O0.
+    """
     out: dict[str, dict[int, float]] = {}
     # B0: Bruegel as published (annual means of its monthly rates).
     pub = benchmarks.bruegel_published(archive)
@@ -76,9 +83,13 @@ def v5_bruegel(con, archive) -> dict[str, dict[int, float]]:
                 w[target] = w.get(target, 0.0) + v
         r = chain({y: w for y in range(2019, 2025)}, prices_v1, first_year=2019, last_year=2024)
         chained[q] = r.index
-    out["B1 Bruegel weights, chained"] = {
-        y: annual_average_rate(chained["QU1"], y) - annual_average_rate(chained["QU5"], y) for y in YEARS
-    }
+    b1 = "B1 Bruegel weights, chained"
+    out[b1] = {}
+    for y in YEARS:
+        q1, q5 = annual_average_rate(chained["QU1"], y), annual_average_rate(chained["QU5"], y)
+        # A month missing from the HICP leaves the year without an average: say which, not a type error.
+        require(q1 is not None and q5 is not None, f"{b1}: no full year {y} of chained HICP prices to compare")
+        out[b1][y] = q1 - q5
     # Our side.
     baskets = load_baskets(con, spending="purchases")
     years = range(2019, 2027)  # through the newest prices, as every series is rebased on 2025
@@ -100,9 +111,10 @@ def v5_bruegel(con, archive) -> dict[str, dict[int, float]]:
 
 
 def v5_kepe(con, archive) -> dict[str, dict[int, float]]:
-    """Our default against KEPE (P20 - R20 gap), one setting at a time. K1 is our rebuild of KEPE's
-    settings (V4: close but not exact: KEPE priced the 12 COICOP 1999 divisions as published then,
-    we only have ELSTAT's re-issued COICOP 2018 series)."""
+    """Our default against KEPE (P20 - R20 gap), one setting at a time.
+
+    K1 is our rebuild of KEPE's settings (V4: close but not exact: KEPE priced the 12 COICOP 1999
+    divisions as published then, we only have ELSTAT's re-issued COICOP 2018 series)."""
     years = range(2021, 2025)
     pub = benchmarks.kepe_published()["chart1"]
     out = {"K0 KEPE as published": {y: pub["P20"][str(y)] - pub["R20"][str(y)] for y in years}}

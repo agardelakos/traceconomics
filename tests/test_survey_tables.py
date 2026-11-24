@@ -160,3 +160,24 @@ def test_the_fingerprints_ignore_line_endings(tmp_path, monkeypatch):
     (tmp_path / "lf").mkdir()
     (tmp_path / "crlf").mkdir()
     assert fingerprint(tmp_path / "lf", "\n") == fingerprint(tmp_path / "crlf", "\r\n")
+
+
+def test_a_fingerprint_follows_the_code_not_its_docs_or_layout():
+    """PY-TABLES-004: a code fingerprint changes with the code, not with its docstrings, comments or layout
+
+    Given a module of code
+    When its docstrings and comments are rewritten, its lines rewrapped, and its line endings made CRLF
+    Then it reads as the same code for the fingerprint
+    And a change to a value, or a docstring turned into a string the code uses, reads as different code
+    """
+    from traceconomics.local import survey_tables as st
+
+    code = b'"""A module."""\n\nX = 1  # one\n\n\ndef f(a, b):\n    """Add them."""\n    return a + b\n'
+    same = (
+        b'"""A module, described\nat more length."""\n\n# A comment of its own.\nX = 1\n\n\n'
+        b'def f(\n    a,\n    b,\n):\n    """Add a and b."""\n    return (a\n        + b)\n'
+    )
+    assert st.code_text(code) == st.code_text(same) == st.code_text(same.replace(b"\n", b"\r\n"))
+    assert st.code_text(code) != st.code_text(code.replace(b"X = 1", b"X = 2"))
+    used = b'"""A module."""\n\nX = 1\n\n\ndef f(a, b):\n    return "Add them."\n'
+    assert st.code_text(code) != st.code_text(used)
