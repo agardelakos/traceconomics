@@ -50,6 +50,7 @@ The repository holds the code and the binding rules; the wiki holds the longer e
 | [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                            |
 | [Test strategy](Test-strategy)                           | see what each test layer proves, and what isn't tested       |
 | [Test management as code](Test-management-as-code)       | see how test cases and run history are kept with the code    |
+| [Testing showcase](Testing-showcase)                     | see the maintainer's testing portfolio, kept apart           |
 | [Future](Future)                                         | see what is deliberately left for later                      |
 
 Wiki pages follow the current rules on `main`. If a page and the code disagree, the code and

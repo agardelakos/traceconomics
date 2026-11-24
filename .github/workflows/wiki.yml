@@ -1,5 +1,6 @@
-# The wiki, kept up to date by itself: as the last job of every test run on main (tests.yml calls
-# this workflow), once a day after the release window, and by hand (for something extraordinary).
+# The wiki, kept up to date by itself: as the last job after every pipeline run on main
+# (showcase.yml calls this workflow, once the run's record is stored), once a day after the release
+# window, and by hand (for something extraordinary).
 #
 #  1. Release runs: the browser tests a release build ran on real data, uploaded to the
 #     test-results bucket (tests/catalog/vm_pull.py), checked and appended to the branch
@@ -10,8 +11,8 @@
 #     charts as SVG files beside them (tests/catalog/code_reference.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
 #     version back.
 #
-# Runs only the default branch's code (tests.yml calls it for pushes to main only): nothing from a
-# pull request, and no artifact from another run.
+# Runs only the default branch's code (showcase.yml calls it for pushes to main only): nothing from
+# a pull request, and no artifact from another run.
 # Actions are pinned to a full commit (the tag is in the comment).
 
 name: wiki

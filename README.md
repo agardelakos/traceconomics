@@ -188,7 +188,7 @@ python -I -m pytest
 
 The tests use small saved extracts of real pages (`tests/fixtures/`) and never touch the network.
 
-Every test carries its test case: a stable ID and Given/When/Then, written on the test itself, so a case can't drift from its code. CI checks every case, records each run on `main` and each release's browser tests against their commit or build, and publishes the result on the wiki: [the test cases and their runs](https://github.com/agardelakos/traceconomics/wiki/Tests). How it works, and how it compares with a test-management tool: [Test management as code](https://github.com/agardelakos/traceconomics/wiki/Test-management-as-code). The full test strategy: [Test strategy](https://github.com/agardelakos/traceconomics/wiki/Test-strategy). Commands for every suite: [CONTRIBUTING.md](CONTRIBUTING.md).
+Every test carries its test case: a stable ID and Given/When/Then, written on the test itself, so a case can't drift from its code. CI checks every case and publishes them on the wiki: [the test cases and their runs](https://github.com/agardelakos/traceconomics/wiki/Tests). How it works, and how it compares with a test-management tool: [Test management as code](https://github.com/agardelakos/traceconomics/wiki/Test-management-as-code). The full test strategy: [Test strategy](https://github.com/agardelakos/traceconomics/wiki/Test-strategy). Commands for every suite: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 
@@ -203,6 +203,20 @@ Before a pull request, read [CONTRIBUTING.md](CONTRIBUTING.md): what's welcome, 
 - Publications Office of the European Union, EU Vocabularies: the English and Greek names of the spending categories (ECOICOP version 2).
 
 Every source, its reuse terms and how we meet them: [SOURCES.md](SOURCES.md).
+
+## Testing showcase
+
+[![showcase](https://github.com/agardelakos/traceconomics/actions/workflows/showcase.yml/badge.svg?branch=main)](https://github.com/agardelakos/traceconomics/actions/workflows/showcase.yml)
+
+This repository is also the maintainer's software-testing portfolio, built on a real product. Apart from the tests the project needs (above), it holds:
+
+- a second browser suite, in Python and Selenium, over the same pages as the Playwright suite;
+- a comparison of the two suites: speed, failures and flaky tests over several runs;
+- a code map: which tests run each module, function and site file, drawn as charts;
+- mutation testing of the engine, the arithmetic every published number rests on;
+- the run history of every suite on `main` and of every release build's browser tests.
+
+It runs in a workflow of its own, after each run on `main`, weekly and by hand, never on a pull request. Contributors never need to touch it: a change that breaks a showcase test is the maintainer's to follow up. More on the wiki: [Testing showcase](https://github.com/agardelakos/traceconomics/wiki/Testing-showcase).
 
 ## Licence
 

@@ -3,6 +3,11 @@
 What each layer of testing proves, where it runs, and what is deliberately left out. Commands are
 in [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONTRIBUTING.md).
 
+This is the strategy for the core: the tests TracEconomics needs and contributors keep green. The
+maintainer's [testing showcase](Testing-showcase) (a second browser suite, the comparison of the
+two, the code map, mutation testing, the run history) is apart from it and asks nothing of
+contributors.
+
 ## Risks the strategy is built around
 
 1. **A wrong number published.** Arithmetic, method or parsing errors that produce plausible but
@@ -16,18 +21,17 @@ in [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONT
 
 ## Layers
 
-| Layer                               | Tooling                                                               | Runs on                                                              | Proves                                                                                                                                                                                                                               |
-| ----------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit and integration                | pytest                                                                | every push and pull request                                          | parsers, archive, store, engine, method code, export, release logic behave as specified                                                                                                                                              |
-| Microdata code                      | pytest with the optional `local` extra (separate job)                 | every push and pull request                                          | groups, income bands, bootstrap standard errors, code mapping and the survey reader, on synthetic surveys                                                                                                                            |
-| Fixture integrity                   | pytest (`tests/test_fixtures.py`)                                     | every push and pull request                                          | untouched publisher files are byte-identical to what was served                                                                                                                                                                      |
-| Code style                          | Ruff (Python); Prettier and ESLint (the site, its Markdown, the wiki) | every push and pull request (`lint`, required)                       | one format everywhere; likely bugs the type checker misses (unused values, `zip` without `strict`, `any`); the formatters never reach fixtures or generated files (`tests/test_lint_config.py`)                                      |
-| Dependency integrity                | pytest (`tests/test_lock_files.py`)                                   | every push and pull request                                          | every hashed lock file agrees with the pins in `pyproject.toml`                                                                                                                                                                      |
-| Site unit tests                     | Vitest                                                                | every push and pull request; release builds                          | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series                                                                                                                     |
-| Site checks                         | `site/scripts/checks.mjs`                                             | every push and pull request; release builds                          | translations complete, glossary terms kept in both languages, every figure typed into the text listed, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses |
-| Browser (primary)                   | Playwright, Chromium                                                  | every push and pull request; release `ui-test` and `smoke`           | every interactive part works in both languages; accessibility; CSP and headers; privacy                                                                                                                                              |
-| Browser (second suite)              | Selenium, Chrome for Testing                                          | every push and pull request (not required); on demand for comparison | the same behaviour, independently written, as a cross-check of the primary suite and of the tools                                                                                                                                    |
-| Validation against official figures | `traceconomics check …`                                               | release builds; by hand                                              | the engine and the method rebuild official figures within stated margins                                                                                                                                                             |
+| Layer                               | Tooling                                                               | Runs on                                                    | Proves                                                                                                                                                                                                                               |
+| ----------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit and integration                | pytest                                                                | every push and pull request                                | parsers, archive, store, engine, method code, export, release logic behave as specified                                                                                                                                              |
+| Microdata code                      | pytest with the optional `local` extra (separate job)                 | every push and pull request                                | groups, income bands, bootstrap standard errors, code mapping and the survey reader, on synthetic surveys                                                                                                                            |
+| Fixture integrity                   | pytest (`tests/test_fixtures.py`)                                     | every push and pull request                                | untouched publisher files are byte-identical to what was served                                                                                                                                                                      |
+| Code style                          | Ruff (Python); Prettier and ESLint (the site, its Markdown, the wiki) | every push and pull request (`lint`, required)             | one format everywhere; likely bugs the type checker misses (unused values, `zip` without `strict`, `any`); the formatters never reach fixtures or generated files (`tests/test_lint_config.py`)                                      |
+| Dependency integrity                | pytest (`tests/test_lock_files.py`)                                   | every push and pull request                                | every hashed lock file agrees with the pins in `pyproject.toml`                                                                                                                                                                      |
+| Site unit tests                     | Vitest                                                                | every push and pull request; release builds                | formatting, topics, i18n parity, structured data, the calculator engine and its parity with the published series                                                                                                                     |
+| Site checks                         | `site/scripts/checks.mjs`                                             | every push and pull request; release builds                | translations complete, glossary terms kept in both languages, every figure typed into the text listed, sources resolvable, no inline scripts or third-party resources, page budgets, internal links, sitemap and canonical addresses |
+| Browser (primary)                   | Playwright, Chromium                                                  | every push and pull request; release `ui-test` and `smoke` | every interactive part works in both languages; accessibility; CSP and headers; privacy                                                                                                                                              |
+| Validation against official figures | `traceconomics check …`                                               | release builds; by hand                                    | the engine and the method rebuild official figures within stated margins                                                                                                                                                             |
 
 ### pytest
 
@@ -85,16 +89,6 @@ Expected values come from the data and language files, not from literals, so the
 valid data set. No retries (`retries: 0`) and `forbidOnly`: a test that passes only on a second try
 is a defect. A failure keeps a screenshot and a trace.
 
-### Selenium
-
-A second browser suite (`tests/selenium/`), in Python and Selenium on a pinned Chrome for Testing,
-over the same areas. It exists to compare the two tools on the same product and to cross-check the
-primary suite: a defect one suite misses and the other catches says something about the test, not
-only the code. The two suites were first written independently. Each carries only its own code and
-case IDs; a separate mapping file links them (see [Test management as code](Test-management-as-code)). `tests/compare/compare.py` runs both several
-times on the same build and reports wall time, failures and flaky tests; a hand-started workflow
-does the same on CI.
-
 ### Validation against official figures
 
 These are not unit tests; they are checks on real data, run in every release build and by hand:
@@ -129,7 +123,7 @@ Real data pass through a few **states** every month and year, and the site must 
 HICP a month behind the CPI (about a week every month, the default), the HICP caught up, a new
 year's January (a new chain link, first-estimate weights) and a new survey year (weights going from
 first estimate to final). `tests/sitedata.py --state <name>` writes each; CI's `data-states` job
-builds the site and runs both browser suites on every one besides the default. A test asserts what
+builds the site and runs the Playwright suite on every one besides the default. A test asserts what
 holds in every valid state, never one state's particulars: a test written for one state fails there,
 in the pull request, rather than on a release day.
 
@@ -170,13 +164,14 @@ tenth; the parts share it by largest remainder.
   (monocart) derives its own "statements" from the browser's coverage data, so merging many tests
   can count a line that runs as not run; the [code reference](Code) still lists the tests that run
   it.
-- **Not measured**: the Selenium suite (it tests the same pages as Playwright, through another
-  tool; its coverage is recorded for the [code reference](Code)'s comparison of the two browser
-  suites, never counted in the badge) and the release checks on real data.
+- **Not measured**: the showcase's Selenium suite (it tests the same pages as Playwright, through
+  another tool; its coverage is recorded for the code map's comparison of the two browser suites,
+  never counted in the badge) and the release checks on real data.
 
 Coverage counts the lines a test runs, not whether a test would notice them going wrong. For the
 engine, the arithmetic every published number rests on, mutation testing measures that too
-([Mutation testing](Tests-Mutation)); it runs by hand, not on every push.
+([Mutation testing](Tests-Mutation)), part of the [testing showcase](Testing-showcase); it runs by
+hand, not on every push.
 
 Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
 fails its build below 90%. The Python figure was first measured at 73.9%, so its run failed below a
@@ -207,12 +202,12 @@ A build held back by its browser tests can be retested on the same files (`relea
 refuses if the tests changed: a wrong test or page needs a new build. Promotion is always a
 person's decision.
 
-The Selenium and comparison jobs run on every push and pull request but are not required checks:
-they inform, they don't gate.
+The [testing showcase](Testing-showcase)'s jobs run in a workflow of their own, after each run on
+`main`, never on a pull request: they are never a required check or a release step.
 
 ## Deliberately not tested
 
-- **Other browser engines.** Both suites run Chromium-based browsers only. The site uses plain
+- **Other browser engines.** The browser tests run on Chromium only. The site uses plain
   modern HTML and CSS with little script; Firefox and WebKit are not in the matrix.
 - **Visual regression.** No screenshot comparison; layout is checked through accessibility, page
   budgets and behaviour.

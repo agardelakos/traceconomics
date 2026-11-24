@@ -19,7 +19,10 @@ Rules (the code in brackets is what a finding is listed under):
 
 A ratchet: findings in the files `strict.toml` lists (or everywhere, once it says `all = true`)
 fail the check; elsewhere they are warnings, so the backfill can go file by file without
-switching the gate off. `[unmapped]` fails once `mapping_complete = true`. `[bad-id]`,
+switching the gate off. `[unmapped]` fails once `mapping_complete = true`, for Selenium cases
+only: an unmapped Playwright case always warns. The mapping exists for the Selenium suite, which is
+the maintainer's testing showcase, so a contributor who adds a Playwright test never has to edit it;
+the maintainer maps the new case later. `[bad-id]`,
 `[duplicate-id]`, `[reused-id]` and `[mapping]` always fail: they break traceability wherever
 they are.
 
@@ -141,7 +144,9 @@ def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, requ
     complete = bool(strict.get("mapping_complete"))
     for c in cases:
         if c.suite in ("playwright", "selenium") and c.id and c.id not in mapped:
-            out.append(Finding("unmapped", f"{c.file}:{c.line}", f"{c.id} is not in cases.toml", complete))
+            # A Playwright case without its entry only warns, always: see the module docstring.
+            error = complete and c.suite == "selenium"
+            out.append(Finding("unmapped", f"{c.file}:{c.line}", f"{c.id} is not in cases.toml", error))
     return out
 
 

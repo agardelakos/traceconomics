@@ -6,3 +6,17 @@
 /AGENTS.md @agardelakos
 /CONTRIBUTING.md @agardelakos
 /.github/ @agardelakos
+
+# The testing showcase: the maintainer's testing portfolio, which asks nothing of contributors
+# (wiki: Testing showcase). The lines mark its paths; a change to them is the maintainer's to review.
+/tests/selenium/ @agardelakos
+/tests/compare/ @agardelakos
+/tests/coverage/code_map.py @agardelakos
+/tests/coverage/mutation.py @agardelakos
+/tests/coverage/mutation-equivalent.toml @agardelakos
+/tests/catalog/history.py @agardelakos
+/tests/catalog/vm_pull.py @agardelakos
+/tests/catalog/code_charts.py @agardelakos
+/requirements-selenium.txt @agardelakos
+/requirements-mutation.txt @agardelakos
+/.github/workflows/showcase.yml @agardelakos

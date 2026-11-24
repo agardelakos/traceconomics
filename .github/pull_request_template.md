@@ -6,8 +6,9 @@ Closes #
 
 ## What was tested and how
 
-<!-- The suites you ran and their results (e.g. pytest, npm run check, npm run test:ui,
-the Selenium suite), plus anything checked by hand. Report failures as they are. -->
+<!-- The suites you ran and their results (e.g. pytest, npm run check, npm run test:ui),
+plus anything checked by hand. Report failures as they are. The testing showcase's suites are
+never required. -->
 
 ## Checklist
 
