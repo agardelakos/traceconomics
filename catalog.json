@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "3940e8ceff1d3b0a8ffb0f825d89ef7f1b0a3b5f",
- "generated": "2026-11-24T18:43:51Z",
+ "commit": "d1731348e25553c4f44f9e1f6b588feb27a744a0",
+ "generated": "2026-11-24T20:55:55Z",
  "missing": [],
  "cases": [
   {
@@ -5066,19 +5066,43 @@
   {
    "id": "PY-CAT-027",
    "suite": "pytest",
-   "title": "unmapped browser cases are a warning, then an error once the mapping must be complete",
+   "title": "an unmapped Selenium case is a warning, then an error once the mapping must be complete",
    "file": "tests/test_catalog.py",
    "line": 355,
    "node": "tests/test_catalog.py::test_unmapped_browser_cases_warn_until_the_mapping_must_be_complete",
    "given": [
-    "a Playwright case and a Selenium case that no shared case lists"
+    "a Selenium case that no shared case lists"
    ],
    "when": [
     "the catalog is validated as the backfill allows, and again with the mapping required to be complete"
    ],
    "then": [
-    "as the backfill allows, they are an \"unmapped\" warning",
-    "with the mapping required to be complete, they are an \"unmapped\" error"
+    "as the backfill allows, it is an \"unmapped\" warning",
+    "with the mapping required to be complete, it is an \"unmapped\" error"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CAT-035",
+   "suite": "pytest",
+   "title": "an unmapped Playwright case is a warning even when the mapping must be complete",
+   "file": "tests/test_catalog.py",
+   "line": 368,
+   "node": "tests/test_catalog.py::test_an_unmapped_playwright_case_only_warns",
+   "given": [
+    "a Playwright case that no shared case lists"
+   ],
+   "when": [
+    "the catalog is validated with the mapping required to be complete"
+   ],
+   "then": [
+    "it is an \"unmapped\" warning, not an error"
    ],
    "notes": "",
    "examples": [],
@@ -5093,7 +5117,7 @@
    "suite": "pytest",
    "title": "a mapping under the wrong suite, or naming an unknown case, is an error",
    "file": "tests/test_catalog.py",
-   "line": 368,
+   "line": 379,
    "node": "tests/test_catalog.py::test_a_mapping_under_the_wrong_suite_or_to_an_unknown_case_is_an_error",
    "given": [
     "a Playwright case and a Selenium case"
@@ -5117,7 +5141,7 @@
    "suite": "pytest",
    "title": "a shared case in one suite only needs a reason",
    "file": "tests/test_catalog.py",
-   "line": 380,
+   "line": 391,
    "node": "tests/test_catalog.py::test_a_shared_case_in_one_suite_only_needs_a_reason",
    "given": [
     "a Playwright case and a Selenium case"
@@ -5141,7 +5165,7 @@
    "suite": "pytest",
    "title": "a run record gives each test result to its case",
    "file": "tests/test_catalog.py",
-   "line": 463,
+   "line": 474,
    "node": "tests/test_catalog.py::test_record_gives_each_result_to_its_case",
    "given": [
     "a catalog of two pytest cases, and JUnit, Playwright and Vitest result files"
@@ -5171,7 +5195,7 @@
    "suite": "pytest",
    "title": "the microdata job counts as its own suite but feeds pytest cases",
    "file": "tests/test_catalog.py",
-   "line": 487,
+   "line": 498,
    "node": "tests/test_catalog.py::test_the_microdata_job_counts_as_its_own_suite_but_feeds_pytest_cases",
    "given": [
     "JUnit results from the CI job that runs the tests with the microdata extra"
@@ -5196,7 +5220,7 @@
    "suite": "pytest",
    "title": "the history keeps the newest runs and never forgets an obsolete ID",
    "file": "tests/test_catalog.py",
-   "line": 502,
+   "line": 513,
    "node": "tests/test_catalog.py::test_append_keeps_the_newest_and_never_forgets_an_obsolete_id",
    "given": [
     "a run history that keeps three runs per trigger"
@@ -5222,7 +5246,7 @@
    "suite": "pytest",
    "title": "the worse result of an example stands",
    "file": "tests/test_catalog.py",
-   "line": 524,
+   "line": 535,
    "node": "tests/test_catalog.py::test_the_worse_result_of_an_example_stands",
    "given": [
     "the same example run in both pytest jobs, failed in one and passed in the other"
@@ -5246,7 +5270,7 @@
    "suite": "pytest",
    "title": "Playwright describe titles keep examples apart",
    "file": "tests/test_catalog.py",
-   "line": 538,
+   "line": 549,
    "node": "tests/test_catalog.py::test_describe_titles_keep_examples_apart",
    "given": [
     "one case with the same test title in two describe blocks, failing in one and passing in the other"
@@ -5270,7 +5294,7 @@
    "suite": "pytest",
    "title": "the catalog never loses IDs to an incomplete run",
    "file": "tests/test_catalog.py",
-   "line": 585,
+   "line": 596,
    "node": "tests/test_catalog.py::test_the_catalog_never_loses_ids_to_an_incomplete_run",
    "given": [
     "a stored catalog with a pytest and a Playwright case"
@@ -5295,7 +5319,7 @@
    "suite": "pytest",
    "title": "a removed test's ID becomes obsolete, and a revert takes it off the list",
    "file": "tests/test_catalog.py",
-   "line": 602,
+   "line": 613,
    "node": "tests/test_catalog.py::test_a_removed_tests_id_becomes_obsolete_and_a_revert_takes_it_off",
    "given": [
     "a stored catalog with a pytest and a Playwright case"
@@ -5321,7 +5345,7 @@
    "suite": "pytest",
    "title": "a run record with an unknown trigger is refused",
    "file": "tests/test_catalog.py",
-   "line": 621,
+   "line": 632,
    "node": "tests/test_catalog.py::test_a_bad_record_is_refused",
    "given": [
     "a run record whose trigger is not a known one"
@@ -5346,7 +5370,7 @@
    "suite": "pytest",
    "title": "a case's flakiness is its share of result changes",
    "file": "tests/test_catalog.py",
-   "line": 639,
+   "line": 650,
    "node": "tests/test_catalog.py::test_flakiness",
    "given": [
     "a case's recent results"
@@ -5374,10 +5398,10 @@
    "suite": "pytest",
    "title": "the generated wiki pages replace the old ones and leave hand-written pages alone",
    "file": "tests/test_catalog.py",
-   "line": 657,
+   "line": 668,
    "node": "tests/test_catalog.py::test_pages",
    "given": [
-    "a run history with one run, and a wiki with a stale generated page, a sidebar with a generated block and a hand-written home page"
+    "a run history with one run, and a wiki with a stale generated page, a sidebar with a core block and a showcase block, and a hand-written home page"
    ],
    "when": [
     "the wiki pages are generated"
@@ -5385,10 +5409,62 @@
    "then": [
     "a Tests page is written and the stale generated page is deleted",
     "the hand-written page is untouched",
-    "the sidebar keeps its hand-written part, its generated block is replaced and it links to Tests-Runs",
+    "the sidebar keeps its hand-written parts and both blocks are replaced",
+    "the core block lists the core's suites without Selenium, the showcase block Selenium and Tests-Runs",
     "the pytest page starts with its title and a \"Generated, do not edit.\" note",
     "it lists each case with its title, last result and \"too few runs\" for flakiness",
     "it links the case to its file and line at the catalog's commit"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CAT-036",
+   "suite": "pytest",
+   "title": "the Selenium status says whether Selenium ran on main's newest recorded run, and with what result",
+   "file": "tests/test_catalog.py",
+   "line": 713,
+   "node": "tests/test_catalog.py::test_the_selenium_status_says_whether_selenium_is_in_step_with_main",
+   "given": [
+    "recorded runs on main"
+   ],
+   "when": [
+    "the Selenium status is written"
+   ],
+   "then": [
+    "with Selenium's results on the newest run, it names that run and its result",
+    "with Selenium's newest results on an older run, it says Selenium is behind main and names both runs",
+    "without any Selenium results, or without any run, it says so"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CAT-037",
+   "suite": "pytest",
+   "title": "the Selenium status lists the Playwright cases the cross-suite mapping doesn't list yet",
+   "file": "tests/test_catalog.py",
+   "line": 739,
+   "node": "tests/test_catalog.py::test_the_selenium_status_counts_the_playwright_cases_not_mapped_yet",
+   "given": [
+    "a catalog with two Playwright cases, one of them in the mapping, and a run history"
+   ],
+   "when": [
+    "the wiki pages are generated from a repository with that mapping"
+   ],
+   "then": [
+    "the Selenium page and the overview say one Playwright case is not mapped yet, and link it",
+    "with both cases mapped, they say every Playwright case is mapped"
    ],
    "notes": "",
    "examples": [],
@@ -5403,7 +5479,7 @@
    "suite": "pytest",
    "title": "the validator runs from the command line and fails on an error",
    "file": "tests/test_catalog.py",
-   "line": 689,
+   "line": 767,
    "node": "tests/test_catalog.py::test_scripts_run_from_the_command_line",
    "given": [
     "a catalog with a malformed ID"
@@ -5428,7 +5504,7 @@
    "suite": "pytest",
    "title": "release test runs are pulled from the bucket, checked and stored once",
    "file": "tests/test_catalog.py",
-   "line": 745,
+   "line": 823,
    "node": "tests/test_catalog.py::test_release_runs_are_pulled_checked_and_stored_once",
    "given": [
     "a bucket listed in pages of two, holding a ui-test run, a failed promote check, a smoke run with a bad commit, a smoke run still uploading and the link check's object"
@@ -5458,7 +5534,7 @@
    "suite": "pytest",
    "title": "a release run's meta file is checked",
    "file": "tests/test_catalog.py",
-   "line": 787,
+   "line": 865,
    "node": "tests/test_catalog.py::test_meta_is_checked",
    "given": [
     "a meta file whose build differs from its folder, whose result is unknown, or whose environment has an unexpected key"
@@ -5486,7 +5562,7 @@
    "suite": "pytest",
    "title": "bad objects never stop the pull",
    "file": "tests/test_catalog.py",
-   "line": 807,
+   "line": 885,
    "node": "tests/test_catalog.py::test_bad_objects_never_stop_the_pull",
    "given": [
     "a bucket with a malformed results file, a meta file that is not an object and one nested too deep"
@@ -5511,7 +5587,7 @@
    "suite": "pytest",
    "title": "an unreachable bucket is one problem, not a crash",
    "file": "tests/test_catalog.py",
-   "line": 826,
+   "line": 904,
    "node": "tests/test_catalog.py::test_an_unreachable_bucket_is_one_problem",
    "given": [
     "a bucket that can't be reached"
@@ -5536,7 +5612,7 @@
    "suite": "pytest",
    "title": "a repeated next-page token ends the listing",
    "file": "tests/test_catalog.py",
-   "line": 844,
+   "line": 922,
    "node": "tests/test_catalog.py::test_a_repeated_page_token_ends_the_listing",
    "given": [
     "a bucket listing whose next-page token repeats on every page"
@@ -5560,7 +5636,7 @@
    "suite": "pytest",
    "title": "runs pruned from the history are not fetched again",
    "file": "tests/test_catalog.py",
-   "line": 855,
+   "line": 933,
    "node": "tests/test_catalog.py::test_runs_pruned_from_the_history_are_not_fetched_again",
    "given": [
     "a history that keeps one ui-test run and holds one newer than the bucket's"
@@ -5584,7 +5660,7 @@
    "suite": "pytest",
    "title": "each pytest case records its layer, and the wiki pages show it",
    "file": "tests/test_catalog.py",
-   "line": 870,
+   "line": 948,
    "node": "tests/test_catalog.py::test_each_pytest_case_records_its_layer_and_the_pages_show_it",
    "given": [
     "a throwaway unit test file with one test marked to override its file as an integration test",
@@ -5611,7 +5687,7 @@
    "suite": "pytest",
    "title": "the mutation testing page shows the newest run, the score over time, each function and each survivor",
    "file": "tests/test_catalog.py",
-   "line": 918,
+   "line": 996,
    "node": "tests/test_catalog.py::test_the_mutation_page_shows_the_newest_run_its_history_and_its_survivors",
    "given": [
     "a stored mutation result with two survivors (one listed as behaving the same), its per-function counts, and a history of three runs",
@@ -22248,6 +22324,7 @@
     "Price-index-methods.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
+    "Testing-showcase.md",
     "_Sidebar.md"
    ],
    "defects": [],
@@ -22284,6 +22361,7 @@
     "Price-index-methods.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
+    "Testing-showcase.md",
     "_Sidebar.md"
    ],
    "defects": [],
@@ -22321,6 +22399,7 @@
     "Price-index-methods.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
+    "Testing-showcase.md",
     "_Sidebar.md"
    ],
    "defects": [],
