@@ -38,26 +38,27 @@ def test_lock_files_match_pyproject():
     """PY-LOCK-001: the hashed lock files match pyproject.toml's pins
 
     Given pyproject.toml's base dependencies and extras
-    And the dev, local and selenium lock files
+    And the dev, local, selenium and mutation lock files
     When each lock file is read
     Then every requirement line in it carries a SHA-256 hash
     And every base pin and every pin of its extras is locked at the same version
     And setuptools is locked, since the project installs without build isolation
     And the file's header says it was compiled for each of its extras
 
-    The Selenium browser tests have a lock of their own (with the dev extra), so their
-    dependencies never enter the other two.
+    The Selenium browser tests and mutation testing each have a lock of their own (with the dev
+    extra), so their dependencies never enter the others.
     """
     with open(ROOT / "pyproject.toml", "rb") as f:
         data = tomllib.load(f)
     project = data["project"]
     base = pins(project["dependencies"])
-    # The Selenium browser tests have a lock of their own (with the dev extra), so their
-    # dependencies never enter the other two.
+    # The Selenium browser tests and mutation testing each have a lock of their own (with the dev
+    # extra), so their dependencies never enter the others.
     locks = [
         ("requirements-dev.txt", ["dev"]),
         ("requirements-local.txt", ["local"]),
         ("requirements-selenium.txt", ["dev", "selenium"]),
+        ("requirements-mutation.txt", ["dev", "mutation"]),
     ]
     for name, extras in locks:
         have, text = locked(name)

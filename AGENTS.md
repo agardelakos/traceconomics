@@ -53,7 +53,7 @@ checks; where the two seem to differ, CONTRIBUTING.md wins and you say so in you
 | `site/scripts/checks.mjs`                     | Site checks run after the build                                                                                                        |
 | `tests/catalog/`                              | Test catalog tooling: collect, validate, run history, wiki pages; `strict.toml` (the ratchet), `cases.toml` (the cross-suite mapping)  |
 | `wiki/`                                       | The wiki's hand-written pages, copied to the GitHub wiki automatically; `tests/test_wiki_pages.py` checks the paths they name          |
-| `.github/workflows/`                          | CI (`tests.yml`), suite comparison (`compare.yml`)                                                                                     |
+| `.github/workflows/`                          | CI (`tests.yml`), the testing showcase's runs by hand (`showcase.yml`: suite comparison, mutation testing)                             |
 
 ## Setup
 

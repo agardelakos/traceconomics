@@ -24,6 +24,11 @@ repository's own checks (the `repository` layer, which runs no package code), th
 integration tests that run no package code, and any test run without a case. The map can be older
 than the commit the pages are made from; the pages name both.
 
+With a stored `mutation.json` (tests/coverage/mutation.py), `Code-engine` ends with the mutation
+testing result: the score, and each survivor with its change and, when it behaves the same as the
+code, the reason from tests/coverage/mutation-equivalent.toml. It says so when the engine's source
+has changed since the run.
+
 Standard library only. The same source and commit give the same bytes.
 """
 
@@ -31,9 +36,11 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import re
 import sys
+import tomllib
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -325,7 +332,81 @@ def coverage_note(cov: Coverage | None, repo: str, commit: str) -> str:
     return note + ". A test that runs a line doesn't always check it.\n"
 
 
-def page_package(page: str, modules: list[Module], repo: str, commit: str, cov: Coverage | None = None) -> str:
+EQUIVALENT = "tests/coverage/mutation-equivalent.toml"
+
+
+def engine_fingerprint(root: Path) -> dict[str, str]:
+    """Each engine file's SHA-256, line endings made LF: as tests/coverage/mutation.py records it."""
+    engine = root / "src" / "traceconomics" / "engine"
+    return {
+        p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        for p in sorted(engine.rglob("*.py"))
+    }
+
+
+def equivalent_reason(survivor: dict, known: list[dict]) -> str | None:
+    """The written reason a survivor behaves the same as the code, when it is listed (whitespace ignored)."""
+
+    def norm(lines):
+        return [re.sub(r"\s+", " ", line).strip() for line in lines]
+
+    for e in known:
+        if e["function"] == survivor["function"] and norm(e["change"]) == norm(survivor["change"]):
+            return e["reason"].strip()
+    return None
+
+
+def mutation_section(result: dict, root: Path, repo: str) -> list[str]:
+    """The engine page's mutation testing: the score, the counts, each survivor and what it means."""
+    path = root / EQUIVALENT
+    known = tomllib.loads(path.read_text(encoding="utf-8")).get("equivalent", []) if path.is_file() else []
+    counts = result["counts"]
+    out = ["## Mutation testing\n"]
+    out.append(
+        "Coverage says which lines a test runs; mutation testing says whether the tests would notice "
+        "those lines going wrong. [mutmut](https://github.com/boxed/mutmut) changed the engine's code in "
+        f"{result['mutants']} small ways, one at a time (a `<` for a `<=`, a `break` for a `continue`), "
+        "and ran the tests that run the engine on each. A change some test notices is *killed*; one no "
+        "test notices *survived*: either the tests miss something, or the change behaves the same as the "
+        "code.\n"
+    )
+    score = "–" if result["score"] is None else f"{result['score']}%"
+    out.append(
+        f"**Score: {score}** (killed or timed out, of the changes tested), from commit "
+        f"[`{result['commit'][:7]}`]({commit_link(repo, result['commit'])}). Results: "
+        + ", ".join(f"{k} {v}" for k, v in counts.items())
+        + ".\n"
+    )
+    if result.get("source") != engine_fingerprint(root):
+        out.append("> The engine's code has changed since this run: the result may no longer hold.\n")
+    survivors = result["survivors"]
+    if not survivors:
+        return out + ["No survivors: the tests noticed every change.\n"]
+    reasons = [equivalent_reason(sv, known) for sv in survivors]
+    gaps = sum(r is None for r in reasons)
+    out.append(
+        f"### Survivors\n\n{len(survivors)} survivors: {gaps} not yet explained (a gap in the tests, or "
+        f"an equivalent change not written down yet), {len(survivors) - gaps} that behave the same as "
+        "the code, each with its reason.\n"
+    )
+    for sv, reason in zip(survivors, reasons, strict=True):
+        out.append(
+            f"- `{sv['function']}`: " + ("behaves the same. " + inline(reason) if reason else "**not explained yet**")
+        )
+        out.append("")
+        out += ["  ```diff", *[f"  {line}" for line in sv["change"]], "  ```", ""]
+    return out
+
+
+def page_package(
+    page: str,
+    modules: list[Module],
+    repo: str,
+    commit: str,
+    cov: Coverage | None = None,
+    mutation: dict | None = None,
+    root: Path | None = None,
+) -> str:
     """One package's page: each module's docstring and its public members, linked to their source lines."""
     out = [
         f"# {page_title(page)}\n",
@@ -364,6 +445,8 @@ def page_package(page: str, modules: list[Module], repo: str, commit: str, cov: 
             out.append("")
         if cov is not None:
             out += module_tests(entry, cov, repo, m.path)
+    if mutation is not None and page == "engine" and root is not None:
+        out += mutation_section(mutation, root, repo)
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -773,9 +856,11 @@ def generate(
     root = root or src.parent.parent
     pages = packages(src, root)
     cov = Coverage.load(store) if store else None
+    found = store / "mutation.json" if store else None
+    mutation = json.loads(found.read_text(encoding="utf-8")) if found and found.is_file() else None
     texts = {"Code": page_overview(pages, repo, commit, cov)}
     for page, modules in pages.items():
-        texts[f"Code-{page}"] = page_package(page, modules, repo, commit, cov)
+        texts[f"Code-{page}"] = page_package(page, modules, repo, commit, cov, mutation, root)
     if cov is not None and cov.front is not None:
         texts[f"Code-{SITE}"] = page_site(cov, repo, commit)
     svgs = chart_files(pages, cov) if cov is not None else {}

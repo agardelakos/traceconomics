@@ -171,6 +171,10 @@ tenth; the parts share it by largest remainder.
   tool; its coverage is recorded for the [code reference](Code)'s comparison of the two browser
   suites, never counted in the badge) and the release checks on real data.
 
+Coverage counts the lines a test runs, not whether a test would notice them going wrong. For the
+engine, the arithmetic every published number rests on, mutation testing measures that too
+(`Code-engine` on the [code reference](Code)); it runs by hand, not on every push.
+
 Both totals take the same colours: red below 90%, yellow from 90%, green from 95%. The site's figure
 fails its build below 90%. The Python figure was first measured at 73.9%, so its run failed below a
 **ratchet** instead (`RATCHET` in `tests/coverage/overview.py`): set from that baseline, raised as

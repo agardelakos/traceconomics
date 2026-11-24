@@ -162,10 +162,10 @@ def compare_section(pw: Results | None, se: Results | None) -> str:
         lines += ["", f"{name}, slowest files: " + ", ".join(f"{f} ({c['seconds']:.0f} s)" for f, c in slow)]
     lines += [
         "",
-        "Not like for like: each suite ran in its own job on its own runner. Playwright ran the coverage "
-        "build, and the runners may differ in CPUs and therefore in workers. "
+        "Not like for like: each suite ran in its own job on its own runner, both recording each test's "
+        "coverage for the code map, and the runners may differ in CPUs and therefore in workers. "
         "For a fair comparison (several runs, the same machine, the same build and workers), "
-        "run the `compare` workflow.",
+        "run the `showcase` workflow's comparison.",
     ]
     lines += [
         "",

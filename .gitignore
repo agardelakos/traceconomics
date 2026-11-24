@@ -28,4 +28,6 @@ site/selenium-report/
 # coverage.py's data files and HTML report (python -m coverage run / html)
 .coverage
 .coverage.*
+# mutmut's working copy (mutation testing)
+mutants/
 htmlcov/

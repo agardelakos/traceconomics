@@ -28,6 +28,9 @@ dev = ["pytest==9.1.1", "coverage==7.17.0", "ruff==0.17.3"]
 local = ["pandas==3.0.6", "py7zr==1.1.4", "pyxlsb==1.0.10"]
 # Only for the Selenium browser tests in tests/selenium (run with `pytest tests/selenium --selenium`).
 selenium = ["selenium==4.51.0", "pytest-xdist==3.8.0"]
+# Only for mutation testing of src/traceconomics/engine (the hand-started workflow showcase.yml):
+# a showcase of the test suite, never needed to contribute.
+mutation = ["mutmut==3.8.1"]
 
 [project.scripts]
 traceconomics = "traceconomics.cli:main"
@@ -50,6 +53,19 @@ markers = [
     "integration: two or more components through a real resource (layer)",
     "repository: checks on the repository's own files; no package code runs (layer)",
 ]
+
+# Mutation testing of the engine (the `mutation` extra; .github/workflows/showcase.yml, by hand): each
+# small change mutmut makes to src/traceconomics/engine should make some test fail. mutmut runs the
+# tests on a copy of the package in mutants/, so the files the selected tests read come along. The
+# tests are the ones the code map says run the engine, written in by `tests/coverage/mutation.py select`
+# before a run; the list here stays empty, and an empty list would run every test.
+[tool.mutmut]
+source_paths = ["src/traceconomics/"]
+only_mutate = ["src/traceconomics/engine/*"]
+also_copy = ["tests/", "site/src/i18n/", "site/src/lib/", "site/src/content/"]
+pytest_add_cli_args_test_selection = []
+# It fingerprints the package's source, which mutmut rewrites: it can only fail in mutants/.
+pytest_add_cli_args = ["--deselect", "tests/test_module1_combinations.py::test_code_fingerprint_ignores_line_endings"]
 
 # Coverage of the package (src/traceconomics) by the pytest suite, in CI's python and python-local
 # jobs, combined in the badges job; tests/coverage/overview.py splits it by layer.

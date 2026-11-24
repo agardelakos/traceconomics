@@ -1,0 +1,15 @@
+# Survivors of mutation testing that behave the same as the code (equivalent mutants), each with the
+# reason. A survivor not listed here is a gap in the tests: write a test that notices the change
+# instead. The wiki's Code-engine page shows the reason beside the survivor
+# (tests/catalog/code_reference.py); tests/coverage/mutation.py explains the run.
+#
+# One entry per survivor: the function as the wiki names it, the change as the removed and added
+# lines of mutmut's diff (whitespace is ignored when they are matched), and why it can't change what
+# the function does. For example:
+#
+#   [[equivalent]]
+#   function = "traceconomics.engine.chain.chain"
+#   change = ["-    for year in range(a, b + 1):", "+    for year in range(a, b + 2):"]
+#   reason = "Why no input can tell the two apart."
+#
+# None yet: every survivor of the first run (2026-11-24) was a gap, and has a test now.

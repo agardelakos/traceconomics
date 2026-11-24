@@ -1,0 +1,163 @@
+# The testing showcase's runs that are too long for every push, started by hand from the Actions
+# tab ("Run workflow"), one or both. Never a required check, and nothing a contributor has to run.
+#
+#  - compare: the two browser suites, Playwright and Selenium, compared fairly: several runs each, on
+#    one runner, the same build of made-up data (`tests/sitedata.py`) and the same number of workers.
+#    Flaky tests (failed in some runs, passed in others) show up only over several runs. Playwright
+#    runs with its --fully-parallel flag, spreading single tests over the workers as pytest-xdist
+#    does. With every mode on, about one and a half to two hours for 5 runs (UNVERIFIED estimate from
+#    the desktop's times). The result is the run's artifact `comparison`.
+#  - mutation: mutation testing of the engine (src/traceconomics/engine): mutmut changes the engine's
+#    code in small ways, one at a time, and runs the tests that run the engine (taken from the code
+#    map on the branch test-history) on each change; a change no test notices is a survivor
+#    (tests/coverage/mutation.py). About 15 minutes (UNVERIFIED estimate: 7.5 minutes for 269 changes
+#    on the desktop's 8 workers; the runner has 4). On main, the result is stored on test-history
+#    (mutation.json, replacing the previous one) and the wiki is updated, where Code-engine shows the
+#    score and the survivors; on another branch it is only the run's artifact `mutation`, so it never
+#    stands for code that isn't on main.
+#
+# The jobs on every push that belong to the showcase (Selenium, the comparison of one run, the code
+# map) are in tests.yml, named "showcase: …".
+#
+# Actions are pinned to a full commit (the tag is in the comment).
+
+name: showcase
+
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: "What to run"
+        type: choice
+        options: [both, compare, mutation]
+        default: both
+      runs:
+        description: "compare: runs of each suite"
+        type: number
+        default: 5
+      per_file:
+        description: "compare: also run both suites by file (a file's tests one after another in one worker): Playwright as configured, Selenium with --dist loadfile"
+        type: boolean
+        default: true
+      sequential:
+        description: "compare: also run both suites one test at a time (1 worker): the slowest mode, about half the comparison's time"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: "showcase: Playwright and Selenium compared"
+    if: ${{ inputs.run != 'mutation' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: python -m pip install --require-hashes --no-deps -r requirements-selenium.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - run: python tests/sitedata.py site/public/data
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci --no-audit
+        working-directory: site
+        env:
+          npm_config_fetch_retries: "5"
+      - run: npm run build
+        working-directory: site
+      # Both browsers fetched before the first timed run, so no run pays for a download.
+      - run: npx playwright install --with-deps chromium
+        working-directory: site
+      # Ubuntu 24.04 can stop programs outside the usual install folders from building Chrome's
+      # sandbox (AppArmor's restriction on unprivileged user namespaces), and Chrome for Testing lives
+      # in ~/.cache. Allowed here rather than running Chrome without its sandbox. Then the pinned
+      # Chrome is fetched and started once on its own, so a Chrome that can't start says why.
+      - name: Chrome starts
+        run: |
+          sysctl kernel.apparmor_restrict_unprivileged_userns || true
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          python -I tests/selenium/chrome.py
+      - name: Compare
+        env:
+          RUNS: ${{ inputs.runs }}
+          PER_FILE: ${{ inputs.per_file }}
+          SEQUENTIAL: ${{ inputs.sequential }}
+        run: |
+          extra=""
+          if [ "$PER_FILE" = "true" ]; then extra="--per-file"; fi
+          if [ "$SEQUENTIAL" = "true" ]; then extra="$extra --sequential"; fi
+          python -I tests/compare/compare.py --runs "$RUNS" --workers "$(nproc)" $extra --out comparison.md
+      - name: Upload the comparison
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: comparison
+          path: comparison.md
+          retention-days: 30
+          if-no-files-found: ignore
+
+  mutation:
+    name: "showcase: mutation testing"
+    if: ${{ inputs.run != 'compare' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write # the branch test-history, on main only
+    steps:
+      # The whole history: the push script checks that this commit descends from the stored result's.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # The mutation lock: the dev extra and mutmut, each file checked against its hash.
+      - run: python -m pip install --require-hashes --no-deps -r requirements-mutation.txt
+      - run: python -m pip install --no-deps --no-build-isolation -e .
+      - name: The engine's tests, from the code map
+        run: |
+          git fetch -q --depth 1 origin test-history
+          git show FETCH_HEAD:code-map.json > "$RUNNER_TEMP/code-map.json" \
+            || { echo "::error::No code map on test-history yet: it is stored by the tests workflow on main."; exit 1; }
+          python -I tests/coverage/mutation.py select --map "$RUNNER_TEMP/code-map.json"
+      - name: Mutation testing
+        run: mutmut run --max-children 4
+      - name: The result
+        run: |
+          set -o pipefail      # the script's exit code, not tee's
+          python -I tests/coverage/mutation.py report --out "$RUNNER_TEMP/mutation/mutation.json" --commit "$GITHUB_SHA" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Upload the result
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutation
+          path: ${{ runner.temp }}/mutation/mutation.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Store the result on test-history
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git checkout -q -- pyproject.toml   # the test selection written above, back as it was
+          .github/scripts/test_history_push.sh "Mutation testing on ${GITHUB_SHA::7}" \
+            --mutation "$RUNNER_TEMP/mutation/mutation.json"
+
+  # The wiki, so Code-engine shows the new result.
+  wiki:
+    needs: [mutation]
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.mutation.result == 'success' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/wiki.yml
+    secrets: inherit

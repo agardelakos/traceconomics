@@ -12,6 +12,10 @@
 # The optional microdata dependencies are never installed here: those tests skip themselves.
 # Actions are pinned to a full commit (the tag is in the comment), and the token is read-only,
 # except in the jobs badges and test-history (below), each writing to its own branch only.
+#
+# Jobs named "showcase: …" (the Selenium suite, the two browser suites compared, the code map) are
+# the testing showcase: never a required check, and nothing a contributor has to keep green. The
+# showcase's longer runs, started by hand, are in showcase.yml.
 
 # Named for what the run is, all of it, not just its tests: the README's status badge shows this name.
 name: pipeline
@@ -328,6 +332,7 @@ jobs:
   # reduced. Showcase work, not a required check: it waits for the Selenium suite, whatever its
   # result, and a map without Selenium's lines says so. On main, stored on test-history.
   code-map:
+    name: "showcase: code map"
     needs: [python, python-local, site, selenium]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
@@ -373,6 +378,7 @@ jobs:
   # The same site tested a second way, with Python and Selenium on Chrome (tests/selenium), to
   # compare the two tools. Same made-up data, a plain build (no coverage). Not a required check.
   selenium:
+    name: "showcase: Selenium"
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -542,6 +548,7 @@ jobs:
   # Both suites' results from this run side by side on the run's page, also when one of them failed.
   # Only the result files are read (no code from the branch beyond the report script).
   compare:
+    name: "showcase: Playwright and Selenium compared"
     needs: [site, selenium]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04

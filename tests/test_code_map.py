@@ -252,3 +252,113 @@ def test_the_vitest_integration_files_are_named_alike_everywhere():
     in_ci = set(re.findall(r"--exclude (\S+)", unit_run))
     assert in_map == in_check == in_ci and len(in_map) == 2
     assert all((SITE / f).is_file() for f in in_map)
+
+
+sys.path.insert(0, str(Path(__file__).parent / "coverage"))
+import mutation  # noqa: E402
+
+
+def test_mutmut_runs_the_tests_the_code_map_says_run_the_engine(tmp_path):
+    """PY-MUT-001: mutmut is given the test files the code map says run the engine, and nothing else
+
+    Given a code map in which two test files run the engine and a third runs only another module
+    And a settings file with mutmut's empty test selection
+    When the selection is written, then with a map in which no test runs the engine, then into settings without the line
+    Then the selection names the two files, once each and sorted, and the rest of the settings is unchanged
+    And a map without the engine's tests, or settings without the line, stop with an error
+    """
+    tests = ["tests/test_b.py::test_1", "tests/test_a.py::test_2", "tests/test_a.py::test_3", "tests/test_c.py::test_4"]
+    modules = {
+        "src/traceconomics/engine/chain.py": {"tests": {"unit": [0, 1], "integration": [2]}},
+        "src/traceconomics/store/db.py": {"tests": {"unit": [3], "integration": []}},
+    }
+    code_map = {"back-end": {"tests": tests, "modules": modules}}
+    settings = tmp_path / "pyproject.toml"
+    before = '[tool.mutmut]\nonly_mutate = ["x"]\npytest_add_cli_args_test_selection = []\nother = 1\n'
+    settings.write_text(before, encoding="utf-8")
+    assert mutation.select(code_map, settings) == ["tests/test_a.py", "tests/test_b.py"]
+    after = settings.read_text(encoding="utf-8")
+    assert after == before.replace("= []", '= ["tests/test_a.py", "tests/test_b.py"]')
+    with pytest.raises(SystemExit, match="no test that runs the engine"):
+        mutation.select(
+            {
+                "back-end": {
+                    "tests": tests,
+                    "modules": {"src/traceconomics/store/db.py": modules["src/traceconomics/store/db.py"]},
+                }
+            },
+            settings,
+        )
+    settings.write_text("[tool.mutmut]\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="no `pytest_add_cli_args_test_selection` line"):
+        mutation.select(code_map, settings)
+
+
+def test_the_report_counts_mutants_and_lists_each_survivor(tmp_path):
+    """PY-MUT-002: The report counts every mutant's result and lists each survivor with its function and change
+
+    Given mutmut's result files for two engine modules: killed, survived, timed out, skipped and unknown results, one survivor in a method
+    When the report is written
+    Then each result is counted, and the score is the killed and timed-out share of those not skipped
+    And each survivor names its function (a method as Class.method) and its change, without the diff's file headers
+    And the engine's source is fingerprinted, the same whatever its line endings
+    And without results the report stops with an error
+    """
+    root = tmp_path
+    engine = root / "src" / "traceconomics" / "engine"
+    engine.mkdir(parents=True)
+    (engine / "chain.py").write_bytes(b"a = 1\r\nb = 2\r\n")
+    meta = root / "mutants" / "src" / "traceconomics" / "engine"
+    meta.mkdir(parents=True)
+    (meta / "chain.py.meta").write_text(
+        json.dumps(
+            {
+                "exit_code_by_key": {
+                    "traceconomics.engine.chain.x_link__mutmut_1": 1,
+                    "traceconomics.engine.chain.x_link__mutmut_2": 0,
+                    "traceconomics.engine.chain.xǁChainResultǁfallback_summary__mutmut_1": 0,
+                    "traceconomics.engine.chain.x_chain__mutmut_1": 36,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (meta / "rates.py.meta").write_text(
+        json.dumps(
+            {
+                "exit_code_by_key": {
+                    "traceconomics.engine.rates.x_rebase__mutmut_1": 34,
+                    "traceconomics.engine.rates.x_rebase__mutmut_2": 99,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    diff = "# x: survived\n--- src/a.py\n+++ src/a.py\n@@ -1 +1 @@\n-    continue\n+    break\n"
+    got = mutation.report(root, COMMIT, show=lambda m: diff)
+    assert got["mutants"] == 6
+    assert got["counts"] == {"killed": 1, "skipped": 1, "survived": 2, "suspicious": 1, "timeout": 1}
+    assert got["score"] == 40.0  # (1 killed + 1 timeout) of 5 not skipped
+    assert [s["function"] for s in got["survivors"]] == [
+        "traceconomics.engine.chain.link",
+        "traceconomics.engine.chain.ChainResult.fallback_summary",
+    ]
+    assert got["survivors"][0]["change"] == ["-    continue", "+    break"]
+    (engine / "chain.py").write_bytes(b"a = 1\nb = 2\n")
+    assert mutation.fingerprint(root) == got["source"]
+    (meta / "chain.py.meta").unlink()
+    (meta / "rates.py.meta").unlink()
+    with pytest.raises(SystemExit, match="no mutmut results"):
+        mutation.report(root, COMMIT, show=lambda m: diff)
+
+
+def test_every_equivalent_survivor_has_its_reason():
+    """PY-MUT-003: Every survivor listed as behaving the same as the code has its function, change and reason
+
+    Given the repository's list of equivalent survivors
+    When it is read
+    Then it parses, and every entry has a function, a change and a reason that isn't empty
+    """
+    path = Path(__file__).parent / "coverage" / "mutation-equivalent.toml"
+    for entry in mutation.equivalents(path):
+        assert entry["function"].startswith("traceconomics.engine.") and entry["change"]

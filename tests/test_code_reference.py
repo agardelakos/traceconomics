@@ -542,3 +542,71 @@ def test_the_pages_show_the_charts_and_the_front_end(tmp_path):
     )
     assert "Not measured in this run" in (again / "Code.md").read_text(encoding="utf-8")
     assert "Not measured in this run" in (again / "Code-site.md").read_text(encoding="utf-8")
+
+
+def test_the_engine_page_shows_the_mutation_result(tmp_path):
+    """PY-CODEREF-012: The engine's page ends with the mutation testing result, its survivors and their reasons
+
+    Given the made-up package, a stored mutation result with two survivors, one listed as behaving the same with its reason
+    When the code reference is generated, then again after the engine's source changed, then from a result with no survivors
+    Then the engine's page gives the score, the counts and the commit, and each survivor's function and change
+    And the listed survivor shows its reason, the other says it isn't explained yet
+    And no other page shows the result
+    And once the engine's source has changed, the page says the result may no longer hold
+    And with no survivors it says the tests noticed every change
+    """
+    src = made_up(tmp_path)
+    sys.path.insert(0, str(ROOT / "tests" / "coverage"))
+    import mutation
+
+    folder = tmp_path / "store"
+    folder.mkdir()
+    survivors = [
+        {"mutant": "m1", "function": "traceconomics.engine.chain.link", "change": ["-    continue", "+    break"]},
+        {"mutant": "m2", "function": "traceconomics.engine.chain.link", "change": ["-    a = 1", "+    a = 2"]},
+    ]
+    result = {
+        "schema": 1,
+        "commit": MAP_COMMIT,
+        "mutants": 10,
+        "counts": {"killed": 8, "survived": 2},
+        "score": 80.0,
+        "survivors": survivors,
+        "source": mutation.fingerprint(tmp_path),
+    }
+    (folder / "mutation.json").write_text(json.dumps(result), encoding="utf-8")
+    known = tmp_path / "tests" / "coverage" / "mutation-equivalent.toml"
+    known.parent.mkdir(parents=True)
+    known.write_text(
+        '[[equivalent]]\nfunction = "traceconomics.engine.chain.link"\n'
+        'change = ["-  a = 1", "+  a = 2"]\nreason = "a is never read."\n',
+        encoding="utf-8",
+    )
+    out = tmp_path / "wiki"
+    code_reference.generate(src, out, REPO, COMMIT, store=folder)
+    engine = (out / "Code-engine.md").read_text(encoding="utf-8")
+    assert "## Mutation testing" in engine
+    assert (
+        f"**Score: 80.0%** (killed or timed out, of the changes tested), from commit [`fedcba9`](https://github.com/{REPO}/commit/{MAP_COMMIT}). Results: killed 8, survived 2."
+        in engine
+    )
+    assert (
+        "- `traceconomics.engine.chain.link`: **not explained yet**\n\n  ```diff\n  -    continue\n  +    break\n  ```"
+        in engine
+    )
+    assert "- `traceconomics.engine.chain.link`: behaves the same. a is never read." in engine
+    assert "may no longer hold" not in engine
+    assert all(
+        "Mutation testing" not in p.read_text(encoding="utf-8")
+        for p in out.glob("Code*.md")
+        if p.name != "Code-engine.md"
+    )
+
+    (src / "engine" / "chain.py").write_text("# changed\n", encoding="utf-8")
+    code_reference.generate(src, out, REPO, COMMIT, store=folder)
+    assert "may no longer hold" in (out / "Code-engine.md").read_text(encoding="utf-8")
+
+    result |= {"counts": {"killed": 10}, "score": 100.0, "survivors": []}
+    (folder / "mutation.json").write_text(json.dumps(result), encoding="utf-8")
+    code_reference.generate(src, out, REPO, COMMIT, store=folder)
+    assert "No survivors: the tests noticed every change." in (out / "Code-engine.md").read_text(encoding="utf-8")

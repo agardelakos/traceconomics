@@ -2,25 +2,26 @@
 # Append run records to the branch `test-history` and push, retrying when another run pushed first.
 #
 #   GH_TOKEN=… .github/scripts/test_history_push.sh "<commit message>" RECORD.json [--catalog CATALOG.json]
-#       [--map CODE-MAP.json] [RECORD.json …]
+#       [--map CODE-MAP.json] [--mutation MUTATION.json] [RECORD.json …]
 #
 # The branch holds only data (tests/catalog/history.py, "append"): one file per run, the newest
-# catalog and the obsolete IDs, and the newest code map (tests/coverage/code_map.py), which
-# replaces the one before it. It only ever moves forward: a push that loses a race fetches the
+# catalog and the obsolete IDs, the newest code map (tests/coverage/code_map.py) and the newest
+# mutation testing result (tests/coverage/mutation.py), each replacing the one before it. It only ever moves forward: a push that loses a race fetches the
 # new tip, appends again on top of it and retries, never forces. The first run creates the branch
 # as an orphan, so it shares no history with the code.
 set -euo pipefail
 
 message=$1; shift
-records=(); catalog=(); map=""
+records=(); catalog=(); map=""; mutation=""
 while (($#)); do
   case $1 in
     --catalog) catalog=(--catalog "$(realpath "$2")"); shift 2 ;;
     --map) map=$(realpath "$2"); shift 2 ;;
+    --mutation) mutation=$(realpath "$2"); shift 2 ;;
     *) records+=("$(realpath "$1")"); shift ;;
   esac
 done
-((${#records[@]})) || [ -n "$map" ] || { echo "no record to append"; exit 0; }
+((${#records[@]})) || [ -n "$map" ] || [ -n "$mutation" ] || { echo "nothing to append"; exit 0; }
 
 history_py=$(realpath tests/catalog/history.py)
 code=$(pwd)
@@ -48,7 +49,7 @@ for attempt in 1 2 3 4 5; do
   if git_ fetch -q --depth 1 "$url" test-history 2>/dev/null; then
     git reset -q --hard FETCH_HEAD
   fi
-  # The catalog and the code map move forward only.
+  # The catalog, the code map and the mutation result move forward only.
   use=("${catalog[@]}")
   if ((${#catalog[@]})) && ! moves_forward "${catalog[1]}" catalog.json; then
     echo "the stored catalog is newer than this run's: kept as it is"
@@ -60,6 +61,10 @@ for attempt in 1 2 3 4 5; do
   if [ -n "$map" ]; then
     if moves_forward "$map" code-map.json; then cp "$map" code-map.json
     else echo "the stored code map is newer than this run's: kept as it is"; fi
+  fi
+  if [ -n "$mutation" ]; then
+    if moves_forward "$mutation" mutation.json; then cp "$mutation" mutation.json
+    else echo "the stored mutation result is newer than this run's: kept as it is"; fi
   fi
   git add -A
   if git diff --cached --quiet; then echo "nothing new to record"; exit 0; fi
