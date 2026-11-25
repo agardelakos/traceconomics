@@ -3,9 +3,10 @@
 // how the published files are laid out and the licence. Data are by country first, as the files
 // are (/data/v1/{country}/{module}/).
 import { getEntry, render } from "astro:content";
-import Breadcrumb from "../../../components/Breadcrumb.astro";
+import Breadcrumb from "../../../components/ui/Breadcrumb.astro";
 import MoreCard from "../../../components/MoreCard.astro";
 import Base from "../../../layouts/Base.astro";
+import CardNav from "../../../components/ui/CardNav.astro";
 import { LANGS, t, type Lang } from "../../../lib/i18n";
 import { dataCountries, dataHref, TOPICS } from "../../../lib/topics";
 
@@ -33,13 +34,12 @@ const countries = dataCountries().map((c) => ({
   current="data"
 >
   <article class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <Breadcrumb lang={lang} trail={[[t(lang, "nav.data")]]} />
       <h1>{entry.data.title}</h1>
-      <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
+      <p class="text-lg">{entry.data.summary}</p>
     </header>
-    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
-      <h2 id="countries-h">{t(lang, "hub.countries")}</h2>
+    <CardNav id="countries-h" title={t(lang, "hub.countries")}>
       <div class="card-row">
         {countries.map((c) => (
           <a class="card" href={dataHref(lang, c.code)}>
@@ -50,7 +50,7 @@ const countries = dataCountries().map((c) => ({
         ))}
         <MoreCard lang={lang} what="countries" />
       </div>
-    </nav>
+    </CardNav>
     <section class="prose">
       <Content />
     </section>

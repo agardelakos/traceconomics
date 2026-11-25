@@ -5,6 +5,7 @@
 // across countries; then the countries. No chart, no tiles, no table: the numbers live on each
 // topic's pages. Planned countries and topics follow the cards' rule (MoreCard.astro).
 import Base from "../../layouts/Base.astro";
+import CardNav from "../../components/ui/CardNav.astro";
 import { BASE_AMOUNT, BASE_MONTH, bandLine, headline } from "../../lib/headline";
 import { eur } from "../../lib/income";
 import { LANGS, href, month, t, type Lang } from "../../lib/i18n";
@@ -104,13 +105,13 @@ const promises = phrases.map((phrase, i) => ({
             </div>
           ))}
         </dl>
-        <a href={countryHref(lang, country)} style="font-weight: 600">
+        <a class="weight-semibold" href={countryHref(lang, country)}>
           {t(lang, "hub.fact.link")} →
         </a>
       </aside>
     </div>
 
-    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
+    <section class="stack gap-3" aria-labelledby="topics-h">
       <h2 id="topics-h">{t(lang, "hub.topics.start")}</h2>
       <TopicCards
         lang={lang}
@@ -118,22 +119,14 @@ const promises = phrases.map((phrase, i) => ({
       />
     </section>
 
-    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
-      <h2 id="countries-h">{t(lang, "hub.countries.title")}</h2>
+    <CardNav id="countries-h" title={t(lang, "hub.countries.title")}>
       <CountryCards lang={lang} />
-    </nav>
+    </CardNav>
 
-    <section
-      class="stack"
-      style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)"
-    >
-      <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">
-        {t(lang, "home.open.title")}
-      </h2>
-      <p class="muted" style="max-width: var(--text-max)">
-        {t(lang, "opendata.lead")}
-      </p>
-      <a href={href(lang, "data")} style="font-weight: 600">
+    <section class="stack section-rule">
+      <h2 class="font-sans text-base weight-bold">{t(lang, "home.open.title")}</h2>
+      <p class="muted measure">{t(lang, "opendata.lead")}</p>
+      <a class="weight-semibold" href={href(lang, "data")}>
         {t(lang, "opendata.title")} →
       </a>
     </section>

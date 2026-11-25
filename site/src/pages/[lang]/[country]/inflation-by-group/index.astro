@@ -67,10 +67,10 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
   topic={{ slug: SLUG, country, section: "" }}
 >
   <div class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <p class="eyebrow accent">{t(lang, "m1.latest", { month: month(lang, h.latestMonth) })}</p>
       <h1>{t(lang, "m1.title", { country: countryName })}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, `m1.sources.${country}`)}</p>
+      <p class="text-lg">{t(lang, `m1.sources.${country}`)}</p>
     </header>
 
     <div class="overview-grid">
@@ -117,29 +117,29 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
             q5: pct(lang, h.avgQ5),
           })}
         </p>
-        <a href={topicHref(lang, SLUG, country, "explore")} style="font-weight: 600">
+        <a class="weight-semibold" href={topicHref(lang, SLUG, country, "explore")}>
           {t(lang, "home.peak.link")} →
         </a>
       </section>
     </div>
 
-    <section class="panel stack" aria-labelledby="baskets-h" style="gap: var(--space-4)">
-      <div class="stack" style="gap: var(--space-1)">
+    <section class="panel stack gap-4" aria-labelledby="baskets-h">
+      <div class="stack gap-1">
         <h2 id="baskets-h">{t(lang, "m1.baskets.title")}</h2>
         <p class="muted">{t(lang, "m1.baskets.lead", { year: groups[0].year })}</p>
       </div>
       {groups.map((g) => (
-        <div class="stack" style="gap: var(--space-2)">
+        <div class="stack gap-2">
           <h3>{g.name}</h3>
           <div class="basket-bar" aria-hidden="true">
             {g.parts.map((p) => (
-              <span style={`width: ${p.value.toFixed(2)}%; background: ${p.color}`}></span>
+              <span style={`--w: ${p.value.toFixed(2)}%; --c: ${p.color}`}></span>
             ))}
           </div>
           <ul class="basket-legend">
             {g.parts.map((p) => (
               <li>
-                <span class="box" style={`background: ${p.color}`}></span>
+                <span class="box" style={`--c: ${p.color}`}></span>
                 {p.label}: <strong>{num(lang, p.value, 1)}%</strong>
               </li>
             ))}
@@ -149,7 +149,7 @@ if (groups[0].year !== groups[1].year) throw new Error("the two baskets come fro
     </section>
 
     <section class="callout method-cta" aria-labelledby="method-h">
-      <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <div class="stack gap-2 measure">
         <h2 id="method-h">{t(lang, "m1.method_cta.title")}</h2>
         <p>{t(lang, `m1.method_cta.text.${country}`)}</p>
         <div class="button-row">

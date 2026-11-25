@@ -2,7 +2,8 @@
 // The about page, with the list of changes at its end.
 import { getEntry, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import { href, LANGS, t, type Lang } from "../../lib/i18n";
+import Breadcrumb from "../../components/ui/Breadcrumb.astro";
+import { LANGS, t, type Lang } from "../../lib/i18n";
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -23,12 +24,10 @@ const { Content } = await render(entry);
   current={page}
 >
   <article class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
-      <nav class="breadcrumb" aria-label={t(lang, "breadcrumb")}>
-        <a href={href(lang)}>{t(lang, "nav.home")}</a> / {t(lang, `nav.${page}`)}
-      </nav>
+    <header class="stack gap-2 measure">
+      <Breadcrumb lang={lang} trail={[[t(lang, `nav.${page}`)]]} />
       <h1>{entry.data.title}</h1>
-      <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
+      <p class="text-lg">{entry.data.summary}</p>
     </header>
     <section class="prose">
       <Content />

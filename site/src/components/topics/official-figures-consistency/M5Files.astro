@@ -4,9 +4,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { render, type CollectionEntry } from "astro:content";
-import { DATA_ROOT } from "../lib/data";
-import { num, t, type Lang } from "../lib/i18n";
-import { m5Dir, results } from "../lib/m5";
+import { DATA_ROOT } from "../../../lib/data";
+import { num, t, type Lang } from "../../../lib/i18n";
+import { m5Dir, results } from "../../../lib/m5";
 
 interface Props {
   lang: Lang;
@@ -46,7 +46,7 @@ const files = [
 <div class="prose">
   <Content />
 </div>
-<ul class="stack" style="gap: var(--space-1)" data-m5="files">
+<ul class="stack gap-1" data-m5="files">
   {files.map((f) => (
     <li>
       <a href={f.href} download>

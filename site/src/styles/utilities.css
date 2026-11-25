@@ -1,0 +1,104 @@
+/* Utilities: one layout or type choice for one element, always a token. Pages use these instead of
+   a `style` attribute (checked: site check 12), so every value comes from the scale. Each carries
+   !important because it stands for a choice made on that one element, which must win over a
+   component's own rule, as an inline style did (the GOV.UK Design System's override classes do
+   the same). Loaded after global.css. Add one only when a value repeats; a one-off gets a named
+   class in global.css instead. */
+
+/* The gap inside a .stack (or any flex or grid container). */
+.gap-0 {
+  gap: 0 !important;
+}
+.gap-1 {
+  gap: var(--space-1) !important;
+}
+.gap-2 {
+  gap: var(--space-2) !important;
+}
+.gap-3 {
+  gap: var(--space-3) !important;
+}
+.gap-4 {
+  gap: var(--space-4) !important;
+}
+.gap-5 {
+  gap: var(--space-5) !important;
+}
+.gap-6 {
+  gap: var(--space-6) !important;
+}
+.gap-7 {
+  gap: var(--space-7) !important;
+}
+.gap-8 {
+  gap: var(--space-8) !important;
+}
+
+/* Space above one element. */
+.mt-0 {
+  margin-top: 0 !important;
+}
+.mt-1 {
+  margin-top: var(--space-1) !important;
+}
+.mt-2 {
+  margin-top: var(--space-2) !important;
+}
+.mt-3 {
+  margin-top: var(--space-3) !important;
+}
+.mt-4 {
+  margin-top: var(--space-4) !important;
+}
+.mt-5 {
+  margin-top: var(--space-5) !important;
+}
+.mt-6 {
+  margin-top: var(--space-6) !important;
+}
+.mt-7 {
+  margin-top: var(--space-7) !important;
+}
+.mt-8 {
+  margin-top: var(--space-8) !important;
+}
+.m-0 {
+  margin: 0 !important;
+}
+.pt-5 {
+  padding-top: var(--space-5) !important;
+}
+.pt-8 {
+  padding-top: var(--space-8) !important;
+}
+
+/* A line length that reads well: text blocks are never wider than this. */
+.measure {
+  max-width: var(--text-max) !important;
+}
+.self-start {
+  align-self: flex-start !important;
+}
+
+/* Type. */
+.text-base {
+  font-size: var(--text-base) !important;
+}
+.text-lg {
+  font-size: var(--text-lg) !important;
+}
+.weight-regular {
+  font-weight: var(--weight-regular) !important;
+}
+.weight-semibold {
+  font-weight: var(--weight-semibold) !important;
+}
+.weight-bold {
+  font-weight: var(--weight-bold) !important;
+}
+.font-sans {
+  font-family: var(--font-sans) !important;
+}
+.no-underline {
+  text-decoration: none !important;
+}

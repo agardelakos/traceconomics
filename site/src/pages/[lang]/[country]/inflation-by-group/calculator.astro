@@ -75,7 +75,7 @@ const config = {
   topic={{ slug: "inflation-by-group", country, section: "calculator" }}
 >
   <div class="stack-lg" id="calculator" data-config={JSON.stringify(config)}>
-    <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <div class="stack gap-2 measure">
       <h1>{t(lang, "calc.title")}</h1>
       <p class="muted">{t(lang, "calc.lead")}</p>
       <p class="small muted private">
@@ -129,33 +129,27 @@ const config = {
           <a href={dataHref(lang, country)}>{t(lang, "noscript.data")} →</a>
         </p>
         <div data-role="loading" class="stack" aria-busy="true" hidden>
-          <div class="skeleton" style="height: 160px"></div>
+          <div class="skeleton result"></div>
           <span class="small muted">{t(lang, "calc.loading")}</span>
         </div>
         <div class="result" data-role="result" aria-live="polite" hidden>
           <span class="small muted" data-role="yours-label"></span>
           <span class="big" data-role="yours"></span>
-          <span
-            class="flag first-estimate"
-            data-role="same"
-            style="align-self: flex-start; border-color: var(--color-accent); color: var(--color-text)"
-          ></span>
+          <span class="flag first-estimate self-start calc-same" data-role="same"></span>
           <span data-role="diff" hidden></span>
           <div class="result-compare">
-            <div class="stack" style="gap: 0">
+            <div class="stack gap-0">
               <span class="small muted" data-role="preset-name"></span>
               <span class="num" data-role="preset-rate"></span>
             </div>
-            <div class="stack" style="gap: 0">
+            <div class="stack gap-0">
               <span class="small muted">{t(lang, "group.all/all")}</span>
               <span class="num" data-role="all-rate"></span>
             </div>
           </div>
         </div>
-        <div class="stack" data-role="over-time" hidden style="gap: var(--space-2)">
-          <h3 class="small" style="margin: 0">
-            {t(lang, "calc.over_time")}
-          </h3>
+        <div class="stack gap-2" data-role="over-time" hidden>
+          <h3 class="small m-0">{t(lang, "calc.over_time")}</h3>
           <div class="chart-area" role="img" data-role="chart"></div>
         </div>
       </figure>
@@ -185,9 +179,9 @@ const config = {
           </a>
         </div>
 
-        <div class="stack" data-role="sliders-box" hidden style="gap: var(--space-3)">
+        <div class="stack gap-3" data-role="sliders-box" hidden>
           <div class="stack" style="gap: 6px">
-            <span style="font-weight: 600" id="mode-label">
+            <span class="weight-semibold" id="mode-label">
               {t(lang, "calc.mode")}
             </span>
             <div class="view-switch" role="group" aria-labelledby="mode-label">
@@ -200,42 +194,34 @@ const config = {
             </div>
           </div>
 
-          <div class="stack" data-role="pane-shares" style="gap: 0">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3)">
-              <h3 style="margin: 0">{t(lang, "calc.where")}</h3>
+          <div class="stack gap-0" data-role="pane-shares">
+            <div class="calc-head">
+              <h3 class="m-0">{t(lang, "calc.where")}</h3>
               <span class="small">
                 <GlossaryTerm lang={lang} term="weights" />
               </span>
               <span class="small muted num">{t(lang, "calc.total")}</span>
             </div>
-            <div
-              class="callout caution"
-              data-role="rescaled"
-              hidden
-              style="margin: var(--space-2) 0"
-            >
+            <div class="callout caution calc-rescaled" data-role="rescaled" hidden>
               <span>{t(lang, "calc.rescaled")}</span>
             </div>
             <div data-role="sliders"></div>
           </div>
 
-          <div class="stack" data-role="pane-euros" hidden style="gap: var(--space-3)">
-            <p class="small muted" style="margin: 0; max-width: var(--text-max)">
-              {t(lang, "calc.euros.note")}
-            </p>
+          <div class="stack gap-3" data-role="pane-euros" hidden>
+            <p class="small muted m-0 measure">{t(lang, "calc.euros.note")}</p>
             <div class="euro-grid" data-role="euros"></div>
-            <p style="margin: 0; font-weight: 700" data-role="euros-total" aria-live="polite"></p>
-            <p class="small muted" style="margin: 0" data-role="euros-empty">
+            <p class="m-0 weight-bold" data-role="euros-total" aria-live="polite"></p>
+            <p class="small muted m-0" data-role="euros-empty">
               {t(lang, "calc.euros.empty")}
             </p>
           </div>
 
           <button
             type="button"
-            class="button"
+            class="button self-start calc-reset"
             data-role="reset"
             hidden
-            style="align-self: flex-start; border-color: var(--color-accent); color: var(--color-accent)"
           ></button>
           <p class="calc-sticky small" data-role="sticky" aria-hidden="true"></p>
         </div>
@@ -246,17 +232,14 @@ const config = {
       <h2 id="more-h">{t(lang, "explore.more")}</h2>
       <details class="panel">
         <summary>{t(lang, "calc.how.title")}</summary>
-        <div
-          class="stack"
-          style="gap: var(--space-2); margin-top: var(--space-3); max-width: var(--text-max)"
-        >
+        <div class="stack gap-2 mt-3 measure">
           <p>{t(lang, "calc.how.text", { from: calc.first_year })}</p>
           <p>
             {t(lang, "calc.how.inside")} {t(lang, "find.one_at_a_time")}
           </p>
           <a
+            class="weight-semibold"
             href={topicHref(lang, "inflation-by-group", country, "method")}
-            style="font-weight: 600"
           >
             {t(lang, "nav.method")} →
           </a>

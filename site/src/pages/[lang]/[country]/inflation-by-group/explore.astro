@@ -127,9 +127,9 @@ const SOURCES = [
   topic={{ slug: "inflation-by-group", country, section: "explore" }}
 >
   <div class="stack-lg" id="explore" data-config={JSON.stringify(config)}>
-    <div class="stack" style="gap: var(--space-2)">
+    <div class="stack gap-2">
       <h1>{t(lang, "explore.title")}</h1>
-      <p class="muted" style="max-width: var(--text-max)">
+      <p class="muted measure">
         {t(lang, "explore.lead", { country: t(lang, `country.${country}`) })}
       </p>
     </div>
@@ -165,7 +165,7 @@ const SOURCES = [
 
     <section class="panel chart-block" aria-label={t(lang, "explore.chart_title")}>
       <figure class="chart" data-role="chart-figure">
-        <figcaption class="stack" style="gap: var(--space-1)">
+        <figcaption class="stack gap-1">
           <div class="chart-head">
             <h2>{t(lang, "explore.chart_title")}</h2>
             <button
@@ -234,19 +234,19 @@ const SOURCES = [
           <a href={dataHref(lang, country)}>{t(lang, "noscript.data")} →</a>
         </p>
         <div data-role="loading" class="stack" aria-busy="true" hidden>
-          <div class="skeleton" style="height: 240px"></div>
+          <div class="skeleton chart"></div>
           <span class="small muted">{t(lang, "chart.loading")}</span>
         </div>
         <div data-role="failed" role="alert" class="stack" hidden>
           <strong>{t(lang, "chart.failed")}</strong>
           <span class="muted">{t(lang, "chart.failed_hint")}</span>
-          <button type="button" class="button" data-role="retry" style="align-self: flex-start">
+          <button type="button" class="button self-start" data-role="retry">
             {t(lang, "chart.retry")}
           </button>
         </div>
-        <div class="stack view-pane" data-role="view-time" style="gap: var(--space-3)" hidden>
+        <div class="stack view-pane gap-3" data-role="view-time" hidden>
           <div class="chart-area" role="img" data-role="chart"></div>
-          <p class="small" style="font-weight: 600" data-role="gap-title" hidden>
+          <p class="small weight-semibold" data-role="gap-title" hidden>
             {t(lang, "gap.long")}
           </p>
           <p class="small muted" data-role="gap-note" hidden>
@@ -259,29 +259,27 @@ const SOURCES = [
               <h3>{t(lang, "chart.data_points")}</h3>
             </summary>
             <div
-              class="table-wrap"
+              class="table-wrap table-scroll"
               data-role="table"
               tabindex="0"
               role="region"
               aria-label={t(lang, "chart.data_points")}
-              style="max-height: 420px; overflow-y: auto; margin-top: var(--space-3)"
             ></div>
           </details>
           <ol class="footnotes" data-role="footnotes"></ol>
         </div>
-        <div class="stack view-pane" data-role="view-parts" style="gap: var(--space-3)" hidden>
+        <div class="stack view-pane gap-3" data-role="view-parts" hidden>
           <p class="muted" data-role="contrib-none" hidden>
             {t(lang, "explore.contrib_none")}
           </p>
-          <div class="stack" data-role="contrib" style="gap: var(--space-3)">
+          <div class="stack gap-3" data-role="contrib">
             <p class="small muted" data-role="contrib-note"></p>
             <div class="bars" data-role="bars"></div>
             <button
               type="button"
-              class="button quiet"
+              class="button quiet self-start"
               data-role="contrib-more"
               hidden
-              style="align-self: flex-start"
             ></button>
           </div>
         </div>
@@ -296,12 +294,7 @@ const SOURCES = [
             ))}
           </select>
         </label>
-        <p
-          class="small muted"
-          data-role="measure-reason"
-          hidden
-          style="margin-top: calc(-1 * var(--space-2))"
-        >
+        <p class="small muted note-under" data-role="measure-reason" hidden>
           {t(lang, "explore.measure_parts")}
         </p>
         <div class="stack" style="gap: 2px">
@@ -316,13 +309,13 @@ const SOURCES = [
         <details class="fold" open>
           <summary>
             <h3>{t(lang, "explore.groups")}</h3>{" "}
-            <span class="small muted" style="font-weight: 400" data-role="group-count"></span>
+            <span class="small muted weight-regular" data-role="group-count"></span>
           </summary>
-          <div class="stack" style="gap: var(--space-3); margin-top: var(--space-3)">
+          <div class="stack gap-3 mt-3">
             {FAMILIES.map((f) => (
               <div class="stack" style="gap: 6px">
                 <div class="family-head">
-                  <span class="small muted" style="font-weight: 600">
+                  <span class="small muted weight-semibold">
                     {f.key === "income" ? (
                       <GlossaryTerm lang={lang} term="quintile" label={t(lang, "family.income")} />
                     ) : f.key === "tenure" ? (
@@ -381,9 +374,9 @@ const SOURCES = [
         <details class="fold">
           <summary>
             <h3>{t(lang, "option.heading")}</h3>{" "}
-            <span class="small muted" style="font-weight: 400" data-role="changed"></span>
+            <span class="small muted weight-regular" data-role="changed"></span>
           </summary>
-          <div class="options" style="margin-top: var(--space-4)">
+          <div class="options mt-4">
             {OPTIONS.map((o) => (
               <fieldset class="option" data-option={o}>
                 <legend>
@@ -431,8 +424,8 @@ const SOURCES = [
       <h2 id="more-h">{t(lang, "explore.more")}</h2>
       <details class="panel">
         <summary>{t(lang, "explore.downloads")}</summary>
-        <div class="stack" style="gap: var(--space-2); margin-top: var(--space-3)">
-          <p class="small muted" style="max-width: var(--text-max)">
+        <div class="stack gap-2 mt-3">
+          <p class="small muted measure">
             {t(lang, "explore.files.text", { country: t(lang, `country.${country}`) })}
           </p>
           <div class="button-row">
@@ -451,11 +444,11 @@ const SOURCES = [
       </details>
       <details class="panel">
         <summary>{t(lang, "explore.cite")}</summary>
-        <p class="small" style="margin-top: var(--space-3)" data-role="cite"></p>
+        <p class="small mt-3" data-role="cite"></p>
       </details>
       <details class="panel">
         <summary>{t(lang, "explore.sources")}</summary>
-        <div style="margin-top: var(--space-3)">
+        <div class="mt-3">
           <SourceList keys={SOURCES} lang={lang} />
         </div>
       </details>

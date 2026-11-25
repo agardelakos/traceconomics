@@ -83,9 +83,9 @@ const chartSeries = limits
   topic={{ slug: SLUG, country, section: `same-question/${Astro.params.question}` }}
 >
   <article class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <h1>{t(lang, `m5.question.${q.id}.title`)}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, `m5.question.${q.id}.text`)}</p>
+      <p class="text-lg">{t(lang, `m5.question.${q.id}.text`)}</p>
     </header>
     <SourcesChart
       lang={lang}
@@ -158,11 +158,11 @@ const chartSeries = limits
         </div>
         {asPublished.map((s) => (
           <section
-            class="stack"
-            style="gap: var(--space-2)"
+            class="stack gap-2"
+
             aria-labelledby={`published-${s.label}`}
           >
-            <h2 id={`published-${s.label}`} style="font-size: var(--text-lg)">
+            <h2 class="text-lg" id={`published-${s.label}`}>
               {t(lang, "m5.published.title", { source: name(s.label) })}
             </h2>
             <div
@@ -206,7 +206,7 @@ const chartSeries = limits
     </p>
     <details class="panel">
       <summary>{t(lang, "m5.finding.sources")}</summary>
-      <div style="margin-top: var(--space-3)">
+      <div class="mt-3">
         <SourceList keys={keys} lang={lang} />
       </div>
     </details>

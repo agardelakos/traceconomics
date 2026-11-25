@@ -450,6 +450,19 @@ main {
   color: var(--color-accent);
   font-weight: 700;
 }
+/* Popovers placed next to what opens them. The opener sets --anchor on itself (or on the item
+   around both), a name that differs per opener; the popover reads the same name. Browsers without
+   anchor positioning ignore both and centre the popover. */
+.nav-split,
+.icon-button[popovertarget],
+.term {
+  anchor-name: var(--anchor);
+}
+.nav-list,
+.theme-menu,
+.term-popover {
+  position-anchor: var(--anchor);
+}
 @supports (anchor-name: --a) {
   .nav-list {
     margin: var(--space-1) 0;
@@ -836,6 +849,10 @@ main {
 .chip:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+/* JumpLinks: the chips are links to parts of the page; no underline, like the buttons they look like. */
+.jump-links .chip {
+  text-decoration: none;
 }
 
 /* OptionSwitch */
@@ -1428,6 +1445,9 @@ button.term {
 .basket-bar span {
   display: block;
   height: 100%;
+  /* Each part's share and colour come from the data, as custom properties on the element. */
+  width: var(--w);
+  background: var(--c);
 }
 .basket-bar span + span {
   border-left: 2px solid var(--color-surface);
@@ -1447,6 +1467,7 @@ button.term {
   gap: 6px;
 }
 .basket-legend .box {
+  background: var(--c);
   width: 12px;
   height: 12px;
   border-radius: 2px;
@@ -2228,4 +2249,69 @@ label.check:has(input:disabled) {
 }
 .m5-cards .card a.title:hover {
   text-decoration: underline;
+}
+
+/* Page pieces: one page's own layout, named here instead of written on the element. Last in the
+   file, so each wins over the general rule it adjusts. */
+
+/* Home and a country's page: the closing section, set off by a rule. */
+.section-rule {
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-5);
+}
+/* The root address's language picker (no layout, no utilities there). */
+.container.lang-picker {
+  padding-top: var(--space-8);
+  max-width: 520px;
+}
+/* The glossary: its list, a term's entry, and the narrower column of both pages. */
+.glossary-page {
+  max-width: 760px;
+}
+.glossary-term-page {
+  max-width: 720px;
+}
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.glossary-entry {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+/* Grey blocks holding a chart's or a result's place while it loads. */
+.skeleton.chart {
+  height: 240px;
+}
+.skeleton.result {
+  height: 160px;
+}
+/* Explore: the data points' table scrolls inside its fold; a control's note tucked under it. */
+.table-scroll {
+  max-height: 420px;
+  overflow-y: auto;
+  margin-top: var(--space-3);
+}
+.note-under {
+  margin-top: calc(-1 * var(--space-2));
+}
+/* Calculator: the shares pane's heading row, the "same as" flag, the rescaled note, reset. */
+.calc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+.flag.calc-same {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+.callout.calc-rescaled {
+  margin: var(--space-2) 0;
+}
+.button.calc-reset {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
