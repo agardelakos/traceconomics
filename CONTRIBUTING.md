@@ -114,13 +114,17 @@ commit, from the repository root:
 .venv/bin/ruff format && .venv/bin/ruff check      # Python: format, then lint
 cd site
 npm run format           # Prettier: the site's code, its Markdown, the wiki, the repository's Markdown
-npm run lint             # ESLint: the site's TypeScript and Astro
+npm run lint             # ESLint: the site's TypeScript and Astro; Stylelint: its CSS
 ```
 
 `ruff check --fix` applies the fixes Ruff marks safe; never use `--unsafe-fixes` in bulk. A rule
 that is wrong for one line is switched off on that line only, with the reason:
 `# noqa: B905  # lengths differ on purpose: …` or
 `// eslint-disable-next-line no-control-regex -- strips terminal colour codes`.
+The site's pages follow its patterns (the wiki's
+[Site patterns](https://github.com/agardelakos/traceconomics/wiki/Site-patterns)): navigation from
+components, layout from utility classes rather than `style`, and every size, space and colour from
+the design tokens. Stylelint and the site checks enforce them.
 Never formatted: `tests/fixtures/`, the data tables in `src/traceconomics/data/`, the files the site
 serves as written (`site/public/`), generated files, and `CODE_OF_CONDUCT.md`.
 

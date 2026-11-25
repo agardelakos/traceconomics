@@ -3,6 +3,7 @@
 - [Home](Home)
 - [Architecture](Architecture)
 - [Design principles](Design-principles)
+- [Site patterns](Site-patterns)
 - [Price index methods](Price-index-methods)
 - [Household group methods](Household-group-methods)
 - [How a release goes live](How-a-release-goes-live)
