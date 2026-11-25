@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "48431306beafccc1ef4e5fda74bad985b3eade54",
- "generated": "2026-11-25T20:23:25Z",
+ "commit": "49697aba9855aa99fe8cc299cb064916943d7d28",
+ "generated": "2026-11-25T21:16:59Z",
  "missing": [],
  "cases": [
   {
@@ -5730,6 +5730,313 @@
     "the overview and the sidebar link to the page",
     "once the engine's code has changed, the page says the result may no longer hold",
     "without a result there is no page, no sidebar item and no chart left behind"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-001",
+   "suite": "pytest",
+   "title": "The real registry has exactly one entry for every CI job and release step",
+   "file": "tests/test_checks_page.py",
+   "line": 166,
+   "node": "tests/test_checks_page.py::test_the_real_registry_is_complete",
+   "given": [
+    "the repository's own registry, workflow, release steps and site checks"
+   ],
+   "when": [
+    "the page generator compares them"
+   ],
+   "then": [
+    "it finds no job or step without an entry, no entry without its job or step",
+    "the site checks are numbered 1 to N without a gap"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-002",
+   "suite": "pytest",
+   "title": "A new CI job or release step without an entry, or an entry without one, is reported",
+   "file": "tests/test_checks_page.py",
+   "line": 177,
+   "node": "tests/test_checks_page.py::test_a_job_or_step_without_an_entry_is_found",
+   "given": [
+    "a made-up repository whose registry matches its sources"
+   ],
+   "when": [
+    "a job and a release step are added to the sources but not to the registry",
+    "an entry names a job that no longer exists"
+   ],
+   "then": [
+    "each of the three is reported, by name",
+    "a promote step outside the build's steps is not taken for one of them"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-003",
+   "suite": "pytest",
+   "title": "Only the keys directly under `jobs:` are read as jobs",
+   "file": "tests/test_checks_page.py",
+   "line": 206,
+   "node": "tests/test_checks_page.py::test_the_jobs_are_read_only_under_jobs",
+   "given": [
+    "a workflow with keys under `on:`, jobs with a comment after their name, and nested keys"
+   ],
+   "when": [
+    "its jobs are read"
+   ],
+   "then": [
+    "the result is the job names in order, and nothing from `on:` or inside a job"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-004",
+   "suite": "pytest",
+   "title": "The site checks are read from the header only, and a gap in their numbers is reported",
+   "file": "tests/test_checks_page.py",
+   "line": 217,
+   "node": "tests/test_checks_page.py::test_a_gap_in_the_site_checks_numbers_is_found",
+   "given": [
+    "a made-up checks.mjs with two numbered header checks, one over two lines, and a numbered comment below"
+   ],
+   "when": [
+    "its checks are read",
+    "a copy with check 2 renumbered 3 is checked"
+   ],
+   "then": [
+    "they are the two header checks, each on one line, and the comment below is ignored",
+    "the copy's gap is reported"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-005",
+   "suite": "pytest",
+   "title": "The repository checks are the test files marked `repository`, with their docstring's first sentence",
+   "file": "tests/test_checks_page.py",
+   "line": 237,
+   "node": "tests/test_checks_page.py::test_the_repository_checks_are_the_files_marked_repository",
+   "given": [
+    "a made-up repository with one test file marked repository and one marked unit"
+   ],
+   "when": [
+    "its repository checks are read"
+   ],
+   "then": [
+    "only the first is listed, with the first sentence of its docstring"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-006",
+   "suite": "pytest",
+   "title": "The registry's required checks must match the branch rules on main",
+   "file": "tests/test_checks_page.py",
+   "line": 248,
+   "node": "tests/test_checks_page.py::test_the_required_checks_are_compared_with_the_branch_rules",
+   "given": [
+    "the made-up registry, which requires `python` and code scanning results"
+   ],
+   "when": [
+    "it is compared with rules that require the same",
+    "with rules that require another check too",
+    "with rules that require no code scanning"
+   ],
+   "then": [
+    "nothing is reported for the first",
+    "each difference is reported for the other two"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-007",
+   "suite": "pytest",
+   "title": "The page is not written while the registry disagrees with the sources or the rules",
+   "file": "tests/test_checks_page.py",
+   "line": 266,
+   "node": "tests/test_checks_page.py::test_nothing_is_written_while_anything_disagrees",
+   "given": [
+    "a made-up repository with a job missing from its registry",
+    "a complete made-up repository"
+   ],
+   "when": [
+    "the page is generated for the first",
+    "for the second, with rules that require another check"
+   ],
+   "then": [
+    "both stop, the first naming the job",
+    "no page is written"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-008",
+   "suite": "pytest",
+   "title": "The page shows every job, step, site check, repository check, gate and setting",
+   "file": "tests/test_checks_page.py",
+   "line": 288,
+   "node": "tests/test_checks_page.py::test_the_page_shows_each_part",
+   "given": [
+    "a made-up repository and rules that match its registry"
+   ],
+   "when": [
+    "the page is generated"
+   ],
+   "then": [
+    "it lists the jobs with whether each is required, and names the badges job as not a check",
+    "it lists the linters' settings read from their files, the site checks and the repository check",
+    "it shows the coverage floor read from the code",
+    "the release steps in order, as check or build, with their commands in order",
+    "the checks after a build",
+    "it says the required checks were checked against the branch rules"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-009",
+   "suite": "pytest",
+   "title": "Stylelint appears on the page once its configuration exists",
+   "file": "tests/test_checks_page.py",
+   "line": 325,
+   "node": "tests/test_checks_page.py::test_stylelint_is_listed_once_it_is_set_up",
+   "given": [
+    "a made-up repository with a Stylelint configuration that extends two shared configs"
+   ],
+   "when": [
+    "the page is generated"
+   ],
+   "then": [
+    "the code style table lists Stylelint with the two configs"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-010",
+   "suite": "pytest",
+   "title": "The real page is byte-identical from run to run and holds nothing private",
+   "file": "tests/test_checks_page.py",
+   "line": 339,
+   "node": "tests/test_checks_page.py::test_the_real_page_gives_the_same_bytes_and_nothing_private",
+   "given": [
+    "the repository's own files"
+   ],
+   "when": [
+    "the page is generated twice into two folders"
+   ],
+   "then": [
+    "the two pages are byte-identical",
+    "the page holds no decision number, no path on someone's machine and no email address"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-011",
+   "suite": "pytest",
+   "title": "The command line reads the rules from a file and writes the page",
+   "file": "tests/test_checks_page.py",
+   "line": 358,
+   "node": "tests/test_checks_page.py::test_the_command_line_reads_the_rules",
+   "given": [
+    "a made-up repository and a file with rules that match its registry"
+   ],
+   "when": [
+    "the generator's command line is run with --rules"
+   ],
+   "then": [
+    "it writes the page and names it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-CHECKS-012",
+   "suite": "pytest",
+   "title": "Tags named in a source stay text, and Stylelint's opening comment describes it",
+   "file": "tests/test_checks_page.py",
+   "line": 377,
+   "node": "tests/test_checks_page.py::test_text_from_sources_stays_text",
+   "given": [
+    "a made-up repository whose site check and repository test name an HTML tag",
+    "a Stylelint configuration that opens with a comment of two paragraphs"
+   ],
+   "when": [
+    "the page is generated"
+   ],
+   "then": [
+    "each tag outside a code span is escaped and each one inside a code span is left as typed",
+    "the code style table gives the comment's first sentence after the shared configs"
    ],
    "notes": "",
    "examples": [],
@@ -22328,7 +22635,7 @@
    "suite": "pytest",
    "title": "the wiki has its home page and sidebar",
    "file": "tests/test_wiki_pages.py",
-   "line": 48,
+   "line": 49,
    "node": "tests/test_wiki_pages.py::test_there_are_pages",
    "given": [
     "the hand-written wiki pages in wiki/"
@@ -22352,7 +22659,7 @@
    "suite": "pytest",
    "title": "every path a wiki page names exists in the repository",
    "file": "tests/test_wiki_pages.py",
-   "line": 58,
+   "line": 59,
    "node": "tests/test_wiki_pages.py::test_named_paths_exist",
    "given": [
     "a hand-written wiki page"
@@ -22390,7 +22697,7 @@
    "suite": "pytest",
    "title": "every link to another wiki page has a page behind it",
    "file": "tests/test_wiki_pages.py",
-   "line": 70,
+   "line": 71,
    "node": "tests/test_wiki_pages.py::test_wiki_links_have_a_page",
    "given": [
     "a hand-written wiki page"
@@ -22428,7 +22735,7 @@
    "suite": "pytest",
    "title": "every block a wiki page quotes from the code still matches that module's docstring",
    "file": "tests/test_wiki_pages.py",
-   "line": 97,
+   "line": 98,
    "node": "tests/test_wiki_pages.py::test_quoted_blocks_match_their_docstring",
    "given": [
     "a hand-written wiki page with blocks marked `<!-- from: <module> -->`"
@@ -22467,7 +22774,7 @@
    "suite": "pytest",
    "title": "every code block on a method page is marked with the module it quotes",
    "file": "tests/test_wiki_pages.py",
-   "line": 116,
+   "line": 117,
    "node": "tests/test_wiki_pages.py::test_every_block_on_a_method_page_names_its_source",
    "given": [
     "the price index and household group method pages"
