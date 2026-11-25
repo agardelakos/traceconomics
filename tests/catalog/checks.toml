@@ -1,0 +1,224 @@
+# Every automatic check, for the wiki page Checks (tests/catalog/checks_page.py), in the order the
+# page shows them. Only what a source can't say is written here: what a CI job or a release step
+# checks, what stops when it fails, how to run it first. The site checks, the repository checks and
+# the linters' settings are read from their own files instead, so they can't fall behind.
+#
+# tests/test_checks_page.py keeps this file complete: every job in .github/workflows/tests.yml and
+# every step in src/traceconomics/release.py has exactly one entry here, and every entry names one
+# that exists. A new job or step fails the tests until it is described here; one that is not a
+# check (a build or upload step, the badges) is still listed, with check = false.
+#
+# Fields: key (the job or step name), name, what (one sentence), local (the command to run it
+# first, or the commands in order, if there is one), required (CI: a required check of the
+# branch rules on main; "code scanning" for CodeQL, which the rules require as code scanning
+# results), check (false for a step or job that builds or publishes rather than checks).
+# Gates and the checks after a build: name, what, where (the file that holds it), when (after a
+# build), floor (a coverage floor: the file and the pattern it is read with).
+
+[[ci]]
+key = "python"
+name = "Python tests"
+what = "The pytest suite, offline, on saved publisher files and synthetic data, without the optional `local` extra."
+local = ".venv/bin/python -I -m pytest"
+required = true
+
+[[ci]]
+key = "lint"
+name = "Code style"
+what = "Ruff, Prettier, ESLint and Stylelint in check mode (settings below): nothing to reformat, no likely bug, no style value outside the tokens."
+local = [".venv/bin/ruff format --check && .venv/bin/ruff check", "cd site && npm run format:check && npm run lint"]
+required = true
+
+[[ci]]
+key = "python-local"
+name = "Microdata code"
+what = "The tests that need the optional `local` extra (pandas), on synthetic surveys."
+local = [".venv/bin/python -m pip install --require-hashes --no-deps -r requirements-local.txt", ".venv/bin/python -I -m pytest"]
+
+[[ci]]
+key = "site"
+name = "Site"
+what = "On made-up data: type check, Vitest, build, the site checks (below), the Playwright suite, and the site's coverage floor."
+local = "cd site && npm run check && npm run test:ui"
+required = true
+
+[[ci]]
+key = "coverage"
+name = "Coverage by layer"
+what = "Joins the Python runs and fails below the Python coverage floor or when a covered line has a wrong or missing layer."
+local = [".venv/bin/python -I -m coverage run -m pytest", ".venv/bin/python -I -m coverage html"]
+
+[[ci]]
+key = "data-states"
+name = "Other data states"
+what = "The site's checks and browser tests again on each other state of the made-up data (January, a new survey year, the HICP caught up)."
+local = [".venv/bin/python tests/sitedata.py site/public/data --state <state>", "cd site && npm run check && npm run test:ui"]
+
+[[ci]]
+key = "same-in-both"
+name = "Figures follow the data"
+what = "Builds the site on two different made-up data sets and fails on any figure that is the same in both, that is, typed into a page instead of read from the data."
+
+[[ci]]
+key = "catalog"
+name = "Test catalog"
+what = "Every test in every suite has a well-formed ID, Given/When/Then steps, no reused or duplicate ID, and a valid cross-suite mapping."
+local = ".venv/bin/python -I tests/catalog/collect.py --out /tmp/catalog.json --no-selenium && .venv/bin/python -I tests/catalog/validate.py /tmp/catalog.json"
+required = true
+
+[[ci]]
+key = "codeql"
+name = "Code scanning"
+what = "CodeQL on the Python, the TypeScript and the workflows; also weekly, for new queries."
+required = "code scanning"
+
+[[ci]]
+key = "badges"
+name = "Coverage badges"
+what = "On main only: writes the README's coverage badges to their own branch."
+check = false
+
+# The gates inside those jobs: each one fails its job.
+
+[[gate]]
+name = "Every test has a layer"
+what = "pytest stops before running anything if a test file declares no layer (unit, integration or repository)."
+where = "tests/conftest.py"
+
+[[gate]]
+name = "Python coverage"
+what = "Fails below the floor, and when a covered line has a wrong or missing layer."
+where = "tests/coverage/overview.py"
+floor = { file = "tests/coverage/overview.py", pattern = '^RATCHET = ([0-9.]+)' }
+
+[[gate]]
+name = "Site coverage"
+what = "Vitest and Playwright merged; fails below the floor, or when a file of the site's code is loaded by no test."
+where = "site/scripts/coverage.mjs"
+floor = { file = "site/scripts/coverage-options.mjs", pattern = '^export const FLOOR = ([0-9.]+);' }
+
+[[gate]]
+name = "Catalog rules"
+what = "The rules the catalog job applies; tests/catalog/strict.toml makes every rule an error in every file."
+where = "tests/catalog/validate.py"
+
+# The release build, step by step, in order. Any step that fails stops the build there, and the
+# owner gets an alert naming it.
+
+[[release]]
+key = "inputs"
+name = "Our survey tables match their inputs"
+what = "The survey tables match the code and every file they were built from: a build on stale tables would be wrong."
+local = ".venv/bin/python -I -m traceconomics check inputs"
+
+[[release]]
+key = "store"
+name = "Update the store"
+what = "New archived files into the observation store."
+check = false
+
+[[release]]
+key = "series"
+name = "Compute the series"
+what = "Inflation by household group, every option combination."
+check = false
+
+[[release]]
+key = "bands"
+name = "Compute the bands"
+what = "The uncertainty bands, by bootstrap."
+check = false
+
+[[release]]
+key = "store-bands"
+name = "Store the bands"
+what = "The bands into the observation store."
+check = false
+
+[[release]]
+key = "check-v1"
+name = "HICP rebuilt"
+what = "The engine rebuilds Eurostat's HICP for Greece from its items, within the stated margins."
+local = ".venv/bin/python -I -m traceconomics check v1"
+
+[[release]]
+key = "check-v1-cpi"
+name = "CPI rebuilt"
+what = "The engine rebuilds ELSTAT's CPI from its items, within the stated margins."
+local = ".venv/bin/python -I -m traceconomics check v1-cpi"
+
+[[release]]
+key = "check-combos"
+name = "Every combination"
+what = "The identities every option combination must hold, read from the written files: contributions add up to the rate, the default equals the saved earlier build, every series is in the availability table."
+
+[[release]]
+key = "check-weights"
+name = "Our weights switch"
+what = "Where our own weights change (a new year, a new survey year), the outputs follow the rule for it: nothing published shows that switch."
+
+[[release]]
+key = "consistency"
+name = "Official figures against their inputs"
+what = "Computes the consistency topic; a difference never fails it (it is what the topic publishes), only an input it can't read."
+
+[[release]]
+key = "export"
+name = "Export the site's data"
+what = "The files the site reads."
+check = false
+
+[[release]]
+key = "check-figures"
+name = "Figures typed into the text"
+what = "Past figures typed into the site's text, against the data just exported: a revision that changes one stops the build."
+
+[[release]]
+key = "npm-ci"
+name = "Install the site's packages"
+what = "From the lock file."
+check = false
+
+[[release]]
+key = "site-check"
+name = "Site"
+what = "Type check, Vitest, build and the site checks, on the real data."
+local = "cd site && npm run check"
+
+[[release]]
+key = "ui-test"
+name = "Browser tests"
+what = "The full Playwright suite on the built files, before anything leaves the machine."
+local = "cd site && npm run test:ui"
+
+[[release]]
+key = "upload"
+name = "Upload a preview"
+what = "The built site to a private preview address."
+check = false
+
+[[release]]
+key = "smoke"
+name = "Smoke tests on the preview"
+what = "The @smoke set on the preview, with the host's real headers."
+local = ["cd site && npx wrangler dev --port 8788", "BASE_URL=http://127.0.0.1:8788 npm run test:ui -- --grep @smoke"]
+
+# After the build: checks that are not steps of it.
+
+[[after]]
+name = "The promoted build is served"
+what = "After every promote, the target address must serve the promoted build's own files, byte for byte, within two minutes; otherwise the promote is reported as unconfirmed."
+when = "after every promote"
+where = "src/traceconomics/release.py"
+
+[[after]]
+name = "The release server is alive"
+what = "The release server's heartbeat must be recent and report no failure; otherwise the workflow fails and its failure email is the alert."
+when = "daily (GitHub starts it hours late at times)"
+where = ".github/workflows/watchdog.yml"
+
+[[after]]
+name = "Dependency updates"
+what = "Monthly update proposals for the pinned dependencies (actions, Python, the site), at least 14 days old, no major versions; each one is a pull request that runs the pipeline above."
+when = "monthly"
+where = ".github/dependabot.yml"

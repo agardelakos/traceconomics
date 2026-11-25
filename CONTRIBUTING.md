@@ -39,7 +39,8 @@ Everyone taking part in the project follows the [code of conduct](CODE_OF_CONDUC
 4. Fill in the pull request template. It asks what you tested and how, and whether AI tools were
    used.
 5. CI must pass. The required checks are the Python tests (`python`), the site's checks and browser
-   tests (`site`) and code scanning.
+   tests (`site`), the test catalog (`catalog`), code style (`lint`) and code scanning. The wiki's
+   Checks page lists every automatic check and how to run it before you push.
 
 ## Hard rules, and why
 

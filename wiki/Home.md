@@ -40,18 +40,35 @@ More topics and countries are planned.
 
 The repository holds the code and the binding rules; the wiki holds the longer explanations.
 
-| Page                                                     | Read it to                                                   |
-| -------------------------------------------------------- | ------------------------------------------------------------ |
-| [Architecture](Architecture)                             | understand how data flows from publishers' files to the site |
-| [Design principles](Design-principles)                   | know the rules the project keeps, and why                    |
-| [Price index methods](Price-index-methods)               | see how an index is built and checked against official ones  |
-| [Household group methods](Household-group-methods)       | see how each group's weights come from the survey            |
-| [How a release goes live](How-a-release-goes-live)       | see how a build decides whether it may publish by itself     |
-| [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                            |
-| [Test strategy](Test-strategy)                           | see what each test layer proves, and what isn't tested       |
-| [Test management as code](Test-management-as-code)       | see how test cases and run history are kept with the code    |
-| [Testing showcase](Testing-showcase)                     | see the maintainer's testing portfolio, kept apart           |
-| [Future](Future)                                         | see what is deliberately left for later                      |
+The sidebar groups the pages in three: the project and its methods, how the code is built and
+kept right, and the maintainer's testing showcase.
+
+**TracEconomics**
+
+| Page                                               | Read it to                                                  |
+| -------------------------------------------------- | ----------------------------------------------------------- |
+| [Price index methods](Price-index-methods)         | see how an index is built and checked against official ones |
+| [Household group methods](Household-group-methods) | see how each group's weights come from the survey           |
+| [Future](Future)                                   | see what is deliberately left for later                     |
+
+**Engineering**
+
+| Page                                                     | Read it to                                                             |
+| -------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [Architecture](Architecture)                             | understand how data flows from publishers' files to the site           |
+| [Design principles](Design-principles)                   | know the rules the project keeps, and why                              |
+| [Site patterns](Site-patterns)                           | build pages from the site's components and tokens                      |
+| [How a release goes live](How-a-release-goes-live)       | see how a build decides whether it may publish by itself               |
+| [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                                      |
+| [Test strategy](Test-strategy)                           | see what each test layer proves, and what isn't tested                 |
+| [Checks](Checks)                                         | see every automatic check, what fails with it, and how to run it first |
+| [Test management as code](Test-management-as-code)       | see how test cases and run history are kept with the code              |
+
+**Testing showcase**
+
+| Page                                 | Read it to                                         |
+| ------------------------------------ | -------------------------------------------------- |
+| [Testing showcase](Testing-showcase) | see the maintainer's testing portfolio, kept apart |
 
 Wiki pages follow the current rules on `main`. If a page and the code disagree, the code and
 [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONTRIBUTING.md) win;

@@ -3,15 +3,18 @@
 //  1. Text: both languages have the same keys; every content page exists in both languages, and
 //     each glossary term sits in the same category in both.
 //  2. Sources: every source key in the content exists in the bibliography.
-//  3. Nothing private or internal in the built pages: no decision numbers ("D45"), no links to
-//     the private notes ("docs/"), no local paths, no e-mail addresses but the project's public
-//     support address (a forwarding alias, published on purpose for readers' ideas and reports).
-//  4. Security: no inline scripts (but JSON-LD data blocks, which browsers never run); scripts, styles, fonts and images only from this site, except the
-//     visit-count beacon in release builds: that exact file, once per page, with the site's token.
+//  3. Nothing private or internal in the built pages: no decision numbers ("D" and digits), no
+//     links to the private notes ("docs/"), no local paths, no e-mail addresses but the project's
+//     public support address (a forwarding alias, published on purpose for readers' ideas and
+//     reports).
+//  4. Security: no inline scripts (but JSON-LD data blocks, which browsers never run) and no inline
+//     style blocks; scripts, styles, fonts and images only from this site, except the visit-count
+//     beacon in release builds: that exact file, once per page, with the site's token.
 //  5. Budgets: each page's HTML, CSS and scripts at most 300 KB compressed; any file at most
 //     20 MiB; at most 20,000 files (the hosts' limits).
 //  6. Links: every link to a page or file of this site leads to one that was built, and every page
-//     but the root lives under a language (/el/ or /en/), so addresses stay stable.
+//     but the root lives under a language (/el/ or /en/), so addresses stay stable; every id is
+//     used once per page (popovers and labels find their element by id).
 //  7. For search engines and AI tools: every page names itself as canonical, at its full address;
 //     the sitemap lists exactly the pages in the offered languages; robots.txt names the sitemap;
 //     every link of this site in llms.txt leads to a page or file that was built, and it links every
@@ -134,7 +137,7 @@ const own = (url) =>
   SITE && url.startsWith(`${SITE}/`) ? decodeURIComponent(new URL(url).pathname) : null;
 const built = (p) => existsSync(p.endsWith("/") ? join(dist, p, "index.html") : join(dist, p));
 
-// 3–5 on the built site.
+// 3–7 on the built site.
 if (!existsSync(dist)) fail("no dist/: run the build first");
 else {
   const files = walk(dist);
@@ -209,7 +212,7 @@ else {
       const hit = text.match(re);
       if (hit) fail(`${name}: ${what} ("${hit[0]}")`);
     }
-    // Links to this site's own pages and files lead somewhere.
+    // 6. Links to this site's own pages and files lead somewhere.
     for (const m of html.matchAll(/<a\b[^>]*\bhref="([^"#?]*)[^"]*"/g)) {
       const url = m[1];
       if (!local(url)) continue;
@@ -217,7 +220,7 @@ else {
       if (!existsSync(url.endsWith("/") ? join(target, "index.html") : target))
         fail(`${name}: link to missing ${url}`);
     }
-    // Its canonical address is its own, in full; its language twins were built.
+    // 7. Its canonical address is its own, in full; its language twins were built.
     const path = `/${name.replaceAll("\\", "/").replace(/(^|\/)index\.html$/, "$1")}`;
     const canonicals = [
       ...html.matchAll(/<link\b[^>]*\brel="canonical"[^>]*\bhref="([^"]+)"/g),
@@ -231,7 +234,7 @@ else {
       else if (!built(p)) fail(`${name}: alternate link to missing ${m[1]}`);
     }
     if (/^(el|en)\//.test(name.replaceAll("\\", "/"))) pages.push(path);
-    // Every id once per page: popovers and labels find their element by id.
+    // 6. Every id once per page: popovers and labels find their element by id.
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
     const dup = ids.find((id, i) => ids.indexOf(id) !== i);
     if (dup) fail(`${name}: the id "${dup}" is used twice`);
