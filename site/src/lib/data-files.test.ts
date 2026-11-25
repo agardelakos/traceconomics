@@ -7,7 +7,7 @@ import { countryFacts } from "./context";
 import { calculator, latest, months, readJson, series, settings } from "./data";
 import { BASE_AMOUNT, BASE_MONTH, bandLine, headline } from "./headline";
 import { ordered, results, slugOf } from "./m5";
-import { checkStrip, questionStrip } from "./m5-strip";
+import { markCurrent, SOURCES, type Row } from "./strips";
 import { format, reference, references } from "./references";
 import { t } from "./i18n";
 
@@ -315,14 +315,23 @@ describe("the bibliography", () => {
         ],
       },
     },
-    () => {
+    async () => {
       const r = results("gr");
       expect(r.checks.length, "the data have no checks: nothing to check").toBeGreaterThan(1);
       expect(r.questions.length, "the data have no questions: nothing to check").toBeGreaterThan(1);
       for (const lang of ["en", "el"] as const) {
         const checks = ordered(r.checks),
           current = checks[1].id;
-        const c = checkStrip(lang, "gr", current);
+        // The rows as lib/strips.ts lists them, marked as the layout marks them for the page read.
+        const strip = async (key: string, page: (rows: Row[]) => string) => {
+          const rows = await SOURCES[`official-figures-consistency/${key}`].rows(lang, "gr");
+          return markCurrent(
+            SOURCES[`official-figures-consistency/${key}`].label(lang),
+            rows,
+            page(rows),
+          );
+        };
+        const c = await strip("checks", (rows) => rows[1].href);
         expect(c.label).toBe(t(lang, "m5.strip.checks"));
         expect(c.items.map((i) => i.label)).toEqual(checks.map((x) => t(lang, `m5.short.${x.id}`)));
         expect(c.items.map((i) => i.href)).toEqual(
@@ -334,7 +343,7 @@ describe("the bibliography", () => {
           t(lang, `m5.short.${current}`),
         ]);
 
-        const q = questionStrip(lang, "gr", r.questions[0].id);
+        const q = await strip("same-question", (rows) => rows[0].href);
         expect(q.label).toBe(t(lang, "m5.strip.questions"));
         expect(q.items.map((i) => i.label)).toEqual(
           r.questions.map((x) => t(lang, `m5.short.${x.id}`)),

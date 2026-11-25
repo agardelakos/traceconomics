@@ -17,7 +17,8 @@ import SiteHeader from "../components/SiteHeader.astro";
 import CountryBar from "../components/CountryBar.astro";
 import TopicBar from "../components/TopicBar.astro";
 import { href, isOffered, otherLang, t, type Lang } from "../lib/i18n";
-import { countryHref, topic as topicOf, topicHref, topicPath, type Strip } from "../lib/topics";
+import { stripFor } from "../lib/strips";
+import { countryHref, topic as topicOf, topicHref, topicPath } from "../lib/topics";
 import { analyticsOn, BEACON, TOKEN } from "../lib/analytics";
 
 interface Props {
@@ -28,10 +29,14 @@ interface Props {
   current?: string;
   country?: string;
   topic?: { slug: string; country?: string; section?: string };
-  // A page inside a section (a check, a question): every page of that section, the current one marked.
-  strip?: Strip;
 }
-const { lang, title, description, topic, strip } = Astro.props;
+const { lang, title, description, topic } = Astro.props;
+// A page inside a section (a check, a question) lists that section's pages in the bar's third row,
+// built from the page's address (lib/strips.ts), never passed in by the page.
+const strip =
+  topic?.country === undefined
+    ? undefined
+    : await stripFor(lang, topic.slug, topic.country, topic.section ?? "");
 const path = topic ? topicPath(topic.slug, topic.country, topic.section) : (Astro.props.path ?? "");
 const current = topic ? topic.slug : Astro.props.current;
 const country = topic?.country ?? Astro.props.country;

@@ -15,7 +15,6 @@ import { num } from "../../../../../lib/format";
 import { LANGS, t, type Lang } from "../../../../../lib/i18n";
 import { reference } from "../../../../../lib/references";
 import { results, slugOf } from "../../../../../lib/m5";
-import { questionStrip } from "../../../../../lib/m5-strip";
 import { countryPaths, dataHref } from "../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
@@ -82,7 +81,6 @@ const chartSeries = limits
   title={t(lang, `m5.question.${q.id}.title`)}
   description={t(lang, `m5.question.${q.id}.text`)}
   topic={{ slug: SLUG, country, section: `same-question/${Astro.params.question}` }}
-  strip={questionStrip(lang, country, q.id)}
 >
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">

@@ -6,7 +6,6 @@ import SourceList from "../../../../../../components/SourceList.astro";
 import Base from "../../../../../../layouts/Base.astro";
 import { LANGS, t, type Lang } from "../../../../../../lib/i18n";
 import { findings, results, slugOf } from "../../../../../../lib/m5";
-import { checkStrip } from "../../../../../../lib/m5-strip";
 import { countryPaths, topicHref } from "../../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
@@ -40,7 +39,6 @@ const st =
   title={entry.data.title}
   description={entry.data.summary}
   topic={{ slug: SLUG, country, section: `checks/${Astro.params.check}/${Astro.params.finding}` }}
-  strip={checkStrip(lang, country, c.id)}
 >
   <article class="stack-lg">
     <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">

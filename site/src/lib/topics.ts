@@ -33,6 +33,9 @@ export interface Topic {
   status: Status;
   countries: string[]; // ISO 3166-1 alpha-2, lower case, with a page for this topic
   sections: string[]; // the pages each country has, in menu order ("" is its overview)
+  // Sections with pages of their own (an option, a check, a question). Each lists them in the
+  // bar's third row, from lib/strips.ts; a page inside any other section fails the build.
+  inner?: string[];
   shown?: boolean; // a planned topic named on the site as "coming soon" (topic cards only)
 }
 
@@ -44,6 +47,7 @@ export const TOPICS: Topic[] = [
     countries: ["gr"],
     // In reading order: what it is, how it was measured, who the groups are, then the tools.
     sections: ["", "method", "groups", "explore", "calculator"],
+    inner: ["method"],
   },
   {
     slug: "official-figures-consistency",
@@ -52,6 +56,7 @@ export const TOPICS: Topic[] = [
     countries: ["gr"],
     // What the checks found, each check on its own, one question across sources, then the rules.
     sections: ["", "method", "checks", "same-question"],
+    inner: ["checks", "same-question"],
   },
   { slug: "forecast-scorecard", module: "m2", status: "planned", countries: [], sections: [] },
   { slug: "gdp-nowcast", module: "m3", status: "planned", countries: [], sections: [] },
@@ -90,7 +95,7 @@ export function officialSources(): Office[] {
   ];
 }
 
-/** The pages of one section of a topic, for the bar's third row: each by its short name, one current. */
+/** The pages of one section of a topic, for the bar's third row (lib/strips.ts): one current. */
 export interface Strip {
   label: string;
   items: { href: string; label: string; current: boolean }[];
