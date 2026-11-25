@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "c8d8ae7e99d25bf0592cf52a091d12dbd50aedb4",
- "generated": "2026-11-24T21:50:01Z",
+ "commit": "48431306beafccc1ef4e5fda74bad985b3eade54",
+ "generated": "2026-11-25T20:23:25Z",
  "missing": [],
  "cases": [
   {
@@ -2992,11 +2992,37 @@
    "layer": null
   },
   {
+   "id": "PW-NAV-017",
+   "suite": "playwright",
+   "title": "on a phone, each row of the topic bar is centred on its current item once the fonts arrive",
+   "file": "site/tests/ui/nav.ui.ts",
+   "line": 329,
+   "node": "site/tests/ui/nav.ui.ts › on a phone, each row of the topic bar is centred on its current item once the fonts arrive",
+   "given": [
+    "a phone-sized screen",
+    "the site's font files arriving a second after the page, so the bar is first laid out in the fallback font",
+    "three pages whose bars have rows wider than the screen: the Greek overview of inflation by household and the consistency topic's checks page (the fallback font would misplace the current item), and a method option's page (its row of options gets narrower when the fonts arrive, and the browser moves it by itself)"
+   ],
+   "when": [
+    "each is opened and the fonts have arrived"
+   ],
+   "then": [
+    "in every row wider than the screen, the current item sits in the row's middle (to a pixel, or as near as the row can scroll), measured in the site's own font"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
    "id": "PW-NAV-015",
    "suite": "playwright",
    "title": "on a method option's page, the bar's third row lists every option and marks the one being read",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 329,
+   "line": 376,
    "node": "site/tests/ui/nav.ui.ts › on a method option's page, the bar's third row lists every option and marks the one being read",
    "given": [
     "the method page, which lists every option, and one option's page"
@@ -3022,7 +3048,7 @@
    "suite": "playwright",
    "title": "the Topics quick list names every live topic and leads to its page",
    "file": "site/tests/ui/nav.ui.ts",
-   "line": 367,
+   "line": 414,
    "node": "site/tests/ui/nav.ui.ts › the Topics quick list names every live topic and leads to its page",
    "given": [
     "Greece's page of the consistency topic"
@@ -22347,6 +22373,7 @@
     "Household-group-methods.md",
     "How-a-release-goes-live.md",
     "Price-index-methods.md",
+    "Site-patterns.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
     "Testing-showcase.md",
@@ -22384,6 +22411,7 @@
     "Household-group-methods.md",
     "How-a-release-goes-live.md",
     "Price-index-methods.md",
+    "Site-patterns.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
     "Testing-showcase.md",
@@ -22422,6 +22450,7 @@
     "Household-group-methods.md",
     "How-a-release-goes-live.md",
     "Price-index-methods.md",
+    "Site-patterns.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
     "Testing-showcase.md",
@@ -28672,6 +28701,108 @@
    "layer": null
   },
   {
+   "id": "VT-STRIP-001",
+   "suite": "vitest",
+   "title": "has a row for every section declared with pages of its own, and for no other",
+   "file": "site/src/lib/strips.test.ts",
+   "line": 12,
+   "node": "site/src/lib/strips.test.ts › the bar's third row (strips) › has a row for every section declared with pages of its own, and for no other",
+   "given": [
+    "the topics' declared inner sections and the rows in lib/strips.ts"
+   ],
+   "when": [
+    "the two lists are compared"
+   ],
+   "then": [
+    "every inner section of a live topic has a row",
+    "every row belongs to a declared inner section that is one of its topic's sections"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STRIP-002",
+   "suite": "vitest",
+   "title": "is built only for a page inside a declared section, and refuses a page inside any other",
+   "file": "site/src/lib/strips.test.ts",
+   "line": 36,
+   "node": "site/src/lib/strips.test.ts › the bar's third row (strips) › is built only for a page inside a declared section, and refuses a page inside any other",
+   "given": [
+    "pages of the consistency topic at a section's own address and inside a section"
+   ],
+   "when": [
+    "the layout asks which row the page shows"
+   ],
+   "then": [
+    "a section's own page and the overview show none",
+    "a check, a finding and a question show their section's row",
+    "a page inside a section with no pages of its own fails with the section named"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STRIP-003",
+   "suite": "vitest",
+   "title": "marks the page being read, or its parent, and only that",
+   "file": "site/src/lib/strips.test.ts",
+   "line": 61,
+   "node": "site/src/lib/strips.test.ts › the bar's third row (strips) › marks the page being read, or its parent, and only that",
+   "given": [
+    "a row of two pages whose addresses share a beginning (a/ and ab/)"
+   ],
+   "when": [
+    "it is marked for one page, for a page below it, and for a page it doesn't list"
+   ],
+   "then": [
+    "the page itself is marked, not its neighbour",
+    "a page below one (a finding) marks its parent (the check)",
+    "a page matching no row fails, naming the row and the page"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STRIP-004",
+   "suite": "vitest",
+   "title": "is built for a check's page in each language, from the page's address alone",
+   "file": "site/src/lib/strips.test.ts",
+   "line": 87,
+   "node": "site/src/lib/strips.test.ts › the bar's third row (strips) › is built for a check's page in each language, from the page's address alone",
+   "given": [
+    "Greece's consistency results"
+   ],
+   "when": [
+    "the strip is built for the second check's page, and for a finding under it"
+   ],
+   "then": [
+    "it lists every check, the second marked current, under the checks' label",
+    "the finding's strip is the same, its check marked"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
    "id": "VT-STRUCT-001",
    "suite": "vitest",
    "title": "gives full addresses, the licence's address and each file's media type",
@@ -29404,6 +29535,232 @@
    "then": [
     "the glossary holds each language's term under its language",
     "the first allow-list gives its entry, the second an empty list"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-UIRULES-001",
+   "suite": "vitest",
+   "title": "refuse inline styles other than custom properties",
+   "file": "site/src/lib/ui-rules.test.ts",
+   "line": 24,
+   "node": "site/src/lib/ui-rules.test.ts › the UI rules on the sources › refuse inline styles other than custom properties",
+   "given": [
+    "elements with a style attribute: plain, a template, an expression, custom properties only"
+   ],
+   "when": [
+    "the source rules read them"
+   ],
+   "then": [
+    "a plain declaration, a template with a plain declaration and a style set from an expression are each refused, with the line",
+    "custom properties, in a plain attribute or a template, pass"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-UIRULES-002",
+   "suite": "vitest",
+   "title": "refuse <style> blocks, <nav> in pages and breadcrumb markup outside its component",
+   "file": "site/src/lib/ui-rules.test.ts",
+   "line": 53,
+   "node": "site/src/lib/ui-rules.test.ts › the UI rules on the sources › refuse <style> blocks, <nav> in pages and breadcrumb markup outside its component",
+   "given": [
+    "a page and components with a <style> block, a <nav> and a breadcrumb's markup"
+   ],
+   "when": [
+    "the source rules read them"
+   ],
+   "then": [
+    "a <style> block is refused anywhere, components too",
+    "a <nav> is refused in a page and allowed in a component",
+    "breadcrumb markup is refused outside components/ui/Breadcrumb.astro and allowed in it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-UIRULES-003",
+   "suite": "vitest",
+   "title": "hold on every .astro file of the site",
+   "file": "site/src/lib/ui-rules.test.ts",
+   "line": 85,
+   "node": "site/src/lib/ui-rules.test.ts › the UI rules on the sources › hold on every .astro file of the site",
+   "given": [
+    "every .astro file under src/"
+   ],
+   "when": [
+    "the source rules read each one"
+   ],
+   "then": [
+    "none has a problem, and there are files to read"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-UIRULES-004",
+   "suite": "vitest",
+   "title": "know which addresses are pages inside a section",
+   "file": "site/src/lib/ui-rules.test.ts",
+   "line": 111,
+   "node": "site/src/lib/ui-rules.test.ts › the UI rules on the built pages › know which addresses are pages inside a section",
+   "given": [
+    "addresses of a check, a finding, a method option, a section's page, a topic's overview, a topic across countries and a data page"
+   ],
+   "when": [
+    "each is asked whether it is a page inside a section"
+   ],
+   "then": [
+    "the check, the finding and the option are",
+    "the section's page, the overview, the topic across countries and the data page are not"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-UIRULES-005",
+   "suite": "vitest",
+   "title": "require one strip with one current item on a page inside a section",
+   "file": "site/src/lib/ui-rules.test.ts",
+   "line": 142,
+   "node": "site/src/lib/ui-rules.test.ts › the UI rules on the built pages › require one strip with one current item on a page inside a section",
+   "given": [
+    "a page inside a section built without a strip, with two strips, with a strip marking none or two items, and with a correct strip"
+   ],
+   "when": [
+    "the built-page rule reads each"
+   ],
+   "then": [
+    "no strip, two strips, none marked and two marked each fail, naming the page",
+    "a strip with one item marked passes, and a section's own page needs none"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STYLE-001",
+   "suite": "vitest",
+   "title": "refuse spacing typed in, and accept the scale's tokens and arithmetic on them",
+   "file": "site/src/styles/stylelint.test.ts",
+   "line": 21,
+   "node": "site/src/styles/stylelint.test.ts › the site's Stylelint rules › refuse spacing typed in, and accept the scale's tokens and arithmetic on them",
+   "given": [
+    "rules setting gap, margin and padding"
+   ],
+   "when": [
+    "Stylelint checks them"
+   ],
+   "then": [
+    "6px, 1rem and a calc() with a typed length are each refused",
+    "0, auto, one to four space tokens, calc() on tokens and the full-screen chart's max() pass"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STYLE-002",
+   "suite": "vitest",
+   "title": "refuse font sizes and weights typed in, and control heights that skipped the token",
+   "file": "site/src/styles/stylelint.test.ts",
+   "line": 55,
+   "node": "site/src/styles/stylelint.test.ts › the site's Stylelint rules › refuse font sizes and weights typed in, and control heights that skipped the token",
+   "given": [
+    "rules setting font-size, font-weight, min-height and height"
+   ],
+   "when": [
+    "Stylelint checks them"
+   ],
+   "then": [
+    "a font size in rem or px and a numeric weight are refused; the text and weight tokens pass",
+    "a height between 24px and 64px is refused; the control tokens pass, and so does a chart's 260px"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STYLE-003",
+   "suite": "vitest",
+   "title": "refuse colours typed in, except in tokens.css",
+   "file": "site/src/styles/stylelint.test.ts",
+   "line": 88,
+   "node": "site/src/styles/stylelint.test.ts › the site's Stylelint rules › refuse colours typed in, except in tokens.css",
+   "given": [
+    "a hex colour, a named colour and an rgb() colour"
+   ],
+   "when": [
+    "Stylelint checks them in global.css and in tokens.css"
+   ],
+   "then": [
+    "in global.css each is refused, and a colour token passes",
+    "in tokens.css, where the values are typed, the hex and rgb() colours pass"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "VT-STYLE-004",
+   "suite": "vitest",
+   "title": "allow only the agreed breakpoints, written as ranges",
+   "file": "site/src/styles/stylelint.test.ts",
+   "line": 113,
+   "node": "site/src/styles/stylelint.test.ts › the site's Stylelint rules › allow only the agreed breakpoints, written as ranges",
+   "given": [
+    "media queries at the agreed widths and at others, in range and min/max form"
+   ],
+   "when": [
+    "Stylelint checks them"
+   ],
+   "then": [
+    "860px is refused",
+    "min-width / max-width are refused in favour of the range form",
+    "(width < 600px) and (width >= 900px) pass"
    ],
    "notes": "",
    "examples": [],
