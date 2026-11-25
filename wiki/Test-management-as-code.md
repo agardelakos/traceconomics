@@ -108,7 +108,7 @@ plans, runs and results with its own web interface.
 
 - **No manual execution recording.** There is no interface for a tester to step through a manual
   case and record a result; manual and exploratory testing is out of scope for now (see
-  [Future](Future)).
+  [Test strategy](Test-strategy#manual-and-exploratory-testing-when-it-comes)).
 - **No test plans or milestones interface.** Planning which cases run for which release is done in
   code and CI configuration, not in a planning screen.
 - **Non-technical stakeholders depend on the generated pages.** Anyone who doesn't read code sees

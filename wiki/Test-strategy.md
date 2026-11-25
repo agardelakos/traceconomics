@@ -226,7 +226,24 @@ The [testing showcase](Testing-showcase)'s jobs run in a workflow of their own, 
   a list that may only shrink; `npm run terms:report` shows each with both texts), and that the Greek
   follows the final-ν rule («δεν», «την», «στην», «μην», «αυτήν»; `site/src/lib/final-n.mjs`). They
   don't check that the Greek is good; that is a native speaker's review.
-- **Manual and exploratory testing** has no recorded cases yet (see [Future](Future)).
+- **Manual and exploratory testing** has no recorded cases yet (below).
+
+### Manual and exploratory testing, when it comes
+
+Today every recorded test case is automated (see
+[Test management as code](Test-management-as-code)). Manual and exploratory testing is out of
+scope for now. When it is added, the plan is to keep it in the same system rather than a separate
+tool:
+
+- **Cases with stable IDs** of the form `MAN-<AREA>-NNN`, with a title and Given/When/Then steps,
+  kept in the repository next to the automated cases and collected into the same catalog. As with
+  the automated cases, an ID is never reused.
+- **Execution recorded through an issue form**: a tester opens an issue from a template, names the
+  case, the build or address tested, the browser and device, the result and any evidence. The
+  issue is the run record, linked to the case; a failure links to the defect issue.
+- **Exploratory sessions** recorded the same way: a charter, the time spent, what was covered and
+  what was found.
+- The generated `Tests-*` pages would then show manual results next to automated ones.
 
 ---
 
