@@ -8,6 +8,7 @@ import { getEntry, render } from "astro:content";
 import GlossaryTerm from "../../../../components/GlossaryTerm.astro";
 import SourceList from "../../../../components/SourceList.astro";
 import Base from "../../../../layouts/Base.astro";
+import JumpLinks from "../../../../components/ui/JumpLinks.astro";
 import { equivalentSize, eur, FIFTHS, HOUSEHOLD_TYPES, pps, ranges } from "../../../../lib/income";
 import { householdTypes, incomeLimits } from "../../../../lib/data";
 import { pct } from "../../../../lib/format";
@@ -197,36 +198,28 @@ const finderConfig = {
   topic={{ slug: "inflation-by-group", country, section: "groups" }}
 >
   <div class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <h1>{t(lang, "groups.title")}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, "groups.lead", { country: countryName })}</p>
-      <nav aria-label={t(lang, "opendata.country.topics")} class="chips">
-        <a class="chip" href="#find" style="text-decoration: none">
-          {t(lang, "find.title")}
-        </a>
-        <a class="chip" href="#income" style="text-decoration: none">
-          {t(lang, "family.income")}
-        </a>
-        <a class="chip" href="#tenure" style="text-decoration: none">
-          {t(lang, "family.tenure")}
-        </a>
-        <a class="chip" href="#pensioners" style="text-decoration: none">
-          {t(lang, "groups.pensioners.title")}
-        </a>
-        <a class="chip" href="#household" style="text-decoration: none">
-          {t(lang, "family.household")}
-        </a>
-      </nav>
+      <p class="text-lg">{t(lang, "groups.lead", { country: countryName })}</p>
+      <JumpLinks
+        label={t(lang, "opendata.country.topics")}
+        items={[
+          { href: "#find", label: t(lang, "find.title") },
+          { href: "#income", label: t(lang, "family.income") },
+          { href: "#tenure", label: t(lang, "family.tenure") },
+          { href: "#pensioners", label: t(lang, "groups.pensioners.title") },
+          { href: "#household", label: t(lang, "family.household") },
+        ]}
+      />
     </header>
 
     <section
-      class="panel stack finder"
+      class="panel stack finder gap-4"
       id="find"
       aria-labelledby="find-h"
       data-finder={JSON.stringify(finderConfig)}
-      style="gap: var(--space-4)"
     >
-      <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+      <div class="stack gap-2 measure">
         <h2 id="find-h">{t(lang, "find.title")}</h2>
         <p>{t(lang, "find.lead")}</p>
         <p class="small muted private">
@@ -255,7 +248,7 @@ const finderConfig = {
         {t(lang, "find.noscript")}
       </p>
       <div class="finder-grid" data-find="form" hidden>
-        <div class="stack" style="gap: var(--space-3)">
+        <div class="stack gap-3">
           <fieldset class="option">
             <legend>{t(lang, "find.who")}</legend>
             <div class="other-household">
@@ -300,9 +293,7 @@ const finderConfig = {
           </fieldset>
           <fieldset class="option">
             <legend>{t(lang, "find.income")}</legend>
-            <p class="note" style="margin-top: 0">
-              {t(lang, "find.income.hint")}
-            </p>
+            <p class="note mt-0">{t(lang, "find.income.hint")}</p>
             <input
               type="text"
               class="amount"
@@ -349,7 +340,7 @@ const finderConfig = {
             </div>
           </fieldset>
         </div>
-        <div class="finder-result stack" aria-live="polite" style="gap: var(--space-3)">
+        <div class="finder-result stack gap-3" aria-live="polite">
           <h3>{t(lang, "find.result")}</h3>
           <p class="muted" data-find="empty">
             {t(lang, "find.empty")}
@@ -374,13 +365,11 @@ const finderConfig = {
           </dl>
           <p class="small" data-find="near" hidden></p>
           <p class="small muted">{t(lang, "find.limits", { year: ours.survey_year })}</p>
-          <div class="stack" data-find="next" hidden style="gap: var(--space-2)">
-            <p class="small" style="font-weight: 600">
-              {t(lang, "find.start")}
-            </p>
+          <div class="stack gap-2" data-find="next" hidden>
+            <p class="small weight-semibold">{t(lang, "find.start")}</p>
             <ul class="button-row finder-starts" data-find="starts"></ul>
             <p class="small muted">{t(lang, "find.one_at_a_time")}</p>
-            <a data-find="compare" href={finderConfig.explore} style="font-weight: 600">
+            <a class="weight-semibold" data-find="compare" href={finderConfig.explore}>
               {t(lang, "find.compare")} →
             </a>
           </div>
@@ -389,14 +378,13 @@ const finderConfig = {
     </section>
 
     <section
-      class="panel stack income"
+      class="panel stack income gap-4"
       id="income"
       aria-labelledby="income-h"
       data-income={JSON.stringify(incomeConfig)}
-      style="gap: var(--space-4)"
     >
       <h2 id="income-h">{t(lang, "income.title")}</h2>
-      <p style="max-width: var(--text-max)">{t(lang, "income.lead")}</p>
+      <p class="measure">{t(lang, "income.lead")}</p>
       <fieldset class="option">
         <legend>{t(lang, "income.household")}</legend>
         <div class="values">
@@ -521,7 +509,7 @@ const finderConfig = {
       </div>
       <details class="more">
         <summary>{t(lang, "income.why")}</summary>
-        <div class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+        <div class="stack gap-2 measure">
           <p>{t(lang, "income.why1")}</p>
           <p>{t(lang, "income.why2")}</p>
         </div>
@@ -532,7 +520,7 @@ const finderConfig = {
       </details>
     </section>
 
-    <section class="panel stack" id="tenure" aria-labelledby="tenure-h" style="gap: var(--space-2)">
+    <section class="panel stack gap-2" id="tenure" aria-labelledby="tenure-h">
       <h2 id="tenure-h">
         {t(lang, "family.tenure")}: {t(lang, "group.tenure/renter")},{" "}
         {t(lang, "group.tenure/owner")}, {t(lang, "group.tenure/rent_free")}
@@ -551,12 +539,7 @@ const finderConfig = {
       ))}
     </section>
 
-    <section
-      class="panel stack"
-      id="pensioners"
-      aria-labelledby="pensioners-h"
-      style="gap: var(--space-2)"
-    >
+    <section class="panel stack gap-2" id="pensioners" aria-labelledby="pensioners-h">
       <h2 id="pensioners-h">{t(lang, "groups.pensioners.title")}</h2>
       <p class="definition">{pensioners.entry.data.short}</p>
       <div class="prose">
@@ -567,14 +550,9 @@ const finderConfig = {
       </p>
     </section>
 
-    <section
-      class="panel stack"
-      id="household"
-      aria-labelledby="household-h"
-      style="gap: var(--space-2)"
-    >
+    <section class="panel stack gap-2" id="household" aria-labelledby="household-h">
       <h2 id="household-h">{t(lang, "family.household")}</h2>
-      <p style="max-width: var(--text-max)">
+      <p class="measure">
         {t(lang, "family.household.note")}{" "}
         <a href={href(lang, "glossary/dependent-child")}>{t(lang, "glossary.more")} →</a>
       </p>
@@ -598,17 +576,16 @@ const finderConfig = {
           </tbody>
         </table>
       </div>
-      <p class="small muted" style="max-width: var(--text-max)">
-        {t(lang, "groups.household.thin")}
-      </p>
+      <p class="small muted measure">{t(lang, "groups.household.thin")}</p>
       {typesHref && (
         <p class="small" data-m5-link="hbs-household-types">
           <a href={typesHref}>{t(lang, "m5.link.hbs-household-types")} →</a>
         </p>
       )}
       <a
+        class="weight-semibold"
         href={`${topicHref(lang, "inflation-by-group", country, "explore")}?groups=${encodeURIComponent(HOUSEHOLD_GROUPS.join(","))}`}
-        style="font-weight: 600"
+
         data-household-compare
       >
         {t(lang, "groups.household.compare")} →

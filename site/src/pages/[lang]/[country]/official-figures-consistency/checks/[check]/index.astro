@@ -19,7 +19,6 @@ import {
   yearRuns,
 } from "../../../../../../lib/m5";
 import { causes, diff, periodLabel, spanLabel } from "../../../../../../lib/m5-labels";
-import { checkStrip } from "../../../../../../lib/m5-strip";
 import { countryPaths, dataHref, m5Text, topicHref } from "../../../../../../lib/topics";
 
 const SLUG = "official-figures-consistency";
@@ -74,16 +73,15 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
   title={t(lang, `m5.check.${c.id}.question`)}
   description={t(lang, `m5.check.${c.id}.text`)}
   topic={{ slug: SLUG, country, section: `checks/${Astro.params.check}` }}
-  strip={checkStrip(lang, country, c.id)}
 >
   <article class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <span class={`chip-status ${st}`}>{t(lang, `m5.status.${st}`)}</span>
       <h1>{t(lang, `m5.check.${c.id}.question`)}</h1>
       <p class="muted" data-m5="technical">
         {t(lang, `m5.check.${c.id}.title`)}
       </p>
-      <p style="font-size: var(--text-lg)">{t(lang, `m5.check.${c.id}.text`)}</p>
+      <p class="text-lg">{t(lang, `m5.check.${c.id}.text`)}</p>
       <p data-m5="count">
         <strong>{t(lang, "m5.count", { agree: c.agree, compared: c.compared })}</strong>
         {c.first && ` (${spanLabel(lang, c.first)} – ${spanLabel(lang, c.last!)})`}
@@ -95,7 +93,7 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
       </p>
     </header>
     {linked.length > 0 && (
-      <section class="stack" style="gap: var(--space-3)" aria-labelledby="findings-h">
+      <section class="stack gap-3" aria-labelledby="findings-h">
         <h2 id="findings-h">{t(lang, "m5.finding.read")}</h2>
         <div class="cards">
           {linked.map((f) => (
@@ -108,7 +106,7 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
       </section>
     )}
     {runs.length > 0 && (
-      <section class="stack" style="gap: var(--space-3)" aria-labelledby="compared-h">
+      <section class="stack gap-3" aria-labelledby="compared-h">
         <h2 id="compared-h">{t(lang, "m5.compared.title")}</h2>
         <div
           class="table-wrap"
@@ -139,7 +137,7 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
         </div>
       </section>
     )}
-    <section class="stack" style="gap: var(--space-3)" aria-labelledby="diff-h">
+    <section class="stack gap-3" aria-labelledby="diff-h">
       <h2 id="diff-h">{t(lang, "m5.diff.title")}</h2>
       {c.differences.length === 0 ? (
         <p>{t(lang, "m5.diff.none")}</p>
@@ -175,8 +173,8 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
     </section>
     {unknown > 0 && (
       <section
-        class="stack"
-        style="gap: var(--space-2); max-width: var(--text-max)"
+        class="stack gap-2 measure"
+
         aria-labelledby="open-h"
         data-m5="open"
       >
@@ -199,7 +197,7 @@ const unpaged = c.differences.filter((d) => d.explanation === "not-known" && !d.
     </p>
     <details class="panel">
       <summary>{t(lang, "m5.finding.sources")}</summary>
-      <div style="margin-top: var(--space-3)">
+      <div class="mt-3">
         <SourceList keys={sources} lang={lang} />
       </div>
     </details>

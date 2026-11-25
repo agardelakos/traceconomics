@@ -97,7 +97,7 @@ const check =
           type="button"
           class="icon-button"
           popovertarget="settings-menu"
-          style="anchor-name: --settings-menu"
+          style="--anchor: --settings-menu"
           aria-label={t(lang, "settings.label")}
           title={t(lang, "settings.label")}
         >
@@ -126,7 +126,7 @@ const check =
             ></circle>
           </svg>
         </button>
-        <div popover id="settings-menu" class="theme-menu" style="position-anchor: --settings-menu">
+        <div popover id="settings-menu" class="theme-menu" style="--anchor: --settings-menu">
           <fieldset>
             <legend>{t(lang, "theme.label")}</legend>
             {["system", "light", "dark"].map((v) => (
@@ -163,7 +163,7 @@ const check =
           {t(lang, "nav.home")}
         </a>
       </li>
-      <li class="nav-split" style="anchor-name: --topic-menu">
+      <li class="nav-split" style="--anchor: --topic-menu">
         <a href={href(lang, "topics")} aria-current={section(inTopics, "topics")}>
           {t(lang, "nav.topics")}
         </a>
@@ -184,7 +184,7 @@ const check =
             ></path>
           </svg>
         </button>
-        <div popover id="topic-menu" class="nav-list" style="position-anchor: --topic-menu">
+        <div popover id="topic-menu" class="nav-list">
           <ul>
             {liveTopics.map((tp) => (
               <li>
@@ -225,7 +225,7 @@ const check =
           </ul>
         </div>
       </li>
-      <li class="nav-split" style="anchor-name: --country-menu">
+      <li class="nav-split" style="--anchor: --country-menu">
         <a href={href(lang, "countries")} aria-current={section(inCountries, "countries")}>
           {t(lang, "nav.countries")}
         </a>
@@ -246,7 +246,7 @@ const check =
             ></path>
           </svg>
         </button>
-        <div popover id="country-menu" class="nav-list" style="position-anchor: --country-menu">
+        <div popover id="country-menu" class="nav-list">
           <ul>
             {countries().map((c) => (
               <li>

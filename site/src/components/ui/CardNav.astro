@@ -1,0 +1,15 @@
+---
+// A headed list of cards that lead to other pages (countries, method options): a <nav> named by
+// its heading. The cards go in the slot, in a `.cards` or `.card-row` container.
+interface Props {
+  // The heading's id, which names the nav (aria-labelledby).
+  id: string;
+  title: string;
+}
+const { id, title } = Astro.props;
+---
+
+<nav class="stack gap-3" aria-labelledby={id}>
+  <h2 id={id}>{title}</h2>
+  <slot />
+</nav>

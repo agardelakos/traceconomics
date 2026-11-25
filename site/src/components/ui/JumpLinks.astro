@@ -1,0 +1,18 @@
+---
+// Links to the parts of a long page ("On this page"), as chips under its title. A page lists its
+// parts here, never as its own <nav>: one look and one label rule everywhere.
+interface Props {
+  // What the list is, for screen readers (the nav's name).
+  label: string;
+  items: { href: string; label: string }[];
+}
+const { label, items } = Astro.props;
+---
+
+<nav aria-label={label} class="chips jump-links">
+  {items.map((i) => (
+    <a class="chip" href={i.href}>
+      {i.label}
+    </a>
+  ))}
+</nav>

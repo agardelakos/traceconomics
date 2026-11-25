@@ -1,8 +1,9 @@
 ---
 // The consistency topic across countries: its question, what it does, then one card per country.
-import Breadcrumb from "../../../components/Breadcrumb.astro";
+import Breadcrumb from "../../../components/ui/Breadcrumb.astro";
 import MoreCard from "../../../components/MoreCard.astro";
 import Base from "../../../layouts/Base.astro";
+import CardNav from "../../../components/ui/CardNav.astro";
 import { LANGS, t, type Lang } from "../../../lib/i18n";
 import { results } from "../../../lib/m5";
 import { topic, topicHref } from "../../../lib/topics";
@@ -23,14 +24,13 @@ const countries = topic(SLUG).countries.map((c) => ({ code: c, n: results(c).che
   topic={{ slug: SLUG }}
 >
   <div class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <Breadcrumb lang={lang} trail={[[t(lang, `topic.${SLUG}`)]]} />
       <h1>{t(lang, `topic.${SLUG}`)}</h1>
-      <p style="font-size: var(--text-lg); font-weight: 600">{t(lang, `topic.${SLUG}.question`)}</p>
+      <p class="text-lg weight-semibold">{t(lang, `topic.${SLUG}.question`)}</p>
       <p>{t(lang, "m5.lead")}</p>
     </header>
-    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
-      <h2 id="countries-h">{t(lang, "m5.landing.countries")}</h2>
+    <CardNav id="countries-h" title={t(lang, "m5.landing.countries")}>
       <div class="card-row">
         {countries.map((c) => (
           <a class="card" href={topicHref(lang, SLUG, c.code)}>
@@ -40,6 +40,6 @@ const countries = topic(SLUG).countries.map((c) => ({ code: c, n: results(c).che
         ))}
         <MoreCard lang={lang} what="countries" />
       </div>
-    </nav>
+    </CardNav>
   </div>
 </Base>

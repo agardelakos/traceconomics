@@ -368,6 +368,11 @@ title = "the Topics quick list names every live topic and leads to its page"
 playwright = ["PW-NAV-016"]
 selenium = ["SEL-NAV-018"]
 
+[TC-NAV-015]
+title = "on a phone, each row of the topic bar is centred on its current item once the fonts arrive"
+playwright = ["PW-NAV-017"]
+why = "needs the font files held back by request routing; the Selenium twin is the maintainer's follow-up"
+
 [TC-TERM-001]
 title = "pointing at a term opens its explanation; moving away closes it"
 playwright = ["PW-TERM-001"]

@@ -24,12 +24,12 @@ const name = t(lang, `country.${country}`);
   country={country}
 >
   <div class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <h1>{name}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, "country.lead")}</p>
+      <p class="text-lg">{t(lang, "country.lead")}</p>
     </header>
 
-    <section class="stack" aria-labelledby="topics-h" style="gap: var(--space-3)">
+    <section class="stack gap-3" aria-labelledby="topics-h">
       <h2 id="topics-h">{t(lang, "hub.topics")}</h2>
       <TopicCards
         lang={lang}
@@ -41,17 +41,12 @@ const name = t(lang, `country.${country}`);
       />
     </section>
 
-    <section
-      class="stack"
-      style="gap: var(--space-2); border-top: 1px solid var(--color-border); padding-top: var(--space-5)"
-    >
-      <h2 style="font-family: var(--font-sans); font-size: var(--text-base); font-weight: 700">
+    <section class="stack section-rule">
+      <h2 class="font-sans text-base weight-bold">
         {t(lang, "opendata.country.title", { country: name })}
       </h2>
-      <p class="muted" style="max-width: var(--text-max)">
-        {t(lang, "opendata.country.lead", { country: name })}
-      </p>
-      <a href={dataHref(lang, country)} style="font-weight: 600">
+      <p class="muted measure">{t(lang, "opendata.country.lead", { country: name })}</p>
+      <a class="weight-semibold" href={dataHref(lang, country)}>
         {t(lang, "opendata.all")} →
       </a>
     </section>

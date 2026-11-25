@@ -156,6 +156,9 @@ Site:
 - Every English change in `site/src/i18n/en.json` or `site/src/content/<kind>/en/` has its Greek
   twin in `el.json` or `site/src/content/<kind>/el/`.
 - Every source key cited in content exists in `references.bib`.
+- Build pages from the site's patterns (the wiki's "Site patterns"): navigation from components, no
+  inline styles but custom properties, every size, space and colour from `site/src/styles/tokens.css`.
+  Stylelint and site checks 12 and 13 enforce them.
 - Ask before changing layout, navigation or wording: those need a maintainer's agreement in an issue.
 
 ## Never touch or do

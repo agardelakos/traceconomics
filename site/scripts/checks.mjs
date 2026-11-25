@@ -32,6 +32,11 @@
 //     src/i18n/figures-allow.json, pair by pair and exactly as written, with its kind; typed
 //     figures don't follow the data, so a new or changed one fails until it is looked at and
 //     listed, and an entry that no longer matches fails too. `npm run figures:report`.
+// 12. UI rules on the sources (src/lib/ui-rules.mjs): a `style` attribute only sets custom
+//     properties; no <style> blocks (CSS lives in src/styles/, where Stylelint checks it); no
+//     <nav> in pages (navigation comes from components); breadcrumb markup only in its component.
+// 13. UI rules on the built pages: a page inside a section of a topic for one country shows the
+//     bar's third row once, with one item marked as the page being read.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname, resolve } from "node:path";
@@ -47,6 +52,7 @@ import {
   visible,
 } from "../src/lib/twin-terms.mjs";
 import { finalN } from "../src/lib/final-n.mjs";
+import { isInnerPage, sourceProblems, stripProblems } from "../src/lib/ui-rules.mjs";
 import {
   compare as compareFigures,
   KINDS,
@@ -355,6 +361,26 @@ for (const p of loadPairs(join(site, "src"))) {
     fail(
       `src/i18n/figures-allow.json: ${e.id} has kind "${e.kind}", not one of ${Object.keys(KINDS).join(", ")}`,
     );
+}
+
+// 12. UI rules on the sources.
+for (const file of walk(join(site, "src")).filter((f) => f.endsWith(".astro")))
+  for (const p of sourceProblems(
+    relative(site, file).split("\\").join("/"),
+    readFileSync(file, "utf-8"),
+  ))
+    fail(p);
+
+// 13. UI rules on the built pages. A count of none means the address pattern stopped matching:
+// the rule would pass while checking nothing.
+if (existsSync(dist)) {
+  let inner = 0;
+  for (const page of walk(dist).filter((f) => f.endsWith(".html"))) {
+    const address = `/${relative(dist, dirname(page)).split("\\").join("/")}/`;
+    if (isInnerPage(address)) inner += 1;
+    for (const p of stripProblems(address, readFileSync(page, "utf-8"))) fail(p);
+  }
+  if (inner === 0) fail("no built page inside a section: the strip rule (13) checked nothing");
 }
 
 if (failures.length) {

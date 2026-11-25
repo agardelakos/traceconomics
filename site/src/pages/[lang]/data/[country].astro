@@ -6,11 +6,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getEntry } from "astro:content";
-import Breadcrumb from "../../../components/Breadcrumb.astro";
-import M1Files from "../../../components/M1Files.astro";
-import M5Files from "../../../components/M5Files.astro";
+import Breadcrumb from "../../../components/ui/Breadcrumb.astro";
+import M1Files from "../../../components/topics/inflation-by-group/M1Files.astro";
+import M5Files from "../../../components/topics/official-figures-consistency/M5Files.astro";
 import SourceList from "../../../components/SourceList.astro";
 import Base from "../../../layouts/Base.astro";
+import JumpLinks from "../../../components/ui/JumpLinks.astro";
 import { DATA_ROOT, m1Dir, readJson, settings } from "../../../lib/data";
 import { href, LANGS, t, type Lang } from "../../../lib/i18n";
 import { dataset, ldJson } from "../../../lib/structured";
@@ -126,26 +127,21 @@ const ld = shown.map(({ tp }) => {
   current="data"
 >
   <article class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <Breadcrumb lang={lang} trail={[[t(lang, "nav.data"), href(lang, "data")], [countryName]]} />
       <h1>{title}</h1>
-      <p style="font-size: var(--text-lg)">
-        {t(lang, "opendata.country.lead", { country: countryName })}
-      </p>
-      <nav aria-label={t(lang, "opendata.country.topics")} class="chips">
-        {shown.map((s) => (
-          <a class="chip" href={`#${s.tp.slug}`} style="text-decoration: none">
-            {t(lang, `topic.${s.tp.slug}`)}
-          </a>
-        ))}
-        <a class="chip" href="#source-data" style="text-decoration: none">
-          {t(lang, "opendata.source")}
-        </a>
-      </nav>
+      <p class="text-lg">{t(lang, "opendata.country.lead", { country: countryName })}</p>
+      <JumpLinks
+        label={t(lang, "opendata.country.topics")}
+        items={[
+          ...shown.map((s) => ({ href: `#${s.tp.slug}`, label: t(lang, `topic.${s.tp.slug}`) })),
+          { href: "#source-data", label: t(lang, "opendata.source") },
+        ]}
+      />
     </header>
 
     {shown.map((s) => (
-      <section class="stack data-topic" aria-labelledby={s.tp.slug} style="gap: var(--space-3)">
+      <section class="stack data-topic gap-3" aria-labelledby={s.tp.slug}>
         <div class="section-head">
           <h2 id={s.tp.slug}>{t(lang, `topic.${s.tp.slug}`)}</h2>
           <a href={topicHref(lang, s.tp.slug, country)}>
@@ -160,11 +156,9 @@ const ld = shown.map(({ tp }) => {
       </section>
     ))}
 
-    <section class="stack" aria-labelledby="source-data" style="gap: var(--space-2)">
+    <section class="stack gap-2" aria-labelledby="source-data">
       <h2 id="source-data">{t(lang, "opendata.source")}</h2>
-      <p class="muted" style="max-width: var(--text-max)">
-        {t(lang, "opendata.source.lead")}
-      </p>
+      <p class="muted measure">{t(lang, "opendata.source.lead")}</p>
       <SourceList keys={sourceKeys} lang={lang} />
     </section>
   </article>

@@ -4,9 +4,10 @@
 // the site offers for each country, then one card per country with its latest headline. A country
 // not built yet is greyed out, with the reason, and is not a link.
 import { getCollection, render } from "astro:content";
-import Breadcrumb from "../../../components/Breadcrumb.astro";
+import Breadcrumb from "../../../components/ui/Breadcrumb.astro";
 import MoreCard from "../../../components/MoreCard.astro";
 import Base from "../../../layouts/Base.astro";
+import CardNav from "../../../components/ui/CardNav.astro";
 import { BASE_AMOUNT, BASE_MONTH, headline } from "../../../lib/headline";
 import { eur } from "../../../lib/income";
 import { LANGS, month, t, type Lang } from "../../../lib/i18n";
@@ -52,17 +53,17 @@ const offers = tp.sections.map((s) => ({
   topic={{ slug: SLUG }}
 >
   <div class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <Breadcrumb lang={lang} trail={[[t(lang, `topic.${SLUG}`)]]} />
       <h1>{t(lang, "home.title")}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, "m1.landing.lead")}</p>
+      <p class="text-lg">{t(lang, "m1.landing.lead")}</p>
     </header>
 
-    <section class="stack" aria-labelledby="steps-h" style="gap: var(--space-3)">
+    <section class="stack gap-3" aria-labelledby="steps-h">
       <h2 id="steps-h">{t(lang, "m1.steps.title")}</h2>
       <ol class="steps">
         {steps.map((s, i) => (
-          <li class="panel stack" style="gap: var(--space-2)">
+          <li class="panel stack gap-2">
             <span class="step-number" aria-hidden="true">
               {i + 1}
             </span>
@@ -75,7 +76,7 @@ const offers = tp.sections.map((s) => ({
       </ol>
     </section>
 
-    <section class="stack" aria-labelledby="offer-h" style="gap: var(--space-3)">
+    <section class="stack gap-3" aria-labelledby="offer-h">
       <h2 id="offer-h">{t(lang, "m1.offer.title")}</h2>
       <dl class="offer-grid">
         {offers.map((o) => (
@@ -87,8 +88,7 @@ const offers = tp.sections.map((s) => ({
       </dl>
     </section>
 
-    <nav class="stack" aria-labelledby="countries-h" style="gap: var(--space-3)">
-      <h2 id="countries-h">{t(lang, "m1.landing.countries")}</h2>
+    <CardNav id="countries-h" title={t(lang, "m1.landing.countries")}>
       <div class="card-row">
         {countries.map((c) => (
           <a class="card" href={topicHref(lang, SLUG, c.code)}>
@@ -99,6 +99,6 @@ const offers = tp.sections.map((s) => ({
         ))}
         <MoreCard lang={lang} what="countries" />
       </div>
-    </nav>
+    </CardNav>
   </div>
 </Base>

@@ -7,8 +7,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { render, type CollectionEntry } from "astro:content";
-import { DATA_ROOT, m1Dir, settings } from "../lib/data";
-import { num, t, type Lang } from "../lib/i18n";
+import { DATA_ROOT, m1Dir, settings } from "../../../lib/data";
+import { num, t, type Lang } from "../../../lib/i18n";
 
 interface Props {
   lang: Lang;
@@ -54,7 +54,7 @@ const shared = ["SHA256SUMS", "availability.json", "metadata.json", "settings.js
   <summary>
     <h3>{t(lang, "explore.downloads")}</h3>
   </summary>
-  <div class="stack" style="gap: var(--space-3); margin-top: var(--space-3)">
+  <div class="stack gap-3 mt-3">
     <div class="downloads">
       {shared.map((f) => (
         <div class="row">
@@ -76,7 +76,7 @@ const shared = ["SHA256SUMS", "availability.json", "metadata.json", "settings.js
             </>
           )}
         </summary>
-        <div class="downloads" style="margin-top: var(--space-3)">
+        <div class="downloads mt-3">
           {r.files.map((f) => (
             <div class="row">
               <a href={f.href} download>

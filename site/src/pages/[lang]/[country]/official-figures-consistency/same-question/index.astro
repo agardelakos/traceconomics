@@ -23,9 +23,9 @@ const { questions } = results(country);
   topic={{ slug: SLUG, country, section: "same-question" }}
 >
   <div class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <h1>{t(lang, "nav.same-question")}</h1>
-      <p style="font-size: var(--text-lg)">{t(lang, "m5.same.lead")}</p>
+      <p class="text-lg">{t(lang, "m5.same.lead")}</p>
     </header>
     {questions.length === 0 ? (
       <p data-m5="no-questions">{t(lang, "m5.same.empty")}</p>

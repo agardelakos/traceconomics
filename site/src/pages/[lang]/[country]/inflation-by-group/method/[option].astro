@@ -1,7 +1,7 @@
 ---
 // One option explained: what it means, the default and why, the alternatives, what difference
 // it makes, and the sources. Choices no source settles are labelled as ours in the text. The bar's
-// third row lists every option, in the method page's order, this one marked.
+// third row lists every option, this one marked (lib/strips.ts).
 import { getCollection, render } from "astro:content";
 import SourceList from "../../../../../components/SourceList.astro";
 import Base from "../../../../../layouts/Base.astro";
@@ -28,20 +28,6 @@ const { entry } = Astro.props;
 const slug = Astro.params.option as string;
 const { Content } = await render(entry);
 const explore = topicHref(lang, "inflation-by-group", country, "explore");
-const options = (
-  await getCollection(
-    "method",
-    (e) => Boolean(e.data.option) && e.id.startsWith(m1Text(country, lang, "")),
-  )
-).sort((a, b) => a.data.order - b.data.order);
-const strip = {
-  label: t(lang, "method.options"),
-  items: options.map((e) => ({
-    href: topicHref(lang, "inflation-by-group", country, `method/${e.id.split("/")[1]}`),
-    label: e.data.title,
-    current: e.id === entry.id,
-  })),
-};
 ---
 
 <Base
@@ -49,12 +35,11 @@ const strip = {
   title={entry.data.title}
   description={entry.data.summary}
   topic={{ slug: "inflation-by-group", country, section: `method/${slug}` }}
-  strip={strip}
 >
   <article class="stack-lg">
-    <header class="stack" style="gap: var(--space-2); max-width: var(--text-max)">
+    <header class="stack gap-2 measure">
       <h1>{entry.data.title}</h1>
-      <p style="font-size: var(--text-lg)">{entry.data.summary}</p>
+      <p class="text-lg">{entry.data.summary}</p>
     </header>
     <section class="prose">
       <Content />
@@ -66,7 +51,7 @@ const strip = {
     </p>
     <details class="panel">
       <summary>{t(lang, "method.sources")}</summary>
-      <div style="margin-top: var(--space-3)">
+      <div class="mt-3">
         <SourceList keys={entry.data.sources} lang={lang} />
       </div>
     </details>

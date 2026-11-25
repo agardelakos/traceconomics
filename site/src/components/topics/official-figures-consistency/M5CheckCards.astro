@@ -3,12 +3,20 @@
 // term, the years checked, the count, and a note where the only differences are rounding), in
 // the topic's order: explained first. Buttons show one status at a time; there is one only for
 // each status some check has, and without scripts they stay hidden and every card shows.
-import GlossaryTerm from "./GlossaryTerm.astro";
-import { num } from "../lib/format";
-import { t, type Lang } from "../lib/i18n";
-import { ordered, results, roundingOnly, slugOf, status, STATUS_ORDER, termOf } from "../lib/m5";
-import { checkedSpan } from "../lib/m5-labels";
-import { topicHref } from "../lib/topics";
+import GlossaryTerm from "../../GlossaryTerm.astro";
+import { num } from "../../../lib/format";
+import { t, type Lang } from "../../../lib/i18n";
+import {
+  ordered,
+  results,
+  roundingOnly,
+  slugOf,
+  status,
+  STATUS_ORDER,
+  termOf,
+} from "../../../lib/m5";
+import { checkedSpan } from "../../../lib/m5-labels";
+import { topicHref } from "../../../lib/topics";
 
 interface Props {
   lang: Lang;
@@ -35,8 +43,8 @@ const present = STATUS_ORDER.filter((st) => counts[st] > 0);
 ---
 
 <section
-  class="stack"
-  style="gap: var(--space-3)"
+  class="stack gap-3"
+
   aria-label={t(lang, "nav.checks")}
   data-m5-filter
   data-shown={t(lang, "m5.filter.shown", { n: "{n}", total: "{total}" })}
@@ -89,6 +97,6 @@ const present = STATUS_ORDER.filter((st) => counts[st] > 0);
 </section>
 
 <script>
-  import { start } from "../scripts/m5-filter";
+  import { start } from "../../../scripts/m5-filter";
   for (const root of document.querySelectorAll<HTMLElement>("[data-m5-filter]")) start(root);
 </script>

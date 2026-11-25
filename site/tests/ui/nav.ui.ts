@@ -327,6 +327,53 @@ test(
 );
 
 test(
+  "on a phone, each row of the topic bar is centred on its current item once the fonts arrive",
+  gwt({
+    id: "PW-NAV-017",
+    given: [
+      "a phone-sized screen",
+      "the site's font files arriving a second after the page, so the bar is first laid out in the fallback font",
+      "three pages whose bars have rows wider than the screen: the Greek overview of inflation by household and the consistency topic's checks page (the fallback font would misplace the current item), and a method option's page (its row of options gets narrower when the fonts arrive, and the browser moves it by itself)",
+    ],
+    when: "each is opened and the fonts have arrived",
+    then: "in every row wider than the screen, the current item sits in the row's middle (to a pixel, or as near as the row can scroll), measured in the site's own font",
+  }),
+  async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.route("**/*.woff2", async (route) => {
+      await new Promise((done) => setTimeout(done, 1000));
+      await route.continue();
+    });
+    for (const path of [
+      "/el/gr/inflation-by-group/",
+      "/en/gr/official-figures-consistency/checks/",
+      "/en/gr/inflation-by-group/method/weights-timing/",
+    ]) {
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+      const offsets = await page.locator(".topic-bar nav ul").evaluateAll((rows) =>
+        rows
+          .filter((ul) => ul.scrollWidth > ul.clientWidth)
+          .map((ul) => {
+            const item = ul.querySelector("[aria-current]")!.closest("li")!.getBoundingClientRect();
+            const row = ul.getBoundingClientRect();
+            const wanted = Math.max(
+              0,
+              Math.min(
+                ul.scrollWidth - ul.clientWidth,
+                item.left - row.left + ul.scrollLeft - (ul.clientWidth - item.width) / 2,
+              ),
+            );
+            return Math.abs(ul.scrollLeft - wanted);
+          }),
+      );
+      expect(offsets.length, `${path}: no row wider than the screen`).toBeGreaterThan(0);
+      for (const off of offsets) expect(off, `${path}: pixels off-centre`).toBeLessThanOrEqual(1);
+    }
+  },
+);
+
+test(
   "on a method option's page, the bar's third row lists every option and marks the one being read",
   gwt({
     id: "PW-NAV-015",

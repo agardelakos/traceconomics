@@ -19,10 +19,10 @@ const id = `term-${key}-${h.toString(36)}`;
 ---
 
 <span class="term-wrap">
-  <button type="button" class="term" popovertarget={id} style={`anchor-name: --${id}`}>
+  <button type="button" class="term" popovertarget={id} style={`--anchor: --${id}`}>
     {label}
   </button>
-  <span popover id={id} class="term-popover" role="note" style={`position-anchor: --${id}`}>
+  <span popover id={id} class="term-popover" role="note" style={`--anchor: --${id}`}>
     <strong>{heading}</strong>
     <span>{text}</span>
     <a href={href}>{more}</a>
