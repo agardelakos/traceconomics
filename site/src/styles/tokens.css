@@ -64,12 +64,21 @@
   --text-xl: 1.3125rem;
   --text-2xl: 1.75rem;
   --text-3xl: 2.25rem;
+  /* Display sizes, each for one kind of figure: a headline statistic, the calculator's result,
+     the home page's title (it grows with the screen) and code inside text (relative to it). */
+  --text-stat: 2rem;
+  --text-hero: 3rem;
+  --text-title: clamp(2rem, 1.25rem + 2.5vw, 2.75rem);
+  --text-code: 0.875em;
   --leading-tight: 1.15;
   --leading-normal: 1.5;
   --weight-regular: 400;
   --weight-semibold: 600;
   --weight-bold: 700;
 
+  /* A half step, only inside small components (chips, flags, badges) and between rows that
+     belong together. */
+  --space-half: 2px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -78,12 +87,18 @@
   --space-6: 32px;
   --space-7: 48px;
   --space-8: 64px;
+  /* Controls: buttons, tabs, chips, inputs. 44px meets WCAG 2.2's enhanced target size (2.5.5,
+     AAA); the compact size, for controls inside menus and folds, meets the minimum (2.5.8, AA:
+     24px) with room. */
+  --control-h: 44px;
+  --control-h-compact: 32px;
   --radius-s: 4px;
   --radius-m: 8px;
   --shadow-1: 0 1px 2px rgb(0 0 0 / 0.08), 0 4px 12px rgb(0 0 0 / 0.06);
 
   --content-max: 1100px;
   --text-max: 68ch;
+  --chart-fullscreen-max: 1400px;
 }
 
 @media (prefers-color-scheme: dark) {

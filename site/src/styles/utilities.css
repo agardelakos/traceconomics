@@ -9,6 +9,9 @@
 .gap-0 {
   gap: 0 !important;
 }
+.gap-half {
+  gap: var(--space-half) !important;
+}
 .gap-1 {
   gap: var(--space-1) !important;
 }

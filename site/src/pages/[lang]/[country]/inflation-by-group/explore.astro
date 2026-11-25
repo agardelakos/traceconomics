@@ -286,7 +286,7 @@ const SOURCES = [
       </figure>
       <div class="chart-controls">
         <h2 class="eyebrow accent">{t(lang, "explore.controls")}</h2>
-        <label class="stack" style="gap: 6px; font-weight: 600; max-width: 320px">
+        <label class="stack field field-narrow">
           {t(lang, "explore.measure")}
           <select data-role="measure">
             {["rch_a", "rch_m", "index"].map((m) => (
@@ -297,7 +297,7 @@ const SOURCES = [
         <p class="small muted note-under" data-role="measure-reason" hidden>
           {t(lang, "explore.measure_parts")}
         </p>
-        <div class="stack" style="gap: 2px">
+        <div class="stack gap-half">
           <label class="check">
             <input type="checkbox" data-role="gap-toggle" checked />{" "}
             <span>{t(lang, "explore.gap_toggle")}</span>
@@ -313,7 +313,7 @@ const SOURCES = [
           </summary>
           <div class="stack gap-3 mt-3">
             {FAMILIES.map((f) => (
-              <div class="stack" style="gap: 6px">
+              <div class="stack gap-2">
                 <div class="family-head">
                   <span class="small muted weight-semibold">
                     {f.key === "income" ? (

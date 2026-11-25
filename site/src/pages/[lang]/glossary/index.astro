@@ -42,7 +42,7 @@ const groups = GLOSSARY_CATEGORIES.map((key) => ({
       label={t(lang, "glossary.jump")}
       items={groups.map((g) => ({ href: `#${g.key}`, label: t(lang, `glossary.cat.${g.key}`) }))}
     />
-    <label class="stack" style="gap: 6px; font-weight: 600">
+    <label class="stack field">
       {t(lang, "glossary.search")}
       <input type="search" id="glossary-search" autocomplete="off" />
     </label>
@@ -50,9 +50,7 @@ const groups = GLOSSARY_CATEGORIES.map((key) => ({
       {groups.map((g) => (
         <section class="stack glossary-group gap-0" aria-labelledby={g.key}>
           <h2 id={g.key}>{t(lang, `glossary.cat.${g.key}`)}</h2>
-          <p class="muted small" style="margin: 2px 0 var(--space-2)">
-            {t(lang, `glossary.cat.${g.key}.text`)}
-          </p>
+          <p class="muted small glossary-lead">{t(lang, `glossary.cat.${g.key}.text`)}</p>
           <ul class="stack gap-0 plain-list">
             {g.terms.map((e) => (
               <li
@@ -62,9 +60,7 @@ const groups = GLOSSARY_CATEGORIES.map((key) => ({
                 <a class="weight-bold" href={href(lang, `glossary/${e.slug}`)}>
                   {e.term}
                 </a>
-                <p class="muted" style="margin-top: 2px">
-                  {e.short}
-                </p>
+                <p class="muted">{e.short}</p>
               </li>
             ))}
           </ul>

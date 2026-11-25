@@ -156,8 +156,8 @@ const config = {
 
       <div class="chart-controls">
         <h2 class="eyebrow accent">{t(lang, "calc.controls")}</h2>
-        <div class="stack" style="gap: 6px">
-          <label class="stack" style="gap: 6px; font-weight: 600; max-width: 360px">
+        <div class="stack gap-2">
+          <label class="stack field field-narrow">
             {t(lang, "calc.preset")}
             <select data-role="preset">
               {FAMILIES.map(([family, keys]) => (
@@ -180,7 +180,7 @@ const config = {
         </div>
 
         <div class="stack gap-3" data-role="sliders-box" hidden>
-          <div class="stack" style="gap: 6px">
+          <div class="stack gap-2">
             <span class="weight-semibold" id="mode-label">
               {t(lang, "calc.mode")}
             </span>
