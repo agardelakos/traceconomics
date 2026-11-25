@@ -11,6 +11,7 @@
   <!-- code:start -->
   <!-- code:end -->
 - [Test strategy](Test-strategy)
+- [Checks](Checks)
 - [Test management as code](Test-management-as-code)
   <!-- generated:start -->
   <!-- generated:end -->

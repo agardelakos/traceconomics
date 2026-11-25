@@ -8,8 +8,11 @@
 #  2. The wiki: the hand-written pages copied from wiki/ (a page removed there is removed here),
 #     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py)
 #     and the Code pages from the package's docstrings and the stored code map, with the map's
-#     charts as SVG files beside them (tests/catalog/code_reference.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the repository's
-#     version back.
+#     charts as SVG files beside them (tests/catalog/code_reference.py), and the Checks page from
+#     the registry of checks and the files that define them (tests/catalog/checks_page.py; it
+#     reads the branch rules on main, public, so that the required checks it lists are the real
+#     ones), pushed in one commit. Editing the wiki itself is pointless: the next run puts the
+#     repository's version back.
 #
 # Runs only the default branch's code (showcase.yml calls it for pushes to main only): nothing from
 # a pull request, and no artifact from another run.
@@ -74,6 +77,13 @@ jobs:
             git clone -q --depth 1 --branch test-history "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$RUNNER_TEMP/store"
           fi
 
+      # The rules on main: public for a public repository, so the read-only token is enough. The
+      # Checks page is not written if its required checks differ from these.
+      - name: The branch rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/$GITHUB_REPOSITORY/rules/branches/main" > "$RUNNER_TEMP/rules.json"
+
       # GITHUB_TOKEN by default; the secret WIKI_TOKEN (a fine-grained token for this repository,
       # contents read and write) only if the default token is ever refused by the wiki.
       - name: Update the wiki
@@ -91,10 +101,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Mirror the hand-written pages: wiki/ is the source; the Tests pages are wiki.py's, the Code
-          # pages code_reference.py's.
+          # pages code_reference.py's, the Checks page checks_page.py's.
           for f in *.md; do
             case $f in
-              Tests.md|Tests-*.md|Code.md|Code-*.md) ;;
+              Tests.md|Tests-*.md|Code.md|Code-*.md|Checks.md) ;;
               *) [ -f "$GITHUB_WORKSPACE/wiki/$f" ] || git rm -q "$f" ;;
             esac
           done
@@ -102,6 +112,8 @@ jobs:
           python -I "$GITHUB_WORKSPACE/tests/catalog/wiki.py" --store "$RUNNER_TEMP/store" --out . --repo "$GITHUB_REPOSITORY"
           python -I "$GITHUB_WORKSPACE/tests/catalog/code_reference.py" --src "$GITHUB_WORKSPACE/src/traceconomics" \
             --out . --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --store "$RUNNER_TEMP/store"
+          python -I "$GITHUB_WORKSPACE/tests/catalog/checks_page.py" --out . --repo "$GITHUB_REPOSITORY" \
+            --rules "$RUNNER_TEMP/rules.json"
           git add -A
           if git diff --cached --quiet; then
             echo "The wiki is up to date." | tee -a "$GITHUB_STEP_SUMMARY"

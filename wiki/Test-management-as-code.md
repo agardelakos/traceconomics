@@ -69,6 +69,14 @@ public functions, classes and methods, each linked to its source line at the com
 made from. Every public part must have a docstring whose first line is one sentence
 (`tests/test_docstrings.py`), so the reference has no gaps.
 
+The `Checks` page lists every automatic check: the CI jobs, the linters' settings, the site checks,
+the repository checks, the gates inside the runs, the release steps and what runs after a build
+(`tests/catalog/checks_page.py`). What a job or a release step checks is written once, in
+`tests/catalog/checks.toml`; everything else is read from where it is defined. The page is not
+written while the two disagree (`tests/test_checks_page.py` fails first): a new job or release step
+needs its entry, and the required checks it lists must be the ones the branch rules on `main`
+require.
+
 The code map (what the tests run, module by module, with charts) and mutation testing are part of
 the [testing showcase](Testing-showcase), which explains them.
 
