@@ -148,6 +148,7 @@
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --color-bg: #161615;
   --color-surface: #1f1f1d;
   --color-surface-raised: #292927;
@@ -193,7 +194,4 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
 }

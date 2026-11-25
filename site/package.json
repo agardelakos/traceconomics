@@ -18,7 +18,8 @@
     "figures:report": "node scripts/figures-report.mjs",
     "format": "prettier --config .prettierrc.json --ignore-path .prettierignore --write \"*.{mjs,ts,json,jsonc,md}\" \"{scripts,src,tests}/**/*.{ts,astro,mjs,js,css,json,md}\" \"../*.md\" \"../wiki/*.md\" \"../src/traceconomics/README.md\" \"../.github/pull_request_template.md\"",
     "format:check": "prettier --config .prettierrc.json --ignore-path .prettierignore --check \"*.{mjs,ts,json,jsonc,md}\" \"{scripts,src,tests}/**/*.{ts,astro,mjs,js,css,json,md}\" \"../*.md\" \"../wiki/*.md\" \"../src/traceconomics/README.md\" \"../.github/pull_request_template.md\"",
-    "lint": "eslint"
+    "lint": "eslint && npm run lint:css",
+    "lint:css": "stylelint \"src/**/*.css\""
   },
   "dependencies": {
     "@fontsource/source-code-pro": "5.3.1",
@@ -42,6 +43,8 @@
     "playwright": "1.64.1",
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.2",
+    "stylelint": "18.0.0",
+    "stylelint-config-recommended": "19.0.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.73.0",
     "vitest": "5.0.5",
