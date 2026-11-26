@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "e0ba57c03878204ef928e25e789a493ddcbe70ca",
- "generated": "2026-11-26T08:46:03Z",
+ "commit": "ef34ba8cad251c5ee1643aad13a9e541ecb5f3c6",
+ "generated": "2026-11-26T15:32:39Z",
  "missing": [],
  "cases": [
   {
@@ -2210,6 +2210,78 @@
    "then": [
     "each household type's share of households and number of surveyed households are the published file's",
     "its link to compare them in Explore carries every household type, in the file's order"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "PW-GUARD-001",
+   "suite": "playwright",
+   "title": "the unchanged copy passes the site checks",
+   "file": "site/tests/ui/guards.ui.ts",
+   "line": 75,
+   "node": "site/tests/ui/guards.ui.ts › the unchanged copy passes the site checks",
+   "given": [
+    "a copy of the built site and its sources, nothing planted"
+   ],
+   "when": [
+    "the site checks run on the copy"
+   ],
+   "then": [
+    "they pass, so each failure below comes from what was planted"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "PW-GUARD-002",
+   "suite": "playwright",
+   "title": "an English text without its Greek twin fails the site checks",
+   "file": "site/tests/ui/guards.ui.ts",
+   "line": 91,
+   "node": "site/tests/ui/guards.ui.ts › an English text without its Greek twin fails the site checks",
+   "given": [
+    "a copy of the site whose English interface text gained a key the Greek lacks"
+   ],
+   "when": [
+    "the site checks run on the copy"
+   ],
+   "then": [
+    "they fail, naming the key as English only"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": null
+  },
+  {
+   "id": "PW-GUARD-003",
+   "suite": "playwright",
+   "title": "an inline script or another site's script in a page fails the site checks",
+   "file": "site/tests/ui/guards.ui.ts",
+   "line": 111,
+   "node": "site/tests/ui/guards.ui.ts › an inline script or another site's script in a page fails the site checks",
+   "given": [
+    "a copy of the built site whose English home page gained an inline script and a script from another site"
+   ],
+   "when": [
+    "the site checks run on the copy"
+   ],
+   "then": [
+    "they fail, naming the page for each"
    ],
    "notes": "",
    "examples": [],
@@ -8668,7 +8740,7 @@
    "suite": "pytest",
    "title": "a test file that names no layer stops the run before any test",
    "file": "tests/test_coverage.py",
-   "line": 242,
+   "line": 244,
    "node": "tests/test_coverage.py::test_a_test_file_without_a_layer_stops_the_run",
    "given": [
     "a test file with no `pytestmark` layer next to one that has it"
@@ -8693,7 +8765,7 @@
    "suite": "pytest",
    "title": "coverage records the layer and the test that ran each line",
    "file": "tests/test_coverage.py",
-   "line": 263,
+   "line": 265,
    "node": "tests/test_coverage.py::test_each_line_is_labelled_with_the_layer_that_ran_it",
    "given": [
     "a unit test file calling one function and an integration test in it, marked to override its file, calling another"
@@ -10397,7 +10469,7 @@
    "suite": "pytest",
    "title": "the untouched fixtures match their listed hashes",
    "file": "tests/test_fixtures.py",
-   "line": 23,
+   "line": 33,
    "node": "tests/test_fixtures.py::test_untouched_fixtures_match_their_published_hashes",
    "given": [
     "the fixtures README, which lists the SHA-256 of each untouched fixture"
@@ -10408,6 +10480,253 @@
    "then": [
     "exactly 19 files are listed",
     "every file's SHA-256 matches the one listed"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-001",
+   "suite": "pytest",
+   "title": "A connection to another machine is refused, recorded, and named as a rule break",
+   "file": "tests/test_guards.py",
+   "line": 32,
+   "node": "tests/test_guards.py::test_a_connection_to_another_host_is_refused",
+   "given": [
+    "the network guard on"
+   ],
+   "when": [
+    "a test opens a connection to an address that isn't this machine"
+   ],
+   "then": [
+    "the call raises NetworkBlocked before anything is sent",
+    "the guard records the attempt, and its message names the rule"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-002",
+   "suite": "pytest",
+   "title": "Code that catches every exception can't hide a refused call",
+   "file": "tests/test_guards.py",
+   "line": 49,
+   "node": "tests/test_guards.py::test_a_swallowed_refusal_still_fails_the_test",
+   "given": [
+    "the network guard on"
+   ],
+   "when": [
+    "code under test calls a named host and swallows whatever goes wrong"
+   ],
+   "then": [
+    "the guard still holds the attempt, so the test fails at teardown"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-003",
+   "suite": "pytest",
+   "title": "A server the test started on this machine can still be reached",
+   "file": "tests/test_guards.py",
+   "line": 65,
+   "node": "tests/test_guards.py::test_this_machine_stays_allowed",
+   "given": [
+    "the network guard on and a listening socket on 127.0.0.1"
+   ],
+   "when": [
+    "the test connects to it, by address and as localhost"
+   ],
+   "then": [
+    "both connections succeed and nothing is recorded",
+    "loopback addresses, `localhost` and no host count as this machine; others don't"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-004",
+   "suite": "pytest",
+   "title": "In a real run, a test that reaches the network fails, even if it hides the error",
+   "file": "tests/test_guards.py",
+   "line": 85,
+   "node": "tests/test_guards.py::test_the_conftest_switches_the_guard_on_for_every_test",
+   "given": [
+    "a throwaway project with a copy of the suite's conftest and guard"
+   ],
+   "when": [
+    "pytest runs a test that calls another host and catches the error, and one that doesn't call out"
+   ],
+   "then": [
+    "the first fails with the rule in its message and the second passes"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-005",
+   "suite": "pytest",
+   "title": "Lint refuses pandas or numpy anywhere but the microdata code",
+   "file": "tests/test_guards.py",
+   "line": 134,
+   "node": "tests/test_guards.py::test_pandas_and_numpy_are_refused_outside_the_microdata_code",
+   "given": [
+    "the project's Ruff settings"
+   ],
+   "when": [
+    "a module outside src/traceconomics/local/, or a new test file, imports pandas or numpy"
+   ],
+   "then": [
+    "Ruff fails, naming the rule and where they belong",
+    "the same import inside src/traceconomics/local/ passes"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-006",
+   "suite": "pytest",
+   "title": "Each kind of private text planted in a file is found, and public text is not",
+   "file": "tests/test_guards.py",
+   "line": 150,
+   "node": "tests/test_guards.py::test_private_text_in_a_file_is_found",
+   "given": [
+    "a file holding an e-mail address, a local path, a decision number, a private link and a name"
+   ],
+   "when": [
+    "the private-text guard scans it, with that name on its list"
+   ],
+   "then": [
+    "each is reported with its file, line and kind",
+    "the project's address, example.org, a decile (D10), a URL path and the repository's URL are not"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-007",
+   "suite": "pytest",
+   "title": "An allow entry excuses one kind of hit in one file, and fails once nothing needs it",
+   "file": "tests/test_guards.py",
+   "line": 181,
+   "node": "tests/test_guards.py::test_an_allow_entry_covers_one_kind_and_must_stay_needed",
+   "given": [
+    "a file with a local path, and allow entries for it, for another kind, and for a missing file"
+   ],
+   "when": [
+    "the guard scans and checks the allow list"
+   ],
+   "then": [
+    "the local path is excused and nothing else is",
+    "the entry for a kind the file doesn't have, and the one for a missing file, are reported stale"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-008",
+   "suite": "pytest",
+   "title": "A skip added to a test fails the ratchet, and so does a listed one that's gone",
+   "file": "tests/test_guards.py",
+   "line": 203,
+   "node": "tests/test_guards.py::test_a_new_skip_fails_until_it_is_listed",
+   "given": [
+    "a Python test and a Playwright test, each with skips, and a list that covers only some"
+   ],
+   "when": [
+    "the skips are counted and compared with the list"
+   ],
+   "then": [
+    "the unlisted ones are reported with the rule and what to do",
+    "a listed skip that no longer exists is reported too, and `importorskip` is never counted"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-009",
+   "suite": "pytest",
+   "title": "A publisher's file edited, re-saved with other line endings, or removed is found",
+   "file": "tests/test_guards.py",
+   "line": 235,
+   "node": "tests/test_guards.py::test_an_edited_fixture_fails_its_hash_check",
+   "given": [
+    "a copy of one untouched fixture and its README row with the published SHA-256"
+   ],
+   "when": [
+    "the copy is unchanged, then has one byte changed, then its line endings converted, then is gone"
+   ],
+   "then": [
+    "only the unchanged copy passes the fixtures' hash check"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-GUARD-010",
+   "suite": "pytest",
+   "title": "A dependency changed in pyproject.toml without regenerating the locks is found",
+   "file": "tests/test_guards.py",
+   "line": 259,
+   "node": "tests/test_guards.py::test_a_pin_changed_without_its_lock_files_is_found",
+   "given": [
+    "copies of pyproject.toml and the four lock files"
+   ],
+   "when": [
+    "the copies are unchanged, then one base pin is changed in pyproject.toml, then a lock line loses its hash"
+   ],
+   "then": [
+    "the unchanged copies pass",
+    "the changed pin is reported for every lock file, and the line without a hash for its file"
    ],
    "notes": "",
    "examples": [],
@@ -15399,7 +15718,7 @@
    "suite": "pytest",
    "title": "the hashed lock files match pyproject.toml's pins",
    "file": "tests/test_lock_files.py",
-   "line": 37,
+   "line": 67,
    "node": "tests/test_lock_files.py::test_lock_files_match_pyproject",
    "given": [
     "pyproject.toml's base dependencies and extras",
@@ -19635,6 +19954,79 @@
    "layer": "unit"
   },
   {
+   "id": "PY-PRIVATE-001",
+   "suite": "pytest",
+   "title": "No tracked file holds an e-mail address, local path, decision number or private link",
+   "file": "tests/test_private_text.py",
+   "line": 22,
+   "node": "tests/test_private_text.py::test_no_private_text_in_tracked_files",
+   "given": [
+    "every file git tracks, but the publishers' files in tests/fixtures/"
+   ],
+   "when": [
+    "each is scanned for the private patterns"
+   ],
+   "then": [
+    "nothing is found that the allow list doesn't expect",
+    "every allow entry still covers a hit, names a known kind and gives its reason"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-PRIVATE-002",
+   "suite": "pytest",
+   "title": "No tracked file names the people behind the project, except where it must",
+   "file": "tests/test_private_text.py",
+   "line": 37,
+   "node": "tests/test_private_text.py::test_no_personal_names_in_tracked_files",
+   "given": [
+    "the names to look for, from an environment variable kept outside the repository"
+   ],
+   "when": [
+    "every tracked file is scanned for them (the repository's own GitHub address aside)"
+   ],
+   "then": [
+    "they appear only where the allow list says, such as the licence and the citation file"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-PRIVATE-003",
+   "suite": "pytest",
+   "title": "The built pages are checked for the same kinds of private text as the source",
+   "file": "tests/test_private_text.py",
+   "line": 50,
+   "node": "tests/test_private_text.py::test_site_check_3_refuses_the_same_kinds",
+   "given": [
+    "site check 3 in site/scripts/checks.mjs"
+   ],
+   "when": [
+    "its list of refused kinds is read"
+   ],
+   "then": [
+    "it is exactly this guard's list, so the two can't drift apart"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
    "id": "PY-QFIG-001",
    "suite": "pytest",
    "title": "a figure's number and decimals are read as the English text writes it",
@@ -21103,6 +21495,128 @@
    "layer": "unit"
   },
   {
+   "id": "PY-RULES-001",
+   "suite": "pytest",
+   "title": "The real registry holds every hard rule, and everything it names exists",
+   "file": "tests/test_rules_page.py",
+   "line": 38,
+   "node": "tests/test_rules_page.py::test_the_real_registry_matches_the_rules",
+   "given": [
+    "AGENTS.md, tests/catalog/rules.toml and the test code"
+   ],
+   "when": [
+    "the page generator compares them"
+   ],
+   "then": [
+    "it finds no rule without an entry, no entry without a rule, nothing out of order",
+    "every guard test and file the registry names exists, and every guarded rule has a guard test"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-RULES-002",
+   "suite": "pytest",
+   "title": "A hard rule added, reworded or moved in AGENTS.md without the registry is reported",
+   "file": "tests/test_rules_page.py",
+   "line": 49,
+   "node": "tests/test_rules_page.py::test_a_new_or_reworded_rule_without_its_entry_is_found",
+   "given": [
+    "a made-up repository whose registry matches its AGENTS.md"
+   ],
+   "when": [
+    "AGENTS.md gains a rule, then has a rule reworded, then has two rules swapped"
+   ],
+   "then": [
+    "each change is reported until the registry follows"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-RULES-003",
+   "suite": "pytest",
+   "title": "An entry naming a missing test or file, or claiming a guard it can't prove, is reported",
+   "file": "tests/test_rules_page.py",
+   "line": 79,
+   "node": "tests/test_rules_page.py::test_an_entry_that_promises_too_much_is_found",
+   "given": [
+    "a made-up repository whose registry matches its AGENTS.md"
+   ],
+   "when": [
+    "entries name a missing test and file, or lose their guard tests, gap or reason, or get an unknown strength"
+   ],
+   "then": [
+    "each is reported, naming the rule"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-RULES-004",
+   "suite": "pytest",
+   "title": "Nothing is written while the registry disagrees with the sources",
+   "file": "tests/test_rules_page.py",
+   "line": 107,
+   "node": "tests/test_rules_page.py::test_the_page_is_not_written_while_anything_disagrees",
+   "given": [
+    "a made-up repository whose AGENTS.md has a rule the registry lacks"
+   ],
+   "when": [
+    "the page is generated"
+   ],
+   "then": [
+    "it stops with the disagreement and writes no page"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-RULES-005",
+   "suite": "pytest",
+   "title": "The real page is byte-identical from run to run, lists every rule, and holds nothing private",
+   "file": "tests/test_rules_page.py",
+   "line": 127,
+   "node": "tests/test_rules_page.py::test_the_real_page_gives_the_same_bytes_and_nothing_private",
+   "given": [
+    "the repository as it is"
+   ],
+   "when": [
+    "the page is generated twice through the command line"
+   ],
+   "then": [
+    "both files are byte-identical, with one table row per hard rule and its guard tests linked",
+    "the private-text guard finds nothing in it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
    "id": "PY-SECTXT-001",
    "suite": "pytest",
    "title": "security.txt has the fields RFC 9116 requires, in its format",
@@ -21620,6 +22134,31 @@
    "problems": [],
    "named": false,
    "layer": "integration"
+  },
+  {
+   "id": "PY-SKIPS-001",
+   "suite": "pytest",
+   "title": "The skips in the test code are exactly the reviewed list, each with its reason",
+   "file": "tests/test_skips.py",
+   "line": 16,
+   "node": "tests/test_skips.py::test_every_skip_is_on_the_reviewed_list",
+   "given": [
+    "every tracked or new test file, Python and TypeScript"
+   ],
+   "when": [
+    "their skips are counted per file and kind"
+   ],
+   "then": [
+    "the counts equal tests/skips.toml's, entry for entry",
+    "every entry gives its reason"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
   },
   {
    "id": "PY-ARCHIVE-001",
@@ -22727,10 +23266,12 @@
     "Architecture.md",
     "Design-principles.md",
     "Future.md",
+    "Harness-engineering.md",
     "Home.md",
     "Household-group-methods.md",
     "How-a-release-goes-live.md",
     "Price-index-methods.md",
+    "Ratchets-and-docs-as-code.md",
     "Site-patterns.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
@@ -22765,10 +23306,12 @@
     "Architecture.md",
     "Design-principles.md",
     "Future.md",
+    "Harness-engineering.md",
     "Home.md",
     "Household-group-methods.md",
     "How-a-release-goes-live.md",
     "Price-index-methods.md",
+    "Ratchets-and-docs-as-code.md",
     "Site-patterns.md",
     "Test-management-as-code.md",
     "Test-strategy.md",
@@ -22804,10 +23347,12 @@
     "Architecture.md",
     "Design-principles.md",
     "Future.md",
+    "Harness-engineering.md",
     "Home.md",
     "Household-group-methods.md",
     "How-a-release-goes-live.md",
     "Price-index-methods.md",
+    "Ratchets-and-docs-as-code.md",
     "Site-patterns.md",
     "Test-management-as-code.md",
     "Test-strategy.md",

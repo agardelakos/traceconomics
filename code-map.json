@@ -23375,7 +23375,7 @@
    "tests/test_weights_check.py::test_rule_n_for_the_newest_year"
   ]
  },
- "commit": "e0ba57c03878204ef928e25e789a493ddcbe70ca",
+ "commit": "ef34ba8cad251c5ee1643aad13a9e541ecb5f3c6",
  "front-end": {
   "files": {
    "src/components/CountryBar.astro (script 0)": {
@@ -23467,6 +23467,7 @@
       74,
       75,
       82,
+      83,
       86,
       87,
       88,
@@ -26470,6 +26471,7 @@
       74,
       75,
       82,
+      83,
       86,
       87,
       88,
