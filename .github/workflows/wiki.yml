@@ -12,7 +12,8 @@
 #     the registry of checks and the files that define them (tests/catalog/checks_page.py; it
 #     reads the branch rules on main, public, so that the required checks it lists are the real
 #     ones), and the Rules-and-their-guards page from the registry of hard rules
-#     (tests/catalog/rules_page.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the
+#     (tests/catalog/rules_page.py), and the Agent-evals page from the recorded eval runs
+#     (tests/evals/page.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the
 #     repository's version back.
 #
 # Runs only the default branch's code (showcase.yml calls it for pushes to main only): nothing from
@@ -102,10 +103,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Mirror the hand-written pages: wiki/ is the source; the Tests pages are wiki.py's, the Code
-          # pages code_reference.py's, the Checks page checks_page.py's, the rules page rules_page.py's.
+          # pages code_reference.py's, the Checks page checks_page.py's, the rules page rules_page.py's, the evals page tests/evals/page.py's.
           for f in *.md; do
             case $f in
-              Tests.md|Tests-*.md|Code.md|Code-*.md|Checks.md|Rules-and-their-guards.md) ;;
+              Tests.md|Tests-*.md|Code.md|Code-*.md|Checks.md|Rules-and-their-guards.md|Agent-evals.md) ;;
               *) [ -f "$GITHUB_WORKSPACE/wiki/$f" ] || git rm -q "$f" ;;
             esac
           done
@@ -116,6 +117,7 @@ jobs:
           python -I "$GITHUB_WORKSPACE/tests/catalog/checks_page.py" --out . --repo "$GITHUB_REPOSITORY" \
             --rules "$RUNNER_TEMP/rules.json"
           python -I "$GITHUB_WORKSPACE/tests/catalog/rules_page.py" --out . --repo "$GITHUB_REPOSITORY"
+          python -I "$GITHUB_WORKSPACE/tests/evals/page.py" --out . --repo "$GITHUB_REPOSITORY"
           git add -A
           if git diff --cached --quiet; then
             echo "The wiki is up to date." | tee -a "$GITHUB_STEP_SUMMARY"

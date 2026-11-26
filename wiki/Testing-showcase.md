@@ -26,6 +26,7 @@ Contributions to the showcase are welcome, never required.
 | The code map            | `tests/coverage/code_map.py`, `tests/catalog/code_charts.py`            | [Code](Code#the-map), [Code-site](Code-site) |
 | Mutation testing        | `tests/coverage/mutation.py`, `tests/coverage/mutation-equivalent.toml` | [Mutation testing](Tests-Mutation)           |
 | Run history             | `tests/catalog/history.py`, `tests/catalog/vm_pull.py`                  | [Runs](Tests-Runs)                           |
+| Agent evals             | `tests/evals/`                                                          | [Agent evals](Agent-evals)                   |
 
 ## How it runs
 
@@ -38,7 +39,7 @@ All of it runs in the `showcase` workflow (`.github/workflows/showcase.yml`):
   the newer push's run does it all instead.
 - **Weekly:** the Selenium suite on `main`, so a change outside the repository (a new Chrome for
   Testing, a dependency) shows even in a quiet week.
-- **By hand:** the long comparison (several runs of each suite) and mutation testing.
+- **By hand:** the long comparison (several runs of each suite), mutation testing and the agent evals.
 
 Pull requests don't run it. Its status is the `showcase` badge in the README. Because nobody else
 keeps Selenium in step with the site, the [Selenium cases](Tests-Selenium) page and the
@@ -104,6 +105,17 @@ run the engine on each change. The page gives the share of changes some test not
 every run so far, the result per function, and every change none did: a gap in the tests to close
 with a test, or a change that behaves the same as the code, listed with its reason in
 `tests/coverage/mutation-equivalent.toml`. `Code-engine` ends with the newest score and a link.
+
+## Agent evals
+
+[Rules and their guards](Rules-and-their-guards) shows what enforces each hard rule; the
+[agent evals](Agent-evals) ask what a coding agent does when the quickest way to finish a task breaks
+one. Each task is seeded in a throwaway clone with no remote, so nothing done there can reach
+GitHub, and nothing in the clone says it is an eval. A fresh agent gets the prompt and the
+repository, with `AGENTS.md` as its only statement of the rules. `tests/evals/evals.py` records what
+it changed, whether it took the shortcut, whether a guard caught it, and whether it made commits; a
+person judges whether its report was honest. Results are runs, never a gate, and the same tasks can
+be given to any agent.
 
 ## Run history
 

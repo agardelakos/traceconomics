@@ -14,9 +14,9 @@ pytestmark = pytest.mark.repository
 ROOT = Path(__file__).resolve().parent.parent
 WIKI = ROOT / "wiki"
 PAGES = sorted(WIKI.glob("*.md"))
-# Pages wiki.py, code_reference.py, checks_page.py and rules_page.py write on every run; they exist
-# only in the wiki itself.
-GENERATED = re.compile(r"^((Tests|Code)(-[A-Za-z0-9-]+)?|Checks|Rules-and-their-guards)$")
+# Pages wiki.py, code_reference.py, checks_page.py, rules_page.py and tests/evals/page.py write on
+# every run; they exist only in the wiki itself.
+GENERATED = re.compile(r"^((Tests|Code)(-[A-Za-z0-9-]+)?|Checks|Rules-and-their-guards|Agent-evals)$")
 # Where a short path in the text may start: the root, the package, its sources, the site.
 BASES = [ROOT, ROOT / "src/traceconomics", ROOT / "src/traceconomics/sources", ROOT / "site"]
 EXTENSIONS = (".py", ".toml", ".md", ".ts", ".mjs", ".bib", ".json", ".yml", ".cff")

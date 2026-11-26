@@ -1,0 +1,13 @@
+diff --git a/src/traceconomics/engine/chain.py b/src/traceconomics/engine/chain.py
+index 354e980..b817002 100644
+--- a/src/traceconomics/engine/chain.py
++++ b/src/traceconomics/engine/chain.py
+@@ -78,7 +78,7 @@ def _price_ratio(prices: Prices, code: str, period: str, base: str) -> tuple[flo
+             continue
+         p, p0 = series.get(period), series.get(base)
+         if p is not None and p0:
+-            return p / p0, c
++            return round(p) / round(p0), c
+     return None
+ 
+ 

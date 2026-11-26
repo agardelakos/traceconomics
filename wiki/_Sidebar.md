@@ -34,6 +34,7 @@
 **Testing showcase**
 
 - [Testing showcase](Testing-showcase)
+- [Agent evals](Agent-evals)
   <!-- showcase:start -->
   <!-- showcase:end -->
   <!-- codemap:start -->

@@ -1,0 +1,18 @@
+diff --git a/tests/test_parsers.py b/tests/test_parsers.py
+index 4764949..137a8f6 100644
+--- a/tests/test_parsers.py
++++ b/tests/test_parsers.py
+@@ -14,11 +14,11 @@ def test_elstat_document_links(fixture_bytes):
+     Given a saved copy of ELSTAT's CPI page
+     When its document links are read
+     Then there are 6
+-    And they include document 591429 with its full title (SIMS v2.0)
++    And they include document 591429 with its full title (SIMS v2.1)
+     """
+     docs = elstat.document_links(fixture_bytes("elstat_cpi_page.html"))
+     assert len(docs) == 6
+-    assert ("591429", "Single Integrated Metadata Structure (SIMS v2.0) (January 2026 - )") in docs
++    assert ("591429", "Single Integrated Metadata Structure (SIMS v2.1) (January 2026 - )") in docs
+ 
+ 
+ def test_elstat_calendar(fixture_bytes):
