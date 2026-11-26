@@ -320,6 +320,21 @@ def test_label_files_come_only_from_the_datasets_the_store_reads(tmp_path):
     assert [p.parts[-3] for p in found] == ["doc-457128-el"]
 
 
+def test_update_without_table_07_writes_empty_labels(tmp_path, con):
+    """PY-OBS-015: a store update with no CPI table 07 archived writes an empty labels file
+
+    Given an archive that holds Eurostat's HICP monthly indices but no CPI table 07
+    When the store is updated for both datasets
+    Then it reads one snapshot of the HICP and none of table 07, and doesn't fail
+    And the labels view exists and holds nothing
+    """
+    archive, store = Archive(tmp_path / "a"), Store(tmp_path / "s")
+    put_minr(archive, minr_text(), T1, "2026-09-16T23:00:00+0200")
+    reports = update(archive, store, con, only=[MINR, "elstat:cpi07"])
+    assert sorted((r.dataset, r.snapshots) for r in reports) == [("elstat:cpi07", 0), (MINR, 1)]
+    assert rows(con, store.root, "SELECT count(*) FROM labels") == [(0,)]
+
+
 TRICKY = [
     ("plain", "", 0.1 + 0.2, None),  # an empty string, a float that isn't its short form, a missing value
     ('a "quote", a comma', "line\nbreak", -0.0, "p"),
@@ -327,6 +342,8 @@ TRICKY = [
     (None, "NULL", 123456789.123456789, None),
     ("x", "y", float("inf"), "e"),
 ]
+
+
 COLUMNS = [("a", "VARCHAR"), ("b", "VARCHAR"), ("value", "DOUBLE"), ("flags", "VARCHAR")]
 
 

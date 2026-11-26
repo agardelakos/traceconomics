@@ -240,6 +240,32 @@ def test_seed_skips_rows_it_cant_vouch_for_and_files_listed_twice(tmp_path):
     assert sorted(s.split(": ")[0].rsplit("/", 1)[1] for s in rep.skipped) == ["missing.xlsx", "undated.xlsx"]
 
 
+def test_seed_dry_run_checks_checksums(tmp_path):
+    """PY-BACKFILL-012: a dry run reports a file that fails its checksum, as a real seeding would
+
+    Given a research folder whose MANIFEST.md lists a matching ELSTAT file and a changed one
+    When the archive is seeded from it as a dry run
+    Then only the matching file is listed as one it would store
+    And the changed file is reported with a bad checksum
+    And nothing is written to the archive
+    """
+    research = tmp_path / "research" / "elstat" / "pass-2026-10-17"
+    research.mkdir(parents=True)
+    (research / "good.xlsx").write_bytes(b"good")
+    (research / "bad.xlsx").write_bytes(b"tampered")
+    (research / "MANIFEST.md").write_text(
+        "| File | Source URL | Downloaded | SHA-256 |\n|---|---|---|---|\n"
+        f"| good.xlsx | {ELSTAT_DOC.format(1)} | 2026-10-17 | {_sha(b'good')} |\n"
+        f"| bad.xlsx | {ELSTAT_DOC.format(2)} | 2026-10-17 | {_sha(b'original')} |\n",
+        encoding="utf-8",
+    )
+    archive = Archive(tmp_path / "archive")
+    rep = seed(archive, tmp_path / "research", dry_run=True)
+    assert rep.stored == ["elstat/doc-1 <- good.xlsx (2026-10-17)"]
+    assert rep.bad_checksum == [str(research / "bad.xlsx")]
+    assert archive.latest("elstat", "doc-1") is None
+
+
 WAYBACK_URL = "https://web.archive.org/web/20210724233349id_/https://www.statistics.gr/en/statistics?_documentID=114837&_locale=en"
 
 
