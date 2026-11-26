@@ -16,8 +16,17 @@
 - [Adding a source or country](Adding-a-source-or-country)
   <!-- code:start -->
   <!-- code:end -->
-- [Test strategy](Test-strategy)
+
+**Harness engineering**
+
+- [Harness engineering](Harness-engineering)
+- [Rules and their guards](Rules-and-their-guards)
 - [Checks](Checks)
+- [Ratchets and docs as code](Ratchets-and-docs-as-code)
+
+**Quality**
+
+- [Test strategy](Test-strategy)
 - [Test management as code](Test-management-as-code)
   <!-- generated:start -->
   <!-- generated:end -->

@@ -2,6 +2,7 @@ import ast
 from pathlib import Path
 
 import pytest
+from guards import NetworkGuard
 
 try:
     from coverage import Coverage
@@ -119,6 +120,19 @@ def pytest_runtest_protocol(item, nextitem):
         return (yield)
     finally:
         _context("")
+
+
+@pytest.fixture(autouse=True)
+def no_network(request, monkeypatch):
+    # No test reaches the network (tests/guards.py). The Selenium tests are left out: they drive a
+    # browser that Selenium Manager fetches once per machine, outside any test's code.
+    if not _measured(request.node.path):
+        yield None
+        return
+    guard = NetworkGuard(monkeypatch)
+    yield guard
+    if (problem := guard.problem()) is not None:
+        pytest.fail(problem, pytrace=False)
 
 
 @pytest.fixture

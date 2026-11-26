@@ -40,8 +40,9 @@ More topics and countries are planned.
 
 The repository holds the code and the binding rules; the wiki holds the longer explanations.
 
-The sidebar groups the pages in three: the project and its methods, how the code is built and
-kept right, and the maintainer's testing showcase.
+The sidebar groups the pages in five: the project and its methods, how the code is built, how the
+repository keeps people and coding agents inside its rules, how it is tested, and the maintainer's
+testing showcase.
 
 **TracEconomics**
 
@@ -53,16 +54,29 @@ kept right, and the maintainer's testing showcase.
 
 **Engineering**
 
-| Page                                                     | Read it to                                                             |
-| -------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Architecture](Architecture)                             | understand how data flows from publishers' files to the site           |
-| [Design principles](Design-principles)                   | know the rules the project keeps, and why                              |
-| [Site patterns](Site-patterns)                           | build pages from the site's components and tokens                      |
-| [How a release goes live](How-a-release-goes-live)       | see how a build decides whether it may publish by itself               |
-| [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                                      |
-| [Test strategy](Test-strategy)                           | see what each test layer proves, and what isn't tested                 |
-| [Checks](Checks)                                         | see every automatic check, what fails with it, and how to run it first |
-| [Test management as code](Test-management-as-code)       | see how test cases and run history are kept with the code              |
+| Page                                                     | Read it to                                                   |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| [Architecture](Architecture)                             | understand how data flows from publishers' files to the site |
+| [Design principles](Design-principles)                   | know the rules the project keeps, and why                    |
+| [Site patterns](Site-patterns)                           | build pages from the site's components and tokens            |
+| [How a release goes live](How-a-release-goes-live)       | see how a build decides whether it may publish by itself     |
+| [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                            |
+
+**Harness engineering**
+
+| Page                                                   | Read it to                                                             |
+| ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [Harness engineering](Harness-engineering)             | see how the repository steers coding agents and people, layer by layer |
+| [Rules and their guards](Rules-and-their-guards)       | see what enforces each hard rule, the gaps included                    |
+| [Checks](Checks)                                       | see every automatic check, what fails with it, and how to run it first |
+| [Ratchets and docs as code](Ratchets-and-docs-as-code) | see the lists that may only shrink, and the tests that keep docs true  |
+
+**Quality**
+
+| Page                                               | Read it to                                                |
+| -------------------------------------------------- | --------------------------------------------------------- |
+| [Test strategy](Test-strategy)                     | see what each test layer proves, and what isn't tested    |
+| [Test management as code](Test-management-as-code) | see how test cases and run history are kept with the code |
 
 **Testing showcase**
 

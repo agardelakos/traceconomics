@@ -25,13 +25,43 @@ def pins(requirements: list[str]) -> dict[str, str]:
     return {norm(m[1]): m[2] for r in requirements if (m := PIN.match(r))}
 
 
-def locked(name: str) -> tuple[dict[str, str], str]:
-    text = (ROOT / name).read_text(encoding="utf-8")
-    joined = text.replace("\\\n", " ")
-    lines = [line for line in joined.splitlines() if line and not line.lstrip().startswith("#")]
-    for line in lines:
-        assert HASH.search(line), f"{name}: no hash for {line.split()[0]}"
-    return pins(lines), text
+LOCKS = [
+    ("requirements-dev.txt", ["dev"]),
+    ("requirements-local.txt", ["local"]),
+    ("requirements-selenium.txt", ["dev", "selenium"]),
+    ("requirements-mutation.txt", ["dev", "mutation"]),
+]
+
+
+def problems(root: Path = ROOT) -> list[str]:
+    """Where the lock files under root disagree with its pyproject.toml, one line each.
+
+    The Selenium browser tests and mutation testing each have a lock of their own (with the dev
+    extra), so their dependencies never enter the others.
+    """
+    with open(root / "pyproject.toml", "rb") as f:
+        project = tomllib.load(f)["project"]
+    base = pins(project["dependencies"])
+    out = []
+    for name, extras in LOCKS:
+        text = (root / name).read_text(encoding="utf-8")
+        joined = text.replace("\\\n", " ")
+        lines = [line for line in joined.splitlines() if line and not line.lstrip().startswith("#")]
+        out += [f"{name}: no hash for {line.split()[0]}" for line in lines if not HASH.search(line)]
+        have = pins(lines)
+        wanted = dict(base)
+        for extra in extras:
+            wanted |= pins(project["optional-dependencies"][extra])
+        out += [
+            f"{name}: {package} {have.get(package)}, pyproject {version}"
+            for package, version in wanted.items()
+            if have.get(package) != version
+        ]
+        # The build backend is locked too: the project is installed without build isolation.
+        if "setuptools" not in have:
+            out.append(f"{name}: setuptools missing")
+        out += [f"{name}: not compiled for the {extra} extra" for extra in extras if f"--extra={extra}" not in text]
+    return out
 
 
 def test_lock_files_match_pyproject():
@@ -48,26 +78,4 @@ def test_lock_files_match_pyproject():
     The Selenium browser tests and mutation testing each have a lock of their own (with the dev
     extra), so their dependencies never enter the others.
     """
-    with open(ROOT / "pyproject.toml", "rb") as f:
-        data = tomllib.load(f)
-    project = data["project"]
-    base = pins(project["dependencies"])
-    # The Selenium browser tests and mutation testing each have a lock of their own (with the dev
-    # extra), so their dependencies never enter the others.
-    locks = [
-        ("requirements-dev.txt", ["dev"]),
-        ("requirements-local.txt", ["local"]),
-        ("requirements-selenium.txt", ["dev", "selenium"]),
-        ("requirements-mutation.txt", ["dev", "mutation"]),
-    ]
-    for name, extras in locks:
-        have, text = locked(name)
-        wanted = dict(base)
-        for extra in extras:
-            wanted |= pins(project["optional-dependencies"][extra])
-        for package, version in wanted.items():
-            assert have.get(package) == version, f"{name}: {package} {have.get(package)}, pyproject {version}"
-        # The build backend is locked too: the project is installed without build isolation.
-        assert "setuptools" in have, f"{name}: setuptools missing"
-        for extra in extras:
-            assert f"--extra={extra}" in text, f"{name}: not compiled for the {extra} extra"
+    assert problems() == []

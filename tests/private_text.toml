@@ -1,0 +1,62 @@
+# Where the private-text guard (tests/guards.py, run by tests/test_private_text.py) expects a hit, and
+# why. Each entry covers one kind of hit in one file. The list may only shrink: an entry whose file no
+# longer has that kind of hit fails the test until it is removed. Add one only with its reason, and
+# prefer changing the text (a made-up path, an example.org address) to adding an entry.
+#
+# Kinds: "a decision number", "a link to private notes", "a local path", "an e-mail address",
+# "a personal name" (names come from outside the repository; see tests/test_private_text.py).
+
+[[allow]]
+path = "tests/guards.py"
+what = "a local path"
+reason = "holds the patterns themselves"
+
+[[allow]]
+path = "tests/guards.py"
+what = "a link to private notes"
+reason = "holds the patterns themselves"
+
+[[allow]]
+path = "site/scripts/checks.mjs"
+what = "a link to private notes"
+reason = "site check 3 quotes the pattern in its header"
+
+[[allow]]
+path = "tests/test_checks_page.py"
+what = "a local path"
+reason = "holds a local-path pattern: the generated page is checked for none"
+
+[[allow]]
+path = "tests/test_code_reference.py"
+what = "a local path"
+reason = "holds a local-path pattern: the generated pages are checked for none"
+
+[[allow]]
+path = "tests/test_heartbeat_backup.py"
+what = "a local path"
+reason = "a made-up home folder for the release server's layout"
+
+[[allow]]
+path = "LICENSE"
+what = "a personal name"
+reason = "the copyright holder, on purpose"
+
+[[allow]]
+path = "NOTICE"
+what = "a personal name"
+reason = "the copyright holder, on purpose"
+
+[[allow]]
+path = "CITATION.cff"
+what = "a personal name"
+reason = "the author to cite, on purpose"
+
+[[allow]]
+path = ".github/CODEOWNERS"
+what = "a personal name"
+reason = "the maintainer's GitHub handle: CODEOWNERS needs it"
+
+[[allow]]
+path = "README.md"
+what = "a personal name"
+reason = "the copyright line in the licence section, on purpose"
