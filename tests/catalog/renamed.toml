@@ -1,0 +1,86 @@
+# Test case IDs that were renamed: each old ID points to its new one. Read by history.py (a
+# renamed ID is not obsolete), wiki.py (past runs show under the new ID) and validate.py (an old ID is
+# reserved: no other test or mapping entry may take it, as with an obsolete one). Reviewed like code;
+# an entry is never removed, so an old ID can never come back.
+#
+# Fields: to (the new ID), date (YYYY-MM-DD), why.
+
+["PY-GUARD-001"]
+to = "PY-SENSOR-001"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-002"]
+to = "PY-SENSOR-002"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-003"]
+to = "PY-SENSOR-003"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-004"]
+to = "PY-SENSOR-004"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-005"]
+to = "PY-SENSOR-005"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-006"]
+to = "PY-SENSOR-006"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-007"]
+to = "PY-SENSOR-007"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-008"]
+to = "PY-SENSOR-008"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-009"]
+to = "PY-SENSOR-009"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PY-GUARD-010"]
+to = "PY-SENSOR-010"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PW-GUARD-001"]
+to = "PW-SENSOR-001"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PW-GUARD-002"]
+to = "PW-SENSOR-002"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["PW-GUARD-003"]
+to = "PW-SENSOR-003"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["TC-GUARD-001"]
+to = "TC-SENSOR-001"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["TC-GUARD-002"]
+to = "TC-SENSOR-002"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"
+
+["TC-GUARD-003"]
+to = "TC-SENSOR-003"
+date = "2026-11-26"
+why = "the harness's vocabulary follows Böckeler's guides and sensors: what enforces a hard rule is a sensor"

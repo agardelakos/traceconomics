@@ -46,11 +46,11 @@ testing showcase.
 
 **TracEconomics**
 
-| Page                                               | Read it to                                                  |
-| -------------------------------------------------- | ----------------------------------------------------------- |
-| [Price index methods](Price-index-methods)         | see how an index is built and checked against official ones |
-| [Household group methods](Household-group-methods) | see how each group's weights come from the survey           |
-| [Future](Future)                                   | see what is deliberately left for later                     |
+| Page                                                     | Read it to                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| [Price index methods](Price-index-methods)               | see how an index is built and checked against official ones       |
+| [Household group methods](Household-group-methods)       | see how each group's weights come from the survey                 |
+| [Consistency checks methods](Consistency-checks-methods) | see how the official figures are checked against their own inputs |
 
 **Engineering**
 
@@ -61,28 +61,31 @@ testing showcase.
 | [Site patterns](Site-patterns)                           | build pages from the site's components and tokens            |
 | [How a release goes live](How-a-release-goes-live)       | see how a build decides whether it may publish by itself     |
 | [Adding a source or country](Adding-a-source-or-country) | plan a new data source or country                            |
+| [Code reference](Code)                                   | see what each package and module is for, from its docstrings |
 
 **Harness engineering**
 
-| Page                                                   | Read it to                                                             |
-| ------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [Harness engineering](Harness-engineering)             | see how the repository steers coding agents and people, layer by layer |
-| [Rules and their guards](Rules-and-their-guards)       | see what enforces each hard rule, the gaps included                    |
-| [Checks](Checks)                                       | see every automatic check, what fails with it, and how to run it first |
-| [Ratchets and docs as code](Ratchets-and-docs-as-code) | see the lists that may only shrink, and the tests that keep docs true  |
+| Page                                                   | Read it to                                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| [Harness engineering](Harness-engineering)             | see how the repository steers coding agents and people: guides and sensors            |
+| [Rules: guides and sensors](Rules-guides-and-sensors)  | see what steers away from each hard rule's break and what sees one, the gaps included |
+| [Checks](Checks)                                       | see every automatic check by when it runs, and how to run it first                    |
+| [Ratchets and docs as code](Ratchets-and-docs-as-code) | see the lists that may only tighten, and the tests that keep docs true                |
 
 **Quality**
 
 | Page                                               | Read it to                                                |
 | -------------------------------------------------- | --------------------------------------------------------- |
-| [Test strategy](Test-strategy)                     | see what each test layer proves, and what isn't tested    |
+| [Test strategy](Test-strategy)                     | see what each test level proves, and what isn't tested    |
 | [Test management as code](Test-management-as-code) | see how test cases and run history are kept with the code |
 
 **Testing showcase**
 
-| Page                                 | Read it to                                         |
-| ------------------------------------ | -------------------------------------------------- |
-| [Testing showcase](Testing-showcase) | see the maintainer's testing portfolio, kept apart |
+| Page                                 | Read it to                                                       |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| [Testing showcase](Testing-showcase) | see the maintainer's testing portfolio, kept apart               |
+| [Code map](Code-map)                 | see which tests run each line of the code                        |
+| [Agent evals](Agent-evals)           | see what a coding agent does when the quickest fix breaks a rule |
 
 Wiki pages follow the current rules on `main`. If a page and the code disagree, the code and
 [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONTRIBUTING.md) win;

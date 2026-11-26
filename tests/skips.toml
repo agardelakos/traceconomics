@@ -1,4 +1,4 @@
-# Every skip in the test code, reviewed: counted per file and kind by tests/guards.py and checked by
+# Every skip in the test code, reviewed: counted per file and kind by tests/sensors.py and checked by
 # tests/test_skips.py. A test is never skipped or marked to fail to make a run pass (AGENTS.md, hard
 # rules), so a new skip fails the suite until it is added here, with its reason, in the same change:
 # the reviewer sees it in the diff. A removed skip fails until its count goes down.
@@ -21,10 +21,10 @@ count = 4
 reason = "the data have a PPS version of our limits or not, and the two limits' income years match or not (two pairs of tests, one per case; the made-up data cover one case of each)"
 
 [[skip]]
-path = "site/tests/ui/guards.ui.ts"
+path = "site/tests/ui/sensors.ui.ts"
 kind = "test.skip()"
 count = 1
-reason = "the guard tests copy the built site: they need a build (dist/)"
+reason = "the sensor tests copy the built site: they need a build (dist/)"
 
 [[skip]]
 path = "site/tests/ui/host.ui.ts"

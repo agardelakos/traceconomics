@@ -233,7 +233,7 @@ def test_package_tables_add_up_and_chain():
     And every code in the COICOP 2018 table has five digits
 
     The reader refuses a table whose shares don't add up; this checks the shipped data directly,
-    so the data stays covered even if that guard changes.
+    so the data stays covered even if that check changes.
     """
     v1, old = mapping.load(mapping.V1_TO_2018), mapping.load(mapping.OLD_TO_V1)
     for table in (v1, old):

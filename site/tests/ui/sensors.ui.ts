@@ -1,6 +1,6 @@
 // The harness tested: the site checks (scripts/checks.mjs) refuse what the hard rules forbid. Each
 // test copies the built site and its sources, plants one violation in the copy, runs the checks there
-// and expects them to fail naming it. A guard that has stopped working looks exactly like a clean
+// and expects them to fail naming it. A sensor that has stopped working looks exactly like a clean
 // site, so it is proved by breaking the rule on purpose. No browser: these run Node only, so they use
 // Playwright's plain test (the shared fixtures in ./helpers open a page for every test).
 import { execFileSync } from "node:child_process";
@@ -73,13 +73,13 @@ function checks(dir: string): { failed: boolean; output: string } {
   }
 }
 
-test.describe("guards", () => {
+test.describe("sensors", () => {
   test.skip(!existsSync(join(DIST, "en", "index.html")), "needs a build (dist/)");
 
   test(
     "the unchanged copy passes the site checks",
     gwt({
-      id: "PW-GUARD-001",
+      id: "PW-SENSOR-001",
       given: "a copy of the built site and its sources, nothing planted",
       when: "the site checks run on the copy",
       then: "they pass, so each failure below comes from what was planted",
@@ -95,7 +95,7 @@ test.describe("guards", () => {
   test(
     "an English text without its Greek twin fails the site checks",
     gwt({
-      id: "PW-GUARD-002",
+      id: "PW-SENSOR-002",
       given: "a copy of the site whose English interface text gained a key the Greek lacks",
       when: "the site checks run on the copy",
       then: "they fail, naming the key as English only",
@@ -115,7 +115,7 @@ test.describe("guards", () => {
   test(
     "an inline script or another site's script in a page fails the site checks",
     gwt({
-      id: "PW-GUARD-003",
+      id: "PW-SENSOR-003",
       given:
         "a copy of the built site whose English home page gained an inline script and a script from another site",
       when: "the site checks run on the copy",

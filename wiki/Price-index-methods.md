@@ -98,18 +98,19 @@ archive ([How a release goes live](How-a-release-goes-live)):
   only a full release carries: Eurostat's flash adds a few headline aggregates for the next month
   weeks earlier.
 
-Both are in `validate/compare.py` (`repeated_baskets`, `behind`) and pinned by PY-VONE-005 to 007,
-PY-JAN-004 and PY-CLI-049 to 052.
+Both are in `validate/compare.py` (`repeated_baskets`, `behind`) and pinned by PY-VONE-005 to PY-VONE-007,
+PY-JAN-004 and PY-CLI-049 to PY-CLI-052.
 
 ## Where it is tested
 
 - **Unit:** `tests/test_engine.py` pins the formulas on small made-up baskets: the leaves
-  (PY-ENG-002), any base and any weight unit (006, 007), the parent fallback and its limits (008 to
-  010), linking across a weight change (011), rates and rebasing (014 to 016), each year's own
-  December (017) and the pricing map (018, 019).
+  (PY-ENG-002), any base and any weight unit (PY-ENG-006, PY-ENG-007), the parent fallback and its
+  limits (PY-ENG-008 to PY-ENG-010), linking across a weight change (PY-ENG-011), rates and rebasing
+  (PY-ENG-014 to PY-ENG-016), each year's own December (PY-ENG-017) and the pricing map
+  (PY-ENG-018, PY-ENG-019).
 - **On real data:** V1 and V1-CPI run in every release build and fail it on a miss; their output
   lists every fallback and the coverage.
-- **January:** a synthetic two-year CPI with a basket change (PY-JAN-001 to 004) passes the checks
+- **January:** a synthetic two-year CPI with a basket change (PY-JAN-001 to PY-JAN-004) passes the checks
   on a correct January and fails them with the link at the wrong month or last year's weights kept.
 
 ---

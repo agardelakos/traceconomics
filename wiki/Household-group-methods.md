@@ -45,7 +45,7 @@ other cereals" from 2015.
   its remaining v1 subclasses by the 2015 survey's spending.
 
 The mapping is applied household by household, so totals are kept and every grouping works on the
-result. `traceconomics check mapping` checks the tables; tests PY-MAP-001 to 018.
+result. `traceconomics check mapping` checks the tables; tests PY-MAP-001 to PY-MAP-018.
 
 ## Calibrating to the census's renters
 
@@ -65,7 +65,7 @@ one year); the target spreads that step over the ten years between the censuses,
   reading of the file, not our method.
 - Each bootstrap replicate is calibrated again, so the standard errors include the calibration.
 
-Tests PY-CALIB-003 and 004, PY-TENURE-001; `traceconomics check tenure` prints each survey's
+Tests PY-CALIB-003 and PY-CALIB-004, PY-TENURE-001; `traceconomics check tenure` prints each survey's
 factors.
 
 ## The groups
@@ -96,7 +96,7 @@ factors.
   Groupings not ranked by income still use 2010.
 - A household that can't be placed in a grouping is left out of that grouping only.
 
-Tests PY-GROUPS-001 to 032.
+Tests PY-GROUPS-001 to PY-GROUPS-032.
 
 ## Each group's basket
 
@@ -127,8 +127,8 @@ options: rule F (survey y-3, fixed and never revised) and rule U (the same year'
 studies made after the fact; not a Laspeyres-type index).
 
 Release step `check-weights` restates rule N for the newest year and fails the build if the
-outputs used another survey (`module1/weights_check.py`, PY-WCHK-001 to 003). Tests of the rules:
-PY-SCHED-001 to 010.
+outputs used another survey (`module1/weights_check.py`, PY-WCHK-001 to PY-WCHK-003). Tests of the rules:
+PY-SCHED-001 to PY-SCHED-010.
 
 ## Pricing and price-updating
 
@@ -178,7 +178,7 @@ are ranked again and the cut points move.
 - **A lower bound:** the bands cover the sampling of households, not the sampling error of the
   price indices themselves (unpublished).
 
-Tests PY-BOOT-001 to 010, PY-BANDS-001 to 006.
+Tests PY-BOOT-001 to PY-BOOT-010, PY-BANDS-001 to PY-BANDS-006.
 
 ## Income limits
 
@@ -192,14 +192,9 @@ limits don't share one factor).
 
 ## Consistency of official figures
 
-The second topic checks official figures against their own inputs (`module5/`): a published rate
-against the index it comes from, the CPI and HICP rebuilt from their items, our household types
-and spending by item against ELSTAT's own tables, and "same question, different sources" (renters,
-rent, household income, unemployment). A difference is never called an error and never fails a
-build: rounding is labelled by the code, every other explanation is written by hand with its
-evidence (`data/m5_explanations.toml`), and until then it reads "not known yet". The site's
-[method page](https://traceconomics.com/en/gr/official-figures-consistency/method/) explains each
-check. Tests PY-M5-001 to 018.
+The second topic checks official figures against their own inputs, among them our household types
+and spending by item against ELSTAT's own tables. Its method is on its own page:
+[Consistency checks methods](Consistency-checks-methods).
 
 ---
 

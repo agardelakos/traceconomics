@@ -2,15 +2,19 @@
 
     python -I tests/catalog/checks_page.py --out WIKI_DIR --repo OWNER/NAME [--rules RULES.json]
 
-Writes `Checks.md` into WIKI_DIR. What each CI job and release step checks comes from the registry
+Writes `Checks.md` into WIKI_DIR, grouped by when each check runs: before a commit, on every change,
+after integration, continuously, and at runtime (Böckeler's "keep quality left"). What each CI job,
+showcase job, scheduled run and release step checks comes from the registry
 `tests/catalog/checks.toml`; the rest is read from where it is defined, so it can't fall behind: the
-jobs from `.github/workflows/tests.yml`, the steps from `src/traceconomics/release.py`, the site
+jobs from `.github/workflows/tests.yml` and `showcase.yml`, the schedules from every workflow's
+`schedule:`, the steps from `src/traceconomics/release.py`, the site
 checks from the numbered header of `site/scripts/checks.mjs`, the repository checks from the test
 files marked `repository`, the linters' settings from their configuration, the coverage floors from
 the code that applies them.
 
 It refuses to write the page while the registry and the sources disagree (`problems()`): a job or
-step with no entry, an entry for one that doesn't exist, a site check number missing or repeated.
+step, showcase job or scheduled workflow with no entry, an entry for one that doesn't exist, a site
+check number missing or repeated.
 RULES is the JSON GitHub returns for the rules on main (`GET /repos/{owner}/{repo}/rules/branches/main`);
 given it, the required checks in the registry must match the ones the rules require, or nothing is
 written.
@@ -31,6 +35,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = Path("tests/catalog/checks.toml")
 WORKFLOW = Path(".github/workflows/tests.yml")
+SHOWCASE = Path(".github/workflows/showcase.yml")
+WORKFLOWS = Path(".github/workflows")
 RELEASE = Path("src/traceconomics/release.py")
 SITE_CHECKS = Path("site/scripts/checks.mjs")
 PYPROJECT = Path("pyproject.toml")
@@ -74,6 +80,23 @@ def ci_jobs(text: str) -> list[str]:
         m = re.match(r"^  ([A-Za-z0-9_-]+):\s*(#.*)?$", line)
         if inside and m:
             out.append(m.group(1))
+    return out
+
+
+def schedules(root: Path) -> dict[str, list[str]]:
+    """Each workflow file with a `schedule:` under `on:`, and its cron lines, by file name."""
+    out = {}
+    for path in sorted((root / WORKFLOWS).glob("*.yml")):
+        crons, on, sched = [], False, False
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if re.match(r"^\S", line):
+                on, sched = line.rstrip() == "on:", False
+            elif on and re.match(r"^  \S", line):
+                sched = line.strip().startswith("schedule:")
+            elif sched and (m := re.match(r'^\s+- cron: "([^"]+)"', line)):
+                crons.append(m.group(1))
+        if crons:
+            out[path.name] = crons
     return out
 
 
@@ -185,10 +208,17 @@ def problems(root: Path = ROOT, reg: dict | None = None) -> list[str]:
 
     same("job", reg.get("ci", []), ci_jobs((root / WORKFLOW).read_text(encoding="utf-8")), WORKFLOW)
     same("step", reg.get("release", []), release_steps((root / RELEASE).read_text(encoding="utf-8")), RELEASE)
+    same("showcase job", reg.get("showcase", []), ci_jobs((root / SHOWCASE).read_text(encoding="utf-8")), SHOWCASE)
+    same(
+        "scheduled workflow",
+        [{"key": e["workflow"]} for e in reg.get("scheduled", [])],
+        list(schedules(root)),
+        WORKFLOWS,
+    )
     numbers = [n for n, _ in site_checks((root / SITE_CHECKS).read_text(encoding="utf-8"))]
     if numbers != list(range(1, len(numbers) + 1)):
         out.append(f"the site checks in {SITE_CHECKS}'s header are numbered {numbers}, not 1 to {len(numbers)}")
-    for kind in ("gate", "after"):
+    for kind in ("inside", "continuous", "runtime"):
         for e in reg.get(kind, []):
             if not (root / e["where"]).exists():
                 out.append(f"{kind} {e['name']!r} names {e['where']}, which doesn't exist")
@@ -227,16 +257,31 @@ def page(root: Path, repo: str, reg: dict, rules_checked: bool) -> str:
         local = entry.get("local") or []
         return ", then ".join(f"`{code(c)}`" for c in ([local] if isinstance(local, str) else local)) or "–"
 
+    def not_checks(entries: list[dict], key: str) -> list[str]:
+        others = [f"`{e[key]}` ({esc(e['what'])})" for e in entries if e.get("check") is False]
+        return ["", "Not a check: " + "; ".join(others)] if others else []
+
     lines = [
         HEAD,
         "# Checks",
         "",
-        "Every check that runs by itself: on a pull request, in a release build, and on the live site. "
-        "What each one proves, what stops when it fails, and how to run it before you push. "
-        "[Test strategy](Test-strategy) says why the tests are layered the way they are; the "
+        "Every check that runs by itself, what it proves, what stops when it fails, and how to run it "
+        "first. In the terms of [Harness engineering](Harness-engineering), each one is a computational "
+        "sensor: it observes a change after it is made, and gives the same answer every time. They are "
+        'grouped by when they run, cheapest and earliest first, as Böckeler\'s "keep quality left" asks. '
+        "A **gate** is a place where a failed sensor blocks something: a merge, a release build, a "
+        "promotion. [Rules: guides and sensors](Rules-guides-and-sensors) says which of them enforce each "
+        "hard rule; [Test strategy](Test-strategy) says what each test level proves; the "
         "[test pages](Tests) list every test case.",
         "",
-        "## On every push and pull request",
+        "## Before a commit",
+        "",
+        "Nothing runs by itself before a commit: the repository has no commit hook. Every check below with a "
+        'command under "Run it first" runs the same way locally, and `AGENTS.md`\'s definition of done says '
+        "which to run for which change. The formatters are run before a commit to rewrite the code, not "
+        "only to check it.",
+        "",
+        "## On every change",
         "",
         f"The pipeline ({src(WORKFLOW.as_posix())}) runs these jobs side by side on every push and pull "
         "request. A pull request merges only when the required ones pass "
@@ -257,9 +302,7 @@ def page(root: Path, repo: str, reg: dict, rules_checked: bool) -> str:
             "code scanning results" if e.get("required") == "code scanning" else ("yes" if e.get("required") else "no")
         )
         lines.append(f"| `{e['key']}`: {esc(e['name'])} | {req} | {esc(e['what'])} | {run(e)} |")
-    others = [f"`{e['key']}` ({esc(e['what'])})" for e in reg["ci"] if e.get("check") is False]
-    if others:
-        lines += ["", "Not a check: " + "; ".join(others)]
+    lines += not_checks(reg["ci"], "key")
 
     lines += ["", "### Code style", "", "| Tool | Settings | Configuration |", "| --- | --- | --- |"]
     lines += [f"| {tool} | {esc(what)} | {src(cfg)} |" for tool, what, cfg in style(root)]
@@ -284,14 +327,57 @@ def page(root: Path, repo: str, reg: dict, rules_checked: bool) -> str:
         "| --- | --- |",
     ]
     lines += [f"| {src(path)} | {esc(doc)} |" for path, doc in repository_tests(root)]
-    lines += ["", "### Gates inside the runs", "", "| Gate | What fails | Where |", "| --- | --- | --- |"]
-    for g in reg.get("gate", []):
+    lines += ["", "### Checks inside the runs", "", "| Check | What fails | Where |", "| --- | --- | --- |"]
+    for g in reg.get("inside", []):
         what = g["what"] + (f" Floor: {floor(root, g['floor'])}." if "floor" in g else "")
         lines.append(f"| {esc(g['name'])} | {esc(what)} | {src(g['where'])} |")
 
     lines += [
         "",
-        "## In a release build",
+        "## After integration",
+        "",
+        f"The [testing showcase](Testing-showcase) ({src(SHOWCASE.as_posix())}) runs after the pipeline on "
+        "`main`, or by hand: the slower and more expensive sensors. Never on a pull request, never a "
+        "required check or a release step.",
+        "",
+        "| Job | When | What it checks |",
+        "| --- | --- | --- |",
+    ]
+    lines += [
+        f"| `{e['key']}`: {esc(e['name'])} | {esc(e['when'])} | {esc(e['what'])} |"
+        for e in reg.get("showcase", [])
+        if e.get("check") is not False
+    ]
+    lines += not_checks(reg.get("showcase", []), "key")
+
+    crons = schedules(root)
+    lines += [
+        "",
+        "## Continuous",
+        "",
+        "Sensors on a timer, outside any change: they catch what drifts while nobody touches the code.",
+        "",
+        "| Workflow | Schedule (UTC, cron) | What it checks |",
+        "| --- | --- | --- |",
+    ]
+    lines += [
+        f"| {src((WORKFLOWS / e['workflow']).as_posix())} | {', '.join(f'`{c}`' for c in crons[e['workflow']])} "
+        f"| {esc(e['what'])} |"
+        for e in reg.get("scheduled", [])
+        if e.get("check") is not False and e["workflow"] in crons
+    ]
+    lines += not_checks(reg.get("scheduled", []), "workflow")
+    lines += ["", "| Check | When | What it checks | Where |", "| --- | --- | --- | --- |"]
+    lines += [
+        f"| {esc(a['name'])} | {esc(a['when'])} | {esc(a['what'])} | {src(a['where'])} |"
+        for a in reg.get("continuous", [])
+    ]
+
+    lines += [
+        "",
+        "## Runtime",
+        "",
+        "### In a release build",
         "",
         f"The release server runs these steps in order ({src(RELEASE.as_posix())}). A step that fails stops "
         "the build there and the owner gets an alert naming it; nothing reaches the live site without every "
@@ -303,17 +389,10 @@ def page(root: Path, repo: str, reg: dict, rules_checked: bool) -> str:
     for i, e in enumerate(reg["release"], 1):
         kind = "build" if e.get("check") is False else "check"
         lines.append(f"| {i} | `{e['key']}`: {esc(e['name'])} | {kind} | {esc(e['what'])} | {run(e)} |")
-
-    lines += ["", "## After a build, and on the live site", "", "| Check | When | What it checks | Where |"]
-    lines += ["| --- | --- | --- | --- |"]
-    lines += [f"| {esc(a['name'])} | {esc(a['when'])} | {esc(a['what'])} | {src(a['where'])} |" for a in reg["after"]]
+    lines += ["", "### On the live site", "", "| Check | When | What it checks | Where |", "| --- | --- | --- | --- |"]
     lines += [
-        "",
-        "## Not listed here",
-        "",
-        "The [testing showcase](Testing-showcase) (a second browser suite, the comparison of the two, the "
-        "code map, mutation testing) runs in a workflow of its own after the pipeline on `main`: never on "
-        "a pull request, never a required check or a release step.",
+        f"| {esc(a['name'])} | {esc(a['when'])} | {esc(a['what'])} | {src(a['where'])} |"
+        for a in reg.get("runtime", [])
     ]
     return "\n".join(lines)
 

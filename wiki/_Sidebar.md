@@ -3,12 +3,11 @@
 - [Home](Home)
 - [Price index methods](Price-index-methods)
 - [Household group methods](Household-group-methods)
-- [Future](Future)
+- [Consistency checks methods](Consistency-checks-methods)
 - [The site](https://traceconomics.com)
 
 **Engineering**
 
-- [CONTRIBUTING.md](https://github.com/agardelakos/traceconomics/blob/main/CONTRIBUTING.md)
 - [Architecture](Architecture)
 - [Design principles](Design-principles)
 - [Site patterns](Site-patterns)
@@ -20,7 +19,7 @@
 **Harness engineering**
 
 - [Harness engineering](Harness-engineering)
-- [Rules and their guards](Rules-and-their-guards)
+- [Rules: guides and sensors](Rules-guides-and-sensors)
 - [Checks](Checks)
 - [Ratchets and docs as code](Ratchets-and-docs-as-code)
 

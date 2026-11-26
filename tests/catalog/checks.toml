@@ -12,8 +12,11 @@
 # first, or the commands in order, if there is one), required (CI: a required check of the
 # branch rules on main; "code scanning" for CodeQL, which the rules require as code scanning
 # results), check (false for a step or job that builds or publishes rather than checks).
-# Gates and the checks after a build: name, what, where (the file that holds it), when (after a
-# build), floor (a coverage floor: the file and the pattern it is read with).
+# Checks inside the runs: name, what, where (the file that holds it), floor (a coverage floor: the
+# file and the pattern it is read with). Showcase jobs: key (the job in showcase.yml), name, what,
+# when; check = false for one that records or publishes. Scheduled runs: workflow (a workflow file
+# with a `schedule:`, the cron read from it), what; check = false as above. Continuous and runtime
+# checks outside the workflows: name, what, when, where.
 
 [[ci]]
 key = "python"
@@ -78,26 +81,26 @@ name = "Coverage badges"
 what = "On main only: writes the README's coverage badges to their own branch."
 check = false
 
-# The gates inside those jobs: each one fails its job.
+# Checks inside those jobs: each one fails its job.
 
-[[gate]]
+[[inside]]
 name = "Every test has a layer"
 what = "pytest stops before running anything if a test file declares no layer (unit, integration or repository)."
 where = "tests/conftest.py"
 
-[[gate]]
+[[inside]]
 name = "Python coverage"
 what = "Fails below the floor, and when a covered line has a wrong or missing layer."
 where = "tests/coverage/overview.py"
 floor = { file = "tests/coverage/overview.py", pattern = '^RATCHET = ([0-9.]+)' }
 
-[[gate]]
+[[inside]]
 name = "Site coverage"
 what = "Vitest and Playwright merged; fails below the floor, or when a file of the site's code is loaded by no test."
 where = "site/scripts/coverage.mjs"
 floor = { file = "site/scripts/coverage-options.mjs", pattern = '^export const FLOOR = ([0-9.]+);' }
 
-[[gate]]
+[[inside]]
 name = "Catalog rules"
 what = "The rules the catalog job applies; tests/catalog/strict.toml makes every rule an error in every file."
 where = "tests/catalog/validate.py"
@@ -205,20 +208,104 @@ local = ["cd site && npx wrangler dev --port 8788", "BASE_URL=http://127.0.0.1:8
 
 # After the build: checks that are not steps of it.
 
-[[after]]
+# Checks after integration: the testing showcase (.github/workflows/showcase.yml), never on a pull
+# request, never required.
+
+[[showcase]]
+key = "selenium"
+name = "Selenium, every data state"
+what = "The second browser suite on the made-up data, in every state the pipeline tests Playwright on."
+when = "after each pipeline run on main; weekly"
+
+[[showcase]]
+key = "compare-main"
+name = "The two browser suites, one run"
+what = "That run's Playwright and Selenium results side by side on the run's page."
+when = "after each pipeline run on main"
+
+[[showcase]]
+key = "code-map"
+name = "Code map"
+what = "Which tests run each line, from the pipeline's coverage and Selenium's."
+when = "after each pipeline run on main"
+
+[[showcase]]
+key = "test-history"
+name = "Run record"
+what = "Stores the run's results per case on the branch test-history."
+when = "after each pipeline run on main"
+check = false
+
+[[showcase]]
+key = "wiki-main"
+name = "Wiki"
+what = "Updates the wiki from the stored run."
+when = "after each pipeline run on main"
+check = false
+
+[[showcase]]
+key = "newer-commit"
+name = "A newer commit on main"
+what = "Skips the run when a newer push reached main first; that push's run does it all instead."
+when = "after each pipeline run on main"
+check = false
+
+[[showcase]]
+key = "compare"
+name = "The two browser suites compared"
+what = "Several runs of each suite, in every mode: wall time, failures and flaky tests."
+when = "by hand"
+
+[[showcase]]
+key = "mutation"
+name = "Mutation testing"
+what = "Small changes to the engine's code, one at a time; each must make a test fail."
+when = "by hand"
+
+[[showcase]]
+key = "wiki"
+name = "Wiki after mutation testing"
+what = "Updates the wiki with the new mutation score."
+when = "by hand, after mutation testing"
+check = false
+
+# Scheduled runs: every workflow with a `schedule:`.
+
+[[scheduled]]
+workflow = "tests.yml"
+what = "The whole pipeline, weekly, so the code scan meets CodeQL's new queries even in a quiet week."
+
+[[scheduled]]
+workflow = "showcase.yml"
+what = "The Selenium suite on main, so a change outside the repository (a new Chrome for Testing, a dependency) shows in a quiet week."
+
+[[scheduled]]
+workflow = "watchdog.yml"
+what = "The release server's heartbeat must be recent and report no failure; otherwise the workflow fails and its failure email is the alert. GitHub starts it hours late at times."
+
+[[scheduled]]
+workflow = "wiki.yml"
+what = "The release runs' records and the wiki, after the daily release window."
+check = false
+
+# Continuous checks outside the workflows.
+
+[[continuous]]
+name = "Dependency updates"
+what = "Monthly update proposals for the pinned dependencies (actions, Python, the site), at least 14 days old, no major versions; each one is a pull request that runs the pipeline."
+when = "monthly"
+where = ".github/dependabot.yml"
+
+[[continuous]]
+name = "Publishers' reuse terms"
+what = "The daily job reads each publisher's terms page and alerts when it changes."
+when = "every daily run"
+where = "src/traceconomics/sources/terms.py"
+
+# Runtime: on the live site, after a release.
+
+[[runtime]]
 name = "The promoted build is served"
 what = "After every promote, the target address must serve the promoted build's own files, byte for byte, within two minutes; otherwise the promote is reported as unconfirmed."
 when = "after every promote"
 where = "src/traceconomics/release.py"
-
-[[after]]
-name = "The release server is alive"
-what = "The release server's heartbeat must be recent and report no failure; otherwise the workflow fails and its failure email is the alert."
-when = "daily (GitHub starts it hours late at times)"
-where = ".github/workflows/watchdog.yml"
-
-[[after]]
-name = "Dependency updates"
-what = "Monthly update proposals for the pinned dependencies (actions, Python, the site), at least 14 days old, no major versions; each one is a pull request that runs the pipeline above."
-when = "monthly"
-where = ".github/dependabot.yml"

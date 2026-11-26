@@ -34,13 +34,17 @@ Standard library only.
 from __future__ import annotations
 
 import re
+import tomllib
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 SUITES = {"pytest": "PY", "selenium": "SEL", "playwright": "PW", "vitest": "VT"}
 ID = re.compile(r"^(PY|SEL|PW|VT)-([A-Z][A-Z0-9]{1,9})-(\d{3})$")
 HEADER = re.compile(r"^\s*([A-Z]+-[A-Z0-9]+-\d+)\s*:\s*(.+?)\s*$")
 STEP = re.compile(r"^(Given|When|Then|And|But)\b\s*(.*)$")
 ISSUE = re.compile(r"(?<![\w/])#(\d+)\b")
+# Renamed case IDs, reviewed: an old ID points to its new one and stays reserved for good.
+RENAMED = Path(__file__).resolve().parent / "renamed.toml"
 
 
 @dataclass
@@ -185,3 +189,13 @@ def from_meta(meta: dict | None) -> dict:
         out[k] = [v] if isinstance(v, str) else [str(x) for x in (v or [])]
         out[k] = [x.strip() for x in out[k] if x and x.strip()]
     return out
+
+
+def renamed_entries(path: Path = RENAMED) -> dict[str, dict]:
+    """Each renamed ID's entry in the rename list (`to`, `date`, `why`); {} when there is no list."""
+    return tomllib.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def renamed(path: Path = RENAMED) -> dict[str, str]:
+    """Old case ID -> its new ID, from the rename list."""
+    return {old: e["to"] for old, e in renamed_entries(path).items()}

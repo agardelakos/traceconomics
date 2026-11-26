@@ -180,7 +180,7 @@ jobs:
           .github/scripts/test_history_push.sh "Mutation testing on ${GITHUB_SHA::7}" \
             --mutation "$RUNNER_TEMP/mutation/mutation.json"
 
-  # The wiki, so Code-engine shows the new result.
+  # The wiki, so Code-map-engine shows the new result.
   wiki:
     needs: [mutation]
     if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.mutation.result == 'success' }}

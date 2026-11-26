@@ -1,14 +1,14 @@
-"""Guards behind the hard rules in `AGENTS.md`, shared by the suite and the tests that prove them.
+"""Sensors behind the hard rules in `AGENTS.md`, shared by the suite and the tests that prove them.
 
-The network guard: a test never reaches the network (`AGENTS.md`, hard rules). A test may talk to a
+The network sensor: a test never reaches the network (`AGENTS.md`, hard rules). A test may talk to a
 server it started itself on this machine (127.0.0.1, ::1, `localhost`), since nothing leaves the
-machine; anything else is refused. `tests/conftest.py` switches the guard on for every measured test.
+machine; anything else is refused. `tests/conftest.py` switches the sensor on for every measured test.
 
 A refused call raises `NetworkBlocked`, and the attempt is also recorded, because code under test may
 catch every exception (the heartbeat turns any failure into a "failed: ..." result) and the test would
 then pass without ever showing the call; conftest fails such a test at teardown from the record.
 
-The private-text guard (below) scans the repository's tracked files; `tests/test_private_text.py`
+The private-text sensor (below) scans the repository's tracked files; `tests/test_private_text.py`
 runs it, with its allow list in `tests/private_text.toml`.
 """
 
@@ -43,7 +43,7 @@ def is_local(host) -> bool:
         return False
 
 
-class NetworkGuard:
+class NetworkSensor:
     """Patches the socket calls that reach another host; `attempts` lists what was refused."""
 
     def __init__(self, monkeypatch):
@@ -51,11 +51,11 @@ class NetworkGuard:
         real_connect = socket.socket.connect
         real_connect_ex = socket.socket.connect_ex
         real_getaddrinfo = socket.getaddrinfo
-        guard = self
+        sensor = self
 
         def check(what: str, host) -> None:
             if not is_local(host):
-                guard.attempts.append(f"{what} {host!r}")
+                sensor.attempts.append(f"{what} {host!r}")
                 raise NetworkBlocked(f"{what} {host!r} refused: {RULE}")
 
         def host_of(sock, address):
@@ -87,7 +87,7 @@ class NetworkGuard:
         return "this test tried to reach the network: " + "; ".join(self.attempts) + f". {RULE}"
 
 
-# The private-text guard: nothing private or internal in the repository's own files (AGENTS.md, hard
+# The private-text sensor: nothing private or internal in the repository's own files (AGENTS.md, hard
 # rules: no personal names, emails or local paths; decision numbers belong to private notes). The same
 # kinds site check 3 (site/scripts/checks.mjs) refuses on the built pages, here on every tracked file.
 # The patterns differ where source differs from page text: `D10` is a decile label, and `docs/` inside
@@ -176,9 +176,9 @@ SKIPS = {
     "test.fail()": re.compile(r"\b(test|it|describe)(\.describe)?\.fail\("),
     "test.todo()": re.compile(r"\b(test|it|describe)\.todo\("),
 }
-# The guard and its tests are left out: they hold the kinds' names and planted skips as text.
+# The sensor and its tests are left out: they hold the kinds' names and planted skips as text.
 SKIP_FILES = re.compile(
-    r"^(tests/(?!fixtures/|guards\.py$|test_guards\.py$).*\.py|site/src/.*\.test\.ts|site/tests/.*\.ts)$"
+    r"^(tests/(?!fixtures/|sensors\.py$|test_sensors\.py$).*\.py|site/src/.*\.test\.ts|site/tests/.*\.ts)$"
 )
 
 
