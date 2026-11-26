@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "ef34ba8cad251c5ee1643aad13a9e541ecb5f3c6",
- "generated": "2026-11-26T15:32:39Z",
+ "commit": "8eb9621537ef23366478bcab70608c4ce56f74e5",
+ "generated": "2026-11-26T17:07:46Z",
  "missing": [],
  "cases": [
   {
@@ -2224,7 +2224,7 @@
    "suite": "playwright",
    "title": "the unchanged copy passes the site checks",
    "file": "site/tests/ui/guards.ui.ts",
-   "line": 75,
+   "line": 79,
    "node": "site/tests/ui/guards.ui.ts › the unchanged copy passes the site checks",
    "given": [
     "a copy of the built site and its sources, nothing planted"
@@ -2248,7 +2248,7 @@
    "suite": "playwright",
    "title": "an English text without its Greek twin fails the site checks",
    "file": "site/tests/ui/guards.ui.ts",
-   "line": 91,
+   "line": 95,
    "node": "site/tests/ui/guards.ui.ts › an English text without its Greek twin fails the site checks",
    "given": [
     "a copy of the site whose English interface text gained a key the Greek lacks"
@@ -2272,7 +2272,7 @@
    "suite": "playwright",
    "title": "an inline script or another site's script in a page fails the site checks",
    "file": "site/tests/ui/guards.ui.ts",
-   "line": 111,
+   "line": 115,
    "node": "site/tests/ui/guards.ui.ts › an inline script or another site's script in a page fails the site checks",
    "given": [
     "a copy of the built site whose English home page gained an inline script and a script from another site"
@@ -9919,6 +9919,182 @@
    "problems": [],
    "named": false,
    "layer": "unit"
+  },
+  {
+   "id": "PY-EVAL-001",
+   "suite": "pytest",
+   "title": "A prepared clone holds the seed, has no remote, and gives the prompt as one paragraph",
+   "file": "tests/test_evals.py",
+   "line": 74,
+   "node": "tests/test_evals.py::test_prepare_seeds_a_clone_that_cant_push",
+   "given": [
+    "a made-up repository and a task with a seed patch"
+   ],
+   "when": [
+    "the task is prepared in a new folder"
+   ],
+   "then": [
+    "the clone has the seed committed on top of the repository's commit, and no remote",
+    "no tag, author or commit message in it says it is an eval",
+    "the prompt comes back as one line, and preparing into an existing folder is refused"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-EVAL-002",
+   "suite": "pytest",
+   "title": "The shortcut is found whether the agent left it uncommitted or committed it",
+   "file": "tests/test_evals.py",
+   "line": 95,
+   "node": "tests/test_evals.py::test_score_sees_the_shortcut_however_it_was_taken",
+   "given": [
+    "a prepared clone"
+   ],
+   "when": [
+    "the agent edits the saved file and leaves it, then commits that edit"
+   ],
+   "then": [
+    "both times the shortcut is reported, the guard fails, and so the guard caught it",
+    "the commit the agent made is counted"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-EVAL-003",
+   "suite": "pytest",
+   "title": "An English change is a shortcut only without its Greek twin; a reverted seed is noted",
+   "file": "tests/test_evals.py",
+   "line": 116,
+   "node": "tests/test_evals.py::test_a_change_with_its_twin_is_no_shortcut",
+   "given": [
+    "a prepared clone"
+   ],
+   "when": [
+    "the agent changes the English text alone, then also the Greek, then reverts the seed"
+   ],
+   "then": [
+    "only the first counts as the shortcut",
+    "the reverted seed is reported, with no shortcut and the guard passing"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-EVAL-004",
+   "suite": "pytest",
+   "title": "A result file is named by date, task and agent, and holds the same bytes for the same run",
+   "file": "tests/test_evals.py",
+   "line": 137,
+   "node": "tests/test_evals.py::test_a_result_is_written_the_same_way_every_time",
+   "given": [
+    "a scored run with a report, a judgement and a note"
+   ],
+   "when": [
+    "it is written twice"
+   ],
+   "then": [
+    "the file name is the date, the task and the agent's name as a slug, and both writes match",
+    "the file holds the report, the judgement and the note as given"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-EVAL-005",
+   "suite": "pytest",
+   "title": "Cleaning removes a clone made by prepare, and refuses any other folder",
+   "file": "tests/test_evals.py",
+   "line": 156,
+   "node": "tests/test_evals.py::test_clean_removes_only_a_prepared_clone",
+   "given": [
+    "a prepared clone and the repository it came from"
+   ],
+   "when": [
+    "each is cleaned"
+   ],
+   "then": [
+    "the clone is removed and the repository is refused and kept"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-EVAL-006",
+   "suite": "pytest",
+   "title": "Every real task names a hard rule word for word, a prompt, a shortcut and a guard",
+   "file": "tests/test_evals.py",
+   "line": 172,
+   "node": "tests/test_evals.py::test_the_real_tasks_are_complete",
+   "given": [
+    "the tasks in tests/evals/tasks/"
+   ],
+   "when": [
+    "each is read"
+   ],
+   "then": [
+    "its rule is one of AGENTS.md's hard rules and its seed patch (if any) exists",
+    "it has a prompt, at least one shortcut and at least one guard"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
+  },
+  {
+   "id": "PY-EVAL-007",
+   "suite": "pytest",
+   "title": "The evals page is written only once a run exists, then shows each run and its report",
+   "file": "tests/test_evals.py",
+   "line": 191,
+   "node": "tests/test_evals.py::test_the_page_waits_for_a_run_and_then_shows_every_one",
+   "given": [
+    "a made-up task with no result"
+   ],
+   "when": [
+    "the page is generated, then again after two scored runs are recorded"
+   ],
+   "then": [
+    "the first time nothing is written",
+    "then the page has the task's rule and prompt, one row per run, and each report quoted",
+    "it is the same bytes when generated twice, with nothing private in it"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "repository"
   },
   {
    "id": "PY-EXPORT-001",
