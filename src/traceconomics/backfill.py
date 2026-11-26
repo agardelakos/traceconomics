@@ -326,8 +326,8 @@ def _hdr_candidates(research_root: Path, listed: set[Path]) -> list[Candidate]:
 def seed(archive: Archive, research_root: Path, *, dry_run: bool = False) -> SeedReport:
     """Copy the recorded earlier downloads under `research_root` into the archive, oldest first.
 
-    A file with a recorded checksum is stored only if it matches. With `dry_run`, nothing is
-    stored and `stored` lists what would be.
+    A file with a recorded checksum is stored only if it matches, in a dry run too. With
+    `dry_run`, nothing is stored and `stored` lists what would be.
     """
     report = SeedReport()
     candidates, report.skipped, report.unrecorded = find_candidates(research_root)
@@ -336,11 +336,13 @@ def seed(archive: Archive, research_root: Path, *, dry_run: bool = False) -> See
         if c.path in seen:
             continue
         seen.add(c.path)
-        if dry_run:
-            report.stored.append(f"{c.source}/{c.dataset} <- {c.path.name} ({c.day})")
-            continue
+        # The checksum comes before the dry-run stop, so a dry run reports a tampered file as
+        # a real run would, instead of listing it as one it would store.
         if c.sha256 is not None and sha256_file(c.path) != c.sha256:
             report.bad_checksum.append(str(c.path))
+            continue
+        if dry_run:
+            report.stored.append(f"{c.source}/{c.dataset} <- {c.path.name} ({c.day})")
             continue
         extra = {"original_name": c.path.name, "note": SEED_NOTE, "published_at_quality": "first_seen"}
         if c.http is None:
