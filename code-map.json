@@ -22928,7 +22928,7 @@
    "tests/test_hbs_tables.py::test_v2_logic_on_a_tiny_survey",
    "tests/test_hbs_tables.py::test_year_must_match_what_the_table_says",
    "tests/test_heartbeat_backup.py::test_a_heartbeat_that_cant_be_sent_is_reported_as_failed",
-   "tests/test_heartbeat_backup.py::test_backup_guard_refuses_microdata_even_if_the_filter_misses_it",
+   "tests/test_heartbeat_backup.py::test_backup_refuses_microdata_even_if_the_filter_misses_it",
    "tests/test_heartbeat_backup.py::test_backup_sends_the_archive_but_never_microdata",
    "tests/test_heartbeat_backup.py::test_heartbeat_is_off_without_an_address_and_reports_failures",
    "tests/test_heartbeat_backup.py::test_heartbeat_sends_counts_not_details",
@@ -23375,7 +23375,7 @@
    "tests/test_weights_check.py::test_rule_n_for_the_newest_year"
   ]
  },
- "commit": "8eb9621537ef23366478bcab70608c4ce56f74e5",
+ "commit": "8b0b281c4658cd12a7ec01a7391719739468aaba",
  "front-end": {
   "files": {
    "src/components/CountryBar.astro (script 0)": {
