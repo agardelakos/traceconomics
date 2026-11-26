@@ -1,7 +1,7 @@
 {
  "schema": 1,
- "commit": "49697aba9855aa99fe8cc299cb064916943d7d28",
- "generated": "2026-11-25T21:16:59Z",
+ "commit": "e0ba57c03878204ef928e25e789a493ddcbe70ca",
+ "generated": "2026-11-26T08:46:03Z",
  "missing": [],
  "cases": [
   {
@@ -4691,11 +4691,37 @@
    "layer": "integration"
   },
   {
+   "id": "PY-BACKFILL-012",
+   "suite": "pytest",
+   "title": "a dry run reports a file that fails its checksum, as a real seeding would",
+   "file": "tests/test_backfill.py",
+   "line": 243,
+   "node": "tests/test_backfill.py::test_seed_dry_run_checks_checksums",
+   "given": [
+    "a research folder whose MANIFEST.md lists a matching ELSTAT file and a changed one"
+   ],
+   "when": [
+    "the archive is seeded from it as a dry run"
+   ],
+   "then": [
+    "only the matching file is listed as one it would store",
+    "the changed file is reported with a bad checksum",
+    "nothing is written to the archive"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "integration"
+  },
+  {
    "id": "PY-BACKFILL-009",
    "suite": "pytest",
    "title": "a Wayback copy is stored under its capture time, apart from the job's files",
    "file": "tests/test_backfill.py",
-   "line": 246,
+   "line": 272,
    "node": "tests/test_backfill.py::test_import_wayback_stamps_the_capture_time",
    "given": [
     "a newer copy of a table already archived by the job as elstat/doc-114837",
@@ -4723,7 +4749,7 @@
    "suite": "pytest",
    "title": "a Wayback import refuses an address that isn't a raw capture, and a job's dataset name",
    "file": "tests/test_backfill.py",
-   "line": 286,
+   "line": 312,
    "node": "tests/test_backfill.py::test_import_wayback_refuses_other_addresses_and_dataset_names",
    "given": [
     "a file and an archive"
@@ -4747,7 +4773,7 @@
    "suite": "pytest",
    "title": "an AADE workbook imported by hand lands in the dataset a fetch would use",
    "file": "tests/test_backfill.py",
-   "line": 308,
+   "line": 334,
    "node": "tests/test_backfill.py::test_import_names_an_aade_workbook_as_a_fetch_would",
    "given": [
     "an AADE workbook downloaded by hand under its published file name, with no dataset given"
@@ -18367,11 +18393,36 @@
    "layer": "integration"
   },
   {
+   "id": "PY-OBS-015",
+   "suite": "pytest",
+   "title": "a store update with no CPI table 07 archived writes an empty labels file",
+   "file": "tests/test_observation_store.py",
+   "line": 323,
+   "node": "tests/test_observation_store.py::test_update_without_table_07_writes_empty_labels",
+   "given": [
+    "an archive that holds Eurostat's HICP monthly indices but no CPI table 07"
+   ],
+   "when": [
+    "the store is updated for both datasets"
+   ],
+   "then": [
+    "it reads one snapshot of the HICP and none of table 07, and doesn't fail",
+    "the labels view exists and holds nothing"
+   ],
+   "notes": "",
+   "examples": [],
+   "defects": [],
+   "tags": [],
+   "problems": [],
+   "named": false,
+   "layer": "integration"
+  },
+  {
    "id": "PY-OBS-011",
    "suite": "pytest",
    "title": "the store's bulk load keeps every value exactly as a row-by-row insert does",
    "file": "tests/test_observation_store.py",
-   "line": 333,
+   "line": 350,
    "node": "tests/test_observation_store.py::test_bulk_load_stores_what_a_row_by_row_insert_stores",
    "given": [
     "rows with empty strings, missing values, quotes, commas, line breaks and Greek text",
@@ -18397,7 +18448,7 @@
    "suite": "pytest",
    "title": "a bulk load of no rows still makes the table, empty",
    "file": "tests/test_observation_store.py",
-   "line": 354,
+   "line": 371,
    "node": "tests/test_observation_store.py::test_bulk_load_of_no_rows_leaves_an_empty_table",
    "given": [
     "no rows (a survey table that can't be built for its year)"
@@ -18421,7 +18472,7 @@
    "suite": "pytest",
    "title": "forgetting a dataset rewrites the loaded records to disk before they replace the old ones",
    "file": "tests/test_observation_store.py",
-   "line": 367,
+   "line": 384,
    "node": "tests/test_observation_store.py::test_forgetting_a_dataset_rewrites_the_loaded_records_durably",
    "given": [
     "a store whose loaded records name two datasets"
@@ -18446,7 +18497,7 @@
    "suite": "pytest",
    "title": "the same snapshots write byte-identical store parts, whatever the threads",
    "file": "tests/test_observation_store.py",
-   "line": 403,
+   "line": 420,
    "node": "tests/test_observation_store.py::test_the_same_snapshots_write_the_same_part_bytes",
    "given": [
     "an archive with two snapshots of a 360,000-value HICP file, the second without one series"
