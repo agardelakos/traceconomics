@@ -437,7 +437,7 @@ def _replace(text: str, start: str, end: str, block: str) -> str:
 
 def sidebar(text: str, mutation: bool = False) -> str:
     # Two blocks, each one more item of a hand-written list (wiki/_Sidebar.md): the core's test pages
-    # in the TracEconomics section, the showcase's in the Testing showcase section. Each block sits
+    # in the Quality section, the showcase's in the Testing showcase section. Each block sits
     # right after its list's last item; both markers are indented, so the Markdown keeps them inside
     # the list instead of ending it there and starting a second one.
     core = "\n".join(

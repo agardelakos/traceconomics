@@ -1,0 +1,57 @@
+# Every skip in the test code, reviewed: counted per file and kind by tests/guards.py and checked by
+# tests/test_skips.py. A test is never skipped or marked to fail to make a run pass (AGENTS.md, hard
+# rules), so a new skip fails the suite until it is added here, with its reason, in the same change:
+# the reviewer sees it in the diff. A removed skip fails until its count goes down.
+#
+# A skip that belongs here depends on the run, not on the test passing: data that holds one case
+# or the other, a build or a server that isn't there. `pytest.importorskip` (tests needing the
+# `local` extra) and the Selenium suite being collected only with --selenium are rules of the suite,
+# not skips, and aren't counted.
+
+[[skip]]
+path = "site/tests/ui/explore.ui.ts"
+kind = "test.skip()"
+count = 3
+reason = "the browser offers no full screen; the data hold one HICP case or the other (two tests, one per case)"
+
+[[skip]]
+path = "site/tests/ui/groups.ui.ts"
+kind = "test.skip()"
+count = 4
+reason = "the data have a PPS version of our limits or not, and the two limits' income years match or not (two pairs of tests, one per case; the made-up data cover one case of each)"
+
+[[skip]]
+path = "site/tests/ui/guards.ui.ts"
+kind = "test.skip()"
+count = 1
+reason = "the guard tests copy the built site: they need a build (dist/)"
+
+[[skip]]
+path = "site/tests/ui/host.ui.ts"
+kind = "test.skip()"
+count = 2
+reason = "host tests need a server that sends the host's headers (BASE_URL) and the build's sitemap"
+
+[[skip]]
+path = "site/tests/ui/links.ui.ts"
+kind = "test.skip()"
+count = 4
+reason = "need a build (dist/sitemap.xml)"
+
+[[skip]]
+path = "tests/selenium/conftest.py"
+kind = "pytest.skip()"
+count = 1
+reason = "host tests need --base-url: a server that applies the site's headers"
+
+[[skip]]
+path = "tests/test_catalog.py"
+kind = "pytest.mark.xfail"
+count = 1
+reason = "planted in a made-up test file, to check that the catalog records an xfail's reason; never runs"
+
+[[skip]]
+path = "tests/test_private_text.py"
+kind = "pytest.mark.skipif"
+count = 1
+reason = "the names to look for are kept outside the repository; without them that one check can't run"
