@@ -11,6 +11,7 @@
 # (wiki: Testing showcase). The lines mark its paths; a change to them is the maintainer's to review.
 /tests/selenium/ @agardelakos
 /tests/compare/ @agardelakos
+/tests/evals/ @agardelakos
 /tests/coverage/code_map.py @agardelakos
 /tests/coverage/mutation.py @agardelakos
 /tests/coverage/mutation-equivalent.toml @agardelakos

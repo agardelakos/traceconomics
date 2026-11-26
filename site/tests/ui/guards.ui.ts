@@ -11,6 +11,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   symlinkSync,
   unlinkSync,
   writeFileSync,
@@ -29,8 +30,11 @@ const DIST = join(SITE, "dist");
 function copy(from: string, to: string): void {
   mkdirSync(to, { recursive: true });
   for (const d of readdirSync(from, { withFileTypes: true })) {
-    if (d.isDirectory()) copy(join(from, d.name), join(to, d.name));
-    else if (d.isFile()) linkSync(join(from, d.name), join(to, d.name));
+    // A linked folder or file (site/public/data is often a link to a data set kept elsewhere) is
+    // followed: its target's kind decides, so the copy holds what the build would read.
+    const kind = d.isSymbolicLink() ? statSync(join(from, d.name)) : d;
+    if (kind.isDirectory()) copy(join(from, d.name), join(to, d.name));
+    else if (kind.isFile()) linkSync(join(from, d.name), join(to, d.name));
   }
 }
 
