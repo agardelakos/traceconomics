@@ -17,7 +17,7 @@ module records those lines, so which file that is depends on the order the tests
 Writes, for every module of the package, its counts per status, the line ranges no test runs and the
 tests that run it by layer; the same for each public function, class and method (what
 tests/test_docstrings.py calls public). Tests are pytest node IDs without their parameters, one
-entry for a parametrized test; the wiki joins them to their cases (tests/catalog/code_reference.py),
+entry for a parametrized test; the wiki joins them to their cases (tests/catalog/code_map_pages.py),
 so a test without a case is shown, never dropped. Stops with an error if a `repository` test ran
 package code: those tests check the repository's own files, so the label would be wrong.
 

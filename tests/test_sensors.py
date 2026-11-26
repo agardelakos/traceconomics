@@ -1,9 +1,9 @@
-"""The harness tested: each guard behind a hard rule fires when the rule is broken.
+"""The harness tested: each sensor behind a hard rule fires when the rule is broken.
 
-A guard that has quietly stopped working looks exactly like a clean repository, so every guard gets
+A sensor that has quietly stopped working looks exactly like a clean repository, so every sensor gets
 a test that plants a violation (in a temporary copy, never in the repository) and checks that the
-guard refuses it with a message naming the rule. Addresses used: 192.0.2.1 is TEST-NET-1 (RFC 5737)
-and `.invalid` never resolves (RFC 2606), so even a broken guard sends nothing anywhere real.
+sensor refuses it with a message naming the rule. Addresses used: 192.0.2.1 is TEST-NET-1 (RFC 5737)
+and `.invalid` never resolves (RFC 2606), so even a broken sensor sends nothing anywhere real.
 """
 
 import re
@@ -14,9 +14,9 @@ import sys
 import urllib.request
 from pathlib import Path
 
-import guards
 import pytest
-from guards import RULE, NetworkBlocked, NetworkGuard, is_local
+import sensors
+from sensors import RULE, NetworkBlocked, NetworkSensor, is_local
 from test_fixtures import ROW, changed
 from test_lock_files import LOCKS, problems as lock_problems
 
@@ -30,66 +30,66 @@ AT, HOME, PRIVATE_DIR = "@", "/ho" + "me/", "do" + "cs/"
 
 
 def test_a_connection_to_another_host_is_refused(monkeypatch):
-    """PY-GUARD-001: A connection to another machine is refused, recorded, and named as a rule break
+    """PY-SENSOR-001: A connection to another machine is refused, recorded, and named as a rule break
 
-    Given the network guard on
+    Given the network sensor on
     When a test opens a connection to an address that isn't this machine
     Then the call raises NetworkBlocked before anything is sent
-    And the guard records the attempt, and its message names the rule
+    And the sensor records the attempt, and its message names the rule
     """
-    guard = NetworkGuard(monkeypatch)
+    sensor = NetworkSensor(monkeypatch)
     with pytest.raises(NetworkBlocked, match="AGENTS.md"):
         socket.create_connection(("192.0.2.1", 80), timeout=0.1)
     with socket.socket() as s, pytest.raises(NetworkBlocked):
         s.connect(("192.0.2.1", 80))
-    assert len(guard.attempts) == 2
-    assert RULE in guard.problem()
+    assert len(sensor.attempts) == 2
+    assert RULE in sensor.problem()
 
 
 def test_a_swallowed_refusal_still_fails_the_test(monkeypatch):
-    """PY-GUARD-002: Code that catches every exception can't hide a refused call
+    """PY-SENSOR-002: Code that catches every exception can't hide a refused call
 
-    Given the network guard on
+    Given the network sensor on
     When code under test calls a named host and swallows whatever goes wrong
-    Then the guard still holds the attempt, so the test fails at teardown
+    Then the sensor still holds the attempt, so the test fails at teardown
     """
-    guard = NetworkGuard(monkeypatch)
+    sensor = NetworkSensor(monkeypatch)
     try:
         urllib.request.urlopen("http://example.invalid/", timeout=0.1)
     except Exception:  # the point: code under test may swallow everything
         pass
-    assert guard.attempts == ["name lookup of 'example.invalid'"]
-    assert guard.problem() is not None
+    assert sensor.attempts == ["name lookup of 'example.invalid'"]
+    assert sensor.problem() is not None
 
 
 def test_this_machine_stays_allowed(monkeypatch):
-    """PY-GUARD-003: A server the test started on this machine can still be reached
+    """PY-SENSOR-003: A server the test started on this machine can still be reached
 
-    Given the network guard on and a listening socket on 127.0.0.1
+    Given the network sensor on and a listening socket on 127.0.0.1
     When the test connects to it, by address and as localhost
     Then both connections succeed and nothing is recorded
     And loopback addresses, `localhost` and no host count as this machine; others don't
     """
-    guard = NetworkGuard(monkeypatch)
+    sensor = NetworkSensor(monkeypatch)
     with socket.socket() as server:
         server.bind(("127.0.0.1", 0))
         server.listen()
         port = server.getsockname()[1]
         socket.create_connection(("127.0.0.1", port), timeout=1).close()
         socket.create_connection(("localhost", port), timeout=1).close()
-    assert guard.attempts == []
+    assert sensor.attempts == []
     assert all(is_local(h) for h in ["127.0.0.1", "127.8.9.1", "::1", "[::1]", "localhost", "LOCALHOST", None, ""])
     assert not any(is_local(h) for h in ["192.0.2.1", "10.0.0.1", "example.org", "0.0.0.0", "::"])
 
 
-def test_the_conftest_switches_the_guard_on_for_every_test(tmp_path):
-    """PY-GUARD-004: In a real run, a test that reaches the network fails, even if it hides the error
+def test_the_conftest_switches_the_sensor_on_for_every_test(tmp_path):
+    """PY-SENSOR-004: In a real run, a test that reaches the network fails, even if it hides the error
 
-    Given a throwaway project with a copy of the suite's conftest and guard
+    Given a throwaway project with a copy of the suite's conftest and sensor
     When pytest runs a test that calls another host and catches the error, and one that doesn't call out
     Then the first fails with the rule in its message and the second passes
     """
-    for name in ("conftest.py", "guards.py"):
+    for name in ("conftest.py", "sensors.py"):
         shutil.copy(HERE / name, tmp_path / name)
     (tmp_path / "pyproject.toml").write_text(
         '[tool.pytest.ini_options]\nmarkers = ["unit: u", "integration: i", "repository: r"]\n',
@@ -132,7 +132,7 @@ def ruff_on(source: str, path: str) -> subprocess.CompletedProcess:
 
 
 def test_pandas_and_numpy_are_refused_outside_the_microdata_code():
-    """PY-GUARD-005: Lint refuses pandas or numpy anywhere but the microdata code
+    """PY-SENSOR-005: Lint refuses pandas or numpy anywhere but the microdata code
 
     Given the project's Ruff settings
     When a module outside src/traceconomics/local/, or a new test file, imports pandas or numpy
@@ -148,10 +148,10 @@ def test_pandas_and_numpy_are_refused_outside_the_microdata_code():
 
 
 def test_private_text_in_a_file_is_found(tmp_path):
-    """PY-GUARD-006: Each kind of private text planted in a file is found, and public text is not
+    """PY-SENSOR-006: Each kind of private text planted in a file is found, and public text is not
 
     Given a file holding an e-mail address, a local path, a decision number, a private link and a name
-    When the private-text guard scans it, with that name on its list
+    When the private-text sensor scans it, with that name on its list
     Then each is reported with its file, line and kind
     And the project's address, example.org, a decile (D10), a URL path and the repository's URL are not
     """
@@ -168,7 +168,7 @@ def test_private_text_in_a_file_is_found(tmp_path):
         f"# https://playwright.dev/{PRIVATE_DIR}test-cli, https://github.com/Planted/traceconomics\n",
         encoding="utf-8",
     )
-    found = guards.private_text(tmp_path, ["planted.py", "public.py"], [], names=["planted"])
+    found = sensors.private_text(tmp_path, ["planted.py", "public.py"], [], names=["planted"])
     assert [h.split(" (")[0] for h in found] == [
         "planted.py:3: a decision number",
         "planted.py:4: a link to private notes",
@@ -179,10 +179,10 @@ def test_private_text_in_a_file_is_found(tmp_path):
 
 
 def test_an_allow_entry_covers_one_kind_and_must_stay_needed(tmp_path):
-    """PY-GUARD-007: An allow entry excuses one kind of hit in one file, and fails once nothing needs it
+    """PY-SENSOR-007: An allow entry excuses one kind of hit in one file, and fails once nothing needs it
 
     Given a file with a local path, and allow entries for it, for another kind, and for a missing file
-    When the guard scans and checks the allow list
+    When the sensor scans and checks the allow list
     Then the local path is excused and nothing else is
     And the entry for a kind the file doesn't have, and the one for a missing file, are reported stale
     """
@@ -192,16 +192,16 @@ def test_an_allow_entry_covers_one_kind_and_must_stay_needed(tmp_path):
         {"path": "a.py", "what": "an e-mail address", "reason": "none left"},
         {"path": "gone.py", "what": "a local path", "reason": "file removed"},
     ]
-    assert guards.private_text(tmp_path, ["a.py"], allow) == []
-    assert guards.private_text(tmp_path, ["a.py"], []) != []
-    assert guards.stale_allows(tmp_path, ["a.py"], allow) == [
+    assert sensors.private_text(tmp_path, ["a.py"], allow) == []
+    assert sensors.private_text(tmp_path, ["a.py"], []) != []
+    assert sensors.stale_allows(tmp_path, ["a.py"], allow) == [
         "a.py: an e-mail address no longer found; remove its entry",
         "gone.py: no such tracked file",
     ]
 
 
 def test_a_new_skip_fails_until_it_is_listed(tmp_path):
-    """PY-GUARD-008: A skip added to a test fails the ratchet, and so does a listed one that's gone
+    """PY-SENSOR-008: A skip added to a test fails the ratchet, and so does a listed one that's gone
 
     Given a Python test and a Playwright test, each with skips, and a list that covers only some
     When the skips are counted and compared with the list
@@ -216,24 +216,24 @@ def test_a_new_skip_fails_until_it_is_listed(tmp_path):
     )
     (tmp_path / "site/tests/ui").mkdir(parents=True)
     (tmp_path / "site/tests/ui/b.ui.ts").write_text(f"{call}'later');\n{call}'later');\n", encoding="utf-8")
-    counts = guards.skip_counts(tmp_path, ["tests/test_a.py", "site/tests/ui/b.ui.ts", "notes.py"])
+    counts = sensors.skip_counts(tmp_path, ["tests/test_a.py", "site/tests/ui/b.ui.ts", "notes.py"])
     assert counts == {("tests/test_a.py", "pytest.mark.skip"): 1, ("site/tests/ui/b.ui.ts", "test.fixme()"): 2}
     listed = [
         {"path": "site/tests/ui/b.ui.ts", "kind": "test.fixme()", "count": 1, "reason": "r"},
         {"path": "tests/test_gone.py", "kind": "pytest.mark.xfail", "count": 1, "reason": "r"},
     ]
-    found = guards.skip_problems(counts, listed)
+    found = sensors.skip_problems(counts, listed)
     assert len(found) == 3
     assert found[0].startswith("site/tests/ui/b.ui.ts: 2 × test.fixme(), the list has 1") and "AGENTS.md" in found[0]
     assert found[1].startswith("tests/test_a.py: 1 × pytest.mark.skip, the list has 0")
     assert found[2].startswith("tests/test_gone.py: 0 × pytest.mark.xfail, the list has 1: lower the count")
-    assert guards.skip_problems(
+    assert sensors.skip_problems(
         counts, listed[:1] + [{"path": "tests/test_a.py", "kind": "pytest.mark.skip", "count": 1}]
     ) == [found[0]]
 
 
 def test_an_edited_fixture_fails_its_hash_check(tmp_path):
-    """PY-GUARD-009: A publisher's file edited, re-saved with other line endings, or removed is found
+    """PY-SENSOR-009: A publisher's file edited, re-saved with other line endings, or removed is found
 
     Given a copy of one untouched fixture and its README row with the published SHA-256
     When the copy is unchanged, then has one byte changed, then its line endings converted, then is gone
@@ -257,7 +257,7 @@ def test_an_edited_fixture_fails_its_hash_check(tmp_path):
 
 
 def test_a_pin_changed_without_its_lock_files_is_found(tmp_path):
-    """PY-GUARD-010: A dependency changed in pyproject.toml without regenerating the locks is found
+    """PY-SENSOR-010: A dependency changed in pyproject.toml without regenerating the locks is found
 
     Given copies of pyproject.toml and the four lock files
     When the copies are unchanged, then one base pin is changed in pyproject.toml, then a lock line loses its hash

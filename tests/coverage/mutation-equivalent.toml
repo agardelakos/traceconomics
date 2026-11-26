@@ -1,7 +1,7 @@
 # Survivors of mutation testing that behave the same as the code (equivalent mutants), each with the
 # reason. A survivor not listed here is a gap in the tests: write a test that notices the change
-# instead. The wiki's Code-engine page shows the reason beside the survivor
-# (tests/catalog/code_reference.py); tests/coverage/mutation.py explains the run.
+# instead. The wiki's Code-map-engine page shows the reason beside the survivor
+# (tests/catalog/code_map_pages.py); tests/coverage/mutation.py explains the run.
 #
 # One entry per survivor: the function as the wiki names it, the change as the removed and added
 # lines of mutmut's diff (whitespace is ignored when they are matched), and why it can't change what

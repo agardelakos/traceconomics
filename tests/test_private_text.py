@@ -9,7 +9,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
-from guards import PRIVATE, private_text, stale_allows, tracked_files
+from sensors import PRIVATE, private_text, stale_allows, tracked_files
 
 pytestmark = pytest.mark.repository
 
@@ -52,7 +52,7 @@ def test_site_check_3_refuses_the_same_kinds():
 
     Given site check 3 in site/scripts/checks.mjs
     When its list of refused kinds is read
-    Then it is exactly this guard's list, so the two can't drift apart
+    Then it is exactly this sensor's list, so the two can't drift apart
     """
     text = (ROOT / "site/scripts/checks.mjs").read_text(encoding="utf-8")
     block = re.search(r"// Nothing private or internal in the text\.(.*?)\]\) \{", text, re.S)

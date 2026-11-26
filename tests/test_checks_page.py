@@ -1,7 +1,7 @@
 """The wiki page Checks (tests/catalog/checks_page.py): the registry stays complete, the page is right.
 
 Most tests run on a small made-up repository written here; three run on the real one, because what
-they guard (the registry is complete, identical bytes, nothing private) is about the real files.
+they check (the registry is complete, identical bytes, nothing private) is about the real files.
 """
 
 import json
@@ -43,7 +43,7 @@ name = "Badges"
 what = "Badges."
 check = false
 
-[[gate]]
+[[inside]]
 name = "Python coverage"
 what = "Fails below the floor."
 where = "tests/coverage/overview.py"
@@ -61,11 +61,34 @@ name = "HICP rebuilt"
 what = "The engine rebuilds the HICP."
 local = ["one", "two"]
 
-[[after]]
-name = "Watchdog"
+[[showcase]]
+key = "selenium"
+name = "Selenium"
+what = "The second suite."
+when = "after each pipeline run on main"
+
+[[showcase]]
+key = "record"
+name = "Run record"
+what = "Stores the run."
+when = "after each pipeline run on main"
+check = false
+
+[[scheduled]]
+workflow = "watchdog.yml"
 what = "The heartbeat."
-when = "daily"
-where = ".github/workflows/watchdog.yml"
+
+[[continuous]]
+name = "Dependency updates"
+what = "Monthly proposals."
+when = "monthly"
+where = ".github/dependabot.yml"
+
+[[runtime]]
+name = "Promote check"
+what = "The promoted build is served."
+when = "after every promote"
+where = "src/traceconomics/release.py"
 """
 
 FILES = {
@@ -84,7 +107,28 @@ FILES = {
           badges:
             needs: [python]
         """,
-    ".github/workflows/watchdog.yml": "name: watchdog\n",
+    ".github/workflows/watchdog.yml": """
+        name: watchdog
+        on:
+          schedule:
+            - cron: "0 13 * * *"     # daily
+          workflow_dispatch:
+        jobs:
+          check:
+            runs-on: x
+        """,
+    ".github/workflows/showcase.yml": """
+        name: showcase
+        on:
+          workflow_run:
+            workflows: [pipeline]
+        jobs:
+          selenium:
+            runs-on: x
+          record:
+            runs-on: x
+        """,
+    ".github/dependabot.yml": "version: 2\n",
     "src/traceconomics/release.py": """
         def steps(cfg):
             return [
@@ -175,12 +219,12 @@ def test_the_real_registry_is_complete():
 
 
 def test_a_job_or_step_without_an_entry_is_found(tmp_path):
-    """PY-CHECKS-002: A new CI job or release step without an entry, or an entry without one, is reported
+    """PY-CHECKS-002: A new CI job, showcase job, schedule or release step without an entry, or an entry without one, is reported
 
     Given a made-up repository whose registry matches its sources
-    When a job and a release step are added to the sources but not to the registry
+    When a job, a showcase job, a schedule and a release step are added to the sources but not to the registry
     And an entry names a job that no longer exists
-    Then each of the three is reported, by name
+    Then each of them is reported, by name
     And a promote step outside the build's steps is not taken for one of them
     """
     root = made_up(tmp_path)
@@ -190,16 +234,25 @@ def test_a_job_or_step_without_an_entry_is_found(tmp_path):
         'Step("store", ("a",)),', 'Step("store", ("a",)),\n                Step("export", ("e",)),'
     )
     registry = REGISTRY.replace('key = "badges"', 'key = "badge"')
+    showcase = FILES[".github/workflows/showcase.yml"].rstrip(" ") + "          mutation:\n            runs-on: x\n"
+    wiki = 'name: wiki\non:\n  schedule:\n    - cron: "30 13 * * *"\njobs:\n  wiki:\n    runs-on: x\n'
     root = made_up(
         tmp_path / "2",
         registry,
-        **{".github/workflows/tests.yml": workflow, "src/traceconomics/release.py": release},
+        **{
+            ".github/workflows/tests.yml": workflow,
+            ".github/workflows/showcase.yml": showcase,
+            ".github/workflows/wiki.yml": wiki,
+            "src/traceconomics/release.py": release,
+        },
     )
     found = checks_page.problems(root)
     assert any("job 'same-in-both'" in p and "has no entry" in p for p in found)
     assert any("job 'badges'" in p and "has no entry" in p for p in found)
     assert any("job 'badge'" in p and "is not in" in p for p in found)
     assert any("step 'export'" in p and "has no entry" in p for p in found)
+    assert any("showcase job 'mutation'" in p and "has no entry" in p for p in found)
+    assert any("scheduled workflow 'wiki.yml'" in p and "has no entry" in p for p in found)
     assert not any("promote" in p for p in found)
 
 
@@ -286,7 +339,7 @@ def test_nothing_is_written_while_anything_disagrees(tmp_path):
 
 
 def test_the_page_shows_each_part(tmp_path):
-    """PY-CHECKS-008: The page shows every job, step, site check, repository check, gate and setting
+    """PY-CHECKS-008: The page shows every check by when it runs: job, setting, showcase job, schedule, release step
 
     Given a made-up repository and rules that match its registry
     When the page is generated
@@ -294,7 +347,8 @@ def test_the_page_shows_each_part(tmp_path):
     And it lists the linters' settings read from their files, the site checks and the repository check
     And it shows the coverage floor read from the code
     And the release steps in order, as check or build, with their commands in order
-    And the checks after a build
+    And the showcase jobs after integration, the schedules read from the workflows, the continuous and runtime checks
+    And the sections come in the order of the change's life, with "gate" defined
     And it says the required checks were checked against the branch rules
     """
     root = made_up(tmp_path)
@@ -318,7 +372,14 @@ def test_the_page_shows_each_part(tmp_path):
     assert "Floor: 87.5%." in page
     assert "| 1 | `store`: Update the store | build |" in page
     assert "| 2 | `check-v1`: HICP rebuilt | check | The engine rebuilds the HICP. | `one`, then `two` |" in page
-    assert "| Watchdog | daily | The heartbeat. |" in page
+    assert "| `selenium`: Selenium | after each pipeline run on main | The second suite. |" in page
+    assert "Not a check: `record` (Stores the run.)" in page
+    assert "watchdog.yml) | `0 13 * * *` | The heartbeat. |" in page
+    assert "| Dependency updates | monthly | Monthly proposals. |" in page
+    assert "| Promote check | after every promote | The promoted build is served. |" in page
+    heads = ["## Before a commit", "## On every change", "## After integration", "## Continuous", "## Runtime"]
+    assert [page.index(h) for h in heads] == sorted(page.index(h) for h in heads)
+    assert "A **gate** is a place where a failed sensor blocks something" in page
     assert "checked against the branch rules on `main`" in page
 
 

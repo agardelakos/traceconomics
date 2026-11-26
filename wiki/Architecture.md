@@ -51,26 +51,10 @@ Survey microdata are read only by `local/`, in memory, on the maintainer's own m
 aggregates (spending shares by group, income limits, standard errors) go back into the archive, as
 the project's own dataset, and from there into the store like any other source.
 
-## Package map
+## The code, package by package
 
-| Path                        | Role                                                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------------------ |
-| `cli.py`, `__main__.py`     | The command line, `python -m traceconomics <command>`                                            |
-| `config.py`                 | User settings from a TOML file outside the repository                                            |
-| `job.py`                    | The scheduled job: is a release due, fetch, report, then the follow-up steps                     |
-| `sources/`                  | Publisher adapters, parsers, reuse-terms watch, the polite HTTP client                           |
-| `archive/`                  | The append-only raw archive and the local-only list                                              |
-| `store/`                    | The observation store: build from the archive, query as of a date                                |
-| `catalog.py`, `data/`       | Reference data: datasets, country codes, mapping tables, published figures used in checks        |
-| `checks.py`                 | `FormatError`: parsers refuse a file that doesn't look as expected                               |
-| `engine/`                   | COICOP tree, chain-linking, rates                                                                |
-| `validate/`                 | The engine against official figures                                                              |
-| `module1/`                  | Inflation by household group                                                                     |
-| `local/`                    | Microdata: groups, shares, bootstrap standard errors, error bands, code mapping (optional extra) |
-| `export/`                   | Published files for the site                                                                     |
-| `references/`               | The bibliography, `references.bib`                                                               |
-| `release.py`                | A release build: recompute, check, build and test the site, upload a private preview             |
-| `notify.py`, `heartbeat.py` | Run reports, and a heartbeat after every run                                                     |
+The [code reference](Code) lists every package and module with what its docstrings say, made from
+the code on every wiki run, so it can't fall behind the way a table written here would.
 
 ## Bitemporal storage
 
@@ -117,7 +101,7 @@ own files. The rules, and how they were tested: [How a release goes live](How-a-
 
 Data are published as static files, not through a live database: Parquet for every option
 combination, CSV for the default setting and for the index and rates of every setting, each value
-with its source. A queryable API may come later; the layout allows adding one without a rewrite.
+with its source. The layout allows adding a query API without a rewrite.
 
 ---
 

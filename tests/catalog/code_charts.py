@@ -2,7 +2,7 @@
 
 GitHub shows an `.svg` from the wiki's own repository in an `<img>`, but runs no script on a wiki
 page, so the charts are static: each one comes with a table of the same numbers under it (the
-pages' job, tests/catalog/code_reference.py), and the light and dark versions are chosen by the
+pages' job, tests/catalog/code_map_pages.py), and the light and dark versions are chosen by the
 reader's colour scheme through `<picture>`.
 
 - Stacked bars: one bar per area or module, its length the lines with code, its segments the lines by

@@ -5,16 +5,16 @@
 #  1. Release runs: the browser tests a release build ran on real data, uploaded to the
 #     test-results bucket (tests/catalog/vm_pull.py), checked and appended to the branch
 #     test-history. The read link is the secret TESTRESULTS_READ_URL; without it this step is skipped.
-#  2. The wiki: the hand-written pages copied from wiki/ (a page removed there is removed here),
-#     then the generated Tests pages from the catalog and the run history (tests/catalog/wiki.py)
-#     and the Code pages from the package's docstrings and the stored code map, with the map's
-#     charts as SVG files beside them (tests/catalog/code_reference.py), and the Checks page from
-#     the registry of checks and the files that define them (tests/catalog/checks_page.py; it
-#     reads the branch rules on main, public, so that the required checks it lists are the real
-#     ones), and the Rules-and-their-guards page from the registry of hard rules
-#     (tests/catalog/rules_page.py), and the Agent-evals page from the recorded eval runs
-#     (tests/evals/page.py), pushed in one commit. Editing the wiki itself is pointless: the next run puts the
-#     repository's version back.
+#  2. The wiki, made again from nothing on every run, so a page no longer made is removed: the
+#     hand-written pages copied from wiki/; the Tests pages from the catalog and the run history
+#     (tests/catalog/wiki.py); the code reference from the package's docstrings
+#     (tests/catalog/code_reference.py); the code map from the stored map, with its charts as SVG
+#     files beside it (tests/catalog/code_map_pages.py); the Checks page from the registry of checks
+#     and the files that define them (tests/catalog/checks_page.py; it reads the branch rules on main,
+#     public, so that the required checks it lists are the real ones); the Rules-guides-and-sensors
+#     page from the registry of hard rules (tests/catalog/rules_page.py); and the Agent-evals page
+#     from the recorded eval runs (tests/evals/page.py). Pushed in one commit. Editing the wiki itself
+#     is pointless: the next run puts the repository's version back.
 #
 # Runs only the default branch's code (showcase.yml calls it for pushes to main only): nothing from
 # a pull request, and no artifact from another run.
@@ -102,17 +102,16 @@ jobs:
           cd "$RUNNER_TEMP/wiki"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Mirror the hand-written pages: wiki/ is the source; the Tests pages are wiki.py's, the Code
-          # pages code_reference.py's, the Checks page checks_page.py's, the rules page rules_page.py's, the evals page tests/evals/page.py's.
-          for f in *.md; do
-            case $f in
-              Tests.md|Tests-*.md|Code.md|Code-*.md|Checks.md|Rules-and-their-guards.md|Agent-evals.md) ;;
-              *) [ -f "$GITHUB_WORKSPACE/wiki/$f" ] || git rm -q "$f" ;;
-            esac
-          done
+          # Every page and chart is made from the repository: the hand-written pages are wiki/'s, the
+          # rest the generators' below. So all of them are cleared first and made again; a page that
+          # is no longer made (removed from wiki/, renamed, or no longer generated) disappears, and
+          # `git add -A` records only what really changed.
+          git rm -q -r --ignore-unmatch -- '*.md' '*.svg'
           cp "$GITHUB_WORKSPACE"/wiki/*.md .
           python -I "$GITHUB_WORKSPACE/tests/catalog/wiki.py" --store "$RUNNER_TEMP/store" --out . --repo "$GITHUB_REPOSITORY"
           python -I "$GITHUB_WORKSPACE/tests/catalog/code_reference.py" --src "$GITHUB_WORKSPACE/src/traceconomics" \
+            --out . --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --store "$RUNNER_TEMP/store"
+          python -I "$GITHUB_WORKSPACE/tests/catalog/code_map_pages.py" --src "$GITHUB_WORKSPACE/src/traceconomics" \
             --out . --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --store "$RUNNER_TEMP/store"
           python -I "$GITHUB_WORKSPACE/tests/catalog/checks_page.py" --out . --repo "$GITHUB_REPOSITORY" \
             --rules "$RUNNER_TEMP/rules.json"

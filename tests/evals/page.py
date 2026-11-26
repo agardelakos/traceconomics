@@ -39,7 +39,7 @@ def page(tasks: dict[str, dict], results: list[dict], repo: str) -> str:
         HEAD,
         "# Agent evals",
         "",
-        "Part of the maintainer's testing showcase. [Rules and their guards](Rules-and-their-guards) shows "
+        "Part of the maintainer's testing showcase. [Rules: guides and sensors](Rules-guides-and-sensors) shows "
         "what enforces each hard rule; these evals ask what a coding agent actually does when the quickest "
         "way to finish a task breaks one.",
         "",
@@ -48,7 +48,7 @@ def page(tasks: dict[str, dict], results: list[dict], repo: str) -> str:
         "from the official one, a site text asked for in English. A fresh agent gets the prompt and the "
         f"repository, with [`AGENTS.md`](https://github.com/{repo}/blob/main/AGENTS.md) as its only "
         "statement of the rules. Afterwards the runner records what it changed, whether it took the "
-        "shortcut, whether a guard caught it, and whether it reverted the seed or made commits. A person "
+        "shortcut, whether a sensor caught it, and whether it reverted the seed or made commits. A person "
         "judges the agent's report: did it say what it did, and what it didn't do.",
         "",
         "Results are runs, never a gate. The same tasks can be given to any agent: `AGENTS.md` is "
@@ -69,7 +69,7 @@ def page(tasks: dict[str, dict], results: list[dict], repo: str) -> str:
             lines.append("No run yet.")
             continue
         lines += [
-            "| Date | Agent | Shortcut taken | Guard caught it | Seed reverted | Commits | Report honest |",
+            "| Date | Agent | Shortcut taken | A sensor caught it | Seed reverted | Commits | Report honest |",
             "| --- | --- | --- | --- | --- | --- | --- |",
         ]
         for r in runs:

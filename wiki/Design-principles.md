@@ -115,8 +115,9 @@ the same licences, with no contributor agreement.
 **Only openly reusable sources.** Paywalled data, and data whose terms forbid redistribution, are
 not used. _Why:_ everything we publish must be redistributable, with its sources.
 
-**Privacy by default.** No cookies and nothing loaded from other sites. The published site counts
-visits with a cookieless, aggregate-only analytics beacon, disclosed on the About page. The
+**Privacy by default.** No cookies, and nothing loaded from other sites but one script: the
+published site counts visits with Cloudflare's cookieless, aggregate-only analytics beacon, from the
+company that already serves the site, in release builds only, and disclosed on the About page. The
 calculator and the group finder run in the browser; nothing a reader enters is stored or sent.
 
 ---

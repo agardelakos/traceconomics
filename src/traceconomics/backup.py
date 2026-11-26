@@ -46,7 +46,7 @@ def plan(root: Path) -> list[tuple[str, str]]:
         digest = sha256_file(path)
         if sent.get(name) != digest:
             out.append((name, digest))
-    # A second, independent guard: nothing local-only may be in the list, however it got there.
+    # A second, independent check: nothing local-only may be in the list, however it got there.
     check(ds for name, _ in out if (ds := _dataset_of(Path(name))))
     return out
 

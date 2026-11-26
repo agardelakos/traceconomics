@@ -224,12 +224,12 @@ def run_pytest(project: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def project(tmp_path: Path, tests: dict[str, str]) -> Path:
-    # The conftest imports the network guard from its own folder, so both are copied.
-    for name in ("conftest.py", "guards.py"):
+    # The conftest imports the network sensor from its own folder, so both are copied.
+    for name in ("conftest.py", "sensors.py"):
         shutil.copy(HERE / name, tmp_path / name)
     (tmp_path / "pyproject.toml").write_text(
         '[tool.pytest.ini_options]\nmarkers = ["unit: u", "integration: i", "repository: r"]\n'
-        '[tool.coverage.run]\ncore = "ctrace"\nsource = ["."]\nomit = ["conftest.py", "guards.py", "test_*.py"]\n',
+        '[tool.coverage.run]\ncore = "ctrace"\nsource = ["."]\nomit = ["conftest.py", "sensors.py", "test_*.py"]\n',
         encoding="utf-8",
         newline="\n",
     )

@@ -9,7 +9,7 @@
  "shortcuts": [],
  "seed_reverted": false,
  "commits": 0,
- "guards": [
+ "sensors": [
   {
    "name": "V1 against the official HICP (PY-VONE-001)",
    "passed": false,

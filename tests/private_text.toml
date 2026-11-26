@@ -1,4 +1,4 @@
-# Where the private-text guard (tests/guards.py, run by tests/test_private_text.py) expects a hit, and
+# Where the private-text sensor (tests/sensors.py, run by tests/test_private_text.py) expects a hit, and
 # why. Each entry covers one kind of hit in one file. The list may only shrink: an entry whose file no
 # longer has that kind of hit fails the test until it is removed. Add one only with its reason, and
 # prefer changing the text (a made-up path, an example.org address) to adding an entry.
@@ -7,12 +7,12 @@
 # "a personal name" (names come from outside the repository; see tests/test_private_text.py).
 
 [[allow]]
-path = "tests/guards.py"
+path = "tests/sensors.py"
 what = "a local path"
 reason = "holds the patterns themselves"
 
 [[allow]]
-path = "tests/guards.py"
+path = "tests/sensors.py"
 what = "a link to private notes"
 reason = "holds the patterns themselves"
 

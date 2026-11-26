@@ -1,116 +1,168 @@
-# Every hard rule in AGENTS.md and what enforces it, for the wiki page "Rules and their guards"
-# (tests/catalog/rules_page.py). tests/test_rules_page.py keeps it true: one entry per hard-rule
-# bullet, word for word, in the same order; every test ID named here exists; every rule that a
-# machine guards names at least one guard test, a test that breaks the rule on purpose and expects
-# the guard to refuse it (a guard that has stopped working looks exactly like a clean repository).
+# Every hard rule in AGENTS.md, its guides and its sensors, for the wiki page "Rules: guides and
+# sensors" (tests/catalog/rules_page.py), in Böckeler's terms: a guide steers before a change is made
+# (feedforward), a sensor observes it after (feedback). tests/test_rules_page.py keeps it true: one
+# entry per hard-rule bullet, word for word, in the same order; every test ID and file named here
+# exists; every rule names a guide besides its own line; every rule a machine checks names at least
+# one sensor test, a test that breaks the rule on purpose and expects the sensor to refuse it (a
+# sensor that has stopped working looks exactly like a clean repository).
 #
 # Fields: rule (the bullet's text, exactly), strength ("strong": a machine refuses every break it
 # can see; "partial": a machine refuses some breaks, `gap` says which it can't see; "review": only
-# a person can judge it, `why` says why), guards (what enforces it, Markdown, each with the file
-# that holds it), guard_tests (test IDs that plant a break), gap, why.
+# a person can judge it, `why` says why), guides (what steers a contributor or an agent away from a
+# break before it is made, besides the rule's own line, Markdown, each with the file that holds it),
+# sensors (what observes a break, likewise), sensor_tests (test IDs that plant a break), gap, why.
 
 [[rule]]
 rule = "Never edit, re-save, reformat or convert any file in `tests/fixtures/`."
 strength = "strong"
-guards = [
-  "Every untouched fixture's SHA-256 is listed and checked (`tests/test_fixtures.py`)",
-  "The formatters can't reach the fixtures (`tests/test_lint_config.py`), and git keeps their bytes on checkout (`.gitattributes`)",
+guides = [
+  "How to add a fixture, and what each one is (`tests/fixtures/README.md`)",
+  "The formatters leave the folder out (`pyproject.toml`, `site/.prettierignore`), and git keeps the files' bytes on checkout (`.gitattributes`)",
+  "Tests read a fixture through the `fixture_bytes` fixture (`tests/conftest.py`), never by opening and re-saving it",
 ]
-guard_tests = ["PY-GUARD-009"]
+sensors = [
+  "Every untouched fixture's SHA-256 is listed and checked (`tests/test_fixtures.py`)",
+  "The formatters' settings must keep the folder out (`tests/test_lint_config.py`)",
+]
+sensor_tests = ["PY-SENSOR-009"]
 
 [[rule]]
 rule = "Never call the network in a test."
 strength = "partial"
-guards = [
-  "Every pytest test runs with the network refused but for this machine; a refused call fails the test even if the code swallows the error (`tests/guards.py`, `tests/conftest.py`)",
+guides = [
+  "`AGENTS.md`, \"Conventions\": a test may talk only to a server it starts on this machine",
+  "Parsers are tested on saved files (`tests/fixtures/`), so a test never needs to fetch one",
+]
+sensors = [
+  "Every pytest test runs with the network refused but for this machine; a refused call fails the test even if the code swallows the error (`tests/sensors.py`, `tests/conftest.py`)",
   "The browser suites run against a server on this machine, and the site's Content Security Policy allows only its own origin (`site/public/_headers`)",
 ]
-guard_tests = ["PY-GUARD-001", "PY-GUARD-002", "PY-GUARD-003", "PY-GUARD-004"]
-gap = "The browser suites have no guard of their own: a Playwright test could open another site's page."
+sensor_tests = ["PY-SENSOR-001", "PY-SENSOR-002", "PY-SENSOR-003", "PY-SENSOR-004"]
+gap = "The browser suites have no sensor of their own: a Playwright test could open another site's page."
 
 [[rule]]
 rule = "Never put survey microdata in the repository, a test, a fixture or an output; use synthetic data."
 strength = "partial"
-guards = [
+guides = [
+  "`AGENTS.md`, \"Conventions\": microdata tests build a small synthetic survey in the test",
+  "Made-up site data come through the real export code (`tests/sitedata.py`)",
+]
+sensors = [
   "Every step that publishes or copies archive files refuses microdata datasets first (`src/traceconomics/archive/local_only.py`, `src/traceconomics/data/local_only.toml`)",
   "The backup refuses microdata even if its own filter misses it (`src/traceconomics/backup.py`)",
 ]
-guard_tests = ["PY-LOCAL-004", "PY-HBEAT-004"]
+sensor_tests = ["PY-LOCAL-004", "PY-HBEAT-004"]
 gap = "Nothing scans the repository itself for a microdata file: it holds only by review and by the microdata never being on a contributor's machine."
 
 [[rule]]
 rule = "Never skip, weaken, delete or mark `xfail` a test to make a run pass."
 strength = "partial"
-guards = [
+guides = [
+  "`AGENTS.md`, \"Definition of done\": report failures and skips as they are; never retry until green",
+  "Each allowed skip says why, where a reviewer reads it (`tests/skips.toml`)",
+]
+sensors = [
   "Every skip, skipif, xfail, `test.skip` and `test.fixme` is counted per file and must match the reviewed list (`tests/skips.toml`, `tests/test_skips.py`)",
   "A removed test's ID can never come back, and every test keeps its case (`tests/catalog/validate.py`)",
 ]
-guard_tests = ["PY-GUARD-008"]
+sensor_tests = ["PY-SENSOR-008"]
 gap = "A weakened assertion or a deleted test is seen only in review: no machine knows what a test should have checked."
 
 [[rule]]
 rule = "Never import pandas or numpy outside `src/traceconomics/local/`."
 strength = "strong"
-guards = [
+guides = [
+  "`AGENTS.md`, \"Conventions\": tests needing pandas or numpy start with `pytest.importorskip(...)`",
+  "The microdata code's dependencies are an optional extra with its own lock file (`pyproject.toml`, `requirements-local.txt`)",
+]
+sensors = [
   "Ruff's banned imports, everywhere but the microdata code (`pyproject.toml`, the `lint` job)",
   "The `python` job runs without pandas installed",
 ]
-guard_tests = ["PY-GUARD-005"]
+sensor_tests = ["PY-SENSOR-005"]
 
 [[rule]]
 rule = "Never add, remove or change a dependency without an agreed issue; then regenerate every lock file."
 strength = "partial"
-guards = [
+guides = [
+  "`CONTRIBUTING.md`: a dependency change starts with an agreed issue",
+  "Each lock file's header holds the command that regenerates it (`requirements-dev.txt`, `requirements-local.txt`)",
+]
+sensors = [
   "The hashed lock files must match `pyproject.toml`'s pins (`tests/test_lock_files.py`)",
   "The maintainer owns `pyproject.toml` and the lock files, so a change to them asks for their review (`.github/CODEOWNERS`)",
 ]
-guard_tests = ["PY-GUARD-010"]
+sensor_tests = ["PY-SENSOR-010"]
 gap = "The agreement itself is a person's: the machines catch the change, not whether it was agreed."
 
 [[rule]]
 rule = "Never make a parser guess: raise `checks.FormatError` on an unexpected file."
 strength = "review"
-guards = ["Each parser's tests feed it unexpected files and expect `FormatError` (`tests/test_parse_eurostat.py`, `tests/test_parse_elstat.py`, `tests/test_hbs_tables.py` and others)"]
+guides = [
+  "The wiki page on adding a source: format checks refuse surprises (`wiki/Adding-a-source-or-country.md`)",
+  "`checks.require()` and `FormatError` make refusing the short path (`src/traceconomics/checks.py`)",
+]
+sensors = ["Each parser's tests feed it unexpected files and expect `FormatError` (`tests/test_parse_eurostat.py`, `tests/test_parse_elstat.py`, `tests/test_hbs_tables.py` and others)"]
 why = "A guess is a judgement, not a pattern: the tests prove the surprises someone thought of are refused, and only a reader sees a new guess."
 
 [[rule]]
 rule = "Never adjust a method, tolerance or expected value to hide a difference from an official figure."
 strength = "review"
-guards = ["The comparisons with official figures are published with their differences, never used to gate a release (`src/traceconomics/validate/`)"]
+guides = [
+  "Show differences, never tune them away (`wiki/Design-principles.md`)",
+  "Each comparison's margin is fixed in advance, in the code that applies it (`src/traceconomics/validate/`)",
+]
+sensors = ["The comparisons with official figures are published with their differences, never used to gate a release (`src/traceconomics/validate/`)"]
 why = "Whether a change hides a difference or fixes a real error is a judgement about the method, made by a person reading the reason given."
 
 [[rule]]
 rule = "Never change English site text without the matching Greek change in the same change."
 strength = "partial"
-guards = [
+guides = [
+  "`AGENTS.md`, \"Site\": every English text has its Greek twin in `site/src/i18n/el.json` or the `el` content folder",
+  "`npm run terms:report` shows each glossary term with both texts (`site/package.json`)",
+]
+sensors = [
   "Site check 1: both languages have the same text keys and content pages; checks 9 and 10: glossary terms and the Greek final ν (`site/scripts/checks.mjs`)",
 ]
-guard_tests = ["PW-GUARD-002"]
+sensor_tests = ["PW-SENSOR-002"]
 gap = "A changed English text whose Greek twin stays as it was passes: the checks see a missing twin, not a stale one."
 
 [[rule]]
 rule = "Never add inline scripts or resources from other sites to the site."
 strength = "strong"
-guards = [
+guides = [
+  "Build pages from the site's patterns (`wiki/Site-patterns.md`)",
+  "The one script from another site, the visit-count beacon, is added by one function in release builds only (`site/src/lib/analytics.ts`)",
+]
+sensors = [
   "Site check 4: no inline script or style block; scripts, styles, fonts and images only from this site, but the visit-count beacon (`site/scripts/checks.mjs`)",
   "The Content Security Policy refuses them in the browser (`site/public/_headers`, the host tests)",
 ]
-guard_tests = ["PW-GUARD-003"]
+sensor_tests = ["PW-SENSOR-003"]
 
 [[rule]]
 rule = "Never write personal names, emails or local paths in code, comments, tests or docs."
 strength = "partial"
-guards = [
+guides = [
+  "Reports go to project addresses, so no personal one is needed (`CODE_OF_CONDUCT.md`, `SECURITY.md`)",
+  "Each place a hit is expected says why (`tests/private_text.toml`)",
+]
+sensors = [
   "Every tracked file is scanned for e-mail addresses, local paths, decision numbers and links to private notes, with a reviewed allow list (`tests/test_private_text.py`, `tests/private_text.toml`)",
   "Site check 3 refuses the same kinds on the built pages (`site/scripts/checks.mjs`)",
 ]
-guard_tests = ["PY-GUARD-006", "PY-GUARD-007"]
+sensor_tests = ["PY-SENSOR-006", "PY-SENSOR-007"]
 gap = "Names have no pattern: the names to look for are kept outside the repository, so CI can't check them; the maintainer's run does."
 
 [[rule]]
 rule = "Never commit, push, open a pull request or change repository settings unless your human asks."
 strength = "review"
-guards = [
+guides = [
+  "`AGENTS.md`, \"Pull requests\": the human who opens a pull request owns the code",
+  "The pull request template asks who owns the code and which suites ran (`.github/pull_request_template.md`)",
+]
+sensors = [
   "The branch rules on `main`: every change through a pull request, with the required checks passing",
   "The coding agent's own permission settings, set by the person running it",
 ]

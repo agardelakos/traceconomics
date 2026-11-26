@@ -20,6 +20,6 @@ what = "changed the comparison with official figures"
 path = "tests/**"
 what = "changed a test or its expected values (the right outcome changes no test)"
 
-[[guard]]
+[[sensor]]
 name = "V1 against the official HICP (PY-VONE-001)"
 run = ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/test_v1.py"]

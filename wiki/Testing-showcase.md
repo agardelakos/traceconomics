@@ -19,14 +19,14 @@ Contributions to the showcase are welcome, never required.
 
 ## What is in it
 
-| Part                    | Where                                                                   | Its page                                     |
-| ----------------------- | ----------------------------------------------------------------------- | -------------------------------------------- |
-| A second browser suite  | `tests/selenium/` (Python, Selenium, Chrome for Testing)                | [Selenium cases](Tests-Selenium)             |
-| The two suites compared | `tests/compare/`                                                        | the run's page; the comparison artifact      |
-| The code map            | `tests/coverage/code_map.py`, `tests/catalog/code_charts.py`            | [Code](Code#the-map), [Code-site](Code-site) |
-| Mutation testing        | `tests/coverage/mutation.py`, `tests/coverage/mutation-equivalent.toml` | [Mutation testing](Tests-Mutation)           |
-| Run history             | `tests/catalog/history.py`, `tests/catalog/vm_pull.py`                  | [Runs](Tests-Runs)                           |
-| Agent evals             | `tests/evals/`                                                          | [Agent evals](Agent-evals)                   |
+| Part                    | Where                                                                                           | Its page                                |
+| ----------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------- |
+| A second browser suite  | `tests/selenium/` (Python, Selenium, Chrome for Testing)                                        | [Selenium cases](Tests-Selenium)        |
+| The two suites compared | `tests/compare/`                                                                                | the run's page; the comparison artifact |
+| The code map            | `tests/coverage/code_map.py`, `tests/catalog/code_map_pages.py`, `tests/catalog/code_charts.py` | [Code map](Code-map)                    |
+| Mutation testing        | `tests/coverage/mutation.py`, `tests/coverage/mutation-equivalent.toml`                         | [Mutation testing](Tests-Mutation)      |
+| Run history             | `tests/catalog/history.py`, `tests/catalog/vm_pull.py`                                          | [Runs](Tests-Runs)                      |
+| Agent evals             | `tests/evals/`                                                                                  | [Agent evals](Agent-evals)              |
 
 ## How it runs
 
@@ -76,17 +76,19 @@ mode (both suites spread over all workers, by file, one test at a time). After e
 
 ## The code map
 
-The `Code-*` pages, the [code reference](Code), are core documentation: each package's modules,
-their docstrings and public parts. The code map adds what the tests run, from the last coverage run
-on `main` (`tests/coverage/code_map.py`, stored on the branch `test-history`). Each module lists its
+The [code reference](Code) is core documentation: each package's modules, their docstrings and
+public parts. The [code map](Code-map) is apart from it, on pages of its own (`Code-map-*`, written
+by `tests/catalog/code_map_pages.py`): what the tests run, from the last coverage run on `main`
+(`tests/coverage/code_map.py`, stored on the branch `test-history`). Each module lists its
 lines by the lowest layer of test that runs them, the lines no test runs, and the test cases that
 run it, each linked to its steps on the `Tests-pytest` page. Each public function shows how many
 tests run it, or "imported only" (defined while a test file was loaded, but never called by a test),
-or "no test". The overview lists the `repository` tests, which check the repository's own files and
-run no package code, and any test run without a case. A test that runs a line doesn't always check
+or "no test". The overview lists the unit and integration tests that run no package code, and any test run
+without a case; the `repository` tests, which check the repository's own files, are on the
+[Checks](Checks#repository-checks) page. A test that runs a line doesn't always check
 it.
 
-The map covers the site's own code too, on the `Code-site` page: each file's lines by the layer
+The map covers the site's own code too, on the `Code-map-site` page: each file's lines by the layer
 that runs them (Vitest's unit and integration files, then Playwright), and the Vitest files,
 Playwright cases and Selenium tests that run it. Vitest is measured per test file, Playwright per
 case, Selenium per test (through Chrome's DevTools protocol, taken before every navigation and
@@ -104,16 +106,16 @@ mutmut changes the engine's code in small ways, one at a time, and runs the test
 run the engine on each change. The page gives the share of changes some test noticed, the score of
 every run so far, the result per function, and every change none did: a gap in the tests to close
 with a test, or a change that behaves the same as the code, listed with its reason in
-`tests/coverage/mutation-equivalent.toml`. `Code-engine` ends with the newest score and a link.
+`tests/coverage/mutation-equivalent.toml`. `Code-map-engine` ends with the newest score and a link.
 
 ## Agent evals
 
-[Rules and their guards](Rules-and-their-guards) shows what enforces each hard rule; the
+[Rules: guides and sensors](Rules-guides-and-sensors) shows what enforces each hard rule; the
 [agent evals](Agent-evals) ask what a coding agent does when the quickest way to finish a task breaks
 one. Each task is seeded in a throwaway clone with no remote, so nothing done there can reach
 GitHub, and nothing in the clone says it is an eval. A fresh agent gets the prompt and the
 repository, with `AGENTS.md` as its only statement of the rules. `tests/evals/evals.py` records what
-it changed, whether it took the shortcut, whether a guard caught it, and whether it made commits; a
+it changed, whether it took the shortcut, whether a sensor caught it, and whether it made commits; a
 person judges whether its report was honest. Results are runs, never a gate, and the same tasks can
 be given to any agent.
 

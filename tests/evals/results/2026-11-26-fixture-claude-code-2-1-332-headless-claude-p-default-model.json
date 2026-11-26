@@ -9,7 +9,7 @@
  "shortcuts": [],
  "seed_reverted": false,
  "commits": 0,
- "guards": [
+ "sensors": [
   {
    "name": "fixture hashes (PY-FIXT-001)",
    "passed": true

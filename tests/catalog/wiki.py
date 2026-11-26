@@ -44,7 +44,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with `python -I`: its folder isn't on the path
 import code_charts as charts  # noqa: E402
-from code_reference import EQUIVALENT, engine_fingerprint, equivalent_reason  # noqa: E402
+from cases import renamed as renamed_ids  # noqa: E402
+from code_map_pages import EQUIVALENT, engine_fingerprint, equivalent_reason  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]  # the repository, for the engine's source and the reasons
 
@@ -70,7 +71,9 @@ MIN_FOR_RATE = 5
 LAYERS = ("unit", "integration", "repository")  # the pytest layers (tests/conftest.py)
 
 
-def load(store: Path):
+def load(store: Path, renamed: dict[str, str] | None = None):
+    """The stored catalog, the obsolete IDs and every run, a renamed case's results under its new ID."""
+    renamed = renamed or {}
     catalog = (
         json.loads((store / "catalog.json").read_text(encoding="utf-8"))
         if (store / "catalog.json").is_file()
@@ -81,7 +84,11 @@ def load(store: Path):
     )
     runs: dict[str, list[dict]] = {}
     for folder in sorted((store / "runs").glob("*")) if (store / "runs").is_dir() else []:
-        runs[folder.name] = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(folder.glob("*.json"))]
+        runs[folder.name] = []
+        for p in sorted(folder.glob("*.json")):
+            r = json.loads(p.read_text(encoding="utf-8"))
+            r["cases"] = {renamed.get(k, k): v for k, v in r.get("cases", {}).items()}
+            runs[folder.name].append(r)
     return catalog, obsolete, runs
 
 
@@ -223,10 +230,10 @@ def page_mutation(repo, result: dict, history: list[dict], root: Path) -> tuple[
         for name, c in rows:
             killed = c.get("killed", 0) + c.get("timeout", 0) + c.get("caught by type check", 0)
             other = sum(c.values()) - killed - c.get("survived", 0)
-            # The module's heading on Code-engine: `traceconomics.engine.chain` is #traceconomicsenginechain.
+            # The module's heading on Code-map-engine: `traceconomics.engine.chain` is #traceconomicsenginechain.
             anchor = "".join(name.split(".")[:3]).lower()
             out.append(
-                f"| [`{short_function(name)}`](Code-engine#{anchor}) | {sum(c.values())} | {killed} "
+                f"| [`{short_function(name)}`](Code-map-engine#{anchor}) | {sum(c.values())} | {killed} "
                 f"| {c.get('survived', 0)} | {other or ''} |"
             )
         out.append("")
@@ -336,7 +343,7 @@ def page_overview(repo, catalog, obsolete, runs, mutation=None, mapping=None) ->
             + ", ".join(f"{k} {layers[k]}" for k in LAYERS if layers.get(k))
             + ". A unit test runs one of our components on its own, an integration test several of them "
             "through a real resource (an archive on disk, the store), a repository test checks the "
-            "repository's own files and runs no package code ([Code reference](Code#checks-on-the-code-itself))."
+            "repository's own files and runs no package code ([Checks](Checks#repository-checks) lists them by file)."
         )
     out.append("\n" + selenium_status(repo, catalog, runs, mapping).rstrip())
     if mutation is not None:
@@ -462,7 +469,7 @@ def sidebar(text: str, mutation: bool = False) -> str:
 
 
 def generate(store: Path, out: Path, repo: str, last: int, window: int, root: Path = ROOT) -> list[str]:
-    catalog, obsolete, runs = load(store)
+    catalog, obsolete, runs = load(store, renamed_ids(root / "tests/catalog/renamed.toml"))
     mutation, history = load_mutation(store)
     mapping = load_mapping(root)
     pages = {

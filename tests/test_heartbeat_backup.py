@@ -118,8 +118,8 @@ def test_backup_sends_the_archive_but_never_microdata(tmp_path, server):
     assert backup.sync(tmp_path, url=url) == {"result": "ok", "sent": 1}
 
 
-def test_backup_guard_refuses_microdata_even_if_the_filter_misses_it(tmp_path, monkeypatch):
-    """PY-HBEAT-004: the backup's guard refuses microdata even if the filter misses it
+def test_backup_refuses_microdata_even_if_the_filter_misses_it(tmp_path, monkeypatch):
+    """PY-HBEAT-004: the backup refuses microdata even if the filter misses it
 
     Given an archive holding HBS microdata
     And a broken filter that marks nothing as local-only

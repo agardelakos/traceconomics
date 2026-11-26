@@ -1,6 +1,6 @@
-"""The wiki page Rules-and-their-guards can't fall behind the rules: the registry
+"""The wiki page Rules-guides-and-sensors can't fall behind the rules: the registry
 `tests/catalog/rules.toml` holds exactly AGENTS.md's hard rules, every test and file it names exists,
-and every rule a machine guards has a guard test (tests/catalog/rules_page.py)."""
+every rule names a guide, and every rule a machine checks has a sensor test (tests/catalog/rules_page.py)."""
 
 import shutil
 import sys
@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent / "catalog"))
 import rules_page  # noqa: E402 - found through the path set just above
-from guards import private_text  # noqa: E402
+from sensors import private_text  # noqa: E402
 
 pytestmark = pytest.mark.repository
 
@@ -23,14 +23,14 @@ def made_up(tmp_path: Path) -> Path:
         (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / name, tmp_path / name)
     for rule in rules_page.registry(ROOT):
-        for text in rule["guards"]:
+        for text in rule["guides"] + rule["sensors"]:
             for p in rules_page.PATH.findall(text):
                 (tmp_path / p).parent.mkdir(parents=True, exist_ok=True)
                 if (ROOT / p).is_dir():
                     (tmp_path / p).mkdir(exist_ok=True)
                 elif not (tmp_path / p).exists():
                     (tmp_path / p).write_text("", encoding="utf-8")
-    ids = "\n".join(f'"""{i}: x' for rule in rules_page.registry(ROOT) for i in rule.get("guard_tests", []))
+    ids = "\n".join(f'"""{i}: x' for rule in rules_page.registry(ROOT) for i in rule.get("sensor_tests", []))
     (tmp_path / "tests/test_ids.py").write_text(ids + "\n", encoding="utf-8")
     return tmp_path
 
@@ -41,7 +41,7 @@ def test_the_real_registry_matches_the_rules():
     Given AGENTS.md, tests/catalog/rules.toml and the test code
     When the page generator compares them
     Then it finds no rule without an entry, no entry without a rule, nothing out of order
-    And every guard test and file the registry names exists, and every guarded rule has a guard test
+    And every sensor test and file the registry names exists, and every rule a machine checks has a sensor test
     """
     assert rules_page.problems(ROOT) == []
 
@@ -77,10 +77,10 @@ def test_a_new_or_reworded_rule_without_its_entry_is_found(tmp_path):
 
 
 def test_an_entry_that_promises_too_much_is_found(tmp_path):
-    """PY-RULES-003: An entry naming a missing test or file, or claiming a guard it can't prove, is reported
+    """PY-RULES-003: An entry naming a missing test or file, claiming a sensor it can't prove, or with no guide, is reported
 
     Given a made-up repository whose registry matches its AGENTS.md
-    When entries name a missing test and file, or lose their guard tests, gap or reason, or get an unknown strength
+    When entries name a missing test and file, lose their guides, sensor tests, gap or reason, or get an unknown strength
     Then each is reported, naming the rule
     """
     root = made_up(tmp_path)
@@ -88,17 +88,19 @@ def test_an_entry_that_promises_too_much_is_found(tmp_path):
     strong = [r for r in rules if r["strength"] == "strong"]
     partial = next(r for r in rules if r["strength"] == "partial")
     review = next(r for r in rules if r["strength"] == "review")
-    strong[0]["guard_tests"] = ["PY-NOBODY-001"]
-    strong[0]["guards"] = ["Checked by `tests/test_gone.py`"]
-    strong[1]["guard_tests"] = []
+    strong[0]["sensor_tests"] = ["PY-NOBODY-001"]
+    strong[0]["sensors"] = ["Checked by `tests/test_gone.py`"]
+    strong[1]["sensor_tests"] = []
     partial["gap"] = ""
     review["why"] = ""
+    review["guides"] = []
     strong[2]["strength"] = "total"
     found = rules_page.problems(root, rules)
-    assert len(found) == 6
+    assert len(found) == 7
+    assert any("no guides listed" in p for p in found)
     assert any("PY-NOBODY-001, which no test declares" in p for p in found)
     assert any("`tests/test_gone.py`, which doesn't exist" in p for p in found)
-    assert any("no guard test proves the guard fires" in p for p in found)
+    assert any("no sensor test proves the sensor fires" in p for p in found)
     assert any("partial, but no `gap`" in p for p in found)
     assert any("review only, but no `why`" in p for p in found)
     assert any("strength 'total'" in p for p in found)
@@ -129,19 +131,19 @@ def test_the_real_page_gives_the_same_bytes_and_nothing_private(tmp_path):
 
     Given the repository as it is
     When the page is generated twice through the command line
-    Then both files are byte-identical, with one table row per hard rule and its guard tests linked
-    And the private-text guard finds nothing in it
+    Then both files are byte-identical, with one table row per hard rule and its sensor tests linked
+    And the private-text sensor finds nothing in it
     """
     for out in ("a", "b"):
         rules_page.main(["--out", str(tmp_path / out), "--repo", "o/r"])
-    a = (tmp_path / "a/Rules-and-their-guards.md").read_bytes()
-    assert a == (tmp_path / "b/Rules-and-their-guards.md").read_bytes()
+    a = (tmp_path / "a/Rules-guides-and-sensors.md").read_bytes()
+    assert a == (tmp_path / "b/Rules-guides-and-sensors.md").read_bytes()
     text = a.decode("utf-8")
     rules = rules_page.registry(ROOT)
     assert sum(line.startswith("| ") for line in text.splitlines()) == len(rules) + 2  # the header and its separator
     assert (
-        "[PY-GUARD-001](Tests-pytest#py-guard-001)" in text
-        and "[PW-GUARD-003](Tests-playwright#pw-guard-003)" not in text
+        "[PY-SENSOR-001](Tests-pytest#py-sensor-001)" in text
+        and "[PW-SENSOR-003](Tests-playwright#pw-sensor-003)" not in text
     )
-    assert "[PW-GUARD-003](Tests-Playwright#pw-guard-003)" in text
-    assert private_text(tmp_path, ["a/Rules-and-their-guards.md"], []) == []
+    assert "[PW-SENSOR-003](Tests-Playwright#pw-sensor-003)" in text
+    assert private_text(tmp_path, ["a/Rules-guides-and-sensors.md"], []) == []

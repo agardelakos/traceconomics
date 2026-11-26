@@ -273,19 +273,19 @@ title = "the consistency topic passes the accessibility check with a status filt
 playwright = ["PW-A11Y-003"]
 selenium = ["SEL-A11Y-005"]
 
-[TC-GUARD-001]
-title = "the unchanged copy of the site passes the site checks, so each failure in the guard tests comes from what was planted"
-playwright = ["PW-GUARD-001"]
+[TC-SENSOR-001]
+title = "the unchanged copy of the site passes the site checks, so each failure in the sensor tests comes from what was planted"
+playwright = ["PW-SENSOR-001"]
 why = "no browser: it runs the site checks in Node on a copy of the build, so a second browser suite would test nothing more"
 
-[TC-GUARD-002]
+[TC-SENSOR-002]
 title = "an English interface text without its Greek twin fails the site checks"
-playwright = ["PW-GUARD-002"]
+playwright = ["PW-SENSOR-002"]
 why = "no browser: it runs the site checks in Node on a copy of the build, so a second browser suite would test nothing more"
 
-[TC-GUARD-003]
+[TC-SENSOR-003]
 title = "an inline script or another site's script on a built page fails the site checks"
-playwright = ["PW-GUARD-003"]
+playwright = ["PW-SENSOR-003"]
 why = "no browser: it runs the site checks in Node on a copy of the build, so a second browser suite would test nothing more"
 
 [TC-HOST-001]

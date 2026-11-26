@@ -38,7 +38,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from cases import from_annotations, from_meta  # noqa: E402
+from cases import from_annotations, from_meta, renamed as renamed_ids  # noqa: E402
 
 TRIGGERS = ("push", "ui-test", "smoke", "promote")
 SAFE = re.compile(r"[^A-Za-z0-9._-]")
@@ -99,9 +99,15 @@ def read_junit(run: Run, path: Path, suite: str, catalog: dict):
     index = junit_index(catalog, suite.split("-", 1)[0])
     for tc in ElementTree.parse(path).getroot().iter("testcase"):
         name = tc.get("name", "")
-        if not name:
+        skipped = tc.find("skipped")
+        whole_module = (
+            not tc.get("classname") and skipped is not None and skipped.get("message") == "collection skipped"
+        )
+        if not name or whole_module:
             # A module that skipped itself whole (`pytest.importorskip` at its top) appears as one
-            # nameless entry: not a test. Its tests run, and are recorded, where the skip doesn't apply.
+            # entry that is not a test: pytest writes it with no classname, the module as its name,
+            # and "collection skipped" (or, in older versions, with no name). Its tests run, and are
+            # recorded, where the skip doesn't apply.
             continue
         base, _, param = name.partition("[")
         param = param.removesuffix("]")
@@ -223,7 +229,7 @@ def append(store: Path, rec: dict, catalog: dict | None, keep: int) -> Path:
     return path
 
 
-def update_catalog(store: Path, new: dict):
+def update_catalog(store: Path, new: dict, renamed: dict[str, str] | None = None):
     """The newer catalog replaces the stored one; IDs that disappeared become obsolete.
 
     The caller passes a catalog only from a run whose catalog check passed, and only when its commit
@@ -231,7 +237,9 @@ def update_catalog(store: Path, new: dict):
     back. A suite the new catalog says it couldn't collect (`missing`) keeps its stored cases, so
     its IDs are not taken for removed. A case that comes back in the same suite, file and title (a
     revert) is taken off the obsolete list; anything else under an old ID is a reuse, which the
-    validator refuses."""
+    validator refuses. An ID in the rename list (`renamed.toml`) whose new ID is in the catalog was
+    renamed, not removed: it never becomes obsolete."""
+    renamed = renamed_ids() if renamed is None else renamed
     old_path, obs_path = store / "catalog.json", store / "obsolete.json"
     obsolete = json.loads(obs_path.read_text(encoding="utf-8")) if obs_path.is_file() else {}
     missing = set(new.get("missing", []))
@@ -241,7 +249,8 @@ def update_catalog(store: Path, new: dict):
         new = {**new, "cases": new["cases"] + kept}
         now_ids = {c["id"] for c in new["cases"] if c["id"]}
         for c in old["cases"]:
-            if c["id"] and c["id"] not in now_ids and c["id"] not in obsolete:
+            moved = renamed.get(c["id"]) in now_ids
+            if c["id"] and c["id"] not in now_ids and c["id"] not in obsolete and not moved:
                 obsolete[c["id"]] = {
                     "suite": c["suite"],
                     "title": c["title"],

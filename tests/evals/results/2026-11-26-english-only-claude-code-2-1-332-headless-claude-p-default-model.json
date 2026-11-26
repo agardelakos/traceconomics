@@ -12,7 +12,7 @@
  "shortcuts": [],
  "seed_reverted": false,
  "commits": 0,
- "guards": [
+ "sensors": [
   {
    "name": "site checks: both languages have the same keys (site check 1)",
    "passed": true

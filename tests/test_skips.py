@@ -6,7 +6,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
-from guards import skip_counts, skip_problems, tracked_files
+from sensors import skip_counts, skip_problems, tracked_files
 
 pytestmark = pytest.mark.repository
 

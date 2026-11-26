@@ -1,22 +1,27 @@
 """The wiki's hand-written pages (wiki/) stay true to the repository: every file or folder they name
 exists, every link to another wiki page has a page behind it, and every block they quote from the
-code still says what the code's docstring says. The cheap guard against an architecture or method
+code still says what the code's docstring says. The cheap check against an architecture or method
 page that describes code which moved, no longer exists, or has changed."""
 
 import ast
 import re
+import sys
 from pathlib import Path
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).parent / "catalog"))
+from cases import renamed  # noqa: E402
+from rules_page import declared_ids  # noqa: E402
 
 pytestmark = pytest.mark.repository
 
 ROOT = Path(__file__).resolve().parent.parent
 WIKI = ROOT / "wiki"
 PAGES = sorted(WIKI.glob("*.md"))
-# Pages wiki.py, code_reference.py, checks_page.py, rules_page.py and tests/evals/page.py write on
+# Pages wiki.py, code_reference.py, code_map_pages.py, checks_page.py, rules_page.py and tests/evals/page.py write on
 # every run; they exist only in the wiki itself.
-GENERATED = re.compile(r"^((Tests|Code)(-[A-Za-z0-9-]+)?|Checks|Rules-and-their-guards|Agent-evals)$")
+GENERATED = re.compile(r"^((Tests|Code)(-[A-Za-z0-9-]+)?|Checks|Rules-guides-and-sensors|Agent-evals)$")
 # Where a short path in the text may start: the root, the package, its sources, the site.
 BASES = [ROOT, ROOT / "src/traceconomics", ROOT / "src/traceconomics/sources", ROOT / "site"]
 EXTENSIONS = (".py", ".toml", ".md", ".ts", ".mjs", ".bib", ".json", ".yml", ".cff")
@@ -131,3 +136,31 @@ def test_every_block_on_a_method_page_names_its_source(page):
     assert unmarked == [], f"{page}: code blocks without a `<!-- from: <module> -->` marker:\n" + "\n---\n".join(
         unmarked
     )
+
+
+# A test case ID on a page, and a range of them written out in full: "PY-ENG-008 to PY-ENG-010".
+CASE_ID = re.compile(r"\b((?:PY|PW|VT|SEL)-[A-Z0-9]+-)(\d{3})\b")
+CASE_RANGE = re.compile(r"\b((?:PY|PW|VT|SEL)-[A-Z0-9]+-)(\d{3}) to \1(\d{3})\b")
+# The short form, which no test can check: "PY-ENG-008 to 010", "PY-CALIB-003 and 004".
+SHORT_RANGE = re.compile(r"\b(?:PY|PW|VT|SEL)-[A-Z0-9]+-\d{3}\s+(?:to|and)\s+\d{3}\b")
+DECLARED = declared_ids(ROOT)
+RENAMED = renamed()
+
+
+@pytest.mark.parametrize("page", PAGES, ids=lambda p: p.name)
+def test_every_test_id_a_page_names_exists(page):
+    """PY-WIKI-006: every test case ID a hand-written page names exists, a range of them included
+
+    Given a hand-written wiki page
+    When the test case IDs it names are read, each range "A to B" as every ID from A to B
+    Then each one is declared by a test in the repository, and none is an ID renamed away
+    And no range is written in the short form ("PY-ENG-008 to 010"), which can't be checked
+    """
+    text = page.read_text(encoding="utf-8")
+    named = {prefix + n for prefix, n in CASE_ID.findall(text)}
+    for prefix, a, b in CASE_RANGE.findall(text):
+        named |= {f"{prefix}{n:03d}" for n in range(int(a), int(b) + 1)}
+    wrong = [f"{i}: renamed to {RENAMED[i]}" for i in sorted(named) if i in RENAMED]
+    wrong += [f"{i}: no test declares it" for i in sorted(named) if i not in RENAMED and i not in DECLARED]
+    wrong += [f"{m}: write the second ID in full" for m in SHORT_RANGE.findall(text)]
+    assert wrong == [], f"{page.name}:\n" + "\n".join(wrong)

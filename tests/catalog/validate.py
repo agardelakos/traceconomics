@@ -1,7 +1,8 @@
-"""The catalog's quality gate: every case well formed, every ID unique, the mapping consistent.
+"""The catalog's check: every case well formed, every ID unique, the mapping consistent.
 
     python -I tests/catalog/validate.py catalog.json [--strict tests/catalog/strict.toml]
-        [--mapping tests/catalog/cases.toml] [--obsolete obsolete.json] [--require-all]
+        [--mapping tests/catalog/cases.toml] [--obsolete obsolete.json]
+        [--renamed tests/catalog/renamed.toml] [--require-all]
 
 Rules (the code in brackets is what a finding is listed under):
 
@@ -12,14 +13,15 @@ Rules (the code in brackets is what a finding is listed under):
 - [missing-steps]  a case without Given, When or Then;
 - [text]           steps out of order, a line that isn't a step, examples with different steps;
 - [reused-id]      an ID that once belonged to a test now removed: IDs are never reused (a test
-                   that comes back in the same suite, file and title, a revert, may keep it);
-- [mapping]        cases.toml names an unknown ID, the wrong suite, or an ID twice;
+                   that comes back in the same suite, file and title, a revert, may keep it), or
+                   one renamed away (`renamed.toml`);
+- [mapping]        cases.toml names an unknown ID, the wrong suite, an ID twice, or a renamed one;
 - [unmapped]       a Playwright or Selenium case that cases.toml doesn't list;
 - [incomplete]     a suite missing from the catalog (with --require-all).
 
 A ratchet: findings in the files `strict.toml` lists (or everywhere, once it says `all = true`)
 fail the check; elsewhere they are warnings, so the backfill can go file by file without
-switching the gate off. `[unmapped]` fails once `mapping_complete = true`, for Selenium cases
+switching the check off. `[unmapped]` fails once `mapping_complete = true`, for Selenium cases
 only: an unmapped Playwright case always warns. The mapping exists for the Selenium suite, which is
 the maintainer's testing showcase, so a contributor who adds a Playwright test never has to edit it;
 the maintainer maps the new case later. `[bad-id]`,
@@ -43,7 +45,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from cases import ID, SUITES, Case, missing_steps  # noqa: E402
+from cases import ID, RENAMED, SUITES, Case, missing_steps, renamed as renamed_ids  # noqa: E402
 
 ALWAYS = {"bad-id", "duplicate-id", "reused-id", "mapping", "incomplete"}
 TC = re.compile(r"^TC-[A-Z][A-Z0-9]{1,9}-\d{3}$")
@@ -73,7 +75,15 @@ def strict_for(strict: dict):
     return lambda file: every or any(fnmatch.fnmatch(file, p) for p in patterns)
 
 
-def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, require_all: bool) -> list[Finding]:
+def check(
+    catalog: dict,
+    strict: dict,
+    mapping: dict,
+    obsolete: dict | set,
+    require_all: bool,
+    renamed: dict[str, str] | None = None,
+) -> list[Finding]:
+    renamed = renamed or {}
     is_strict = strict_for(strict)
     cases = [Case.from_json(c) for c in catalog["cases"]]
     out: list[Finding] = []
@@ -105,6 +115,8 @@ def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, requ
             o = obsolete.get(c.id) if isinstance(obsolete, dict) else ({} if c.id in obsolete else None)
             if o is not None and (o.get("suite"), o.get("file"), o.get("title")) != (c.suite, c.file, c.title):
                 add("reused-id", c, f"{c.id} belonged to a test that was removed; take a new number")
+            if c.id in renamed:
+                add("reused-id", c, f"{c.id} was renamed to {renamed[c.id]}; take a new number")
         if c.id is not None:
             gaps = missing_steps(c)
             if gaps:
@@ -124,6 +136,8 @@ def check(catalog: dict, strict: dict, mapping: dict, obsolete: dict | set, requ
     for tc, entry in sorted(mapping.items()):
         if not TC.match(tc):
             add("mapping", "cases.toml", f"{tc} is not TC-AREA-NNN")
+        if tc in renamed:
+            add("mapping", "cases.toml", f"{tc} was renamed to {renamed[tc]}; take a new number")
         if not isinstance(entry, dict) or not entry.get("title"):
             add("mapping", "cases.toml", f"{tc} has no title")
             continue
@@ -169,12 +183,15 @@ def main(argv=None) -> int:
     ap.add_argument("--strict", type=Path, default=HERE / "strict.toml")
     ap.add_argument("--mapping", type=Path, default=HERE / "cases.toml")
     ap.add_argument("--obsolete", type=Path, help="JSON object whose keys are the obsolete IDs")
+    ap.add_argument("--renamed", type=Path, default=RENAMED, help="the rename list: old IDs stay reserved")
     ap.add_argument("--require-all", action="store_true", help="fail if a suite wasn't collected")
     ap.add_argument("--quiet", action="store_true", help="list errors only")
     a = ap.parse_args(argv)
     catalog = json.loads(a.catalog.read_text(encoding="utf-8"))
     obsolete = json.loads(a.obsolete.read_text(encoding="utf-8")) if a.obsolete and a.obsolete.is_file() else {}
-    findings = check(catalog, load_toml(a.strict), load_toml(a.mapping), obsolete, a.require_all)
+    findings = check(
+        catalog, load_toml(a.strict), load_toml(a.mapping), obsolete, a.require_all, renamed_ids(a.renamed)
+    )
     for f in sorted(findings, key=lambda f: (not f.error, f.where)):
         if f.error or not a.quiet:
             print(f)

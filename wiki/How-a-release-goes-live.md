@@ -81,7 +81,7 @@ kept.
   V1 replay aside, an artefact of the replay: its finest level starts in January 2015, so that cut
   has no annual rate yet).
 
-**The new checks are mutation-tested.** Before a check counts, the code it guards is broken on
+**The new checks are mutation-tested.** Before a check counts, the code it checks is broken on
 purpose and the check must fail; where a break survived, the test was strengthened.
 
 **Figures typed into the text.** A number written into a sentence doesn't follow the data. Every

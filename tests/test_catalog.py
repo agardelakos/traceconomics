@@ -414,6 +414,7 @@ JUNIT = """<?xml version="1.0"?><testsuites><testsuite>
 <testcase classname="tests.test_x" name="test_b" time="0.1"><skipped/></testcase>
 <testcase classname="tests.test_x" name="test_c" time="0.1"/>
 <testcase classname="tests.test_local_x" name="" time="0"><skipped message="could not import 'pandas'"/></testcase>
+<testcase classname="" name="tests.test_local_y" time="0.000"><skipped message="collection skipped">('tests/test_local_y.py', 11, "Skipped: could not import 'pandas': No module named 'pandas'")</skipped></testcase>
 </testsuite></testsuites>"""
 
 PLAYWRIGHT = {
@@ -481,6 +482,7 @@ def test_record_gives_each_result_to_its_case(tmp_path):
     And a Playwright test passed on retry is flaky, with its total duration and one retry
     And the Vitest case passed
     And the results with no case are counted per suite
+    And a module that skipped itself whole is no result, in either form pytest writes it
     And the pytest suite's totals count passed, failed, flaky and skipped tests and the duration
     And the record passes the record check
     """
@@ -627,6 +629,48 @@ def test_a_removed_tests_id_becomes_obsolete_and_a_revert_takes_it_off(tmp_path)
     assert "PW-CALC-001" in _stored(store, "obsolete.json")
     history.update_catalog(store, cat(case(), pw))  # reverted
     assert _stored(store, "obsolete.json") == {}
+
+
+def test_a_renamed_id_moves_to_its_new_name_and_never_becomes_obsolete(tmp_path):
+    """PY-CAT-038: a renamed case's old ID is not obsolete, and its past runs read under the new ID
+
+    Given a stored catalog and a run record with a case under its old ID
+    And a rename list that points the old ID to a new one
+    When a catalog holding the case under its new ID is stored
+    Then no ID is obsolete
+    And the history's runs give the case's past result under its new ID
+    """
+    store = tmp_path / "store"
+    (store / "runs/push").mkdir(parents=True)
+    old, new = case(id="PY-ENG-001"), case(id="PY-NEW-001")
+    history.update_catalog(store, cat(old))
+    rec = {"cases": {"PY-ENG-001": {"result": "passed"}}, "suites": {}}
+    (store / "runs/push/1.json").write_text(json.dumps(rec), encoding="utf-8")
+    history.update_catalog(store, cat(new), renamed={"PY-ENG-001": "PY-NEW-001"})
+    assert _stored(store, "obsolete.json") == {}
+    _, _, runs = wiki.load(store, renamed={"PY-ENG-001": "PY-NEW-001"})
+    assert runs["push"][0]["cases"] == {"PY-NEW-001": {"result": "passed"}}
+
+
+def test_a_renamed_away_id_is_reserved(tmp_path):
+    """PY-CAT-039: an ID renamed away can't be taken by a test or a mapping entry, and the real list is sound
+
+    Given a rename list pointing an old ID to a new one
+    When a catalog gives the old ID to a test, and the mapping uses an old shared-case ID
+    Then both are errors, as for an obsolete ID
+    And every entry in the real rename list has a new ID, a date and a reason, and no new ID is renamed again
+    """
+    gone = {"PY-ENG-001": "PY-NEW-001", "TC-ENG-001": "TC-NEW-001"}
+    assert ("reused-id", True) in {
+        (f.rule, f.error) for f in validate.check(cat(case()), {}, {}, {}, False, renamed=gone)
+    }
+    mapping = {"TC-ENG-001": {"title": "x", "playwright": [], "why": "one suite"}}
+    found = validate.check(cat(), {}, mapping, {}, False, renamed=gone)
+    assert any(f.rule == "mapping" and "TC-ENG-001" in f.message for f in found)
+    real = cases_mod.renamed()
+    assert real and set(real.values()).isdisjoint(real)
+    entries = cases_mod.renamed_entries()
+    assert all(e.get("to") and e.get("date") and e.get("why") for e in entries.values())
 
 
 def test_a_bad_record_is_refused(tmp_path):
@@ -1064,8 +1108,8 @@ def test_the_mutation_page_shows_the_newest_run_its_history_and_its_survivors(tm
         "| 2026-11-24",
     ]
     functions = [line for line in page.splitlines() if line.startswith("| [`")]
-    assert functions[0].startswith("| [`chain.chain`](Code-engine#traceconomicsenginechain) | 6 | 5 | 1 |")
-    assert functions[-1].startswith("| [`rates.rebase`](Code-engine#traceconomicsenginerates) | 0 | 0 | 0 |")
+    assert functions[0].startswith("| [`chain.chain`](Code-map-engine#traceconomicsenginechain) | 6 | 5 | 1 |")
+    assert functions[-1].startswith("| [`rates.rebase`](Code-map-engine#traceconomicsenginerates) | 0 | 0 | 0 |")
     assert (
         "### `traceconomics.engine.chain.chain`: not explained yet\n\n```diff\n-    continue\n+    break\n```" in page
     )

@@ -20,6 +20,9 @@ Rules:
 - **A parametrized test is one Scenario Outline**: one ID, with the parameters as its examples.
 - **An ID is never reused.** When a test is removed, its case is listed as obsolete, with the last
   commit it existed at, so a past run can always be read against the case it ran.
+- **A renamed ID stays reserved.** An ID is renamed only through a reviewed list
+  (`tests/catalog/renamed.toml`): past runs read under the new ID, and the old one is never used
+  again.
 - **Defect links** go on the test: `xfail`, `test.fail` and skip reasons carry `#<issue>`.
 - **A check in CI** refuses a case without an ID or without Given/When/Then, in every suite.
 
@@ -63,22 +66,12 @@ suite and area, obsolete cases, the last runs per case, and each case's flakines
 never edited by hand; a correction goes into the test, and the page follows. Links to them appear in
 the sidebar as they are published.
 
-The `Code-*` pages, the code reference, are generated the same way from the package's docstrings
-(`tests/catalog/code_reference.py`): one page per package, with each module's docstring and its
-public functions, classes and methods, each linked to its source line at the commit the pages were
-made from. Every public part must have a docstring whose first line is one sentence
-(`tests/test_docstrings.py`), so the reference has no gaps.
-
-The `Checks` page lists every automatic check: the CI jobs, the linters' settings, the site checks,
-the repository checks, the gates inside the runs, the release steps and what runs after a build
-(`tests/catalog/checks_page.py`). What a job or a release step checks is written once, in
-`tests/catalog/checks.toml`; everything else is read from where it is defined. The page is not
-written while the two disagree (`tests/test_checks_page.py` fails first): a new job or release step
-needs its entry, and the required checks it lists must be the ones the branch rules on `main`
-require.
-
-The code map (what the tests run, module by module, with charts) and mutation testing are part of
-the [testing showcase](Testing-showcase), which explains them.
+Three more generated pages sit elsewhere in the wiki, made the same way and never edited by hand:
+the [code reference](Code), from the package's docstrings (every public part must have one,
+`tests/test_docstrings.py`); the [Checks](Checks) page, every automatic check by when it runs; and
+[Rules: guides and sensors](Rules-guides-and-sensors), every hard rule with what steers away from a
+break and what sees one. The [code map](Code-map) (what the tests run, module by module) and mutation
+testing are part of the [testing showcase](Testing-showcase), which explains them.
 
 ## Compared with a dedicated test-management tool
 
@@ -95,8 +88,8 @@ plans, runs and results with its own web interface.
   Branches carry their own cases; nothing to synchronise on merge.
 - **History per commit and per build.** Every recorded run points at an exact commit or release
   build, so a result is always reproducible against the code it ran on.
-- **Enforced, not requested.** CI refuses a test without a case, so coverage of the catalog is a
-  gate, not a habit.
+- **Enforced, not requested.** CI refuses a test without a case, and the merge waits for it: a case
+  on every test is a rule a sensor enforces, not a habit.
 - **Works with any framework, old or new.** A docstring or an annotation is all a framework needs;
   nothing to integrate, no plugin to keep alive.
 - **Free and open.** No licence, no seats, no vendor account; anyone who forks the repository gets
